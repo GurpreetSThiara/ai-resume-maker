@@ -13,6 +13,10 @@ export function createClientComponentClient() {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+      global: {
+        headers: {},
       },
     })
   }

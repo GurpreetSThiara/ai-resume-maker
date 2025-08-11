@@ -83,10 +83,16 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
           data: {
             full_name: signUpData.fullName,
           },
+          // Persist session via cookie for 30 days after email confirmation
+          emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/create`,
         },
       })
 
       if (error) throw error
+
+      // Ensure we do not create duplicate accounts for the same email.
+      // Supabase auth already enforces unique emails unless configured otherwise.
+      // We mirror user in profiles with unique email too (see schema), so duplicates are prevented at DB level.
 
       setSuccess("Check your email for the confirmation link!")
     } catch (error: any) {
@@ -104,6 +110,8 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
+          // Persist session cookie; Supabase sets long-lived refresh token cookies by default.
+          // We provide a redirect so the browser writes cookies in our domain and route.
           redirectTo: `${window.location.origin}/create`,
         },
       })
@@ -294,7 +302,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
               </div>
             </div>
 
-            <Button
+            {/* <Button
               variant="outline"
               onClick={handleGoogleSignIn}
               disabled={isLoading}
@@ -319,7 +327,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
                 />
               </svg>
               Continue with Google
-            </Button>
+            </Button> */}
           </div>
         </CardContent>
       </Card>

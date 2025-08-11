@@ -13,13 +13,20 @@ import { ExperienceSection } from "@/components/experience-section"
 import { SkillsSection } from "@/components/skills-section"
 import { CustomFieldsSection } from "@/components/custom-fields-section"
 import { ReviewSection } from "@/components/review-section"
-import { saveResumeData, getUserResumeCount, loadResumeData } from "@/lib/supabase-functions"
-import { generateResumePDF } from "@/lib/pdf-generators/google-resume-generator"
+import { saveResumeData, getUserResumeCount, loadResumeData, deleteResume } from "@/lib/supabase-functions"
+import { generateResumePDF } from "@/lib/pdf-generators"
 import ResumePreview from "@/components/resume-preview" // Import ResumePreview component
 import type { ResumeData, ResumeTemplate } from "@/types/resume"
+import { availableTemplates } from "@/lib/templates"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import AIResumeModal from '../../components/ai-resume-modal';
+import { useAi } from '@/hooks/use-ai';
+import { getLocalResumes, saveLocalResume } from '@/lib/local-storage';
+import ManageCloudModal from '@/components/manage-cloud-modal';
+import SaveResumeModal from '@/components/save-resume-modal';
+import { sanitizeTextForPdf } from '@/lib/utils'
 
 const initialData: ResumeData = {
   name: "",
@@ -106,15 +113,23 @@ const defaultTemplate: ResumeTemplate = {
 }
 
 export default function CreateResume() {
+  console.log('OPENROUTER_API_KEYS:', process.env.OPENROUTER_API_KEYS);
   const { user, loading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
+  const { effectiveAiEnabled } = useAi()
   
   const [currentStep, setCurrentStep] = useState(0)
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set())
   const [resumeData, setResumeData] = useState<ResumeData>(initialData)
-  const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplate>(defaultTemplate)
+  const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplate>(() => {
+    // allow selecting via query param from homepage
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+    const tplId = params?.get('template')
+    const fromList = tplId ? availableTemplates.find((t) => t.id === tplId) : null
+    return fromList || defaultTemplate
+  })
   const [showPreview, setShowPreview] = useState(false)
   const [showCelebration, setShowCelebration] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -124,15 +139,102 @@ export default function CreateResume() {
   const [isCheckingLimit, setIsCheckingLimit] = useState(false)
   const [isLoadingResume, setIsLoadingResume] = useState(false)
   const [hasProcessedResumeId, setHasProcessedResumeId] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false);
+  const [limitModalOpen, setLimitModalOpen] = useState(false)
+  const [limitModalBusy, setLimitModalBusy] = useState(false)
+  const [saveModalOpen, setSaveModalOpen] = useState(false)
 
   // Calculate progress
   const progress = (completedSteps.size / steps.length) * 100
 
+  // Sanitize resume data for PDF compatibility
+  const sanitizeResumeData = (data: ResumeData): ResumeData => {
+    return {
+      ...data,
+      name: sanitizeTextForPdf(data.name || ''),
+      email: sanitizeTextForPdf(data.email || ''),
+      phone: sanitizeTextForPdf(data.phone || ''),
+      location: sanitizeTextForPdf(data.location || ''),
+      linkedin: sanitizeTextForPdf(data.linkedin || ''),
+      custom: Object.fromEntries(
+        Object.entries(data.custom || {}).map(([key, field]) => [
+          key,
+          {
+            ...field,
+            title: sanitizeTextForPdf(field.title || ''),
+            content: sanitizeTextForPdf(field.content || '')
+          }
+        ])
+      ),
+      sections: data.sections?.map(section => ({
+        ...section,
+        title: sanitizeTextForPdf(section.title || ''),
+        content: Object.fromEntries(
+          Object.entries(section.content || {}).map(([key, values]) => [
+            key,
+            values?.map(value => sanitizeTextForPdf(value || '')) || []
+          ]
+        ))
+      })) || []
+    };
+  }
+
+  // Handle AI-generated resume data
+  const handleAIResumeData = (aiData: ResumeData) => {
+    // Merge AI data with existing data, preserving any existing content
+    const mergedData: ResumeData = {
+      ...resumeData,
+      name: aiData.name || resumeData.name,
+      email: aiData.email || resumeData.email,
+      phone: aiData.phone || resumeData.phone,
+      location: aiData.location || resumeData.location,
+      linkedin: aiData.linkedin || resumeData.linkedin,
+      custom: { ...resumeData.custom, ...aiData.custom },
+      sections: aiData.sections.map((aiSection, index) => {
+        const existingSection = resumeData.sections[index];
+        
+        // If no existing section at this index, create a new one
+        if (!existingSection) {
+          return {
+            id: aiSection.id || String(index + 1),
+            title: aiSection.title,
+            content: aiSection.content
+          };
+        }
+        
+        // Merge with existing section
+        return {
+          ...existingSection,
+          title: aiSection.title,
+          content: {
+            ...existingSection.content,
+            ...aiSection.content
+          }
+        };
+      })
+    };
+
+    setResumeData(sanitizeResumeData(mergedData));
+    
+    // Mark relevant steps as completed
+    const newCompletedSteps = new Set(completedSteps);
+    if (aiData.name && aiData.email) newCompletedSteps.add(0); // Personal info
+    if (aiData.sections.some(s => s.title.toLowerCase().includes('education'))) newCompletedSteps.add(1);
+    if (aiData.sections.some(s => s.title.toLowerCase().includes('experience'))) newCompletedSteps.add(2);
+    if (aiData.sections.some(s => s.title.toLowerCase().includes('skill'))) newCompletedSteps.add(3);
+    setCompletedSteps(newCompletedSteps);
+
+    toast({
+      title: "AI Data Applied",
+      description: "Your resume has been populated with AI-extracted information. You can now edit and refine it.",
+    });
+  };
+
   // Debounce function to prevent duplicate API calls
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const debounceRef = useRef<number | NodeJS.Timeout | null>(null)
   const debounce = (func: Function, delay: number) => {
     if (debounceRef.current) {
-      clearTimeout(debounceRef.current)
+      clearTimeout(debounceRef.current as number)
     }
     debounceRef.current = setTimeout(func, delay)
   }
@@ -148,7 +250,7 @@ export default function CreateResume() {
     // Cleanup function to clear timeout on unmount
     return () => {
       if (debounceRef.current) {
-        clearTimeout(debounceRef.current)
+        clearTimeout(debounceRef.current as number)
       }
     }
   }, [user, loading, currentResumeId])
@@ -179,7 +281,7 @@ export default function CreateResume() {
       const result = await loadResumeData(resumeId)
       console.log("Load result:", result)
       if (result.success && result.data) {
-        setResumeData(result.data)
+        setResumeData(sanitizeResumeData(result.data))
         setCurrentResumeId(resumeId)
         // Mark all steps as completed for editing
         setCompletedSteps(new Set([0, 1, 2, 3, 4, 5]))
@@ -211,27 +313,14 @@ export default function CreateResume() {
   }
 
   const checkResumeLimit = async () => {
-    console.log("checkResumeLimit called, isCheckingLimit:", isCheckingLimit)
-    
+    // Only used to show info; do not redirect preemptively
     setIsCheckingLimit(true)
     try {
       const result = await getUserResumeCount()
-      console.log("Resume count result:", result)
-      if (result.success) {
-        setResumeCount(result.count)
-        if (result.count >= 3 && !currentResumeId) {
-          toast({
-            title: "Resume Limit Reached",
-            description: "You can only create up to 3 resumes. Please delete an existing resume or edit one of your current resumes.",
-            variant: "destructive",
-          })
-          router.push("/profile")
-        }
-      }
+      if (result.success) setResumeCount(result.count)
     } catch (error) {
       console.error("Error checking resume limit:", error)
     } finally {
-      console.log("Setting isCheckingLimit to false")
       setIsCheckingLimit(false)
     }
   }
@@ -316,7 +405,7 @@ export default function CreateResume() {
 
   const saveToLocalStorage = () => {
     try {
-      localStorage.setItem('resumeData', JSON.stringify(resumeData))
+      localStorage.setItem('resumeData', JSON.stringify(sanitizeResumeData(resumeData)))
       localStorage.setItem('currentStep', currentStep.toString())
       localStorage.setItem('completedSteps', JSON.stringify(Array.from(completedSteps)))
     } catch (error) {
@@ -331,7 +420,7 @@ export default function CreateResume() {
       const savedCompletedSteps = localStorage.getItem('completedSteps')
       
       if (savedData) {
-        setResumeData(JSON.parse(savedData))
+        setResumeData(sanitizeResumeData(JSON.parse(savedData)))
       }
       if (savedStep) {
         setCurrentStep(parseInt(savedStep))
@@ -353,51 +442,95 @@ export default function CreateResume() {
   }
 
   const handleCompleteResume = async () => {
-    // First save to local storage
-    saveToLocalStorage()
-    
-    setIsSaving(true)
+    // Open guided save modal instead of confirm
+    setSaveModalOpen(true)
+  }
+
+  const handleConfirmDeleteAndRetry = async (toDelete: string[]) => {
+    setLimitModalBusy(true)
     try {
-      const result = await saveResumeData(resumeData, currentResumeId || undefined)
-      if (result.success && result.data) {
-        setCurrentResumeId(result.data.id)
-        
-        // Clear local storage after successful save
+      // Delete selected, then retry save
+      for (const id of toDelete) {
+        await deleteResume(id as string)
+      }
+      const res = await saveResumeData(resumeData, currentResumeId || undefined)
+      if (res.success && res.data) {
+        setLimitModalOpen(false)
+        setCurrentResumeId(res.data.id)
         localStorage.removeItem('resumeData')
         localStorage.removeItem('currentStep')
         localStorage.removeItem('completedSteps')
-        
-        toast({
-          title: "Resume Completed! 🎉",
-          description: "Your resume has been saved to the cloud successfully.",
-        })
-        // Redirect to profile page after successful completion
-        router.push("/profile")
+        toast({ title: "Resume Completed! 🎉", description: "Saved to cloud successfully." })
+        router.push('/profile')
       } else {
-        toast({
-          title: "Save Failed",
-          description: result.message || "Failed to save your resume. Please try again.",
-          variant: "destructive",
-        })
+        toast({ title: 'Save Failed', description: res.message || 'Could not save after deletion', variant: 'destructive' })
       }
-    } catch (error) {
-      console.error("Error saving resume:", error)
-      toast({
-        title: "Save Failed",
-        description: "Failed to save your resume. Please try again.",
-        variant: "destructive",
-      })
+    } catch (e) {
+      console.error(e)
+      toast({ title: 'Delete/Save Failed', description: 'Please try again', variant: 'destructive' })
+    } finally {
+      setLimitModalBusy(false)
+    }
+  }
+
+  // Save modal handlers
+  const onChooseLocal = async () => {
+    const localId = currentResumeId || crypto.randomUUID()
+    saveLocalResume({ id: localId, title: resumeData.name || 'Untitled Resume', data: resumeData, updatedAt: new Date().toISOString() })
+    saveToLocalStorage()
+    setSaveModalOpen(false)
+    toast({ title: 'Saved Locally', description: 'Your resume was saved in this browser.' })
+  }
+
+  const onChooseCloudCreate = async () => {
+    setIsSaving(true)
+    try {
+      const res = await saveResumeData(resumeData)
+      if (res.success && res.data) {
+        setCurrentResumeId(res.data.id)
+        localStorage.removeItem('resumeData')
+        localStorage.removeItem('currentStep')
+        localStorage.removeItem('completedSteps')
+        setSaveModalOpen(false)
+        toast({ title: 'Resume Completed! 🎉', description: 'Saved to cloud successfully.' })
+        router.push('/profile')
+      } else if (res.message?.toLowerCase().includes('3 resumes') || res.error === 'Resume limit reached') {
+        setSaveModalOpen(false)
+        setLimitModalOpen(true)
+      } else {
+        toast({ title: 'Cloud Save Failed', description: res.message || 'Saving to cloud failed.', variant: 'destructive' })
+      }
     } finally {
       setIsSaving(false)
     }
   }
 
-  // Load from local storage on component mount
+  const onChooseCloudUpdate = async (resumeId: string) => {
+    setIsSaving(true)
+    try {
+      const res = await saveResumeData(resumeData, resumeId)
+      if (res.success && res.data) {
+        setCurrentResumeId(res.data.id)
+        localStorage.removeItem('resumeData')
+        localStorage.removeItem('currentStep')
+        localStorage.removeItem('completedSteps')
+        setSaveModalOpen(false)
+        toast({ title: 'Resume Updated! 🎉', description: 'Cloud resume updated successfully.' })
+        router.push('/profile')
+      } else {
+        toast({ title: 'Update Failed', description: res.message || 'Could not update resume.', variant: 'destructive' })
+      }
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Load from local storage on component mount (for both guests and users)
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading) {
       loadFromLocalStorage()
     }
-  }, [user, loading])
+  }, [loading])
 
   const handleResumeDataUpdate = (data: ResumeData | ((prev: ResumeData) => ResumeData)) => {
     if (typeof data === 'function') {
@@ -439,9 +572,7 @@ export default function CreateResume() {
     )
   }
 
-  if (!user) {
-    return null // Will redirect
-  }
+  // Allow guests to create resumes (guest mode)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
@@ -474,6 +605,26 @@ export default function CreateResume() {
                 Download PDF
               </Button>
             )}
+            {/* Template Selector */}
+            <select
+              className="border rounded px-2 py-1 text-sm"
+              value={selectedTemplate.id}
+              onChange={(e) => {
+                const t = availableTemplates.find((t) => t.id === e.target.value)
+                if (t) setSelectedTemplate(t)
+              }}
+            >
+              {availableTemplates.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+            <Button onClick={() => setModalOpen(true)} disabled={!effectiveAiEnabled} className="flex items-center gap-2">
+              <Star className="w-4 h-4" />
+              Create with AI
+            </Button>
+            {!effectiveAiEnabled && <span className="text-xs text-red-600">Login to use AI</span>}
             <div className="flex gap-1">
               {userAchievements.map((achievement) => (
                 <Badge
@@ -625,6 +776,22 @@ export default function CreateResume() {
           )}
         </div>
       </div>
+      <AIResumeModal open={modalOpen} onOpenChange={setModalOpen} onResumeDataGenerated={handleAIResumeData} />
+      <SaveResumeModal
+        open={saveModalOpen}
+        onOpenChange={setSaveModalOpen}
+        onChooseLocal={onChooseLocal}
+        onChooseCloudCreate={onChooseCloudCreate}
+        onChooseCloudUpdate={onChooseCloudUpdate}
+        busy={isSaving}
+      />
+      <ManageCloudModal
+        open={limitModalOpen}
+        onOpenChange={setLimitModalOpen}
+        onConfirmDeleteAndRetry={handleConfirmDeleteAndRetry}
+        onSaveLocally={onChooseLocal}
+        loading={limitModalBusy}
+      />
     </div>
   )
 }

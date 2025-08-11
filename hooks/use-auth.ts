@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase/client"
 import type { User } from "@supabase/supabase-js"
+import { ensureUserProfile } from "@/lib/profile"
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
@@ -21,6 +22,10 @@ export function useAuth() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
       setLoading(false)
+      if (session?.user) {
+        // Mirror user into profiles table; relies on DB unique email constraint
+        ensureUserProfile()
+      }
     })
 
     return () => subscription.unsubscribe()

@@ -22,12 +22,14 @@ import {
   EyeOff
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
+import { useAi } from "@/hooks/use-ai"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/lib/supabase/client"
 
 export default function SettingsPage() {
   const { user, loading, signOut } = useAuth()
+  const { aiEnabled, setAiEnabled, usage, refreshUsage } = useAi()
   const router = useRouter()
   const { toast } = useToast()
   
@@ -330,6 +332,22 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="ai_enabled">AI Features</Label>
+                  <p className="text-sm text-gray-600">Enable or disable AI features (requires login)</p>
+                  {user && usage && (
+                    <p className="text-xs text-gray-500 mt-1">Monthly credits: ${'{'}usage.totalUsdUsedThisMonth.toFixed(2){'}'} used / ${'{'}usage.monthUsdLimit.toFixed(2){'}'}</p>
+                  )}
+                </div>
+                <Switch
+                  id="ai_enabled"
+                  checked={aiEnabled}
+                  onCheckedChange={(checked) => setAiEnabled(checked)}
+                  disabled={!user}
+                />
+              </div>
+
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="email_notifications">Email Notifications</Label>

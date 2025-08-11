@@ -14,6 +14,7 @@ export async function saveResumeData(data: ResumeData, resumeId?: string) {
     } = await supabase.auth.getUser()
 
     if (!user) {
+      // Allow saving locally only for guests; surface limit message from caller
       throw new Error("User not authenticated")
     }
 

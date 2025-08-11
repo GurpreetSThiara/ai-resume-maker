@@ -1,9 +1,12 @@
 "use client"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
+import { availableTemplates } from "@/lib/templates"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, Star, Users, Download, Zap, Shield, Globe, ArrowRight, FileText, Sparkles, User, Settings, Award, Clock, Target, TrendingUp } from "lucide-react"
+import { CheckCircle, Star, Users, Download, Zap, Shield, Globe, ArrowRight, FileText, Sparkles, User, Settings, Award, Clock, Target, TrendingUp, Play } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 
 export interface ResumeData {
@@ -98,74 +101,106 @@ function NavigationHeader() {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
-      <NavigationHeader />
-      
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white via-indigo-50 to-white">
+     
+
       {/* Hero Section */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto text-center">
-          <Badge className="mb-6 bg-purple-100 text-purple-800 hover:bg-purple-200">
-            <Sparkles className="w-4 h-4 mr-2" />
-            Free Professional Resume Builder
+      <section className="relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 opacity-60">
+          <div className="absolute -top-24 -left-24 h-80 w-80 rounded-full bg-purple-300 blur-3xl" />
+          <div className="absolute top-20 right-0 h-96 w-96 rounded-full bg-blue-300 blur-3xl" />
+        </div>
+        <div className="container mx-auto px-4 pt-20 pb-14 md:pt-28 md:pb-20 relative text-center">
+          <Badge className="mb-5 bg-white/80 text-purple-700 border border-purple-200">
+            <Sparkles className="w-4 h-4 mr-2" /> AI + ATS Optimized
           </Badge>
-
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Build Your Dream Resume in Minutes
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 bg-gradient-to-r from-slate-900 via-purple-700 to-indigo-700 bg-clip-text text-transparent">
+            Your Resume, Perfected in Minutes
           </h1>
-
-          <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Create a professional, ATS-friendly resume with our gamified builder. Stand out from the crowd and land your
-            dream job with ease. Our free resume builder helps you create compelling resumes that get past Applicant Tracking Systems and into the hands of hiring managers.
+          <p className="text-lg md:text-2xl text-slate-600 mb-8 max-w-3xl mx-auto">
+            Build a modern, recruiter-ready resume with live preview, AI guidance, and world-class templates.
           </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
             <Link href="/create">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-lg px-8 py-4"
-              >
+              <Button size="lg" className="h-12 px-7 text-base bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
                 Create Free Resume
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-4 bg-white/50 backdrop-blur-sm">
-              <Download className="w-5 h-5 mr-2" />
-              Download Sample
-            </Button>
+            <Link href="/create">
+              <Button size="lg" variant="outline" className="h-12 px-7 text-base bg-white/70 backdrop-blur border-slate-200">
+                <Play className="w-5 h-5 mr-2" /> Try Interactive Demo
+              </Button>
+            </Link>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-5xl mx-auto">
-            <div className="text-center">
-              <div className="text-4xl font-bold text-purple-600 mb-2">50K+</div>
-              <div className="text-gray-600">Resumes Created</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-left md:text-center">
+            <div>
+              <div className="text-3xl font-bold text-purple-700">50K+</div>
+              <div className="text-slate-500">Resumes Created</div>
             </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-blue-600 mb-2">95%</div>
-              <div className="text-gray-600">Success Rate</div>
+            <div>
+              <div className="text-3xl font-bold text-blue-700">95%</div>
+              <div className="text-slate-500">Success Rate</div>
             </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-indigo-600 mb-2">4.9★</div>
-              <div className="text-gray-600">User Rating</div>
+            <div>
+              <div className="text-3xl font-bold text-indigo-700">4.9★</div>
+              <div className="text-slate-500">User Rating</div>
             </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-green-600 mb-2">2min</div>
-              <div className="text-gray-600">Average Time</div>
+            <div>
+              <div className="text-3xl font-bold text-emerald-700">2 min</div>
+              <div className="text-slate-500">To First Draft</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section className="py-20 px-4 bg-white/50 backdrop-blur-sm">
+      {/* Template Showcase */}
+      <section className="py-16 px-4 bg-white/70">
         <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4 text-gray-800">Why Choose Our Resume Builder?</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Experience the most intuitive and powerful resume building platform designed for modern job seekers. Our ATS-friendly templates ensure your resume gets noticed.
-            </p>
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">Professionally Designed Templates</h2>
+            <p className="text-slate-600 mt-3 max-w-2xl mx-auto">All templates are ATS-optimized and professionally designed.</p>
           </div>
+          <div className="relative max-w-5xl mx-auto">
+              <Carousel className="w-full">
+                <CarouselContent>
+                  {availableTemplates.map((t) => (
+                    <CarouselItem key={t.id} className="md:basis-1/2 lg:basis-1/3">
+                      <div className="p-4">
+                        <Card className="hover:shadow-xl transition-shadow">
+                          <CardHeader>
+                            <CardTitle className="text-lg">{t.name}</CardTitle>
+                            <CardDescription>{t.description}</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="h-40 bg-gradient-to-br from-gray-50 to-gray-100 border rounded flex items-center justify-center text-gray-400">
+                              Template Preview
+                            </div>
+                            <div className="mt-4 flex justify-between">
+                              <Link href={{ pathname: "/create", query: { template: t.id } }}>
+                                <Button size="sm">Use Template</Button>
+                              </Link>
+                              <Link href="/create">
+                                <Button size="sm" variant="outline">Customize</Button>
+                              </Link>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+          </div>
+        </div>
+      </section>
 
+      {/* Value Props */}
+      <section className="py-20 px-4">
+        <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
               <CardHeader>
@@ -231,7 +266,7 @@ export default function HomePage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 bg-white/70">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 text-gray-800">How It Works</h2>
@@ -337,85 +372,63 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Testimonials + FAQ */}
       <section className="py-20 px-4">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4 text-gray-800">What Our Users Say</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Join thousands of successful job seekers who landed their dream jobs with our resume builder
-            </p>
+        <div className="container mx-auto grid gap-12 lg:grid-cols-2 items-start">
+          <div>
+            <h3 className="text-3xl font-bold text-slate-900 mb-6">Loved by Job Seekers</h3>
+            <Carousel>
+              <CarouselContent>
+                {[1,2,3].map((i) => (
+                  <CarouselItem key={i}>
+                    <Card className="border-0 shadow-md">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center mb-3">
+                          {[...Array(5)].map((_, idx) => (
+                            <Star key={idx} className="w-5 h-5 text-yellow-400 fill-current" />
+                          ))}
+                        </div>
+                        <p className="text-slate-600 mb-4">{i === 1 ? 'Landed interviews at top tech firms within a week. Templates are gorgeous and ATS-safe.' : i === 2 ? 'Faster than any builder I tried. Live preview is a game changer.' : 'As a grad, this made everything easy. Got my first offer in 2 weeks.'}</p>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full flex items-center justify-center text-white font-bold">{i === 1 ? 'S' : i === 2 ? 'M' : 'E'}</div>
+                          <div>
+                            <div className="font-semibold">{i === 1 ? 'Sarah Johnson' : i === 2 ? 'Michael Chen' : 'Emily Rodriguez'}</div>
+                            <div className="text-sm text-slate-500">{i === 1 ? 'Software Engineer' : i === 2 ? 'Marketing Manager' : 'Recent Graduate'}</div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="border-0 shadow-lg">
-              <CardContent className="pt-6">
-                <div className="flex items-center mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                  ))}
-                </div>
-                <p className="text-gray-600 mb-4">
-                  "This resume builder helped me land my dream job at Google! The interface is so intuitive and the
-                  final result looks incredibly professional. The ATS-friendly format definitely made a difference."
-                </p>
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full flex items-center justify-center text-white font-bold mr-3">
-                    S
-                  </div>
-                  <div>
-                    <div className="font-semibold">Sarah Johnson</div>
-                    <div className="text-sm text-gray-500">Software Engineer at Google</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg">
-              <CardContent className="pt-6">
-                <div className="flex items-center mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                  ))}
-                </div>
-                <p className="text-gray-600 mb-4">
-                  "The gamified experience made building my resume actually fun! I got 3 interview calls within a week
-                  of using this resume. The templates are perfect for my industry."
-                </p>
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full flex items-center justify-center text-white font-bold mr-3">
-                    M
-                  </div>
-                  <div>
-                    <div className="font-semibold">Michael Chen</div>
-                    <div className="text-sm text-gray-500">Marketing Manager</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg">
-              <CardContent className="pt-6">
-                <div className="flex items-center mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                  ))}
-                </div>
-                <p className="text-gray-600 mb-4">
-                  "As a recent graduate, I had no idea how to create a professional resume. This tool guided me through
-                  every step perfectly! I landed my first job within 2 weeks."
-                </p>
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full flex items-center justify-center text-white font-bold mr-3">
-                    E
-                  </div>
-                  <div>
-                    <div className="font-semibold">Emily Rodriguez</div>
-                    <div className="text-sm text-gray-500">Recent Graduate</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div>
+            <h3 className="text-3xl font-bold text-slate-900 mb-6">Frequently Asked Questions</h3>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item-1">
+                <AccordionTrigger>Is the resume builder really free?</AccordionTrigger>
+                <AccordionContent>Yes. You can build and download unlimited resumes for free.</AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-2">
+                <AccordionTrigger>Are the templates ATS-friendly?</AccordionTrigger>
+                <AccordionContent>All templates are designed for clean parsing in popular ATS systems.</AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-3">
+                <AccordionTrigger>Can I customize the content inline?</AccordionTrigger>
+                <AccordionContent>Absolutely. Edit text directly in the preview and see changes in real time.</AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-4">
+                <AccordionTrigger>Do I need an account?</AccordionTrigger>
+                <AccordionContent>No account is required to start. Sign in to save to the cloud.</AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-5">
+                <AccordionTrigger>Is there an AI assistant?</AccordionTrigger>
+                <AccordionContent>Yes. Use AI to parse your background and generate a strong first draft.</AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </div>
       </section>
@@ -454,104 +467,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 px-4 bg-gray-900 text-white">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <FileText className="w-6 h-6 text-blue-400" />
-                <span className="text-xl font-bold">Resume Builder</span>
-              </div>
-              <p className="text-gray-400">
-                Create professional resumes that get you hired. Fast, easy, and completely free. Our ATS-friendly templates help you stand out in the job market.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/create" className="hover:text-white transition-colors">
-                    Resume Builder
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="hover:text-white transition-colors">
-                    Professional Templates
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="hover:text-white transition-colors">
-                    Resume Examples
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="hover:text-white transition-colors">
-                    ATS-Friendly Formats
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-4">Resources</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="#" className="hover:text-white transition-colors">
-                    Career Tips
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="hover:text-white transition-colors">
-                    Interview Guide
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="hover:text-white transition-colors">
-                    Job Search Strategies
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="hover:text-white transition-colors">
-                    Resume Writing Tips
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-4">Support</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="#" className="hover:text-white transition-colors">
-                    Help Center
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="hover:text-white transition-colors">
-                    Contact Us
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="hover:text-white transition-colors">
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="hover:text-white transition-colors">
-                    Terms of Service
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Resume Builder. All rights reserved. | Free Professional Resume Builder for Job Seekers</p>
-          </div>
-        </div>
-      </footer>
+ 
     </div>
   )
 }

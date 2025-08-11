@@ -18,6 +18,9 @@ import {
   EyeOff
 } from "lucide-react"
 import { getUserResumes, deleteResume, loadResumeData } from "@/lib/supabase-functions"
+import { getLocalResumes, removeLocalResume, LocalResumeItem } from "@/lib/local-storage"
+import { useAi } from "@/hooks/use-ai"
+import { saveResumeData } from "@/lib/supabase-functions"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -90,38 +93,36 @@ export default function ProfilePage() {
   const { user, loading, signOut } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
+  const { usage, refreshUsage } = useAi()
   
   const [resumes, setResumes] = useState<ResumeItem[]>([])
-  const [loadingResumes, setLoadingResumes] = useState(true)
+  const [loadingResumes, setLoadingResumes] = useState(false)
+  const [localResumes, setLocalResumes] = useState<any[]>([])
   const [selectedResume, setSelectedResume] = useState<ResumeItem | null>(null)
   const [resumeData, setResumeData] = useState<ResumeData | null>(null)
   const [showPreview, setShowPreview] = useState(false)
   const [deletingResume, setDeletingResume] = useState<string | null>(null)
   const [hasLoadedResumes, setHasLoadedResumes] = useState(false)
+  const [isSyncingLocal, setIsSyncingLocal] = useState(false)
 
   // Debounce function to prevent duplicate API calls
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const debounceRef = useRef<number | null>(null)
   const debounce = (func: Function, delay: number) => {
     if (debounceRef.current) {
-      clearTimeout(debounceRef.current)
+      window.clearTimeout(debounceRef.current)
     }
-    debounceRef.current = setTimeout(func, delay)
+    debounceRef.current = window.setTimeout(() => func(), delay)
   }
 
   useEffect(() => {
-    if (!loading && user && !hasLoadedResumes) {
-      debounce(() => {
-        loadUserResumes()
-      }, 300)
+    if (loading) return
+    // Always load local resumes when page becomes interactive
+    setLocalResumes(getLocalResumes())
+    // Load cloud resumes once per mount when user present
+    if (user && !hasLoadedResumes) {
+      loadUserResumes()
     }
-    
-    // Cleanup function to clear timeout on unmount
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current)
-      }
-    }
-  }, [user, loading, hasLoadedResumes])
+  }, [loading, user, hasLoadedResumes])
 
   const loadUserResumes = async () => {
     if (loadingResumes) return // Prevent duplicate calls
@@ -222,6 +223,38 @@ export default function ProfilePage() {
     router.push("/create")
   }
 
+  const handleSyncLocalToCloud = async () => {
+    if (!user) return
+    if (resumes.length >= 3) {
+      toast({ title: "Cloud Full", description: "You already have 3 resumes in cloud. Delete one to sync." })
+      return
+    }
+    if (localResumes.length === 0) {
+      toast({ title: "No Local Resumes", description: "Nothing to sync." })
+      return
+    }
+    const confirmSync = confirm("Sync up to the last 3 local resumes to your account?")
+    if (!confirmSync) return
+    setIsSyncingLocal(true)
+    try {
+      const availableSlots = Math.max(0, 3 - resumes.length)
+      const toSync = localResumes.slice(0, availableSlots)
+      for (const item of toSync) {
+        const result = await saveResumeData(item.data)
+        if (!result.success) {
+          throw new Error(result.message || "Failed to sync a resume")
+        }
+      }
+      toast({ title: "Sync Complete", description: "Selected local resumes were synced to cloud." })
+      await loadUserResumes()
+    } catch (err) {
+      console.error(err)
+      toast({ title: "Sync Failed", description: "Some items could not be synced.", variant: "destructive" })
+    } finally {
+      setIsSyncingLocal(false)
+    }
+  }
+
   const handleSignOut = async () => {
     await signOut()
     router.push("/auth")
@@ -237,10 +270,39 @@ export default function ProfilePage() {
 
   const handleResumeDataUpdate = (data: ResumeData | ((prev: ResumeData) => ResumeData)) => {
     if (typeof data === 'function') {
-      setResumeData(data)
+      setResumeData((prev) => (prev ? (data as (p: ResumeData) => ResumeData)(prev) : prev))
     } else {
       setResumeData(data)
     }
+  }
+
+  // Local resume actions
+  const handleEditLocalResume = (localResume: LocalResumeItem) => {
+    // Save the resume data to localStorage for the builder to pick up
+    localStorage.setItem('resumeData', JSON.stringify(localResume.data))
+    localStorage.setItem('currentStep', '1')
+    localStorage.setItem('completedSteps', JSON.stringify([0, 1, 2, 3, 4]))
+    router.push('/create')
+  }
+
+  const handleDeleteLocalResume = (id: string) => {
+    if (confirm('Are you sure you want to delete this local resume? This action cannot be undone.')) {
+      removeLocalResume(id)
+      setLocalResumes(getLocalResumes())
+      toast({
+        title: 'Local Resume Deleted',
+        description: 'The resume has been removed from your local storage.',
+      })
+    }
+  }
+
+  const handleViewLocalResume = (localResume: LocalResumeItem) => {
+    // For now, just show the data in a modal or redirect to view mode
+    // You could implement a read-only view modal here
+    toast({
+      title: 'View Local Resume',
+      description: 'Use the Edit button to open this resume in the builder.',
+    })
   }
 
   if (loading) {
@@ -287,7 +349,7 @@ export default function ProfilePage() {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Resume List */}
           <div className="lg:col-span-2">
-            <Card>
+               <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -307,10 +369,10 @@ export default function ProfilePage() {
                   <div className="flex items-center justify-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
                   </div>
-                ) : resumes.length === 0 ? (
+                                ) : resumes.length === 0 ? (
                   <div className="text-center py-8">
                     <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No resumes yet</h3>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No cloud resumes yet</h3>
                     <p className="text-gray-600 mb-4">Create your first resume to get started</p>
                     <Button onClick={handleCreateNew}>
                       <Plus className="w-4 h-4 mr-2" />
@@ -363,6 +425,65 @@ export default function ProfilePage() {
                     ))}
                   </div>
                 )}
+
+                {/* Local resumes list - always show regardless of cloud resumes */}
+                <Card className="mt-6">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <span>Local Resumes</span>
+                          <Badge variant="secondary">{localResumes.length}</Badge>
+                        </CardTitle>
+                        <CardDescription>These are saved in your browser. You can sync up to 3 to your account.</CardDescription>
+                      </div>
+                      <Button size="sm" onClick={handleSyncLocalToCloud} disabled={!user || isSyncingLocal || resumes.length >= 3 || localResumes.length === 0}>
+                        {isSyncingLocal ? "Syncing..." : "Sync to Cloud"}
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {localResumes.length === 0 ? (
+                      <p className="text-muted-foreground">No local resumes found.</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {localResumes.map((localResume) => (
+                          <div key={localResume.id} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex-1">
+                              <h4 className="font-medium">{localResume.title}</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Last updated: {new Date(localResume.updatedAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewLocalResume(localResume)}
+                              >
+                                View
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditLocalResume(localResume)}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteLocalResume(localResume.id)}
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </CardContent>
             </Card>
           </div>
@@ -403,6 +524,12 @@ export default function ProfilePage() {
                     <span className="text-sm text-gray-600">Total Resumes</span>
                     <Badge variant="secondary">{resumes.length}/3</Badge>
                   </div>
+                  {usage && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">AI Credits (month)</span>
+                      <Badge variant="secondary">${usage.totalUsdUsedThisMonth.toFixed(2)} / ${usage.monthUsdLimit.toFixed(2)}</Badge>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Account Status</span>
                     <Badge variant="default">Active</Badge>
