@@ -62,55 +62,129 @@ export async function generateResumePDF({ resumeData, filename = "resume.pdf" }:
 
   yOffset -= 25
 
-  // Custom Details (2 columns) - Fixed overlapping issue
+  // Custom Details (Flex-wrap style layout) - Fixed overlapping and gaps
   const customEntries = Object.entries(resumeData.custom).filter(([_, item]) => !item.hidden)
-  
+
   if (customEntries.length > 0) {
-    const colWidth = pageWidth / 2 - 15 // Reduced gap between columns
-    const rowHeight = 16 // Increased row height for better spacing
-    const leftX = margin
-    const rightX = margin + pageWidth / 2 + 10 // Adjusted right column position
+    // Calculate item dimensions for flex-wrap layout
+    interface CustomItem {
+      key: string
+      item: any
+      width: number
+      height: number
+      keyWidth: number
+      contentWidth: number
+      wrappedLines: string[]
+    }
 
-    // Calculate how many rows we need
-    const totalRows = Math.ceil(customEntries.length / 2)
-    
-    // Ensure we have enough space for all custom entries
-    ensureSpace(totalRows * rowHeight + 10)
-
-    customEntries.forEach(([_, item], index) => {
-      const isLeft = index % 2 === 0
-      const xPos = isLeft ? leftX : rightX
-      const rowIndex = Math.floor(index / 2)
-      const yPos = yOffset - rowIndex * rowHeight
-
-      // Key
-      draw(`${item.title}:`, xPos, 10, boldFont, textColor)
-
-      // Calculate content position to avoid overlap
+    const items: CustomItem[] = customEntries.map(([key, item]) => {
       const keyText = `${item.title}:`
-      const keyWidth = regularFont.widthOfTextAtSize(keyText, 10)
-      const contentX = xPos + keyWidth + 5 // Add small gap between key and content
-
-      // Value (Link or Text) - ensure it doesn't exceed column width
-      const maxContentWidth = colWidth - keyWidth - 5
+      const keyWidth = boldFont.widthOfTextAtSize(keyText, 10)
       const content = sanitizeTextForPdf(item.content)
+      const contentFontWidth = regularFont.widthOfTextAtSize(content, 10)
       
-      if (regularFont.widthOfTextAtSize(content, 10) <= maxContentWidth) {
-        // Content fits in one line
-        draw(content, contentX, 10, regularFont, item.link ? linkColor : textColor)
-      } else {
-        // Content needs to wrap
-        const wrappedLines = wrapText(content, maxContentWidth, regularFont, 10)
-        wrappedLines.forEach((line, lineIndex) => {
-          draw(line, contentX, 10, regularFont, item.link ? linkColor : textColor)
-          yOffset -= 12
-        })
-        // Reset yOffset for next item
-        yOffset += wrappedLines.length * 12
+      // Calculate if content needs wrapping
+      const maxContentWidth = Math.min(300, pageWidth - keyWidth - 20) // Max content width
+      const wrappedLines = contentFontWidth > maxContentWidth 
+        ? wrapText(content, maxContentWidth, regularFont, 10)
+        : [content]
+      
+      const actualContentWidth = Math.max(...wrappedLines.map(line => 
+        regularFont.widthOfTextAtSize(line, 10)
+      ))
+      
+      return {
+        key,
+        item,
+        width: keyWidth + actualContentWidth + 15, // key + content + gap
+        height: wrappedLines.length * 12,
+        keyWidth,
+        contentWidth: actualContentWidth,
+        wrappedLines
       }
     })
 
-    yOffset -= totalRows * rowHeight + 15
+    // Flex-wrap layout algorithm
+    const rows: CustomItem[][] = []
+    let currentRow: CustomItem[] = []
+    let currentRowWidth = 0
+    const minGap = 30 // Minimum gap between items
+    
+    for (const item of items) {
+      const itemTotalWidth = item.width + minGap
+      
+      // Check if item fits in current row
+      if (currentRowWidth + itemTotalWidth <= pageWidth + minGap) {
+        currentRow.push(item)
+        currentRowWidth += itemTotalWidth
+      } else {
+        // Start new row
+        if (currentRow.length > 0) {
+          rows.push(currentRow)
+        }
+        currentRow = [item]
+        currentRowWidth = itemTotalWidth
+      }
+    }
+    
+    // Add the last row
+    if (currentRow.length > 0) {
+      rows.push(currentRow)
+    }
+
+    // Render rows
+    for (const row of rows) {
+      // Calculate row height (tallest item in row)
+      const rowHeight = Math.max(...row.map(item => item.height))
+      
+      // Ensure space for this row
+      ensureSpace(rowHeight + 5)
+      
+      const rowStartY = yOffset
+      
+      // Distribute items across the row width
+      const totalItemsWidth = row.reduce((sum, item) => sum + item.width, 0)
+      const totalGaps = (row.length - 1) * minGap
+      const availableSpace = pageWidth - totalItemsWidth - totalGaps
+      const extraGapPerItem = row.length > 1 ? availableSpace / (row.length - 1) : 0
+      
+      let currentX = margin
+      
+      // Render each item in the row
+      for (let i = 0; i < row.length; i++) {
+        const item = row[i]
+        const keyText = `${item.item.title}:`
+        
+        // Draw key
+        currentPage.drawText(sanitizeTextForPdf(keyText), {
+          x: currentX,
+          y: rowStartY,
+          size: 10,
+          font: boldFont,
+          color: textColor
+        })
+        
+        // Draw content
+        const contentX = currentX + item.keyWidth + 5
+        item.wrappedLines.forEach((line, lineIndex) => {
+          currentPage.drawText(line, {
+            x: contentX,
+            y: rowStartY - (lineIndex * 12),
+            size: 10,
+            font: regularFont,
+            color: item.item.link ? linkColor : textColor
+          })
+        })
+        
+        // Move to next item position
+        currentX += item.width + minGap + (i < row.length - 1 ? extraGapPerItem : 0)
+      }
+      
+      // Move yOffset down by row height
+      yOffset -= rowHeight + 8 // Extra padding between rows
+    }
+
+    yOffset -= 10 // Additional spacing after custom section
   }
 
   // Sections - Only render sections with actual content

@@ -2,7 +2,7 @@ import type { ResumeTemplate } from "@/types/resume"
 
 export const googleTemplate: ResumeTemplate = {
   id: "google",
-  name: "Google Style",
+  name: "ATS Classic 1",
   description: "Clean, professional template inspired by Google's design principles",
   theme: {
     fontSize: {
@@ -110,7 +110,7 @@ export const modernTemplate: ResumeTemplate = {
 
 export const classicATSTemplate: ResumeTemplate = {
   id: "ats-classic",
-  name: "ATS Classic",
+  name: "ATS Classic 2",
   description: "Traditional, single-column layout optimized for parsers",
   theme: {
     fontSize: { name: "text-3xl", section: "text-xl", content: "text-base", small: "text-sm" },
@@ -182,11 +182,11 @@ export const creativeATSTemplate: ResumeTemplate = {
 
 export const availableTemplates: ResumeTemplate[] = [
   googleTemplate,
-  modernTemplate,
+ // modernTemplate,
   classicATSTemplate,
-  elegantATSTemplate,
-  compactATSTemplate,
-  creativeATSTemplate,
+ // elegantATSTemplate,
+ // compactATSTemplate,
+  //creativeATSTemplate,
 ]
 
 export function getTemplateById(id: string): ResumeTemplate | undefined {
