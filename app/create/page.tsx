@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -112,7 +112,8 @@ const defaultTemplate: ResumeTemplate = {
   },
 }
 
-export default function CreateResume() {
+// Create a separate component that uses useSearchParams
+function CreateResumeContent() {
   console.log('OPENROUTER_API_KEYS:', process.env.OPENROUTER_API_KEYS);
   const { user, loading } = useAuth()
   const router = useRouter()
@@ -257,17 +258,17 @@ export default function CreateResume() {
 
   // Load existing resume data if editing
   useEffect(() => {
-    console.log("useEffect triggered:", { loading, user: !!user, hasProcessedResumeId, currentResumeId })
+  //  console.log("useEffect triggered:", { loading, user: !!user, hasProcessedResumeId, currentResumeId })
     if (!loading && user && !hasProcessedResumeId) {
       const resumeId = searchParams.get('id')
-      console.log("Resume ID from URL:", resumeId)
+    //  console.log("Resume ID from URL:", resumeId)
       if (resumeId && !currentResumeId) {
-        console.log("Loading existing resume...")
+       // console.log("Loading existing resume...")
         setIsLoadingResume(true)
         setHasProcessedResumeId(true)
         loadExistingResume(resumeId)
       } else if (!resumeId) {
-        console.log("No resume ID, loading from localStorage...")
+       // console.log("No resume ID, loading from localStorage...")
         // Only load from localStorage if not editing an existing resume
         setHasProcessedResumeId(true)
         loadFromLocalStorage()
@@ -276,10 +277,10 @@ export default function CreateResume() {
   }, [user, loading, currentResumeId, hasProcessedResumeId])
 
   const loadExistingResume = async (resumeId: string) => {
-    console.log("Loading existing resume:", resumeId)
+   // console.log("Loading existing resume:", resumeId)
     try {
       const result = await loadResumeData(resumeId)
-      console.log("Load result:", result)
+    //  console.log("Load result:", result)
       if (result.success && result.data) {
         setResumeData(sanitizeResumeData(result.data))
         setCurrentResumeId(resumeId)
@@ -564,7 +565,7 @@ export default function CreateResume() {
   }
 
   if (loading || isCheckingLimit || isLoadingResume) {
-    console.log("Showing loading state:", { loading, isCheckingLimit, isLoadingResume })
+    //console.log("Showing loading state:", { loading, isCheckingLimit, isLoadingResume })
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
@@ -793,5 +794,18 @@ export default function CreateResume() {
         loading={limitModalBusy}
       />
     </div>
+  )
+} // Close CreateResumeContent function
+
+// Main component with Suspense boundary
+export default function CreateResume() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+      </div>
+    }>
+      <CreateResumeContent />
+    </Suspense>
   )
 }

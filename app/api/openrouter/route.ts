@@ -11,13 +11,13 @@ export async function POST(req: NextRequest) {
     const supabase = createServerComponentClient();
     const authHeader = req.headers.get('authorization') || '';
     const token = authHeader.toLowerCase().startsWith('bearer ') ? authHeader.slice(7) : undefined;
-    console.log('[OpenRouter] Incoming request', {
-      hasAuthHeader: Boolean(authHeader),
-      tokenPresent: Boolean(token),
-      tokenPreview: token ? token.substring(0, 8) + '...' : null,
-      siteUrl,
-      model,
-    });
+    // console.log('[OpenRouter] Incoming request', {
+    //   hasAuthHeader: Boolean(authHeader),
+    //   tokenPresent: Boolean(token),
+    //   tokenPreview: token ? token.substring(0, 8) + '...' : null,
+    //   siteUrl,
+    //   model,
+    // });
     const { data: { user }, error: userErr } = await supabase.auth.getUser(token);
     if (userErr || !user) {
       console.warn('[OpenRouter] Auth failed', { userErr: userErr?.message || userErr, userPresent: Boolean(user) });
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     const monthUsdLimit = doc?.monthUsdLimit ?? 2;
     const totalUsdUsedThisMonth = doc?.totalUsdUsedThisMonth ?? 0;
     if (totalUsdUsedThisMonth >= monthUsdLimit) {
-      console.log('[OpenRouter] Credits exhausted', { userId: user.id, totalUsdUsedThisMonth, monthUsdLimit });
+     // console.log('[OpenRouter] Credits exhausted', { userId: user.id, totalUsdUsedThisMonth, monthUsdLimit });
       return NextResponse.json({ error: 'AI credits exhausted' }, { status: 402 });
     }
 
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       { upsert: true }
     );
 
-    console.log('[OpenRouter] Success - usage updated', { userId: user.id });
+   // console.log('[OpenRouter] Success - usage updated', { userId: user.id });
     return NextResponse.json(result);
   } catch (error: any) {
     console.error('OpenRouter API error:', error);

@@ -14,7 +14,7 @@ export const saveManager: SaveManager = {
   async saveSection(sectionName: string, data: any) {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000))
-    console.log(`Saving section: ${sectionName}`, data)
+   // console.log(`Saving section: ${sectionName}`, data)
 
     // Simulate occasional errors for testing
     if (Math.random() < 0.1) {
@@ -25,7 +25,7 @@ export const saveManager: SaveManager = {
   async saveAllData(data: ResumeData) {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500))
-    console.log("Saving all resume data", data)
+   // console.log("Saving all resume data", data)
 
     // Store in localStorage for now
     localStorage.setItem("resumeData", JSON.stringify(data))
@@ -39,7 +39,7 @@ export const saveManager: SaveManager = {
   async syncToSupabase(data: ResumeData) {
     // This will be implemented when Supabase is integrated
     await new Promise((resolve) => setTimeout(resolve, 2000))
-    console.log("Syncing to Supabase", data)
+   // console.log("Syncing to Supabase", data)
     throw new Error("Supabase integration not yet implemented")
   },
 
