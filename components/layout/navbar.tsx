@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { FileText, Home, Plus, User, LogOut } from "lucide-react"
+import { FileText, Home, Plus, User, LogOut, User2 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -55,6 +55,14 @@ export function Navbar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+
+                <DropdownMenuItem onClick={()=>{}}>
+                    <Link href={'/profile'} className="flex">
+                    <User2 className="w-4 h-4 mr-2" />
+                    Profile
+                    </Link>
+                  </DropdownMenuItem>
+
                   <DropdownMenuItem onClick={signOut}>
                     <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
