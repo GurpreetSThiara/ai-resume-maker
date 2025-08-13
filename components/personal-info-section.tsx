@@ -9,22 +9,11 @@ import type { ResumeData } from "@/app/page"
 interface PersonalInfoSectionProps {
   data: ResumeData
   onUpdate: (updates: Partial<ResumeData>) => void
-  onSave: () => void
 }
 
-export function PersonalInfoSection({ data, onUpdate, onSave }: PersonalInfoSectionProps) {
-  const [unsavedChanges, setUnsavedChanges] = useState(false)
-  const [personalData, setPersonalData] = useState(data)
-
+export function PersonalInfoSection({ data, onUpdate }: PersonalInfoSectionProps) {
   const handleChange = (field: keyof ResumeData, value: string) => {
-    setPersonalData({ ...personalData, [field]: value })
-    setUnsavedChanges(true)
-  }
-
-  const handleSave = () => {
-    onUpdate(personalData)
-   // onSave()
-    setUnsavedChanges(false)
+    onUpdate({ [field]: value })
   }
 
   return (
@@ -42,7 +31,7 @@ export function PersonalInfoSection({ data, onUpdate, onSave }: PersonalInfoSect
           <Input
             id="name"
             placeholder="John Doe"
-            value={personalData.name}
+            value={data.name}
             onChange={(e) => handleChange("name", e.target.value)}
             className="h-12"
           />
@@ -56,7 +45,7 @@ export function PersonalInfoSection({ data, onUpdate, onSave }: PersonalInfoSect
             id="email"
             type="email"
             placeholder="john.doe@example.com"
-            value={personalData.email}
+            value={data.email}
             onChange={(e) => handleChange("email", e.target.value)}
             className="h-12"
           />
@@ -69,7 +58,7 @@ export function PersonalInfoSection({ data, onUpdate, onSave }: PersonalInfoSect
           <Input
             id="phone"
             placeholder="+1 (123) 456-7890"
-            value={personalData.phone}
+            value={data.phone}
             onChange={(e) => handleChange("phone", e.target.value)}
             className="h-12"
           />
@@ -81,43 +70,25 @@ export function PersonalInfoSection({ data, onUpdate, onSave }: PersonalInfoSect
           </Label>
           <Input
             id="location"
-            placeholder="San Francisco, CA"
-            value={personalData.location}
+            placeholder="City, Country"
+            value={data.location}
             onChange={(e) => handleChange("location", e.target.value)}
             className="h-12"
           />
         </div>
 
-        <div className="space-y-2 md:col-span-2">
+        <div className="space-y-2">
           <Label htmlFor="linkedin" className="text-sm font-medium">
-            LinkedIn Profile
+            LinkedIn
           </Label>
           <Input
             id="linkedin"
-            placeholder="linkedin.com/in/johndoe"
-            value={personalData.linkedin}
+            placeholder="https://linkedin.com/in/yourprofile"
+            value={data.linkedin}
             onChange={(e) => handleChange("linkedin", e.target.value)}
             className="h-12"
           />
         </div>
-      </div>
-
-      <div className="flex justify-between items-center">
-        {unsavedChanges && <span className="text-red-500 font-medium">Unsaved Changes</span>}
-        <Button onClick={handleSave} disabled={!unsavedChanges}>
-          Save
-        </Button>
-      </div>
-
-      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-blue-600">💡</span>
-          <span className="font-medium text-blue-800">Pro Tip</span>
-        </div>
-        <p className="text-blue-700 text-sm">
-          Make sure your email is professional and your LinkedIn profile is up to date. These are often the first things
-          recruiters check!
-        </p>
       </div>
     </div>
   )

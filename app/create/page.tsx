@@ -548,7 +548,7 @@ function CreateResumeContent() {
   const renderCurrentSection = () => {
     switch (currentStep) {
       case 0:
-        return <PersonalInfoSection data={resumeData} onUpdate={updateResumeData} onSave={saveToLocal} />
+        return <PersonalInfoSection data={resumeData} onUpdate={updateResumeData} />
       case 1:
         return <EducationSection data={resumeData} onUpdate={updateResumeData} />
       case 2:
@@ -600,12 +600,10 @@ function CreateResumeContent() {
               <Eye className="w-4 h-4" />
               {showPreview ? "Hide Preview" : "Show Preview"}
             </Button>
-            {showPreview && (
-              <Button size="sm" onClick={handleGeneratePDF} className="flex items-center gap-2">
-                <Download className="w-4 h-4" />
-                Download PDF
-              </Button>
-            )}
+            <Button size="sm" onClick={handleGeneratePDF} className="flex items-center gap-2">
+              <Download className="w-4 h-4" />
+              Download PDF
+            </Button>
             {/* Template Selector */}
             <select
               className="border rounded px-2 py-1 text-sm"

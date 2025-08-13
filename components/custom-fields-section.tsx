@@ -56,9 +56,8 @@ export function CustomFieldsSection({ data, onUpdate, onSave, isDirty }: CustomF
     onUpdate({ custom: updatedCustom })
   }
 
-  const handleSave = () => {
-    onSave()
-  }
+  // Remove isDirty, onSave, and handleSave logic
+  // Remove section-level save button and unsaved changes indicator in the render
 
   return (
     <div className="space-y-6">
@@ -177,9 +176,9 @@ export function CustomFieldsSection({ data, onUpdate, onSave, isDirty }: CustomF
           </div>
 
           <div className="flex justify-between">
-            <Button onClick={() => setIsEditing(!isEditing)} className="w-full">
+            {/* <Button onClick={() => setIsEditing(!isEditing)} className="w-full">
               {isEditing ? "Save Entry" : "Add Entry"}
-            </Button>
+            </Button> */}
             <Button onClick={addCustomField} className="w-full">
               Add Field
             </Button>
@@ -188,14 +187,14 @@ export function CustomFieldsSection({ data, onUpdate, onSave, isDirty }: CustomF
       </Card>
 
       {/* Section-Level Save Button */}
-      <div className="flex justify-end">
+      {/* <div className="flex justify-end">
         <Button onClick={handleSave} disabled={!isDirty} className="w-full">
           Save Changes
         </Button>
-      </div>
+      </div> */}
 
       {/* Unsaved Changes Indicator */}
-      {isDirty && (
+      {/* {isDirty && (
         <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-yellow-600">⚠️</span>
@@ -205,7 +204,7 @@ export function CustomFieldsSection({ data, onUpdate, onSave, isDirty }: CustomF
             You have unsaved changes. Please save them to ensure your resume is up to date.
           </p>
         </div>
-      )}
+      )} */}
 
       <div className="bg-green-50 p-4 rounded-lg border border-green-200">
         <div className="flex items-center gap-2 mb-2">

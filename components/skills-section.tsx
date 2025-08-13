@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, Rocket, Edit2, Save } from "lucide-react"
-import type { ResumeData } from "@/app/create/page"
+import type { ResumeData } from "@/types/resume"
 
 interface SkillsSectionProps {
   data: ResumeData
@@ -14,51 +14,60 @@ interface SkillsSectionProps {
 }
 
 export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
+  console.log("data",data)
   const [newSkillCategory, setNewSkillCategory] = useState({ category: "", skills: [""] })
   const [editingCategory, setEditingCategory] = useState<string | null>(null)
   const [editData, setEditData] = useState<{ category: string; skills: string[] }>({ category: "", skills: [] })
-  const [isSectionDirty, setIsSectionDirty] = useState(false)
+  // Remove isSectionDirty and handleSectionSave logic
+  // Remove section-level save button and unsaved changes indicator in the render
   const [isAddingNew, setIsAddingNew] = useState(false)
 
-  const skillsSection = data.sections.find((s) => s.title === "Other") || { content: {} }
+  // Find the section whose title contains 'skill' (case-insensitive)
+  let skillsSectionIndex = data.sections.findIndex((s: { title: string }) => /skill/i.test(s.title))
+  let skillsSection = data.sections[skillsSectionIndex] || { id: (data.sections.length+1).toString(), title: "Skills & More", content: {} }
+
+  // Helper to update or create the skills section
+  const updateSkillsSection = (newContent: Record<string, string[]>) => {
+    let updatedSections = [...data.sections]
+    if (skillsSectionIndex === -1) {
+      // Create new skills section
+      updatedSections.push({
+        id: (data.sections.length+1).toString(),
+        title: "Skills & More",
+        content: newContent
+      })
+    } else {
+      updatedSections[skillsSectionIndex] = {
+        ...skillsSection,
+        content: newContent
+      }
+    }
+    onUpdate({ sections: updatedSections })
+  }
 
   useEffect(() => {
     // Check if the current data differs from the initial data
     const initialSkillsSection = data.sections.find((s) => s.title === "Other") || { content: {} }
     const isDifferent = JSON.stringify(skillsSection.content) !== JSON.stringify(initialSkillsSection.content)
-    setIsSectionDirty(isDifferent)
+    // setIsSectionDirty(isDifferent) // Removed
   }, [data.sections, skillsSection.content])
 
   const addSkillCategory = () => {
     if (newSkillCategory.category && newSkillCategory.skills[0]) {
-      const updatedSections = data.sections.map((section) => {
-        if (section.title === "Other") {
-          return {
-            ...section,
-            content: {
-              ...section.content,
-              [newSkillCategory.category]: newSkillCategory.skills.filter((skill) => skill.trim()),
-            },
-          }
-        }
-        return section
-      })
-      onUpdate({ sections: updatedSections })
+      const newContent: Record<string, string[]> = {
+        ...skillsSection.content,
+        [newSkillCategory.category]: newSkillCategory.skills.filter((skill: string) => skill.trim()),
+      }
+      updateSkillsSection(newContent)
       setNewSkillCategory({ category: "", skills: [""] })
       setIsAddingNew(false)
     }
   }
 
   const removeSkillCategory = (category: string) => {
-    const updatedSections = data.sections.map((section) => {
-      if (section.title === "Other") {
-        const updatedContent = { ...section.content }
-        delete updatedContent[category]
-        return { ...section, content: updatedContent }
-      }
-      return section
-    })
-    onUpdate({ sections: updatedSections })
+    const newContent: Record<string, string[]> = { ...skillsSection.content }
+    delete newContent[category]
+    updateSkillsSection(newContent)
   }
 
   const startEditing = (category: string, skills: string[]) => {
@@ -68,16 +77,10 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
 
   const saveEdit = () => {
     if (editingCategory && editData.category) {
-      const updatedSections = data.sections.map((section) => {
-        if (section.title === "Other") {
-          const updatedContent = { ...section.content }
-          delete updatedContent[editingCategory]
-          updatedContent[editData.category] = editData.skills.filter((skill) => skill.trim())
-          return { ...section, content: updatedContent }
-        }
-        return section
-      })
-      onUpdate({ sections: updatedSections })
+      const newContent: Record<string, string[]> = { ...skillsSection.content }
+      delete newContent[editingCategory]
+      newContent[editData.category] = editData.skills.filter((skill: string) => skill.trim())
+      updateSkillsSection(newContent)
       setEditingCategory(null)
       setEditData({ category: "", skills: [] })
     }
@@ -130,29 +133,23 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
     }))
   }
 
-  const handleSectionSave = () => {
-    setIsSectionDirty(false)
-  }
+  // Remove handleSectionSave
+  // const handleSectionSave = () => {
+  //   setIsSectionDirty(false)
+  // }
 
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold mb-2">Skills & More 🚀</h2>
         <p className="text-muted-foreground">Highlight your technical skills, languages, and certifications</p>
-        {isSectionDirty && (
-          <div className="flex items-center justify-center mt-2">
-            <span className="text-sm text-orange-500 mr-1">Unsaved Changes</span>
-            <Save className="w-4 h-4 text-orange-500" />
-            <Button size="sm" onClick={handleSectionSave}>
-              Save Section
-            </Button>
-          </div>
-        )}
+        {/* Remove isSectionDirty and handleSectionSave logic */}
+        {/* Remove section-level save button and unsaved changes indicator in the render */}
       </div>
 
       {/* Existing Skill Categories */}
       <div className="space-y-4">
-        {Object.entries(skillsSection.content).map(([category, skills]) => (
+        {Object.entries(skillsSection.content).map(([category, skills]: [string, string[]]) => (
           <Card key={category} className="relative">
             {editingCategory === category ? (
               <CardContent className="pt-6 space-y-4">
@@ -233,7 +230,7 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
-                    {skills.map((skill, index) => (
+                    {skills.map((skill: string, index: number) => (
                       <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
                         {skill}
                       </span>

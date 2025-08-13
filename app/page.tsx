@@ -32,72 +32,7 @@ export interface ResumeData {
   }>
 }
 
-function NavigationHeader() {
-  const { user, loading } = useAuth()
 
-  if (loading) {
-    return (
-      <header className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Resume Builder
-            </Link>
-            <div className="animate-pulse bg-gray-200 h-8 w-24 rounded"></div>
-          </div>
-        </div>
-      </header>
-    )
-  }
-
-  return (
-    <header className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-            Resume Builder
-          </Link>
-          
-          <div className="flex items-center gap-4">
-            {user ? (
-              <>
-                <Link href="/create">
-                  <Button variant="outline">
-                    <FileText className="w-4 h-4 mr-2" />
-                    Create Resume
-                  </Button>
-                </Link>
-                <Link href="/profile">
-                  <Button variant="ghost">
-                    <User className="w-4 h-4 mr-2" />
-                    Profile
-                  </Button>
-                </Link>
-                <Link href="/settings">
-                  <Button variant="ghost">
-                    <Settings className="w-4 h-4" />
-                  </Button>
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link href="/auth">
-                  <Button variant="outline">Sign In</Button>
-                </Link>
-                <Link href="/create">
-                  <Button>
-                    Get Started
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    </header>
-  )
-}
 
 export default function HomePage() {
   return (
