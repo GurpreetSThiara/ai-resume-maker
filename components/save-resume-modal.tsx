@@ -37,7 +37,7 @@ export function SaveResumeModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-full w-full sm:max-w-3xl p-2 sm:p-6">
         <DialogHeader>
           <DialogTitle>Where do you want to save this resume?</DialogTitle>
         </DialogHeader>

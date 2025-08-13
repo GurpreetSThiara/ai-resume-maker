@@ -331,21 +331,8 @@ function CreateResumeContent() {
     setTimeout(() => setShowCelebration(false), 2000)
   }
 
-  const handleNext = async () => {
-    // Validate current step before proceeding
-    const validationResult = validateCurrentStep()
-    if (!validationResult.isValid) {
-      toast({
-        title: "Required Fields Missing",
-        description: validationResult.message,
-        variant: "destructive",
-      })
-      return
-    }
-
-    // Save to local storage
-    saveToLocalStorage()
-
+  // --- 1. Unconditional navigation ---
+  const handleNext = () => {
     if (currentStep < steps.length - 1) {
       setCompletedSteps((prev) => new Set([...prev, currentStep]))
       setCurrentStep((prev) => prev + 1)
@@ -359,9 +346,7 @@ function CreateResumeContent() {
   }
 
   const handleStepClick = (stepIndex: number) => {
-    if (stepIndex <= Math.max(...completedSteps) + 1) {
-      setCurrentStep(stepIndex)
-    }
+    setCurrentStep(stepIndex)
   }
 
   const updateResumeData = (updates: Partial<ResumeData>) => {
@@ -474,15 +459,13 @@ function CreateResumeContent() {
     }
   }
 
-  // Save modal handlers
+  // --- 2. Download after save ---
+  // Patch onChooseLocal, onChooseCloudCreate, onChooseCloudUpdate to call handleGeneratePDF after save
   const onChooseLocal = async () => {
-    const localId = currentResumeId || crypto.randomUUID()
-    saveLocalResume({ id: localId, title: resumeData.name || 'Untitled Resume', data: resumeData, updatedAt: new Date().toISOString() })
-    saveToLocalStorage()
+    await saveToLocalStorage()
     setSaveModalOpen(false)
-    toast({ title: 'Saved Locally', description: 'Your resume was saved in this browser.' })
+    await handleGeneratePDF()
   }
-
   const onChooseCloudCreate = async () => {
     setIsSaving(true)
     try {
@@ -493,19 +476,16 @@ function CreateResumeContent() {
         localStorage.removeItem('currentStep')
         localStorage.removeItem('completedSteps')
         setSaveModalOpen(false)
-        toast({ title: 'Resume Completed! 🎉', description: 'Saved to cloud successfully.' })
+        toast({ title: 'Resume Saved! 🎉', description: 'Cloud resume created successfully.' })
+        await handleGeneratePDF()
         router.push('/profile')
-      } else if (res.message?.toLowerCase().includes('3 resumes') || res.error === 'Resume limit reached') {
-        setSaveModalOpen(false)
-        setLimitModalOpen(true)
       } else {
-        toast({ title: 'Cloud Save Failed', description: res.message || 'Saving to cloud failed.', variant: 'destructive' })
+        toast({ title: 'Save Failed', description: res.message || 'Could not save resume.', variant: 'destructive' })
       }
     } finally {
       setIsSaving(false)
     }
   }
-
   const onChooseCloudUpdate = async (resumeId: string) => {
     setIsSaving(true)
     try {
@@ -517,6 +497,7 @@ function CreateResumeContent() {
         localStorage.removeItem('completedSteps')
         setSaveModalOpen(false)
         toast({ title: 'Resume Updated! 🎉', description: 'Cloud resume updated successfully.' })
+        await handleGeneratePDF()
         router.push('/profile')
       } else {
         toast({ title: 'Update Failed', description: res.message || 'Could not update resume.', variant: 'destructive' })
@@ -641,7 +622,7 @@ function CreateResumeContent() {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="font-medium">Progress</span>
-            <span className="text-muted-foreground">{Math.round(progress)}% Complete</span>
+            {/* <span className="text-muted-foreground">{Math.round(progress)}% Complete</span> */}
           </div>
           <Progress value={progress} className="h-2" />
         </div>
