@@ -1,254 +1,154 @@
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib"
 import type { PDFGenerationOptions } from "@/types/resume"
-import { ResumeData } from '@/types/resume'
-import { sanitizeTextForPdf } from '@/lib/utils'
+import { sanitizeTextForPdf } from "@/lib/utils"
 
-export async function generateClassicResumePDF({ 
-  resumeData, 
-  filename = "resume.pdf" 
-}: PDFGenerationOptions) {
+export async function generateClassic2ResumePDF({ resumeData, filename = "resume.pdf" }: PDFGenerationOptions) {
   const pdfDoc = await PDFDocument.create()
-  let page = pdfDoc.addPage([595.28, 841.89]) // A4 size
-  const { height, width } = page.getSize()
-  
-  // Font setup
-  const regular = await pdfDoc.embedFont(StandardFonts.TimesRoman)
-  const bold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold)
-  
-  // Layout constants
-  const margin = 50
-  const lineHeight = 12
-  const sectionSpacing = 20
-  let y = height - margin
-  
-  // Colors
-  const textColor = rgb(0.1, 0.1, 0.1)
-  const secondaryColor = rgb(0.4, 0.4, 0.4)
-  const accentColor = rgb(0.2, 0.2, 0.5) // For headers
-  
-  // Enhanced drawing function with better positioning
-  const draw = (
-    text: string, 
-    x: number, 
-    size: number, 
-    font = regular, 
-    color = textColor,
-    maxWidth?: number
-  ) => {
-    const sanitizedText = sanitizeTextForPdf(text || "")
-    if (maxWidth) {
-      const textWidth = font.widthOfTextAtSize(sanitizedText, size)
-      if (textWidth > maxWidth) {
-        // Truncate text if it's too long
-        let truncated = sanitizedText
-        while (font.widthOfTextAtSize(truncated + "...", size) > maxWidth && truncated.length > 0) {
-          truncated = truncated.slice(0, -1)
-        }
-        page.drawText(truncated + "...", { x, y, size, font, color })
-        return
-      }
+  let currentPage = pdfDoc.addPage([595.276, 841.89]) // A4
+
+  // Embed fonts
+  const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+
+  let yOffset = 800
+  const margin = 40 // Reduced margin from 50 to 40 for more compact layout
+  const pageWidth = 595.276 - 2 * margin
+
+  const textColor = rgb(0.2, 0.2, 0.2) // Darker gray for better readability
+  const secondaryColor = rgb(0.5, 0.5, 0.5) // Medium gray
+  const borderColor = rgb(0.7, 0.7, 0.7) // Light gray for borders
+
+  const ensureSpace = (spaceNeeded: number) => {
+    if (yOffset - spaceNeeded < margin) {
+      currentPage = pdfDoc.addPage([595.276, 841.89])
+      yOffset = 800
     }
-    page.drawText(sanitizedText, { x, y, size, font, color })
   }
 
-  // Width-based text wrapping function
-  const wrapTextByWidth = (text: string, maxWidth: number, fontSize: number, font: any): string[] => {
-    if (!text || text.trim() === '') return []
-    
-    const words = text.split(/\s+/)
+  const wrapText = (text: string, maxWidth: number, font = regularFont, size = 10): string[] => {
+    const words = sanitizeTextForPdf(text).split(" ")
     const lines: string[] = []
     let currentLine = ""
-    
-    for (const word of words) {
-      const testLine = currentLine ? `${currentLine} ${word}` : word
-      const testWidth = font.widthOfTextAtSize(testLine, fontSize)
-      
-      if (testWidth > maxWidth && currentLine !== "") {
-        lines.push(currentLine.trim())
-        currentLine = word
+
+    words.forEach((word) => {
+      const width = font.widthOfTextAtSize(sanitizeTextForPdf(currentLine + " " + word), size)
+      if (width < maxWidth) {
+        currentLine += (currentLine ? " " : "") + word
       } else {
-        currentLine = testLine
-      }
-    }
-    
-    if (currentLine.trim()) {
-      lines.push(currentLine.trim())
-    }
-    
-    return lines.length > 0 ? lines : [""]
-  }
-  
-  // Check if we need a new page
-  const checkNewPage = (requiredSpace: number = 50) => {
-    if (y < requiredSpace) {
-      page = pdfDoc.addPage([595.28, 841.89])
-      y = height - margin
-      return true
-    }
-    return false
-  }
-  
-  // Header section
-  if (resumeData.name) {
-    draw(resumeData.name, margin, 24, bold, textColor)
-    y -= 28
-  }
-  
-  // Contact information
-  const contactInfo = [
-    resumeData.email,
-    resumeData.phone,
-    resumeData.location,
-    resumeData.linkedin
-  ].filter(Boolean).join(" | ")
-  
-  if (contactInfo) {
-    draw(contactInfo, margin, 10, regular, secondaryColor, width - 2 * margin)
-    y -= sectionSpacing
-  }
-  
-  // Custom fields section
-  const customFields = Object.values(resumeData.custom).filter(item => !item.hidden)
-  if (customFields.length > 0) {
-    customFields.forEach((item) => {
-      if (item.title && item.content) {
-        checkNewPage()
-        draw(`${item.title.toUpperCase()}: ${item.content}`, margin, 10, regular, textColor)
-        y -= lineHeight
+        lines.push(currentLine)
+        currentLine = word
       }
     })
-    y -= 8
+    if (currentLine) lines.push(currentLine)
+    return lines
   }
-  
-  // Main sections
+
+  const draw = (t: string, x: number, size: number, font = regularFont, color = textColor) => {
+    currentPage.drawText(sanitizeTextForPdf(t || ""), { x, y: yOffset, size, font, color })
+  }
+
+  draw(resumeData.name, margin, 20, boldFont, textColor)
+  yOffset -= 24 // Reduced spacing from 30 to 24
+
+  // Contact Info on single line with separators
+  const contactInfo = `${resumeData.email} | ${resumeData.phone} | ${resumeData.location} | ${resumeData.linkedin}`
+  draw(contactInfo, margin, 11, regularFont, secondaryColor)
+  yOffset -= 16 // Reduced spacing from 20 to 16
+
+  yOffset -= 8 // Reduced spacing from 25 to 8
+
+  const customEntries = Object.entries(resumeData.custom).filter(([_, item]) => !item.hidden)
+
+  if (customEntries.length > 0) {
+    const leftColumnEntries = customEntries.filter((_, index) => index % 2 === 0)
+    const rightColumnEntries = customEntries.filter((_, index) => index % 2 === 1)
+    const maxRows = Math.max(leftColumnEntries.length, rightColumnEntries.length)
+
+    for (let i = 0; i < maxRows; i++) {
+      ensureSpace(12)
+
+      // Left column
+      if (leftColumnEntries[i]) {
+        const [key, item] = leftColumnEntries[i]
+        const titleText = `${item.title.toUpperCase()}:`
+        const titleWidth = boldFont.widthOfTextAtSize(titleText, 10)
+
+        draw(titleText, margin, 10, boldFont, textColor)
+        draw(item.content, margin + titleWidth + 8, 10, regularFont, textColor)
+      }
+
+      // Right column
+      if (rightColumnEntries[i]) {
+        const [key, item] = rightColumnEntries[i]
+        const titleText = `${item.title.toUpperCase()}:`
+        const titleWidth = boldFont.widthOfTextAtSize(titleText, 10)
+        const rightColumnX = margin + pageWidth / 2
+
+        draw(titleText, rightColumnX, 10, boldFont, textColor)
+        draw(item.content, rightColumnX + titleWidth + 8, 10, regularFont, textColor)
+      }
+
+      yOffset -= 12 // Reduced spacing from 14 to 12
+    }
+    yOffset -= 8 // Reduced spacing from 10 to 8
+  }
+
+  // Sections with classic styling
   for (const section of resumeData.sections) {
-    // Validate section has content
-    const hasValidContent = Object.entries(section.content).some(([key, bullets]) => {
-      return key && 
-             bullets && 
-             Array.isArray(bullets) && 
-             bullets.length > 0 && 
-             bullets.some(bullet => bullet && bullet.trim() !== '')
+    const hasContent = Object.entries(section.content).some(([key, bullets]) => {
+      return key && bullets && bullets.length > 0 && bullets.some((bullet) => bullet.trim() !== "")
     })
-    
-    if (!hasValidContent) continue
-    
-    // Check if we need space for section header
-    checkNewPage(80)
-    
-    // Section header
-    draw(section.title.toUpperCase(), margin, 12, bold, accentColor)
-    y -= 16
-    
-    // Section content
-    for (const [header, bullets] of Object.entries(section.content)) {
-      if (!header || !bullets || !Array.isArray(bullets) || bullets.length === 0) {
-        continue
-      }
-      
-      const validBullets = bullets.filter(bullet => bullet && bullet.trim() !== '')
-      if (validBullets.length === 0) continue
-      
-      // Check space for entry header + at least one bullet
-      checkNewPage(40)
-      
-      // Parse header (role | date format)
-      const [role, ...dateParts] = header.split(" | ")
-      const date = dateParts.join(" | ") // Handle multiple | in header
-      
-      if (role && role.trim() !== '') {
-        // Draw role on left
-        draw(role.trim(), margin, 10, bold, textColor, width - 200)
-        
-        // Draw date on right if exists
-        if (date && date.trim() !== '') {
-          const dateWidth = regular.widthOfTextAtSize(date.trim(), 9)
-          draw(date.trim(), width - margin - dateWidth, 9, regular, secondaryColor)
+
+    if (!hasContent) continue
+
+    ensureSpace(25) // Reduced from 30 to 25
+
+    draw(section.title.toUpperCase(), margin, 14, boldFont, textColor)
+
+    yOffset -= 16 // Reduced spacing from 20 to 16
+
+    for (const [key, bullets] of Object.entries(section.content)) {
+      if (!key || !bullets || bullets.length === 0) continue
+
+      const hasBulletContent = bullets.some((bullet) => bullet.trim() !== "")
+      if (!hasBulletContent) continue
+
+      ensureSpace(12) // Reduced from 15 to 12
+
+      const [title, subtitle] = key.split(" | ")
+
+      if (title && title.trim() !== "") {
+        draw(title, margin, 12, boldFont, textColor)
+
+        // Right-align the date/subtitle
+        if (subtitle && subtitle.trim() !== "") {
+          const subtitleWidth = regularFont.widthOfTextAtSize(subtitle, 10)
+          draw(subtitle, margin + pageWidth - subtitleWidth, 10, regularFont, secondaryColor)
         }
-        y -= 14
+        yOffset -= 12 // Reduced spacing from 15 to 12
       }
-      
-      // Bullet points
-      for (const bullet of validBullets) {
-        if (!bullet || bullet.trim() === '') continue
-        
-        // Calculate available width for bullet text
-        const bulletIndent = margin + 10
-        const availableWidth = width - bulletIndent - margin
-        const wrappedLines = wrapTextByWidth(`• ${bullet.trim()}`, availableWidth, 9, regular)
-        
-        for (let i = 0; i < wrappedLines.length; i++) {
-          checkNewPage()
-          const indent = i === 0 ? bulletIndent : margin + 20 // Indent continuation lines more
-          draw(wrappedLines[i], indent, 9, regular, textColor)
-          y -= lineHeight
+
+      for (const bullet of bullets) {
+        if (!bullet || bullet.trim() === "") continue
+
+        ensureSpace(10) // Reduced from 12 to 10
+        const lines = wrapText(`• ${bullet}`, pageWidth - 30, regularFont, 10)
+        for (const line of lines) {
+          draw(line, margin + 20, 10, regularFont, textColor)
+          yOffset -= 10 // Reduced spacing from 12 to 10
         }
       }
-      y -= 6 // Space between entries
+      yOffset -= 6 // Reduced spacing from 8 to 6
     }
-    y -= 8 // Space between sections
-  }
-  
-  // Generate and download PDF
-  try {
-    const bytes = await pdfDoc.save()
-    const blob = new Blob([bytes], { type: "application/pdf" })
-    const link = document.createElement("a")
-    link.href = URL.createObjectURL(blob)
-    link.download = filename
-    document.body.appendChild(link) // Ensure link is in DOM
-    link.click()
-    document.body.removeChild(link) // Clean up
-    URL.revokeObjectURL(link.href) // Free up memory
-  } catch (error) {
-    console.error('Error generating PDF:', error)
-    throw new Error('Failed to generate PDF resume')
-  }
-}
 
-// Enhanced text wrapping with better word break handling
-function wrapText(text: string, maxChars: number): string[] {
-  if (!text || text.trim() === '') return []
-  
-  const words = text.split(/\s+/) // Handle multiple spaces
-  const lines: string[] = []
-  let currentLine = ""
-  
-  for (const word of words) {
-    const testLine = currentLine ? `${currentLine} ${word}` : word
-    
-    if (testLine.length > maxChars && currentLine !== "") {
-      lines.push(currentLine.trim())
-      currentLine = word
-    } else {
-      currentLine = testLine
-    }
+    yOffset -= 10 // Reduced spacing from 15 to 10
   }
-  
-  if (currentLine.trim()) {
-    lines.push(currentLine.trim())
-  }
-  
-  return lines.length > 0 ? lines : [""]
-}
 
-// Utility function to estimate text height for better spacing
-function estimateTextHeight(text: string, maxChars: number, lineHeight: number = 12): number {
-  const lines = wrapText(text, maxChars)
-  return lines.length * lineHeight
-}
-
-// Optional: Add function to validate resume data structure
-export function validateResumeData(data: ResumeData): string[] {
-  const errors: string[] = []
-  
-  if (!data.name || data.name.trim() === '') {
-    errors.push('Resume name is required')
-  }
-  
-  if (!data.sections || !Array.isArray(data.sections)) {
-    errors.push('Resume sections must be an array')
-  }
-  
-  return errors
+  // Save PDF
+  const pdfBytes = await pdfDoc.save()
+  const blob = new Blob([pdfBytes], { type: "application/pdf" })
+  const link = document.createElement("a")
+  link.href = URL.createObjectURL(blob)
+  link.download = filename
+  link.click()
 }

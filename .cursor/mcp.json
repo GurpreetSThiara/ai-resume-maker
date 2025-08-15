@@ -1,0 +1,47 @@
+{
+  "mcpServers": {
+    "perplexity-chat": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-perplexity", "--expose-models"],
+      "env": { 
+        "PERPLEXITY_API_KEY": "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",
+        "MCP_EXPOSE_MODELS": "true"
+      }
+    },
+    "pplx-claude-3-haiku": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-perplexity", "--model", "claude-3-haiku"],
+      "env": { "PERPLEXITY_API_KEY": "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" }
+    },
+    "pplx-claude-3-5-sonnet": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-perplexity", "--model", "claude-3.5-sonnet"],
+      "env": { "PERPLEXITY_API_KEY": "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" }
+    },
+    "pplx-claude-3-opus": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-perplexity", "--model", "claude-3-opus"],
+      "env": { "PERPLEXITY_API_KEY": "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" }
+    },
+    "pplx-claude-3-7-sonnet": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-perplexity", "--model", "claude-3.7-sonnet"],
+      "env": { "PERPLEXITY_API_KEY": "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" }
+    },
+    "pplx-claude-sonnet-4": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-perplexity", "--model", "claude-sonnet-4"],
+      "env": { "PERPLEXITY_API_KEY": "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" }
+    },
+    "pplx-claude-opus-4": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-perplexity", "--model", "claude-opus-4"],
+      "env": { "PERPLEXITY_API_KEY": "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" }
+    },
+    "pplx-claude-opus-4-1": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-perplexity", "--model", "claude-opus-4.1"],
+      "env": { "PERPLEXITY_API_KEY": "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" }
+    }
+  }
+}

@@ -27,6 +27,7 @@ import { getLocalResumes, saveLocalResume } from '@/lib/local-storage';
 import ManageCloudModal from '@/components/manage-cloud-modal';
 import SaveResumeModal from '@/components/save-resume-modal';
 import { sanitizeTextForPdf } from '@/lib/utils'
+import DownloadDropDown from "@/components/global/DropDown/DropDown"
 
 const initialData: ResumeData = {
   name: "",
@@ -423,7 +424,7 @@ function CreateResumeContent() {
     await generateResumePDF({
       resumeData,
       template: selectedTemplate,
-      filename: `${resumeData.name || "resume"}.pdf`,
+      filename: `${resumeData.name || "resume"}`,
     })
   }
 
@@ -581,10 +582,18 @@ function CreateResumeContent() {
               <Eye className="w-4 h-4" />
               {showPreview ? "Hide Preview" : "Show Preview"}
             </Button>
-            <Button size="sm" onClick={handleGeneratePDF} className="flex items-center gap-2">
+
+            <div className="">
+              <DownloadDropDown data={{
+      resumeData,
+      template: selectedTemplate,
+      filename: `${resumeData.name || "resume"}.pdf`,
+    }}/>
+            </div>
+            {/* <Button size="sm" onClick={handleGeneratePDF} className="flex items-center gap-2">
               <Download className="w-4 h-4" />
               Download PDF
-            </Button>
+            </Button> */}
             {/* Template Selector */}
             <select
               className="border rounded px-2 py-1 text-sm"
@@ -749,6 +758,7 @@ function CreateResumeContent() {
                     template={selectedTemplate} 
                     onDataUpdate={handleResumeDataUpdate}
                     activeSection=""
+                    setResumeData={setResumeData}
                   />
                 </CardContent>
               </Card>

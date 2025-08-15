@@ -1,22 +1,27 @@
 "use client"
 
 import type React from "react"
-import { useRef, useEffect, forwardRef } from "react"
+import { useRef, useEffect, forwardRef, useState } from "react"
 import type { ResumeData, ResumeTemplate } from "@/types/resume"
+import { GoogleResume } from "./resumes/google-resume"
+import { getResumePreview } from "./resumes"
 
 interface ResumePreviewProps {
   resumeData: ResumeData
   template: ResumeTemplate
   onDataUpdate: (data: ResumeData | ((prev: ResumeData) => ResumeData)) => void
   activeSection: string
+  setResumeData: any
 }
 
  const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
-  ({ resumeData, template, onDataUpdate, activeSection }, ref) => {
+  ({ resumeData, template, onDataUpdate, activeSection, setResumeData }, ref) => {
     // Refs for each section to scroll to
     const personalInfoRef = useRef<HTMLDivElement>(null)
     const customFieldsRef = useRef<HTMLDivElement>(null)
     const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+
+    const [ResumeComponent, setResumeComponent] = useState<React.ComponentType<any> | null>(null);
 
     // Effect to handle scrolling when activeSection changes
     useEffect(() => {
@@ -49,86 +54,27 @@ interface ResumePreviewProps {
       }
     }, [activeSection, ref])
 
-    const handleNameChange = (e: React.FormEvent<HTMLHeadingElement>) => {
-      const newValue = e.currentTarget.textContent || ""
-      onDataUpdate((prev) => ({ ...prev, name: newValue }))
-    }
 
-    const handleContactInfoChange = (e: React.FormEvent<HTMLSpanElement>, key: string) => {
-      const content = e.currentTarget.textContent || ""
-      onDataUpdate((prev) => ({
-        ...prev,
-        [key]: content,
-      }))
-    }
+     useEffect(() => {
+    let isMounted = true;
 
-    const handleCustomItemChange = (id: string, field: "title" | "content", value: string) => {
-      onDataUpdate((prev) => {
-        const updatedResumeData = JSON.parse(JSON.stringify(prev))
-        if (updatedResumeData.custom[id]) {
-          updatedResumeData.custom[id][field] = value
-        }
-        return updatedResumeData
-      })
-    }
+    getResumePreview({ template: template }).then((comp) => {
+      if (isMounted) setResumeComponent(() => comp);
+    });
 
-    const handleSectionTitleChange = (sectionId: string, newTitle: string) => {
-      onDataUpdate((prev) => {
-        const updatedResumeData = JSON.parse(JSON.stringify(prev))
-        const sectionIndex = updatedResumeData.sections.findIndex((s) => s.id === sectionId)
-        if (sectionIndex !== -1) {
-          updatedResumeData.sections[sectionIndex].title = newTitle
-        }
-        return updatedResumeData
-      })
-    }
+    return () => {
+      isMounted = false;
+    };
+  }, [template.id]);
 
-    const handleSectionHeaderChange = (sectionId: string, originalKey: string, newText: string, position: 0 | 1) => {
-      onDataUpdate((prev) => {
-        const updatedResumeData = JSON.parse(JSON.stringify(prev))
-        const sectionIndex = updatedResumeData.sections.findIndex((s) => s.id === sectionId)
-        if (sectionIndex === -1) return prev
 
-        const section = updatedResumeData.sections[sectionIndex]
-        const keyParts = originalKey.split(" | ")
-        keyParts[position] = newText
-        const newKey = keyParts.join(" | ")
 
-        if (originalKey !== newKey) {
-          const orderedContent = {}
-          const originalKeys = Object.keys(section.content)
-          originalKeys.forEach((k) => {
-            if (k === originalKey) {
-              orderedContent[newKey] = section.content[originalKey]
-            } else {
-              orderedContent[k] = section.content[k]
-            }
-          })
-          section.content = orderedContent
-        }
-
-        return updatedResumeData
-      })
-    }
-
-    const handleBulletChange = (sectionId: string, key: string, index: number, newText: string) => {
-      onDataUpdate((prev) => {
-        const updatedResumeData = JSON.parse(JSON.stringify(prev))
-        const sectionIndex = updatedResumeData.sections.findIndex((s) => s.id === sectionId)
-        if (sectionIndex === -1) return prev
-
-        const section = updatedResumeData.sections[sectionIndex]
-        if (section.content[key] && section.content[key][index] !== undefined) {
-          section.content[key][index] = newText
-        }
-
-        return updatedResumeData
-      })
-    }
 
     return (
       <div ref={ref} className="bg-blue-50 min-h-screen font-serif">
-        <div className={template.theme.layout.container}>
+
+        {ResumeComponent && <ResumeComponent resumeData={resumeData} setResumeData={setResumeData} activeSection={activeSection} />}
+        {/* <div className={template.theme.layout.container}>
           <div ref={personalInfoRef} className={template.theme.layout.header}>
             <h1
               className={`${template.theme.fontSize.name} font-bold ${template.theme.colors.text}`}
@@ -265,7 +211,7 @@ interface ResumePreviewProps {
               </section>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
     )
   },

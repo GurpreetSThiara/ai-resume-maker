@@ -2,7 +2,7 @@
 
 import { ResumeData } from "@/types/resume"
 import type React from "react"
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useState } from "react"
 
 
 interface ResumeProps {
@@ -25,6 +25,30 @@ export const GoogleResume: React.FC<ResumeProps> = ({
   const personalInfoRef = useRef<HTMLDivElement>(null)
   const customFieldsRef = useRef<HTMLDivElement>(null)
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
+
+  // Responsive scaling logic
+  useEffect(() => {
+    function updateScale() {
+      if (!containerRef.current) return
+      const parent = containerRef.current.parentElement
+      if (!parent) return
+      const parentWidth = parent.clientWidth
+      const parentHeight = parent.clientHeight
+      // A4 size in px: 595x842
+      const widthScale = parentWidth / 595
+      const heightScale = parentHeight / 842
+      // Use the smaller scale to fit both width and height
+      let newScale = Math.min(widthScale, heightScale, 1)
+      // On md+ screens, make it a bit smaller for aesthetics
+      if (window.innerWidth >= 768 && newScale > 0.9) newScale = 0.9
+      setScale(newScale)
+    }
+    updateScale()
+    window.addEventListener("resize", updateScale)
+    return () => window.removeEventListener("resize", updateScale)
+  }, [])
 
   useEffect(() => {
     if (!activeSection) return
@@ -44,11 +68,15 @@ export const GoogleResume: React.FC<ResumeProps> = ({
     }
   }, [activeSection, pdfRef])
 
-  const handleNameChange = (e: React.FormEvent<HTMLHeadingElement>) =>
-    setResumeData((prev) => ({ ...prev, name: e.currentTarget.textContent || "" }))
+  const handleNameChange = (e: React.FormEvent<HTMLHeadingElement>) => {
+    const name = e.currentTarget?.textContent ?? "";
+    setResumeData((prev) => ({ ...prev, name }));
+  };
 
-  const handleContactInfoChange = (e: React.FormEvent<HTMLSpanElement>, key: string) =>
-    setResumeData((prev) => ({ ...prev, [key]: e.currentTarget.textContent || "" }))
+  const handleContactInfoChange = (e: React.FormEvent<HTMLSpanElement>, key: string) => {
+    const value = e.currentTarget?.textContent ?? "";
+    setResumeData((prev) => ({ ...prev, [key]: value }));
+  };
 
   const handleCustomItemChange = (id: string, field: "title" | "content", value: string) =>
     setResumeData((prev) => {
@@ -98,184 +126,208 @@ export const GoogleResume: React.FC<ResumeProps> = ({
       return updated
     })
 
+  // Colors matching the PDF generator
+  const accentColor = "rgb(38, 102, 166)" // rgb(0.15, 0.4, 0.65)
+  const textColor = "rgb(26, 26, 26)" // rgb(0.1, 0.1, 0.1)
+  const secondaryColor = "rgb(102, 102, 102)" // rgb(0.4, 0.4, 0.4)
+  const linkColor = "rgb(0, 0, 255)" // rgb(0, 0, 1)
+
   return (
-    <div
-      ref={pdfRef}
-      className={`bg-gray-50 min-h-screen p-6 ${font.className}`}
-      style={{ fontFamily: font.name }}
-    >
-      <div className="max-w-3xl mx-auto bg-white shadow-md rounded-lg overflow-hidden p-8">
-        {/* Header */}
-        <div ref={personalInfoRef} className="pb-4 border-b border-gray-300">
-          <h1
-            className="text-4xl font-bold text-gray-900 tracking-tight"
-            contentEditable
-            suppressContentEditableWarning
-            onBlur={handleNameChange}
-          >
-            {resumeData.name}
-          </h1>
-          <div className="flex flex-wrap gap-4 mt-3 text-sm text-gray-600">
-            {(["email", "phone", "location"] as const).map((field) => (
-              <span
-                key={field}
+    <div className="w-full h-full flex justify-center items-start overflow-auto" style={{ minHeight: 0, minWidth: 0 }}>
+      <div
+        ref={containerRef}
+        style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}
+      >
+        <div
+          ref={pdfRef}
+          className="relative"
+          style={{
+            width: 595,
+            minHeight: 842,
+            maxWidth: '100%',
+            transform: `scale(${scale})`,
+            transformOrigin: 'top center',
+            transition: 'transform 0.2s',
+            background: 'white',
+            boxShadow: '0 2px 16px rgba(0,0,0,0.08)',
+            borderRadius: 8,
+            overflow: 'hidden',
+            margin: '0 auto',
+            fontFamily: font?.name || 'Helvetica, Arial, sans-serif',
+          }}
+        >
+          {/* A4 page container with exact PDF dimensions */}
+          <div className="px-12 py-12" style={{ minHeight: 842, width: 595, maxWidth: '100%' }}>
+            {/* Header - Name */}
+            <div className="mb-5" ref={personalInfoRef}>
+              <h1
+                className="text-xl font-bold leading-none"
+                style={{ color: accentColor, fontSize: '20px' }}
                 contentEditable
                 suppressContentEditableWarning
-                onBlur={(e) => handleContactInfoChange(e, field)}
+                onBlur={handleNameChange}
               >
-                {resumeData[field]}
-              </span>
-            ))}
-            {resumeData.linkedin && (
-              <a
-                href={resumeData.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 underline"
-              >
+                {resumeData.name}
+              </h1>
+            </div>
+            {/* Contact Info */}
+            <div className="mb-6">
+              <p className="text-xs leading-none" style={{ color: secondaryColor, fontSize: '10px' }}>
                 <span
                   contentEditable
                   suppressContentEditableWarning
-                  onBlur={(e) => handleContactInfoChange(e, "linkedin")}
+                  onBlur={(e) => handleContactInfoChange(e, 'email')}
                 >
-                  LinkedIn
+                  {resumeData.email}
                 </span>
-              </a>
-            )}
-          </div>
-        </div>
-
-        {/* Custom Fields */}
-        <div
-          ref={customFieldsRef}
-          className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 mt-4 text-xs"
-        >
-          {Object.keys(resumeData.custom).map((i) => {
-            const item = resumeData.custom[i]
-            return (
-              <div
-                className={`flex gap-2 ${item.hidden && "hidden"}`}
-                key={item.id}
-              >
+                {' | '}
                 <span
-                  className="font-semibold text-gray-800 whitespace-nowrap"
                   contentEditable
                   suppressContentEditableWarning
-                  onBlur={(e) => handleCustomItemChange(i, "title", e.currentTarget.textContent || "")}
+                  onBlur={(e) => handleContactInfoChange(e, 'phone')}
                 >
-                  {item.title}:
+                  {resumeData.phone}
                 </span>
+                {' | '}
                 <span
-                  className="text-gray-700 break-words flex-1"
                   contentEditable
                   suppressContentEditableWarning
-                  onBlur={(e) => handleCustomItemChange(i, "content", e.currentTarget.textContent || "")}
+                  onBlur={(e) => handleContactInfoChange(e, 'location')}
                 >
-                  {item.content}
+                  {resumeData.location}
                 </span>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Sections */}
-        <div className="mt-6">
-          {resumeData.sections.map((section) => {
-            // Check if section has any content
-            const hasContent = Object.entries(section.content).some(([key, bullets]) => {
-              return key && bullets && bullets.length > 0 && bullets.some(bullet => bullet.trim() !== '')
-            })
-
-            // Skip sections with no content
-            if (!hasContent) {
-              return null
-            }
-
-            return (
-              <div
-                key={section.id}
-                className="mb-8"
-                ref={(el) => {
-                  if (el) {
-                    sectionRefs.current[section.id] = el
-                  }
-                }}
-              >
-                <h2
-                  className="text-lg font-semibold text-blue-700 border-b border-gray-300 pb-1 mb-3 uppercase tracking-wide"
-                  contentEditable
-                  suppressContentEditableWarning
-                  onBlur={(e) => handleSectionTitleChange(section.id, e.currentTarget.textContent || "")}
-                >
-                  {section.title}
-                </h2>
-                {Object.entries(section.content).map(([key, bullets]) => {
-                  // Skip empty keys or empty bullet arrays
-                  if (!key || !bullets || bullets.length === 0) {
-                    return null
-                  }
-
-                  // Check if bullets have actual content
-                  const hasBulletContent = bullets.some(bullet => bullet.trim() !== '')
-                  if (!hasBulletContent) {
-                    return null
-                  }
-
-                  return (
-                    <div key={key} className="mb-4">
-                      {key && (
-                        <div className="mb-1">
-                          <h3
-                            className="text-sm font-medium text-gray-900"
-                            contentEditable
-                            suppressContentEditableWarning
-                            onBlur={(e) =>
-                              handleSectionHeaderChange(section.id, key, e.currentTarget.textContent || "", 0)
-                            }
-                          >
-                            {key.split(" | ")[0]}
-                          </h3>
-                          {key.split(" | ")[1] && (
-                            <span
-                              className="text-xs text-gray-500"
-                              contentEditable
-                              suppressContentEditableWarning
-                              onBlur={(e) =>
-                                handleSectionHeaderChange(section.id, key, e.currentTarget.textContent || "", 1)
-                              }
-                            >
-                              {key.split(" | ")[1]}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      <ul className="list-disc ml-5 space-y-1 text-sm text-gray-700">
-                        {bullets.map((bullet, index) => {
-                          // Skip empty bullets
-                          if (!bullet || bullet.trim() === '') {
-                            return null
-                          }
-
-                          return (
-                            <li
-                              key={index}
-                              contentEditable
-                              suppressContentEditableWarning
-                              onBlur={(e) =>
-                                handleBulletChange(section.id, key, index, e.currentTarget.textContent || "")
-                              }
-                            >
-                              {bullet}
-                            </li>
-                          )
-                        })}
-                      </ul>
+              </p>
+            </div>
+            {/* Custom Details - Flex-wrap layout matching PDF */}
+            <div className="mb-8" ref={customFieldsRef}>
+              <div className="flex flex-wrap gap-x-8 gap-y-2">
+                {Object.entries(resumeData.custom)
+                  .filter(([_, item]) => !item.hidden)
+                  .map(([key, item]) => (
+                    <div key={key} className="flex items-start gap-1">
+                      <span
+                        className="font-bold text-xs leading-none"
+                        style={{ color: textColor, fontSize: '10px' }}
+                        contentEditable
+                        suppressContentEditableWarning
+                        onBlur={(e) => handleCustomItemChange(key, 'title', e.currentTarget.textContent || '')}
+                      >
+                        {item.title}:
+                      </span>
+                      <span
+                        className="text-xs leading-none"
+                        style={{
+                          color: item.link ? linkColor : textColor,
+                          fontSize: '10px',
+                        }}
+                        contentEditable
+                        suppressContentEditableWarning
+                        onBlur={(e) => handleCustomItemChange(key, 'content', e.currentTarget.textContent || '')}
+                      >
+                        {item.content}
+                      </span>
                     </div>
-                  )
-                })}
+                  ))}
               </div>
-            )
-          })}
+            </div>
+            {/* Sections */}
+            {resumeData.sections.map((section) => {
+              // Check if section has content
+              const hasContent = Object.entries(section.content).some(([key, bullets]) => {
+                return key && bullets && bullets.length > 0 && bullets.some((bullet) => bullet.trim() !== '')
+              })
+              if (!hasContent) return null
+              return (
+                <div
+                  key={section.id}
+                  className="mb-8"
+                  ref={(el) => {
+                    if (el) {
+                      sectionRefs.current[section.id] = el
+                    }
+                  }}
+                >
+                  {/* Section Title with underline */}
+                  <div className="mb-4">
+                    <h2
+                      className="font-bold text-sm leading-none mb-1"
+                      style={{ color: accentColor, fontSize: '14px' }}
+                      contentEditable
+                      suppressContentEditableWarning
+                      onBlur={(e) => handleSectionTitleChange(section.id, e.currentTarget.textContent || '')}
+                    >
+                      {section.title}
+                    </h2>
+                    <div className="h-px w-full" style={{ backgroundColor: accentColor }} />
+                  </div>
+                  {/* Section Content */}
+                  <div className="space-y-4">
+                    {Object.entries(section.content).map(([key, bullets]) => {
+                      // Skip empty keys or empty bullet arrays
+                      if (!key || !bullets || bullets.length === 0) return null
+                      // Check if bullets have actual content
+                      const hasBulletContent = bullets.some((bullet) => bullet.trim() !== '')
+                      if (!hasBulletContent) return null
+                      const [title, subtitle] = key.split(' | ')
+                      return (
+                        <div key={key} className="mb-4">
+                          {/* Title */}
+                          {title && title.trim() !== '' && (
+                            <h3
+                              className="font-bold text-xs leading-tight mb-1"
+                              style={{ color: textColor, fontSize: '11px' }}
+                              contentEditable
+                              suppressContentEditableWarning
+                              onBlur={(e) => handleSectionHeaderChange(section.id, key, e.currentTarget.textContent || '', 0)}
+                            >
+                              {title}
+                            </h3>
+                          )}
+                          {/* Subtitle */}
+                          {subtitle && subtitle.trim() !== '' && (
+                            <p
+                              className="text-xs leading-tight mb-1"
+                              style={{ color: secondaryColor, fontSize: '9px' }}
+                              contentEditable
+                              suppressContentEditableWarning
+                              onBlur={(e) => handleSectionHeaderChange(section.id, key, e.currentTarget.textContent || '', 1)}
+                            >
+                              {subtitle}
+                            </p>
+                          )}
+                          {/* Bullets */}
+                          <div className="space-y-1">
+                            {bullets.map((bullet, index) => {
+                              if (!bullet || bullet.trim() === '') return null
+                              return (
+                                <div key={index} className="flex items-start">
+                                  <span
+                                    className="text-xs leading-tight mr-2 flex-shrink-0"
+                                    style={{ color: textColor, fontSize: '10px' }}
+                                  >
+                                    •
+                                  </span>
+                                  <p
+                                    className="text-xs leading-tight"
+                                    style={{ color: textColor, fontSize: '10px' }}
+                                    contentEditable
+                                    suppressContentEditableWarning
+                                    onBlur={(e) => handleBulletChange(section.id, key, index, e.currentTarget.textContent || '')}
+                                  >
+                                    {bullet}
+                                  </p>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
     </div>

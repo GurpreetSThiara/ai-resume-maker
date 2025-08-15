@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useRef, useEffect } from "react"
-import { ResumeData } from "@/types/resume"
+import type { ResumeData } from "@/types/resume"
 
 interface ResumeProps {
   pdfRef: React.RefObject<HTMLDivElement>
@@ -15,7 +15,7 @@ interface ResumeProps {
 
 export const ClassicATSResume: React.FC<ResumeProps> = ({
   pdfRef,
-  font,
+  font = {},
   theme,
   resumeData,
   setResumeData,
@@ -43,11 +43,19 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
     }
   }, [activeSection, pdfRef])
 
-  const handleNameChange = (e: React.FormEvent<HTMLHeadingElement>) =>
-    setResumeData((prev) => ({ ...prev, name: e.currentTarget.textContent || "" }))
+  const handleNameChange = (e: React.FormEvent<HTMLHeadingElement>) => {
+    const textContent = e.currentTarget?.textContent
+    if (textContent !== null) {
+      setResumeData((prev) => ({ ...prev, name: textContent || "" }))
+    }
+  }
 
-  const handleContactInfoChange = (e: React.FormEvent<HTMLSpanElement>, key: string) =>
-    setResumeData((prev) => ({ ...prev, [key]: e.currentTarget.textContent || "" }))
+  const handleContactInfoChange = (e: React.FormEvent<HTMLSpanElement>, key: string) => {
+    const textContent = e.currentTarget?.textContent
+    if (textContent !== null) {
+      setResumeData((prev) => ({ ...prev, [key]: textContent || "" }))
+    }
+  }
 
   const handleCustomItemChange = (id: string, field: "title" | "content", value: string) =>
     setResumeData((prev) => {
@@ -64,12 +72,7 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
       return updated
     })
 
-  const handleSectionHeaderChange = (
-    sectionId: string,
-    originalKey: string,
-    newText: string,
-    position: 0 | 1
-  ) =>
+  const handleSectionHeaderChange = (sectionId: string, originalKey: string, newText: string, position: 0 | 1) =>
     setResumeData((prev) => {
       const updated = structuredClone(prev)
       const idx = updated.sections.findIndex((s) => s.id === sectionId)
@@ -92,57 +95,83 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
       const updated = structuredClone(prev)
       const idx = updated.sections.findIndex((s) => s.id === sectionId)
       if (idx === -1) return prev
-      if (updated.sections[idx].content[key]?.[index] !== undefined)
-        updated.sections[idx].content[key][index] = newText
+      if (updated.sections[idx].content[key]?.[index] !== undefined) updated.sections[idx].content[key][index] = newText
       return updated
     })
 
   return (
-    <div ref={pdfRef} className={`bg-gray-50 min-h-screen p-6 ${font.className}`} style={{ fontFamily: font.name }}>
-      <div className="max-w-4xl mx-auto bg-white shadow border rounded-lg p-8">
+    <div ref={pdfRef} className={`bg-gray-50 min-h-screen p-4 ${font.className}`} style={{ fontFamily: font.name }}>
+      <div className="max-w-4xl mx-auto bg-white shadow border rounded-lg p-6">
         {/* Header */}
-        <div ref={personalInfoRef} className="pb-4 border-b border-gray-300">
+        <div ref={personalInfoRef} className="pb-2">
           <h1
-            className="text-3xl font-bold text-gray-900 tracking-tight mb-4"
+            className="text-2xl font-bold text-gray-900 tracking-tight mb-2"
             contentEditable
             suppressContentEditableWarning
             onBlur={handleNameChange}
           >
             {resumeData.name}
           </h1>
-          
+
           {/* Contact information on single line */}
-          <div className="text-sm text-gray-600 mb-4">
-            {[
-              resumeData.email,
-              resumeData.phone,
-              resumeData.location,
-              resumeData.linkedin
-            ].filter(Boolean).map((field, index, array) => (
-              <span key={index}>
-                <span contentEditable suppressContentEditableWarning onBlur={(e) => {
-                  const key = Object.keys(resumeData).find(k => resumeData[k as keyof ResumeData] === field) || 'email'
-                  handleContactInfoChange(e, key)
-                }}>
-                  {field}
+          <div className="text-sm text-gray-600 mb-2">
+            {[resumeData.email, resumeData.phone, resumeData.location, resumeData.linkedin]
+              .filter(Boolean)
+              .map((field, index, array) => (
+                <span key={index}>
+                  <span
+                    contentEditable
+                    suppressContentEditableWarning
+                    onBlur={(e) => {
+                      const textContent = e.currentTarget?.textContent
+                      if (textContent !== null) {
+                        const key =
+                          Object.keys(resumeData).find((k) => {
+                            const value = resumeData[k as keyof ResumeData]
+                            return typeof value === "string" && value === field
+                          }) || "email"
+                        handleContactInfoChange(e, key)
+                      }
+                    }}
+                  >
+                    {field}
+                  </span>
+                  {index < array.length - 1 && <span className="mx-2">|</span>}
                 </span>
-                {index < array.length - 1 && <span className="mx-2">|</span>}
-              </span>
-            ))}
+              ))}
           </div>
         </div>
 
-        {/* Custom Fields - inline format like PDF */}
-        <div ref={customFieldsRef} className="mt-4 space-y-2 text-sm">
+        <div ref={customFieldsRef} className="mt-2 grid grid-cols-2 gap-x-8 gap-y-1 text-sm">
           {Object.keys(resumeData.custom).map((i) => {
             const item = resumeData.custom[i]
             if (item.hidden) return null
             return (
               <div key={item.id} className="flex gap-2">
-                <span className="font-semibold text-gray-800" contentEditable suppressContentEditableWarning onBlur={(e) => handleCustomItemChange(i, "title", e.currentTarget.textContent || "")}>
+                <span
+                  className="font-semibold text-gray-800"
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) => {
+                    const textContent = e.currentTarget?.textContent
+                    if (textContent !== null) {
+                      handleCustomItemChange(i, "title", textContent || "")
+                    }
+                  }}
+                >
                   {item.title.toUpperCase()}:
                 </span>
-                <span className="text-gray-700" contentEditable suppressContentEditableWarning onBlur={(e) => handleCustomItemChange(i, "content", e.currentTarget.textContent || "")}>
+                <span
+                  className="text-gray-700"
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) => {
+                    const textContent = e.currentTarget?.textContent
+                    if (textContent !== null) {
+                      handleCustomItemChange(i, "content", textContent || "")
+                    }
+                  }}
+                >
                   {item.content}
                 </span>
               </div>
@@ -151,61 +180,81 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
         </div>
 
         {/* Sections */}
-        <div className="mt-6">
+        <div className="mt-4">
           {resumeData.sections.map((section) => (
             <section
               key={section.id}
-              className="mb-8"
+              className="mb-5"
               ref={(el) => {
                 sectionRefs.current[section.id] = el
               }}
             >
               <h2
-                className="text-lg font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-4 uppercase tracking-wide"
+                className="text-lg font-semibold text-gray-800 pb-1 mb-2 uppercase tracking-wide"
                 contentEditable
                 suppressContentEditableWarning
-                onBlur={(e) => handleSectionTitleChange(section.id, e.currentTarget.textContent || "")}
+                onBlur={(e) => {
+                  const textContent = e.currentTarget?.textContent
+                  if (textContent !== null) {
+                    handleSectionTitleChange(section.id, textContent || "")
+                  }
+                }}
               >
                 {section.title}
               </h2>
-              
+
               {Object.entries(section.content).map(([key, bullets]) => (
-                <div key={key} className="mb-4">
+                <div key={key} className="mb-3">
                   {key && (
-                    <div className="flex justify-between items-center mb-2">
+                    <div className="flex justify-between items-center mb-1">
                       {/* Role on left */}
                       <h3
                         className="text-sm font-medium text-gray-900 flex-1"
                         contentEditable
                         suppressContentEditableWarning
-                        onBlur={(e) => handleSectionHeaderChange(section.id, key, e.currentTarget.textContent || "", 0)}
+                        onBlur={(e) => {
+                          const textContent = e.currentTarget?.textContent
+                          if (textContent !== null) {
+                            handleSectionHeaderChange(section.id, key, textContent || "", 0)
+                          }
+                        }}
                       >
                         {key.split(" | ")[0]}
                       </h3>
-                      
+
                       {/* Date on right */}
                       {key.split(" | ")[1] && (
                         <span
                           className="text-xs text-gray-500 ml-4"
                           contentEditable
                           suppressContentEditableWarning
-                          onBlur={(e) => handleSectionHeaderChange(section.id, key, e.currentTarget.textContent || "", 1)}
+                          onBlur={(e) => {
+                            const textContent = e.currentTarget?.textContent
+                            if (textContent !== null) {
+                              handleSectionHeaderChange(section.id, key, textContent || "", 1)
+                            }
+                          }}
                         >
                           {key.split(" | ")[1]}
                         </span>
                       )}
                     </div>
                   )}
-                  
+
                   {/* Bullet points with proper indentation */}
-                  <ul className="list-none space-y-1 text-sm text-gray-700 ml-4">
+                  <ul className="list-none space-y-0.5 text-sm text-gray-700 ml-4">
                     {bullets.map((bullet, index) => (
                       <li
                         key={index}
                         className="flex items-start"
                         contentEditable
                         suppressContentEditableWarning
-                        onBlur={(e) => handleBulletChange(section.id, key, index, e.currentTarget.textContent || "")}
+                        onBlur={(e) => {
+                          const textContent = e.currentTarget?.textContent
+                          if (textContent !== null) {
+                            handleBulletChange(section.id, key, index, textContent || "")
+                          }
+                        }}
                       >
                         <span className="mr-2 text-gray-500">•</span>
                         <span className="flex-1">{bullet}</span>
@@ -221,6 +270,3 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
     </div>
   )
 }
-
-
-
