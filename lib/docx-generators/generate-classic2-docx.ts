@@ -33,7 +33,7 @@ export async function generateClassic2ResumeDOCX({ resumeData, filename = "resum
   )
 
   // Contact Info - Small, gray
-  const { email, phone, location, linkedin } = resumeData.basics
+  const { email, phone, location, linkedin, summary } = resumeData.basics
   const contactInfo = [email, phone, location, linkedin].filter(Boolean).join(" | ")
   children.push(
     new Paragraph({
@@ -48,6 +48,23 @@ export async function generateClassic2ResumeDOCX({ resumeData, filename = "resum
       spacing: { after: 120 }, // Reduced from 200 to 120
     }),
   )
+
+  // Summary Section (if present)
+  if (summary) {
+    children.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: summary,
+            size: 22,
+            color: textColor,
+            font: "Arial",
+          }),
+        ],
+        spacing: { after: 120 },
+      })
+    )
+  }
 
   // Custom Details - Grid layout using table
   const customEntries = Object.entries(resumeData.custom).filter(([_, item]) => !item.hidden)

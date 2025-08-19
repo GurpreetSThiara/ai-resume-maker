@@ -71,6 +71,16 @@ export async function generateClassic2ResumePDF({ resumeData, filename = "resume
     yOffset -= 20
   }
 
+  // === SUMMARY ===
+  if (resumeData.basics.summary) {
+    const lines = wrapText(resumeData.basics.summary, pageWidth, regularFont, 11)
+    for (const line of lines) {
+      draw(line, margin, 11, regularFont, textColor)
+      yOffset -= 14
+    }
+    yOffset -= 10
+  }
+
   // === SECTIONS ===
   for (const section of resumeData.sections) {
     ensureSpace(30)
