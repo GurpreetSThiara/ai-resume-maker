@@ -38,7 +38,7 @@ export async function generateElegantResumePDF({ resumeData, filename = "resume.
 
   for (const section of resumeData.sections) {
     // Check if section has any content
-    const hasContent = Object.entries(section.content).some(([key, bullets]) => {
+    const hasContent = Object.entries(section?.content ?? {}).some(([key, bullets]) => {
       return key && bullets && bullets.length > 0 && bullets.some(bullet => bullet.trim() !== '')
     })
 
@@ -55,7 +55,7 @@ export async function generateElegantResumePDF({ resumeData, filename = "resume.
     page.drawLine({ start: { x: margin, y: y - 3 }, end: { x: width - margin, y: y - 3 }, thickness: 0.5, color: secondary })
     y -= 14
 
-    for (const [header, bullets] of Object.entries(section.content)) {
+    for (const [header, bullets] of Object.entries(section?.content ?? {})) {
       // Skip empty keys or empty bullet arrays
       if (!header || !bullets || bullets.length === 0) {
         continue

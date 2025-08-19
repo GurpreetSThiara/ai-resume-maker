@@ -70,12 +70,62 @@ export const GoogleResume: React.FC<ResumeProps> = ({
 
   const handleNameChange = (e: React.FormEvent<HTMLHeadingElement>) => {
     const name = e.currentTarget?.textContent ?? "";
-    setResumeData((prev) => ({ ...prev, name }));
+    setResumeData((prev) => ({ ...prev, basics: { ...prev.basics, name } }));
   };
 
-  const handleContactInfoChange = (e: React.FormEvent<HTMLSpanElement>, key: string) => {
+  const handleSummaryChange = (e: React.FormEvent<HTMLParagraphElement>) => {
+    const summary = e.currentTarget?.textContent ?? "";
+    setResumeData((prev) => ({ ...prev, basics: { ...prev.basics, summary } }));
+  };
+
+  const handleContactInfoChange = (e: React.FormEvent<HTMLSpanElement>, key: keyof typeof resumeData.basics) => {
     const value = e.currentTarget?.textContent ?? "";
-    setResumeData((prev) => ({ ...prev, [key]: value }));
+    setResumeData((prev) => ({ ...prev, basics: { ...prev.basics, [key]: value } }));
+  };
+
+  const handleSectionItemChange = (
+    sectionId: string,
+    itemIndex: number,
+    field: string,
+    value: string
+  ) => {
+    setResumeData((prev) => {
+      const updated = structuredClone(prev);
+      const section = updated.sections.find((s) => s.id === sectionId);
+      if (!section) return prev;
+      
+      if (section.type === "education") {
+        (section.items[itemIndex] as any)[field] = value;
+      } else if (section.type === "experience") {
+        (section.items[itemIndex] as any)[field] = value;
+      }
+      return updated;
+    });
+  };
+
+  const handleSkillsChange = (sectionId: string, value: string) => {
+    setResumeData((prev) => {
+      const updated = structuredClone(prev);
+      const section = updated.sections.find((s) => s.id === sectionId);
+      if (!section) return prev;
+      
+      // Split by bullet separator and clean up
+      const items = value.split('•').map(item => item.trim()).filter(item => item.length > 0);
+      section.items = items;
+      return updated;
+    });
+  };
+
+  const handleCustomContentChange = (sectionId: string, contentIndex: number, value: string) => {
+    setResumeData((prev) => {
+      const updated = structuredClone(prev);
+      const section = updated.sections.find((s) => s.id === sectionId);
+      if (!section || section.type !== "custom") return prev;
+      
+      if (!section.content) section.content = [];
+      section.content[contentIndex] = value;
+      return updated;
+    });
   };
 
   const handleCustomItemChange = (id: string, field: "title" | "content", value: string) =>
@@ -93,38 +143,31 @@ export const GoogleResume: React.FC<ResumeProps> = ({
       return updated
     })
 
-  const handleSectionHeaderChange = (
-    sectionId: string,
-    originalKey: string,
-    newText: string,
-    position: 0 | 1
-  ) =>
+  const handleHighlightChange = (sectionId: string, itemIndex: number, highlightIndex: number, newText: string) =>
     setResumeData((prev) => {
-      const updated = structuredClone(prev)
-      const idx = updated.sections.findIndex((s) => s.id === sectionId)
-      if (idx === -1) return prev
-      const section = updated.sections[idx]
-      const keyParts = originalKey.split(" | ")
-      keyParts[position] = newText
-      const newKey = keyParts.join(" | ")
-      if (originalKey !== newKey) {
-        const orderedContent: Record<string, string[]> = {}
-        for (const k of Object.keys(section.content))
-          orderedContent[k === originalKey ? newKey : k] = section.content[k]
-        section.content = orderedContent
+      const updated = structuredClone(prev);
+      const section = updated.sections.find((s) => s.id === sectionId);
+      if (!section || section.type !== "education") return prev;
+      
+      const edu = section.items[itemIndex];
+      if (edu.highlights && edu.highlights[highlightIndex] !== undefined) {
+        edu.highlights[highlightIndex] = newText;
       }
-      return updated
-    })
+      return updated;
+    });
 
-  const handleBulletChange = (sectionId: string, key: string, index: number, newText: string) =>
+  const handleAchievementChange = (sectionId: string, itemIndex: number, achievementIndex: number, newText: string) =>
     setResumeData((prev) => {
-      const updated = structuredClone(prev)
-      const idx = updated.sections.findIndex((s) => s.id === sectionId)
-      if (idx === -1) return prev
-      if (updated.sections[idx].content[key]?.[index] !== undefined)
-        updated.sections[idx].content[key][index] = newText
-      return updated
-    })
+      const updated = structuredClone(prev);
+      const section = updated.sections.find((s) => s.id === sectionId);
+      if (!section || section.type !== "experience") return prev;
+      
+      const exp = section.items[itemIndex];
+      if (exp.achievements && exp.achievements[achievementIndex] !== undefined) {
+        exp.achievements[achievementIndex] = newText;
+      }
+      return updated;
+    });
 
   // Colors matching the PDF generator
   const accentColor = "rgb(38, 102, 166)" // rgb(0.15, 0.4, 0.65)
@@ -167,9 +210,10 @@ export const GoogleResume: React.FC<ResumeProps> = ({
                 suppressContentEditableWarning
                 onBlur={handleNameChange}
               >
-                {resumeData.name}
+                {resumeData.basics.name}
               </h1>
             </div>
+            
             {/* Contact Info */}
             <div className="mb-6">
               <p className="text-xs leading-none" style={{ color: secondaryColor, fontSize: '10px' }}>
@@ -178,7 +222,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
                   suppressContentEditableWarning
                   onBlur={(e) => handleContactInfoChange(e, 'email')}
                 >
-                  {resumeData.email}
+                  {resumeData.basics.email}
                 </span>
                 {' | '}
                 <span
@@ -186,7 +230,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
                   suppressContentEditableWarning
                   onBlur={(e) => handleContactInfoChange(e, 'phone')}
                 >
-                  {resumeData.phone}
+                  {resumeData.basics.phone}
                 </span>
                 {' | '}
                 <span
@@ -194,10 +238,39 @@ export const GoogleResume: React.FC<ResumeProps> = ({
                   suppressContentEditableWarning
                   onBlur={(e) => handleContactInfoChange(e, 'location')}
                 >
-                  {resumeData.location}
+                  {resumeData.basics.location}
                 </span>
+                {resumeData.basics.linkedin && (
+                  <>
+                    {' | '}
+                    <span
+                      contentEditable
+                      suppressContentEditableWarning
+                      onBlur={(e) => handleContactInfoChange(e, 'linkedin')}
+                      style={{ color: linkColor }}
+                    >
+                      {resumeData.basics.linkedin}
+                    </span>
+                  </>
+                )}
               </p>
             </div>
+            
+            {/* Summary */}
+            {resumeData.basics.summary && (
+              <div className="mb-6">
+                <p 
+                  className="text-xs leading-relaxed" 
+                  style={{ color: textColor, fontSize: '10px' }}
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={handleSummaryChange}
+                >
+                  {resumeData.basics.summary}
+                </p>
+              </div>
+            )}
+            
             {/* Custom Details - Flex-wrap layout matching PDF */}
             <div className="mb-8" ref={customFieldsRef}>
               <div className="flex flex-wrap gap-x-8 gap-y-2">
@@ -230,13 +303,27 @@ export const GoogleResume: React.FC<ResumeProps> = ({
                   ))}
               </div>
             </div>
+            
             {/* Sections */}
             {resumeData.sections.map((section) => {
-              // Check if section has content
-              const hasContent = Object.entries(section.content).some(([key, bullets]) => {
-                return key && bullets && bullets.length > 0 && bullets.some((bullet) => bullet.trim() !== '')
-              })
+              // Check if section has content based on section type
+              let hasContent = false;
+              
+              if (section.type === 'education' || section.type === 'experience') {
+                hasContent = section.items && section.items.length > 0;
+              } else if (section.type === 'skills' || section.type === 'languages' || section.type === 'certifications') {
+                hasContent = section.items && section.items.length > 0;
+              } else if (section.type === 'custom') {
+                hasContent = section.content && section.content.length > 0 && section.content.some(item => item.trim() !== '');
+              } else {
+                // Fallback to original check for other types
+                hasContent = Object.entries(section?.content ?? {}).some(([key, bullets]) => {
+                  return key && bullets && bullets.length > 0 && bullets.some((bullet) => bullet.trim() !== '')
+                })
+              }
+              
               if (!hasContent) return null
+              
               return (
                 <div
                   key={section.id}
@@ -260,69 +347,204 @@ export const GoogleResume: React.FC<ResumeProps> = ({
                     </h2>
                     <div className="h-px w-full" style={{ backgroundColor: accentColor }} />
                   </div>
+                  
                   {/* Section Content */}
                   <div className="space-y-4">
-                    {Object.entries(section.content).map(([key, bullets]) => {
-                      // Skip empty keys or empty bullet arrays
-                      if (!key || !bullets || bullets.length === 0) return null
-                      // Check if bullets have actual content
-                      const hasBulletContent = bullets.some((bullet) => bullet.trim() !== '')
-                      if (!hasBulletContent) return null
-                      const [title, subtitle] = key.split(' | ')
-                      return (
-                        <div key={key} className="mb-4">
-                          {/* Title */}
-                          {title && title.trim() !== '' && (
-                            <h3
-                              className="font-bold text-xs leading-tight mb-1"
-                              style={{ color: textColor, fontSize: '11px' }}
-                              contentEditable
-                              suppressContentEditableWarning
-                              onBlur={(e) => handleSectionHeaderChange(section.id, key, e.currentTarget.textContent || '', 0)}
-                            >
-                              {title}
-                            </h3>
+                    {/* Education Section */}
+                    {section.type === 'education' && section.items.map((edu, eduIdx) => (
+                      <div key={edu.institution} className="mb-4">
+                        {/* Institution Name */}
+                        <h3
+                          className="font-bold text-xs leading-tight mb-1"
+                          style={{ color: textColor, fontSize: '12px' }}
+                          contentEditable
+                          suppressContentEditableWarning
+                          onBlur={(e) => handleSectionItemChange(section.id, eduIdx, 'institution', e.currentTarget.textContent || '')}
+                        >
+                          {edu.institution}
+                        </h3>
+                        {/* Degree */}
+                        <p
+                          className="text-xs leading-tight mb-1"
+                          style={{ color: textColor, fontSize: '10px' }}
+                          contentEditable
+                          suppressContentEditableWarning
+                          onBlur={(e) => handleSectionItemChange(section.id, eduIdx, 'degree', e.currentTarget.textContent || '')}
+                        >
+                          {edu.degree}
+                        </p>
+                        {/* Dates and Location */}
+                        <p className="text-xs leading-tight mb-2" style={{ color: secondaryColor, fontSize: '10px' }}>
+                          <span
+                            contentEditable
+                            suppressContentEditableWarning
+                            onBlur={(e) => handleSectionItemChange(section.id, eduIdx, 'startDate', e.currentTarget.textContent || '')}
+                          >
+                            {edu.startDate}
+                          </span>
+                          {' - '}
+                          <span
+                            contentEditable
+                            suppressContentEditableWarning
+                            onBlur={(e) => handleSectionItemChange(section.id, eduIdx, 'endDate', e.currentTarget.textContent || '')}
+                          >
+                            {edu.endDate}
+                          </span>
+                          {edu.location && (
+                            <>
+                              {' • '}
+                              <span
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => handleSectionItemChange(section.id, eduIdx, 'location', e.currentTarget.textContent || '')}
+                              >
+                                {edu.location}
+                              </span>
+                            </>
                           )}
-                          {/* Subtitle */}
-                          {subtitle && subtitle.trim() !== '' && (
-                            <p
-                              className="text-xs leading-tight mb-1"
-                              style={{ color: secondaryColor, fontSize: '9px' }}
-                              contentEditable
-                              suppressContentEditableWarning
-                              onBlur={(e) => handleSectionHeaderChange(section.id, key, e.currentTarget.textContent || '', 1)}
-                            >
-                              {subtitle}
-                            </p>
-                          )}
-                          {/* Bullets */}
-                          <div className="space-y-1">
-                            {bullets.map((bullet, index) => {
-                              if (!bullet || bullet.trim() === '') return null
-                              return (
-                                <div key={index} className="flex items-start">
-                                  <span
-                                    className="text-xs leading-tight mr-2 flex-shrink-0"
-                                    style={{ color: textColor, fontSize: '10px' }}
-                                  >
-                                    •
-                                  </span>
-                                  <p
-                                    className="text-xs leading-tight"
-                                    style={{ color: textColor, fontSize: '10px' }}
-                                    contentEditable
-                                    suppressContentEditableWarning
-                                    onBlur={(e) => handleBulletChange(section.id, key, index, e.currentTarget.textContent || '')}
-                                  >
-                                    {bullet}
-                                  </p>
-                                </div>
-                              )
-                            })}
-                          </div>
+                        </p>
+                        {/* Highlights */}
+                        <div className="space-y-1">
+                          {edu.highlights?.map((highlight, highlightIdx) => (
+                            <div key={highlightIdx} className="flex items-start">
+                              <span
+                                className="text-xs leading-tight mr-2 flex-shrink-0"
+                                style={{ color: textColor, fontSize: '10px' }}
+                              >
+                                •
+                              </span>
+                              <p
+                                className="text-xs leading-tight"
+                                style={{ color: textColor, fontSize: '10px' }}
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => handleHighlightChange(section.id, eduIdx, highlightIdx, e.currentTarget.textContent || '')}
+                              >
+                                {highlight}
+                              </p>
+                            </div>
+                          ))}
                         </div>
-                      )
-                    })}
+                      </div>
+                    ))}
+
+                    {/* Experience Section */}
+                    {section.type === 'experience' && section.items.map((exp, expIdx) => (
+                      <div key={exp.company} className="mb-4">
+                        {/* Company Name */}
+                        <h3
+                          className="font-bold text-xs leading-tight mb-1"
+                          style={{ color: textColor, fontSize: '12px' }}
+                          contentEditable
+                          suppressContentEditableWarning
+                          onBlur={(e) => handleSectionItemChange(section.id, expIdx, 'company', e.currentTarget.textContent || '')}
+                        >
+                          {exp.company}
+                        </h3>
+                        {/* Role */}
+                        <p
+                          className="text-xs leading-tight mb-1"
+                          style={{ color: textColor, fontSize: '10px' }}
+                          contentEditable
+                          suppressContentEditableWarning
+                          onBlur={(e) => handleSectionItemChange(section.id, expIdx, 'role', e.currentTarget.textContent || '')}
+                        >
+                          {exp.role}
+                        </p>
+                        {/* Dates and Location */}
+                        <p className="text-xs leading-tight mb-2" style={{ color: secondaryColor, fontSize: '10px' }}>
+                          <span
+                            contentEditable
+                            suppressContentEditableWarning
+                            onBlur={(e) => handleSectionItemChange(section.id, expIdx, 'startDate', e.currentTarget.textContent || '')}
+                          >
+                            {exp.startDate}
+                          </span>
+                          {' - '}
+                          <span
+                            contentEditable
+                            suppressContentEditableWarning
+                            onBlur={(e) => handleSectionItemChange(section.id, expIdx, 'endDate', e.currentTarget.textContent || '')}
+                          >
+                            {exp.endDate}
+                          </span>
+                          {exp.location && (
+                            <>
+                              {' • '}
+                              <span
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => handleSectionItemChange(section.id, expIdx, 'location', e.currentTarget.textContent || '')}
+                              >
+                                {exp.location}
+                              </span>
+                            </>
+                          )}
+                        </p>
+                        {/* Achievements */}
+                        <div className="space-y-1">
+                          {exp.achievements?.map((achievement, achievementIdx) => (
+                            <div key={achievementIdx} className="flex items-start">
+                              <span
+                                className="text-xs leading-tight mr-2 flex-shrink-0"
+                                style={{ color: textColor, fontSize: '10px' }}
+                              >
+                                •
+                              </span>
+                              <p
+                                className="text-xs leading-tight"
+                                style={{ color: textColor, fontSize: '10px' }}
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => handleAchievementChange(section.id, expIdx, achievementIdx, e.currentTarget.textContent || '')}
+                              >
+                                {achievement}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Skills, Languages, Certifications Sections */}
+                    {(section.type === 'skills' || section.type === 'languages' || section.type === 'certifications') && section.items?.length > 0 && (
+                      <div className="mb-4">
+                        <p
+                          className="text-xs leading-relaxed"
+                          style={{ color: textColor, fontSize: '10px' }}
+                          contentEditable
+                          suppressContentEditableWarning
+                          onBlur={(e) => handleSkillsChange(section.id, e.currentTarget.textContent || '')}
+                        >
+                          {section.items.join(' • ')}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Custom Section */}
+                    {section.type === 'custom' && section.content?.length > 0 && (
+                      <div className="space-y-1">
+                        {section.content.map((item, contentIdx) => (
+                          <div key={contentIdx} className="flex items-start">
+                            <span
+                              className="text-xs leading-tight mr-2 flex-shrink-0"
+                              style={{ color: textColor, fontSize: '10px' }}
+                            >
+                              •
+                            </span>
+                            <p
+                              className="text-xs leading-tight"
+                              style={{ color: textColor, fontSize: '10px' }}
+                              contentEditable
+                              suppressContentEditableWarning
+                              onBlur={(e) => handleCustomContentChange(section.id, contentIdx, e.currentTarget.textContent || '')}
+                            >
+                              {item}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               )

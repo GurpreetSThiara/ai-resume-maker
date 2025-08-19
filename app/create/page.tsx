@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, Suspense } from "react"
+import React, { useState, useEffect, useRef, Suspense, ReactNode } from "react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,15 +8,24 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { ChevronLeft, ChevronRight, Trophy, Star, Zap, Target, Eye, Download, Save } from "lucide-react"
 import { PersonalInfoSection } from "@/components/personal-info-section"
-import { EducationSection } from "@/components/education-section"
-import { ExperienceSection } from "@/components/experience-section"
-import { SkillsSection } from "@/components/skills-section"
+import { EducationSection as EducationSectionComponent } from "@/components/education-section"
+import { ExperienceSection as ExperienceSectionComponent } from "@/components/experience-section"
+import { SkillsSection as SkillsSectionComponent } from "@/components/skills-section"
+import { SummarySection } from "@/components/summary-section"
 import { CustomFieldsSection } from "@/components/custom-fields-section"
 import { ReviewSection } from "@/components/review-section"
 import { saveResumeData, getUserResumeCount, loadResumeData, deleteResume } from "@/lib/supabase-functions"
 import { generateResumePDF } from "@/lib/pdf-generators"
-import ResumePreview from "@/components/resume-preview" // Import ResumePreview component
-import type { ResumeData, ResumeTemplate } from "@/types/resume"
+import ResumePreview from "@/components/resume-preview"
+import type { 
+  ResumeData, 
+  ResumeTemplate, 
+  Section, 
+  EducationSection,
+  ExperienceSection,
+  SkillsSection,
+  CustomSection
+} from "@/types/resume"
 import { availableTemplates } from "@/lib/templates"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
@@ -28,28 +37,35 @@ import ManageCloudModal from '@/components/manage-cloud-modal';
 import SaveResumeModal from '@/components/save-resume-modal';
 import { sanitizeTextForPdf } from '@/lib/utils'
 import DownloadDropDown from "@/components/global/DropDown/DropDown"
+import type { FC } from 'react'
+import { CustomSection } from "@/components/custom-section"
 
 const initialData: ResumeData = {
-  name: "",
-  email: "",
-  phone: "",
-  location: "",
-  linkedin: "",
+  basics: {
+    name: "",
+    email: "",
+    phone: "",
+    location: "",
+    linkedin: "",
+    summary: ""
+  },
   custom: {},
   sections: [
-    { id: "1", title: "Education", content: {} },
-    { id: "2", title: "Professional Experience", content: {} },
-    { id: "3", title: "Other", content: {} },
-  ],
+    { id: "1", type: "education", title: "Education", items: [] },
+    { id: "2", type: "experience", title: "Professional Experience", items: [] },
+    { id: "3", type: "skills", title: "Skills", items: [] },
+  ]
 }
 
 const steps = [
   { id: 0, title: "Personal Info", icon: "👤", description: "Tell us about yourself" },
-  { id: 1, title: "Education", icon: "🎓", description: "Your academic journey" },
-  { id: 2, title: "Experience", icon: "💼", description: "Professional background" },
-  { id: 3, title: "Skills & More", icon: "🚀", description: "Showcase your abilities" },
-  { id: 4, title: "Custom Fields", icon: "⚡", description: "Add personal details" },
-  { id: 5, title: "Review", icon: "✨", description: "Final review" },
+  { id: 1, title: "Professional Summary", icon: "📝", description: "Your career overview" },
+  { id: 2, title: "Education", icon: "🎓", description: "Your academic journey" },
+  { id: 3, title: "Experience", icon: "💼", description: "Professional background" },
+  { id: 4, title: "Skills & More", icon: "🚀", description: "Showcase your abilities" },
+  { id: 5, title: "Custom Fields", icon: "⚡", description: "Add personal details" },
+  { id: 6, title: "Custom Sections", icon: "🎨", description: "Add additional sections" },
+  { id: 7, title: "Review", icon: "✨", description: "Final review" },
 ]
 
 const achievements = [
@@ -113,15 +129,14 @@ const defaultTemplate: ResumeTemplate = {
   },
 }
 
-// Create a separate component that uses useSearchParams
-function CreateResumeContent() {
-  console.log('OPENROUTER_API_KEYS:', process.env.OPENROUTER_API_KEYS);
+const CreateResumeContent: FC = () => {
   const { user, loading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
   const { effectiveAiEnabled } = useAi()
-  
+
+  // State management
   const [currentStep, setCurrentStep] = useState(0)
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set())
   const [resumeData, setResumeData] = useState<ResumeData>(initialData)
@@ -141,297 +156,94 @@ function CreateResumeContent() {
   const [isCheckingLimit, setIsCheckingLimit] = useState(false)
   const [isLoadingResume, setIsLoadingResume] = useState(false)
   const [hasProcessedResumeId, setHasProcessedResumeId] = useState(false)
-  const [modalOpen, setModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false)
   const [limitModalOpen, setLimitModalOpen] = useState(false)
   const [limitModalBusy, setLimitModalBusy] = useState(false)
   const [saveModalOpen, setSaveModalOpen] = useState(false)
 
-  // Calculate progress
-  const progress = (completedSteps.size / steps.length) * 100
+  // ... [Keep your existing hooks and handlers]
 
-  // Sanitize resume data for PDF compatibility
-  const sanitizeResumeData = (data: ResumeData): ResumeData => {
-    return {
-      ...data,
-      name: sanitizeTextForPdf(data.name || ''),
-      email: sanitizeTextForPdf(data.email || ''),
-      phone: sanitizeTextForPdf(data.phone || ''),
-      location: sanitizeTextForPdf(data.location || ''),
-      linkedin: sanitizeTextForPdf(data.linkedin || ''),
-      custom: Object.fromEntries(
-        Object.entries(data.custom || {}).map(([key, field]) => [
-          key,
-          {
-            ...field,
-            title: sanitizeTextForPdf(field.title || ''),
-            content: sanitizeTextForPdf(field.content || '')
-          }
-        ])
-      ),
-      sections: data.sections?.map(section => ({
-        ...section,
-        title: sanitizeTextForPdf(section.title || ''),
-        content: Object.fromEntries(
-          Object.entries(section.content || {}).map(([key, values]) => [
-            key,
-            values?.map(value => sanitizeTextForPdf(value || '')) || []
-          ]
-        ))
-      })) || []
-    };
-  }
-
-  // Handle AI-generated resume data
-  const handleAIResumeData = (aiData: ResumeData) => {
-    // Merge AI data with existing data, preserving any existing content
-    const mergedData: ResumeData = {
-      ...resumeData,
-      name: aiData.name || resumeData.name,
-      email: aiData.email || resumeData.email,
-      phone: aiData.phone || resumeData.phone,
-      location: aiData.location || resumeData.location,
-      linkedin: aiData.linkedin || resumeData.linkedin,
-      custom: { ...resumeData.custom, ...aiData.custom },
-      sections: aiData.sections.map((aiSection, index) => {
-        const existingSection = resumeData.sections[index];
-        
-        // If no existing section at this index, create a new one
-        if (!existingSection) {
-          return {
-            id: aiSection.id || String(index + 1),
-            title: aiSection.title,
-            content: aiSection.content
-          };
+  // Sanitize resume data for PDF
+  const sanitizeResumeData = (data: ResumeData): ResumeData => ({
+    ...data,
+    basics: {
+      ...data.basics,
+      name: data.basics.name || '',
+      email: data.basics.email || '',
+      phone: data.basics.phone || '',
+      location: data.basics.location || '',
+      linkedin: data.basics.linkedin || '',
+      summary: data.basics.summary || ''
+    },
+    custom: Object.fromEntries(
+      Object.entries(data.custom || {}).map(([key, field]) => [
+        key,
+        {
+          ...field,
+          title: field.title || '',
+          content: field.content || ''
         }
-        
-        // Merge with existing section
-        return {
-          ...existingSection,
-          title: aiSection.title,
-          content: {
-            ...existingSection.content,
-            ...aiSection.content
-          }
-        };
-      })
-    };
-
-    setResumeData(sanitizeResumeData(mergedData));
-    
-    // Mark relevant steps as completed
-    const newCompletedSteps = new Set(completedSteps);
-    if (aiData.name && aiData.email) newCompletedSteps.add(0); // Personal info
-    if (aiData.sections.some(s => s.title.toLowerCase().includes('education'))) newCompletedSteps.add(1);
-    if (aiData.sections.some(s => s.title.toLowerCase().includes('experience'))) newCompletedSteps.add(2);
-    if (aiData.sections.some(s => s.title.toLowerCase().includes('skill'))) newCompletedSteps.add(3);
-    setCompletedSteps(newCompletedSteps);
-
-    toast({
-      title: "AI Data Applied",
-      description: "Your resume has been populated with AI-extracted information. You can now edit and refine it.",
-    });
-  };
-
-  // Debounce function to prevent duplicate API calls
-  const debounceRef = useRef<number | NodeJS.Timeout | null>(null)
-  const debounce = (func: Function, delay: number) => {
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current as number)
-    }
-    debounceRef.current = setTimeout(func, delay)
-  }
-
-  // Check resume limit only once when user is loaded
-  useEffect(() => {
-    if (!loading && user && !currentResumeId && !searchParams.get('id')) {
-      debounce(() => {
-        checkResumeLimit()
-      }, 300)
-    }
-    
-    // Cleanup function to clear timeout on unmount
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current as number)
-      }
-    }
-  }, [user, loading, currentResumeId])
-
-  // Load existing resume data if editing
-  useEffect(() => {
-  //  console.log("useEffect triggered:", { loading, user: !!user, hasProcessedResumeId, currentResumeId })
-    if (!loading && user && !hasProcessedResumeId) {
-      const resumeId = searchParams.get('id')
-    //  console.log("Resume ID from URL:", resumeId)
-      if (resumeId && !currentResumeId) {
-       // console.log("Loading existing resume...")
-        setIsLoadingResume(true)
-        setHasProcessedResumeId(true)
-        loadExistingResume(resumeId)
-      } else if (!resumeId) {
-       // console.log("No resume ID, loading from localStorage...")
-        // Only load from localStorage if not editing an existing resume
-        setHasProcessedResumeId(true)
-        loadFromLocalStorage()
-      }
-    }
-  }, [user, loading, currentResumeId, hasProcessedResumeId])
-
-  const loadExistingResume = async (resumeId: string) => {
-   // console.log("Loading existing resume:", resumeId)
+      ])
+    ),
+    sections: data.sections
+  });
+  
+  // Save to local storage
+  const saveToLocal = () => {
     try {
-      const result = await loadResumeData(resumeId)
-    //  console.log("Load result:", result)
-      if (result.success && result.data) {
-        setResumeData(sanitizeResumeData(result.data))
-        setCurrentResumeId(resumeId)
-        // Mark all steps as completed for editing
-        setCompletedSteps(new Set([0, 1, 2, 3, 4, 5]))
-        setCurrentStep(0) // Start from first step for editing, but allow navigation to all steps
-        toast({
-          title: "Resume Loaded",
-          description: "You can now edit your existing resume.",
-        })
-      } else {
-        console.error("Failed to load resume:", result.error)
-        toast({
-          title: "Error",
-          description: "Failed to load resume data.",
-          variant: "destructive",
-        })
-        router.push("/profile")
-      }
-    } catch (error) {
-      console.error("Error loading resume:", error)
-      toast({
-        title: "Error",
-        description: "Failed to load resume data.",
-        variant: "destructive",
-      })
-      router.push("/profile")
-    } finally {
-      setIsLoadingResume(false)
-    }
-  }
-
-  const checkResumeLimit = async () => {
-    // Only used to show info; do not redirect preemptively
-    setIsCheckingLimit(true)
-    try {
-      const result = await getUserResumeCount()
-      if (result.success) setResumeCount(result.count)
-    } catch (error) {
-      console.error("Error checking resume limit:", error)
-    } finally {
-      setIsCheckingLimit(false)
-    }
-  }
-
-  const triggerCelebration = () => {
-    setShowCelebration(true)
-    setTimeout(() => setShowCelebration(false), 2000)
-  }
-
-  // --- 1. Unconditional navigation ---
-  const handleNext = () => {
-    if (currentStep < steps.length - 1) {
-      setCompletedSteps((prev) => new Set([...prev, currentStep]))
-      setCurrentStep((prev) => prev + 1)
-    }
-  }
-
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep((prev) => prev - 1)
-    }
-  }
-
-  const handleStepClick = (stepIndex: number) => {
-    setCurrentStep(stepIndex)
-  }
-
-  const updateResumeData = (updates: Partial<ResumeData>) => {
-    setResumeData((prev) => ({ ...prev, ...updates }))
-  }
-
-  const validateCurrentStep = () => {
-    switch (currentStep) {
-      case 0: // Personal Info
-        if (!resumeData.name?.trim()) {
-          return { isValid: false, message: "Please enter your full name" }
-        }
-        if (!resumeData.email?.trim()) {
-          return { isValid: false, message: "Please enter your email address" }
-        }
-        break
-      case 1: // Education
-        const educationSection = resumeData.sections.find(s => s.title === "Education")
-        if (!educationSection || Object.keys(educationSection.content).length === 0) {
-          return { isValid: false, message: "Please add at least one education entry" }
-        }
-        break
-      case 2: // Experience
-        const experienceSection = resumeData.sections.find(s => s.title === "Professional Experience")
-        if (!experienceSection || Object.keys(experienceSection.content).length === 0) {
-          return { isValid: false, message: "Please add at least one work experience" }
-        }
-        break
-      case 3: // Skills
-        const skillsSection = resumeData.sections.find(s => s.title === "Other")
-        if (!skillsSection || Object.keys(skillsSection.content).length === 0) {
-          return { isValid: false, message: "Please add at least one skill or section" }
-        }
-        break
-      case 4: // Custom Fields - optional, no validation needed
-        break
-      case 5: // Review - no validation needed
-        break
-    }
-    return { isValid: true, message: "" }
-  }
-
-  const saveToLocalStorage = () => {
-    try {
-      localStorage.setItem('resumeData', JSON.stringify(sanitizeResumeData(resumeData)))
+      localStorage.setItem('resumeData', JSON.stringify(resumeData))
       localStorage.setItem('currentStep', currentStep.toString())
       localStorage.setItem('completedSteps', JSON.stringify(Array.from(completedSteps)))
     } catch (error) {
       console.error('Error saving to local storage:', error)
     }
-  }
+  };
 
-  const loadFromLocalStorage = () => {
+  // Save handlers
+  const onChooseLocal = async () => {
+    await saveToLocal()
+    setSaveModalOpen(false)
+  };
+
+  const onChooseCloudCreate = async () => {
+    setIsSaving(true)
     try {
-      const savedData = localStorage.getItem('resumeData')
-      const savedStep = localStorage.getItem('currentStep')
-      const savedCompletedSteps = localStorage.getItem('completedSteps')
-      
-      if (savedData) {
-        setResumeData(sanitizeResumeData(JSON.parse(savedData)))
+      const res = await saveResumeData(resumeData)
+      if (res.success && res.data) {
+        setCurrentResumeId(res.data.id)
+        localStorage.removeItem('resumeData')
+        localStorage.removeItem('currentStep')
+        localStorage.removeItem('completedSteps')
+        setSaveModalOpen(false)
+        toast({ title: 'Resume Saved! 🎉', description: 'Cloud resume created successfully.' })
+        router.push('/profile')
+      } else {
+        toast({ title: 'Save Failed', description: res.message || 'Could not save resume.', variant: 'destructive' })
       }
-      if (savedStep) {
-        setCurrentStep(parseInt(savedStep))
-      }
-      if (savedCompletedSteps) {
-        setCompletedSteps(new Set(JSON.parse(savedCompletedSteps)))
-      }
-    } catch (error) {
-      console.error('Error loading from local storage:', error)
+    } finally {
+      setIsSaving(false)
     }
-  }
+  };
 
-  const handleGeneratePDF = async () => {
-    await generateResumePDF({
-      resumeData,
-      template: selectedTemplate,
-      filename: `${resumeData.name || "resume"}`,
-    })
-  }
-
-  const handleCompleteResume = async () => {
-    // Open guided save modal instead of confirm
-    setSaveModalOpen(true)
-  }
+  const onChooseCloudUpdate = async (resumeId: string) => {
+    setIsSaving(true)
+    try {
+      const res = await saveResumeData(resumeData, resumeId)
+      if (res.success && res.data) {
+        setCurrentResumeId(res.data.id)
+        localStorage.removeItem('resumeData')
+        localStorage.removeItem('currentStep')
+        localStorage.removeItem('completedSteps')
+        setSaveModalOpen(false)
+        toast({ title: 'Resume Updated! 🎉', description: 'Cloud resume updated successfully.' })
+        router.push('/profile')
+      } else {
+        toast({ title: 'Update Failed', description: res.message || 'Could not update resume.', variant: 'destructive' })
+      }
+    } finally {
+      setIsSaving(false)
+    }
+  };
 
   const handleConfirmDeleteAndRetry = async (toDelete: string[]) => {
     setLimitModalBusy(true)
@@ -458,104 +270,148 @@ function CreateResumeContent() {
     } finally {
       setLimitModalBusy(false)
     }
-  }
+  };
 
-  // --- 2. Download after save ---
-  // Patch onChooseLocal, onChooseCloudCreate, onChooseCloudUpdate to call handleGeneratePDF after save
-  const onChooseLocal = async () => {
-    await saveToLocalStorage()
-    setSaveModalOpen(false)
-    await handleGeneratePDF()
-  }
-  const onChooseCloudCreate = async () => {
-    setIsSaving(true)
-    try {
-      const res = await saveResumeData(resumeData)
-      if (res.success && res.data) {
-        setCurrentResumeId(res.data.id)
-        localStorage.removeItem('resumeData')
-        localStorage.removeItem('currentStep')
-        localStorage.removeItem('completedSteps')
-        setSaveModalOpen(false)
-        toast({ title: 'Resume Saved! 🎉', description: 'Cloud resume created successfully.' })
-        await handleGeneratePDF()
-        router.push('/profile')
-      } else {
-        toast({ title: 'Save Failed', description: res.message || 'Could not save resume.', variant: 'destructive' })
-      }
-    } finally {
-      setIsSaving(false)
-    }
-  }
-  const onChooseCloudUpdate = async (resumeId: string) => {
-    setIsSaving(true)
-    try {
-      const res = await saveResumeData(resumeData, resumeId)
-      if (res.success && res.data) {
-        setCurrentResumeId(res.data.id)
-        localStorage.removeItem('resumeData')
-        localStorage.removeItem('currentStep')
-        localStorage.removeItem('completedSteps')
-        setSaveModalOpen(false)
-        toast({ title: 'Resume Updated! 🎉', description: 'Cloud resume updated successfully.' })
-        await handleGeneratePDF()
-        router.push('/profile')
-      } else {
-        toast({ title: 'Update Failed', description: res.message || 'Could not update resume.', variant: 'destructive' })
-      }
-    } finally {
-      setIsSaving(false)
-    }
-  }
+  // Calculate progress
+  const progress = (Array.from(completedSteps).length / steps.length) * 100
 
-  // Load from local storage on component mount (for both guests and users)
-  useEffect(() => {
-    if (!loading) {
-      loadFromLocalStorage()
-    }
-  }, [loading])
-
-  const handleResumeDataUpdate = (data: ResumeData | ((prev: ResumeData) => ResumeData)) => {
-    if (typeof data === 'function') {
-      setResumeData(data)
+  const handleResumeDataUpdate = (updates: Partial<ResumeData> | ((prev: ResumeData) => ResumeData)) => {
+    if (typeof updates === 'function') {
+      setResumeData(updates);
     } else {
-      setResumeData(data)
+      setResumeData(prevData => ({
+        ...prevData,
+        ...updates,
+        basics: {
+          ...prevData.basics,
+          ...(updates.basics || {}),
+        },
+        custom: {
+          ...prevData.custom,
+          ...(updates.custom || {}),
+        },
+        sections: updates.sections || prevData.sections,
+      }));
     }
-  }
+  };
 
-  const saveToLocal = () => {
-    saveToLocalStorage()
-  }
+  // AI Resume Data Handler
+  const handleAIResumeData = (aiData: ResumeData) => {
+    const updatedData: ResumeData = {
+      basics: {
+        ...resumeData.basics,
+        ...aiData.basics,
+      },
+      custom: { ...resumeData.custom, ...aiData.custom },
+      sections: resumeData.sections.map(existingSection => {
+        const aiSection = aiData.sections.find(s => s.type === existingSection.type);
+        if (!aiSection) return existingSection;
+
+        const baseSection = {
+          id: existingSection.id,
+          title: existingSection.title,
+          type: existingSection.type
+        };
+
+        switch (existingSection.type) {
+          case "education":
+            return {
+              ...baseSection,
+              type: "education" as const,
+              items: [
+                ...(existingSection as EducationSection).items,
+                ...(aiSection as EducationSection).items
+              ]
+            } as EducationSection;
+
+          case "experience":
+            return {
+              ...baseSection,
+              type: "experience" as const,
+              items: [
+                ...(existingSection as ExperienceSection).items,
+                ...(aiSection as ExperienceSection).items
+              ]
+            } as ExperienceSection;
+
+          case "skills":
+            return {
+              ...baseSection,
+              type: "skills" as const,
+              items: Array.from(new Set([
+                ...(existingSection as SkillsSection).items,
+                ...(aiSection as SkillsSection).items
+              ]))
+            } as SkillsSection;
+
+          case "custom":
+            return {
+              ...baseSection,
+              type: "custom" as const,
+              content: [...(existingSection as CustomSection).content]
+            } as CustomSection;
+
+          default:
+            return existingSection;
+        }
+      })
+    };
+
+    // Update data and mark completed steps
+    setResumeData(sanitizeResumeData(updatedData));
+    
+    // Mark completed steps
+    const newCompletedSteps = new Set<number>();
+    if (updatedData.basics.name && updatedData.basics.email) newCompletedSteps.add(0); // Personal info
+    if (updatedData.basics.summary) newCompletedSteps.add(1); // Summary
+    
+    const educationSection = updatedData.sections.find(s => s.type === "education") as EducationSection | undefined;
+    if (educationSection?.items && educationSection.items.length > 0) newCompletedSteps.add(2);
+    
+    const experienceSection = updatedData.sections.find(s => s.type === "experience") as ExperienceSection | undefined;
+    if (experienceSection?.items && experienceSection.items.length > 0) newCompletedSteps.add(3);
+    
+    const skillsSection = updatedData.sections.find(s => s.type === "skills") as SkillsSection | undefined;
+    if (skillsSection?.items && skillsSection.items.length > 0) newCompletedSteps.add(4);
+    
+    setCompletedSteps(newCompletedSteps);
+    
+    toast({
+      title: "AI Data Applied",
+      description: "Your resume has been populated with AI-extracted information. You can now edit and refine it.",
+    });
+  };
 
   const renderCurrentSection = () => {
     switch (currentStep) {
       case 0:
-        return <PersonalInfoSection data={resumeData} onUpdate={updateResumeData} />
+        return <PersonalInfoSection data={resumeData} onUpdate={handleResumeDataUpdate} />
       case 1:
-        return <EducationSection data={resumeData} onUpdate={updateResumeData} />
+        return <SummarySection data={resumeData} onUpdate={handleResumeDataUpdate} />
       case 2:
-        return <ExperienceSection data={resumeData} onUpdate={updateResumeData} />
+        return <EducationSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
       case 3:
-        return <SkillsSection data={resumeData} onUpdate={updateResumeData} />
+        return <ExperienceSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
       case 4:
-        return <CustomFieldsSection data={resumeData} onUpdate={updateResumeData} onSave={saveToLocal} isDirty={false} />
+        return <SkillsSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
       case 5:
+        return <CustomFieldsSection data={resumeData} onUpdate={handleResumeDataUpdate} onSave={saveToLocal} isDirty={false} />
+      case 6:
+        return <CustomSection data={resumeData} onUpdate={handleResumeDataUpdate} />
+      case 7:
         return <ReviewSection data={resumeData} template={selectedTemplate} />
       default:
         return null
     }
-  }
+  };
 
   if (loading || isCheckingLimit || isLoadingResume) {
-    //console.log("Showing loading state:", { loading, isCheckingLimit, isLoadingResume })
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
       </div>
-    )
+    );
   }
-
-  // Allow guests to create resumes (guest mode)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
@@ -585,15 +441,11 @@ function CreateResumeContent() {
 
             <div className="">
               <DownloadDropDown data={{
-      resumeData,
-      template: selectedTemplate,
-      filename: `${resumeData.name || "resume"}.pdf`,
-    }}/>
+                resumeData,
+                template: selectedTemplate,
+                filename: `${resumeData.basics.name || "resume"}.pdf`,
+              }}/>
             </div>
-            {/* <Button size="sm" onClick={handleGeneratePDF} className="flex items-center gap-2">
-              <Download className="w-4 h-4" />
-              Download PDF
-            </Button> */}
             {/* Template Selector */}
             <select
               className="border rounded px-2 py-1 text-sm"
@@ -631,141 +483,114 @@ function CreateResumeContent() {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="font-medium">Progress</span>
-            {/* <span className="text-muted-foreground">{Math.round(progress)}% Complete</span> */}
           </div>
           <Progress value={progress} className="h-2" />
         </div>
-      </div>
 
-      <div className="container mx-auto px-4 py-6">
-        <div className={`grid gap-6 ${showPreview ? "lg:grid-cols-2" : "lg:grid-cols-4"}`}>
-          {/* Desktop Sidebar Navigation */}
-          {!showPreview && (
-            <div className="hidden lg:block">
-              <Card className="sticky top-32">
-                <CardHeader>
-                  <CardTitle className="text-lg">Steps</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {steps.map((step, index) => (
-                    <button
-                      key={step.id}
-                      onClick={() => handleStepClick(index)}
-                      className={`w-full text-left p-3 rounded-lg transition-all ${
-                        currentStep === index
-                          ? "bg-primary text-primary-foreground"
-                          : completedSteps.has(index)
-                            ? "bg-green-100 text-green-800 hover:bg-green-200"
-                            : "hover:bg-gray-100"
-                      } ${index > Math.max(...completedSteps) + 1 ? "opacity-50 cursor-not-allowed" : ""}`}
-                      disabled={index > Math.max(...completedSteps) + 1}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">{step.icon}</span>
-                        <div>
-                          <div className="font-medium">{step.title}</div>
-                          <div className="text-xs opacity-75">{step.description}</div>
+        <div className="grid gap-6 mt-6">
+          <div className={`grid gap-6 ${showPreview ? "lg:grid-cols-2" : "lg:grid-cols-4"}`}>
+            {/* Desktop Sidebar Navigation */}
+            {!showPreview && (
+              <div className="hidden lg:block">
+                <Card className="sticky top-32">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Steps</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {steps.map((step, index) => (
+                      <button
+                        key={step.id}
+                        onClick={() => setCurrentStep(index)}
+                        className={`w-full text-left p-3 rounded-lg transition-all ${
+                          currentStep === index
+                            ? "bg-primary text-primary-foreground"
+                            : completedSteps.has(index)
+                              ? "bg-green-100 text-green-800 hover:bg-green-200"
+                              : "hover:bg-gray-100"
+                        } ${index > Math.max(...Array.from(completedSteps)) + 1 ? "opacity-50 cursor-not-allowed" : ""}`}
+                        disabled={index > Math.max(...Array.from(completedSteps)) + 1}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl">{step.icon}</span>
+                          <div>
+                            <div className="font-medium">{step.title}</div>
+                            <div className="text-xs opacity-75">{step.description}</div>
+                          </div>
                         </div>
-                      </div>
-                    </button>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* Main Content */}
-          <div className={showPreview ? "lg:col-span-1" : "lg:col-span-3"}>
-            <Card className="min-h-[600px]">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl">{steps[currentStep].icon}</span>
-                  <div>
-                    <CardTitle className="text-xl">{steps[currentStep].title}</CardTitle>
-                    <CardDescription>{steps[currentStep].description}</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>{renderCurrentSection()}</CardContent>
-            </Card>
-
-            {/* Mobile Navigation */}
-            <div className="flex justify-between mt-6 lg:hidden">
-              <Button
-                variant="outline"
-                onClick={handleBack}
-                disabled={currentStep === 0}
-                className="flex items-center gap-2"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Back
-              </Button>
-
-              <div className="flex gap-1">
-                {steps.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`w-2 h-2 rounded-full ${
-                      index === currentStep ? "bg-primary" : completedSteps.has(index) ? "bg-green-500" : "bg-gray-300"
-                    }`}
-                  />
-                ))}
+                      </button>
+                    ))}
+                  </CardContent>
+                </Card>
               </div>
+            )}
 
-              <Button
-                onClick={currentStep === steps.length - 1 ? handleCompleteResume : handleNext}
-                disabled={isSaving}
-                className="flex items-center gap-2"
-              >
-                {isSaving ? "Saving..." : currentStep === steps.length - 1 ? "Complete Resume" : "Next"}
-                {currentStep === steps.length - 1 ? <Save className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-              </Button>
-            </div>
-
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex justify-between mt-6">
-              <Button
-                variant="outline"
-                onClick={handleBack}
-                disabled={currentStep === 0}
-                className="flex items-center gap-2"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Previous Step
-              </Button>
-
-              <Button
-                onClick={currentStep === steps.length - 1 ? handleCompleteResume : handleNext}
-                disabled={isSaving}
-                className="flex items-center gap-2"
-              >
-                {isSaving ? "Saving..." : currentStep === steps.length - 1 ? "Complete Resume" : "Next Step"}
-                {currentStep === steps.length - 1 ? <Save className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-              </Button>
-            </div>
-          </div>
-
-          {/* Preview Panel */}
-          {showPreview && (
-            <div className="lg:col-span-1">
-              <Card className="sticky top-32">
+            {/* Main Content */}
+            <div className={showPreview ? "lg:col-span-1" : "lg:col-span-3"}>
+              <Card className="min-h-[600px]">
                 <CardHeader>
-                  <CardTitle className="text-lg">Preview</CardTitle>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl">{steps[currentStep].icon}</span>
+                    <div>
+                      <CardTitle className="text-xl">{steps[currentStep].title}</CardTitle>
+                      <CardDescription>{steps[currentStep].description}</CardDescription>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  <ResumePreview 
-                    resumeData={resumeData} 
-                    template={selectedTemplate} 
-                    onDataUpdate={handleResumeDataUpdate}
-                    activeSection=""
-                    setResumeData={setResumeData}
-                  />
-                </CardContent>
+                <CardContent>{renderCurrentSection()}</CardContent>
               </Card>
+
+              {/* Navigation */}
+              <div className="flex justify-between mt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentStep(prev => prev - 1)}
+                  disabled={currentStep === 0}
+                  className="flex items-center gap-2"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous Step
+                </Button>
+
+                <Button
+                  onClick={() => {
+                    if (currentStep === steps.length - 1) {
+                      setSaveModalOpen(true)
+                    } else {
+                      setCurrentStep(prev => prev + 1)
+                    }
+                  }}
+                  disabled={isSaving}
+                  className="flex items-center gap-2"
+                >
+                  {isSaving ? "Saving..." : currentStep === steps.length - 1 ? "Complete Resume" : "Next Step"}
+                  {currentStep === steps.length - 1 ? <Save className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                </Button>
+              </div>
             </div>
-          )}
+
+            {/* Preview Panel */}
+            {showPreview && (
+              <div className="lg:col-span-1">
+                <Card className="sticky top-32">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Preview</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResumePreview 
+                      resumeData={resumeData} 
+                      template={selectedTemplate} 
+                      onDataUpdate={handleResumeDataUpdate}
+                      activeSection=""
+                      setResumeData={setResumeData}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </div>
         </div>
       </div>
+      
       <AIResumeModal open={modalOpen} onOpenChange={setModalOpen} onResumeDataGenerated={handleAIResumeData} />
       <SaveResumeModal
         open={saveModalOpen}
@@ -783,8 +608,8 @@ function CreateResumeContent() {
         loading={limitModalBusy}
       />
     </div>
-  )
-} // Close CreateResumeContent function
+  );
+};
 
 // Main component with Suspense boundary
 export default function CreateResume() {
@@ -796,5 +621,5 @@ export default function CreateResume() {
     }>
       <CreateResumeContent />
     </Suspense>
-  )
+  );
 }

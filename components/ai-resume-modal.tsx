@@ -32,106 +32,107 @@ export const AIResumeModal: React.FC<AIResumeModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [parsedData, setParsedData] = useState<ResumeData | null>(null);
 
-  // Enhanced prompt to extract structured data
 // Enhanced prompt to extract structured data
 const systemPrompt = `You are an expert resume parser and builder. Your task is to extract information from the user's input and convert it into a structured JSON format that matches this exact schema:
+
 {
-  name: "Full Name",
-  email: "email@example.com",
-  phone: "phone number or empty string",
-  location: "City, Country",
-  linkedin: "linkedin profile URL or empty string",
-  custom: {
+  "basics": {
+    "name": "Full Name",
+    "email": "email@example.com",
+    "phone": "phone number or empty string",
+    "location": "City, Country",
+    "linkedin": "linkedin profile URL or empty string",
+    "summary": "Professional summary or empty string"
+  },
+
+  "custom": {
     "custom_dob_001": {
-      title: "Date of Birth",
-      content: "January 1, 1990",
-      hidden: false,
-      id: "custom_dob_001",
-      link: false
+      "title": "Date of Birth",
+      "content": "January 1, 1990",
+      "hidden": false,
+      "id": "custom_dob_001",
+      "link": false
     },
     "custom_nationality_002": {
-      title: "Nationality",
-      content: "Your Nationality",
-      hidden: false,
-      id: "custom_nationality_002",
-      link: false
+      "title": "Nationality",
+      "content": "Your Nationality",
+      "hidden": false,
+      "id": "custom_nationality_002",
+      "link": false
     },
     "custom_website_003": {
-      title: "Website",
-      content: "https://example.com",
-      hidden: false,
-      id: "custom_website_003",
-      link: true
+      "title": "Website",
+      "content": "https://example.com",
+      "hidden": false,
+      "id": "custom_website_003",
+      "link": true
     }
   },
-  sections: [
+
+  "sections": [
     {
-      id: "1",
-      title: "Education",
-      content: {
-        "University Name | Degree Name": [
-          "Year",
-          "City, Country",
-          "Special achievements or GPA"
-        ],
-        "University Name | Another Degree": [
-          "Year",
-          "City, Country",
-          "Special achievements or activities"
-        ]
-      }
+      "id": "edu-1",
+      "title": "Education",
+      "type": "education",
+      "items": [
+        {
+          "institution": "University Name",
+          "degree": "Degree Name",
+          "startDate": "2015-09",
+          "endDate": "2019-06",
+          "location": "City, Country",
+          "highlights": ["Special achievements or GPA"]
+        }
+      ]
     },
     {
-      id: "2",
-      title: "Professional Experience",
-      content: {
-        "Company Name | Job Title": [
-          "Start Date - End Date",
-          "City, Country",
-          "Key responsibility 1",
-          "Key responsibility 2"
-        ],
-        "Company Name | Another Job Title": [
-          "Start Date - End Date",
-          "City, Country",
-          "Key responsibility 1",
-          "Key responsibility 2"
-        ]
-      }
+      "id": "exp-1",
+      "title": "Professional Experience",
+      "type": "experience",
+      "items": [
+        {
+          "company": "Company Name",
+          "role": "Job Title",
+          "startDate": "2020-01",
+          "endDate": "2023-12",
+          "location": "City, Country",
+          "achievements": [
+            "Key responsibility or achievement 1",
+            "Key responsibility or achievement 2"
+          ]
+        }
+      ]
     },
     {
-      id: "3",
-      title: "Skills & Technologies",
-      content: {
-        "Technical Skills": [
-          "Skill 1, Skill 2, Skill 3"
-        ],
-        "Soft Skills": [
-          "Skill 1, Skill 2"
-        ],
-        "Languages": [
-          "Language 1, Language 2"
-        ],
-        "Certifications": [
-          "Certification Name - Issuing Organization - Year"
-        ]
-      }
+      "id": "skills-1",
+      "title": "Skills & Technologies",
+      "type": "skills",
+      "items": ["JavaScript", "React", "Node.js"]
     },
     {
-      id: "4",
-      title: "Projects & Achievements",
-      content: {
-        "Projects": [
-          "Project Name - Short description - Technologies Used"
-        ],
-        "Achievements": [
-          "Achievement 1",
-          "Achievement 2"
-        ]
-      }
+      "id": "lang-1",
+      "title": "Languages",
+      "type": "languages",
+      "items": ["English (Fluent)", "Spanish (Intermediate)"]
+    },
+    {
+      "id": "cert-1",
+      "title": "Certifications",
+      "type": "certifications",
+      "items": ["AWS Certified Solutions Architect - 2022"]
+    },
+    {
+      "id": "custom-1",
+      "title": "Projects & Achievements",
+      "type": "custom",
+      "content": [
+        "Project Name - Short description - Technologies Used",
+        "Achievement 1",
+        "Achievement 2"
+      ]
     }
   ]
-};
+}
 
 IMPORTANT RULES:
 1. Extract ALL available information from the user's input, even if not explicitly stated in traditional resume format.
@@ -245,7 +246,7 @@ Parse the user's information and return ONLY the JSON object, no additional text
         ...section,
         title: sanitizeTextForPdf(section.title || ''),
         content: Object.fromEntries(
-          Object.entries(section.content || {}).map(([key, values]) => [
+          Object.entries(section?.content || {}).map(([key, values]) => [
             key,
             values?.map(value => sanitizeTextForPdf(value || '')) || []
           ]

@@ -1,6 +1,7 @@
 // OpenRouter API utility for AI-powered resume builder
 // Handles multiple API keys, random selection, and secure server-side requests
 
+import OpenAI from "openai"
 
 // Load API keys from environment variable (comma-separated)
 const OPENROUTER_API_KEYS = process.env.OPENROUTER_API_KEYS?.split(',').map(k => k.trim()).filter(Boolean) || [];
@@ -14,51 +15,39 @@ function getRandomApiKey() {
   return OPENROUTER_API_KEYS[idx];
 }
 
-export interface OpenRouterMessage {
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-}
+const client = new OpenAI({
+  apiKey: getRandomApiKey(),
+  baseURL: "https://openrouter.ai/api/v1",
+  defaultHeaders: {
+    "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL,
+    "X-Title": "AI Resume Builder",
+  },
+})
 
-export interface OpenRouterResponse {
-  id: string;
-  choices: Array<{
-    message: OpenRouterMessage;
-    finish_reason: string;
-  }>;
-}
-
-export async function sendOpenRouterMessage({
-  messages,
-  model = 'openai/gpt-oss-20b:free',
-  siteUrl,
-  siteTitle,
-}: {
-  messages: OpenRouterMessage[];
-  model?: string;
+interface OpenRouterMessageParams {
+  messages: any[];
+  model: string;
   siteUrl?: string;
   siteTitle?: string;
-}): Promise<OpenRouterResponse> {
-  const apiKey = getRandomApiKey();
-  const headers: Record<string, string> = {
-    'Authorization': `Bearer ${apiKey}`,
-    'Content-Type': 'application/json',
-  };
-  if (siteUrl) headers['HTTP-Referer'] = siteUrl;
-  if (siteTitle) headers['X-Title'] = siteTitle;
-
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      model,
-      messages,
-    }),
-  });
-
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`OpenRouter API error: ${res.status} ${res.statusText} - ${errorText}`);
-  }
-
-  return res.json();
 }
+
+export async function sendOpenRouterMessage({ messages, model, siteUrl, siteTitle }: OpenRouterMessageParams) {
+  try {
+    const completion = await client.chat.completions.create({
+      messages,
+      model,
+    }, {
+      headers: {
+        ...(siteUrl && { "HTTP-Referer": siteUrl }),
+        ...(siteTitle && { "X-Title": siteTitle }),
+      },
+    });
+    
+    return completion;
+  } catch (error) {
+    console.error('OpenRouter API error:', error);
+    throw error;
+  }
+}
+
+export { client as openRouter }

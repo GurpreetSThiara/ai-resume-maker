@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, GraduationCap, Edit2, Save } from "lucide-react"
-import type { ResumeData } from "@/app/create/page"
+import type { ResumeData, Education, EducationSection as EducationSectionType } from "@/types/resume"
 
 interface EducationSectionProps {
   data: ResumeData
@@ -14,13 +14,32 @@ interface EducationSectionProps {
 }
 
 export function EducationSection({ data, onUpdate }: EducationSectionProps) {
-  const [newEducation, setNewEducation] = useState({ institution: "", details: [""] })
-  const [editingEducation, setEditingEducation] = useState<string | null>(null)
-  const [editData, setEditData] = useState<{ institution: string; details: string[] }>({ institution: "", details: [] })
+  const [newEducation, setNewEducation] = useState<Education>({
+    institution: "",
+    degree: "",
+    startDate: "",
+    endDate: "",
+    location: "",
+    highlights: []
+  })
+  const [editingEducationId, setEditingEducationId] = useState<string | null>(null)
+  const [editData, setEditData] = useState<Education>({
+    institution: "",
+    degree: "",
+    startDate: "",
+    endDate: "",
+    location: "",
+    highlights: []
+  })
   const [isSectionDirty, setIsSectionDirty] = useState(false)
   const [isAddingNew, setIsAddingNew] = useState(false)
 
-  const educationSection = data.sections.find((s) => s.title === "Education") || { content: {} }
+  const educationSection = data.sections.find((s): s is EducationSection => s.type === "education") || {
+    id: "education",
+    title: "Education",
+    type: "education" as const,
+    items: []
+  }
 
   useEffect(() => {
     // Check for unsaved changes whenever data or newEducation changes
@@ -33,56 +52,77 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
   }, [data, newEducation, educationSection.content])
 
   const addEducation = () => {
-    if (newEducation.institution && newEducation.details[0]) {
+    if (newEducation.institution && newEducation.degree) {
       const updatedSections = data.sections.map((section) => {
-        if (section.title === "Education") {
+        if (section.type === "education") {
           return {
             ...section,
-            content: {
-              ...section.content,
-              [newEducation.institution]: newEducation.details.filter((detail) => detail.trim()),
-            },
+            items: [...section.items, { 
+              ...newEducation,
+              highlights: newEducation.highlights.filter(h => h.trim())
+            }]
           }
         }
         return section
       })
       onUpdate({ sections: updatedSections })
-      setNewEducation({ institution: "", details: [""] })
+      setNewEducation({
+        institution: "",
+        degree: "",
+        startDate: "",
+        endDate: "",
+        location: "",
+        highlights: []
+      })
       setIsAddingNew(false)
     }
   }
 
-  const removeEducation = (institution: string) => {
+  const removeEducation = (index: number) => {
     const updatedSections = data.sections.map((section) => {
-      if (section.title === "Education") {
-        const updatedContent = { ...section.content }
-        delete updatedContent[institution]
-        return { ...section, content: updatedContent }
+      if (section.type === "education") {
+        return {
+          ...section,
+          items: section.items.filter((_, i) => i !== index)
+        }
       }
       return section
     })
     onUpdate({ sections: updatedSections })
   }
 
-  const startEditing = (institution: string, details: string[]) => {
-    setEditingEducation(institution)
-    setEditData({ institution, details: [...details] })
+  const startEditing = (education: Education, index: number) => {
+    setEditingEducationId(index.toString())
+    setEditData({ ...education })
   }
 
   const saveEdit = () => {
-    if (editingEducation && editData.institution) {
+    if (editingEducationId !== null && editData.institution) {
+      const index = parseInt(editingEducationId)
       const updatedSections = data.sections.map((section) => {
-        if (section.title === "Education") {
-          const updatedContent = { ...section.content }
-          delete updatedContent[editingEducation]
-          updatedContent[editData.institution] = editData.details.filter((detail) => detail.trim())
-          return { ...section, content: updatedContent }
+        if (section.type === "education") {
+          const updatedItems = [...section.items]
+          updatedItems[index] = {
+            ...editData,
+            highlights: editData.highlights.filter(h => h.trim())
+          }
+          return {
+            ...section,
+            items: updatedItems
+          }
         }
         return section
       })
       onUpdate({ sections: updatedSections })
-      setEditingEducation(null)
-      setEditData({ institution: "", details: [] })
+      setEditingEducationId(null)
+      setEditData({
+        institution: "",
+        degree: "",
+        startDate: "",
+        endDate: "",
+        location: "",
+        highlights: []
+      })
     }
   }
 
@@ -160,34 +200,86 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
 
       {/* Existing Education Entries */}
       <div className="space-y-4">
-        {Object.entries(educationSection.content).map(([institution, details]) => (
-          <Card key={institution} className="relative">
-            {editingEducation === institution ? (
+        {educationSection.items.map((education, index) => (
+          <Card key={index} className="relative">
+            {editingEducationId === index.toString() ? (
               <CardContent className="pt-6 space-y-4">
-                <div>
-                  <Label htmlFor="edit-institution">Institution & Degree</Label>
-                  <Input
-                    id="edit-institution"
-                    value={editData.institution}
-                    onChange={(e) => setEditData((prev) => ({ ...prev, institution: e.target.value }))}
-                    className="mt-1"
-                  />
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="edit-institution">Institution</Label>
+                    <Input
+                      id="edit-institution"
+                      value={editData.institution}
+                      onChange={(e) => setEditData((prev) => ({ ...prev, institution: e.target.value }))}
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-degree">Degree</Label>
+                    <Input
+                      id="edit-degree"
+                      value={editData.degree}
+                      onChange={(e) => setEditData((prev) => ({ ...prev, degree: e.target.value }))}
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="edit-start-date">Start Date</Label>
+                      <Input
+                        id="edit-start-date"
+                        value={editData.startDate}
+                        onChange={(e) => setEditData((prev) => ({ ...prev, startDate: e.target.value }))}
+                        placeholder="MM/YYYY"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-end-date">End Date</Label>
+                      <Input
+                        id="edit-end-date"
+                        value={editData.endDate}
+                        onChange={(e) => setEditData((prev) => ({ ...prev, endDate: e.target.value }))}
+                        placeholder="MM/YYYY or Present"
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-location">Location</Label>
+                    <Input
+                      id="edit-location"
+                      value={editData.location}
+                      onChange={(e) => setEditData((prev) => ({ ...prev, location: e.target.value }))}
+                      className="mt-1"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-3">
-                  <Label>Details</Label>
-                  {editData.details.map((detail, index) => (
+                  <Label>Highlights & Achievements</Label>
+                  {(editData.highlights || []).map((highlight, index) => (
                     <div key={index} className="flex gap-2">
                       <Input
-                        value={detail}
-                        onChange={(e) => updateEditDetail(index, e.target.value)}
-                        placeholder={index === 0 ? "Graduation date" : "Additional detail"}
+                        value={highlight}
+                        onChange={(e) => {
+                          const newHighlights = [...(editData.highlights || [])];
+                          newHighlights[index] = e.target.value;
+                          setEditData(prev => ({ ...prev, highlights: newHighlights }));
+                        }}
+                        placeholder="Achievement or highlight"
                       />
-                      {editData.details.length > 1 && (
+                      {(editData.highlights?.length || 0) > 1 && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => removeEditDetail(index)}
+                          onClick={() => {
+                            const newHighlights = editData.highlights?.filter((_, i) => i !== index) || [];
+                            setEditData(prev => ({ ...prev, highlights: newHighlights }));
+                          }}
                           className="text-red-500"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -196,9 +288,19 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                     </div>
                   ))}
 
-                  <Button variant="outline" size="sm" onClick={addEditDetailField} className="w-full bg-transparent">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setEditData(prev => ({
+                        ...prev,
+                        highlights: [...(prev.highlights || []), ""]
+                      }));
+                    }}
+                    className="w-full bg-transparent"
+                  >
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Detail
+                    Add Highlight
                   </Button>
                 </div>
 
@@ -206,7 +308,17 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                   <Button onClick={saveEdit} className="flex-1">
                     Save Changes
                   </Button>
-                  <Button variant="outline" onClick={cancelEdit} className="flex-1 bg-transparent">
+                  <Button variant="outline" onClick={() => {
+                    setEditingEducationId(null);
+                    setEditData({
+                      institution: "",
+                      degree: "",
+                      startDate: "",
+                      endDate: "",
+                      location: "",
+                      highlights: []
+                    });
+                  }} className="flex-1 bg-transparent">
                     Cancel
                   </Button>
                 </div>
@@ -217,13 +329,13 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <GraduationCap className="w-5 h-5" />
-                      {institution}
+                      {education.institution}
                     </CardTitle>
                     <div className="flex gap-2">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => startEditing(institution, details)}
+                        onClick={() => startEditing(education, index)}
                         className="text-blue-500 hover:text-blue-700"
                       >
                         <Edit2 className="w-4 h-4" />
@@ -231,7 +343,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeEducation(institution)}
+                        onClick={() => removeEducation(index)}
                         className="text-red-500 hover:text-red-700"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -241,12 +353,21 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {details.map((detail, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></span>
-                        <span className="text-sm">{detail}</span>
+                    <div className="font-medium">{education.degree}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {education.startDate} - {education.endDate}
+                      {education.location && ` • ${education.location}`}
+                    </div>
+                    {education.highlights && education.highlights.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {education.highlights.map((highlight, i) => (
+                          <div key={i} className="flex items-center gap-2 text-sm">
+                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0 mt-1"></span>
+                            <span>{highlight}</span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
                 </CardContent>
               </>
@@ -264,37 +385,106 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="institution">Institution & Degree</Label>
-            <Input
-              id="institution"
-              placeholder="e.g., Harvard University | Bachelor of Science in Computer Science"
-              value={newEducation.institution}
-              onChange={(e) => setNewEducation((prev) => ({ ...prev, institution: e.target.value }))}
-              className="mt-1"
-            />
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="institution">Institution</Label>
+              <Input
+                id="institution"
+                placeholder="e.g., Harvard University"
+                value={newEducation.institution}
+                onChange={(e) => setNewEducation((prev) => ({ ...prev, institution: e.target.value }))}
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="degree">Degree</Label>
+              <Input
+                id="degree"
+                placeholder="e.g., Bachelor of Science in Computer Science"
+                value={newEducation.degree}
+                onChange={(e) => setNewEducation((prev) => ({ ...prev, degree: e.target.value }))}
+                className="mt-1"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="start-date">Start Date</Label>
+                <Input
+                  id="start-date"
+                  placeholder="MM/YYYY"
+                  value={newEducation.startDate}
+                  onChange={(e) => setNewEducation((prev) => ({ ...prev, startDate: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="end-date">End Date</Label>
+                <Input
+                  id="end-date"
+                  placeholder="MM/YYYY or Present"
+                  value={newEducation.endDate}
+                  onChange={(e) => setNewEducation((prev) => ({ ...prev, endDate: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="location">Location</Label>
+              <Input
+                id="location"
+                placeholder="e.g., Cambridge, MA"
+                value={newEducation.location}
+                onChange={(e) => setNewEducation((prev) => ({ ...prev, location: e.target.value }))}
+                className="mt-1"
+              />
+            </div>
           </div>
 
           <div className="space-y-3">
-            <Label>Details</Label>
-            {newEducation.details.map((detail, index) => (
+            <Label>Highlights & Achievements</Label>
+            {(newEducation.highlights || []).map((highlight, index) => (
               <div key={index} className="flex gap-2">
                 <Input
-                  placeholder={index === 0 ? "Graduation date" : "Additional detail"}
-                  value={detail}
-                  onChange={(e) => updateDetail(index, e.target.value)}
+                  placeholder="e.g., Dean's List, Research Project, etc."
+                  value={highlight}
+                  onChange={(e) => {
+                    const newHighlights = [...(newEducation.highlights || [])];
+                    newHighlights[index] = e.target.value;
+                    setNewEducation(prev => ({ ...prev, highlights: newHighlights }));
+                  }}
                 />
-                {newEducation.details.length > 1 && (
-                  <Button variant="ghost" size="sm" onClick={() => removeDetail(index)} className="text-red-500">
+                {(newEducation.highlights?.length || 0) > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const newHighlights = newEducation.highlights?.filter((_, i) => i !== index) || [];
+                      setNewEducation(prev => ({ ...prev, highlights: newHighlights }));
+                    }}
+                    className="text-red-500"
+                  >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 )}
               </div>
             ))}
 
-            <Button variant="outline" size="sm" onClick={addDetailField} className="w-full bg-transparent">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setNewEducation(prev => ({
+                  ...prev,
+                  highlights: [...(prev.highlights || []), ""]
+                }));
+              }}
+              className="w-full bg-transparent"
+            >
               <Plus className="w-4 h-4 mr-2" />
-              Add Detail
+              Add Highlight
             </Button>
           </div>
 
@@ -317,8 +507,8 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
           <span className="font-medium text-purple-800">Education Tips</span>
         </div>
         <p className="text-purple-700 text-sm">
-          Include graduation dates, GPA (if impressive), honors, relevant coursework, and extracurricular activities
-          that demonstrate leadership or skills.
+          Include your degree details, graduation dates, academic honors, relevant coursework, and any significant
+          research projects or academic achievements that showcase your expertise.
         </p>
       </div>
     </div>

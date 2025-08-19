@@ -52,18 +52,35 @@ export async function generateResumePDF({ resumeData, filename = "resume.pdf" }:
   }
 
   // Name
-  draw(resumeData.name, margin, 20, boldFont, accentColor)
+  draw(resumeData.basics.name, margin, 20, boldFont, accentColor)
 
   yOffset -= 20
 
   // Contact Info
-  const contactInfo = `${resumeData.email} | ${resumeData.phone} | ${resumeData.location}`
+  const { email, phone, location, linkedin } = resumeData.basics
+  const contactInfo = [email, phone, location , linkedin].filter(Boolean).join(" | ")
   draw(contactInfo, margin, 10, regularFont, secondaryColor)
 
   yOffset -= 25
 
-  // Custom Details (Flex-wrap style layout) - Fixed overlapping and gaps
-  const customEntries = Object.entries(resumeData.custom).filter(([_, item]) => !item.hidden)
+  // LinkedIn
+  // if (linkedin) {
+  //   draw(linkedin, margin, 10, regularFont, linkColor)
+  //   yOffset -= 25
+  // }
+
+  // Summary
+  if (resumeData.basics.summary) {
+    const summaryLines = wrapText(resumeData.basics.summary, pageWidth - 20, regularFont, 10)
+    for (const line of summaryLines) {
+      draw(line, margin, 10, regularFont, textColor)
+      yOffset -= 12
+    }
+    yOffset -= 13
+  }
+
+  // Extract custom entries from resume data
+  const customEntries = Object.entries(resumeData.custom || {});
 
   if (customEntries.length > 0) {
     // Calculate item dimensions for flex-wrap layout
@@ -189,16 +206,6 @@ export async function generateResumePDF({ resumeData, filename = "resume.pdf" }:
 
   // Sections - Only render sections with actual content
   for (const section of resumeData.sections) {
-    // Check if section has any content
-    const hasContent = Object.entries(section.content).some(([key, bullets]) => {
-      return key && bullets && bullets.length > 0 && bullets.some(bullet => bullet.trim() !== '')
-    })
-
-    // Skip sections with no content
-    if (!hasContent) {
-      continue
-    }
-
     ensureSpace(30)
 
     // Section Title
@@ -214,46 +221,97 @@ export async function generateResumePDF({ resumeData, filename = "resume.pdf" }:
 
     yOffset -= 18
 
-    for (const [key, bullets] of Object.entries(section.content)) {
-      // Skip empty keys or empty bullet arrays
-      if (!key || !bullets || bullets.length === 0) {
-        continue
-      }
+    switch (section.type) {
+      case "education":
+        for (const edu of section.items) {
+          ensureSpace(15)
 
-      // Check if bullets have actual content
-      const hasBulletContent = bullets.some(bullet => bullet.trim() !== '')
-      if (!hasBulletContent) {
-        continue
-      }
-
-      ensureSpace(15)
-
-      const [title, subtitle] = key.split(" | ")
-
-      if (title && title.trim() !== '') {
-        draw(title, margin, 11, boldFont, textColor)
-        yOffset -= 12
-      }
-
-      if (subtitle && subtitle.trim() !== '') {
-        draw(subtitle, margin, 9, regularFont, secondaryColor)
-        yOffset -= 12
-      }
-
-      for (const bullet of bullets) {
-        // Skip empty bullets
-        if (!bullet || bullet.trim() === '') {
-          continue
-        }
-
-        ensureSpace(12)
-        const lines = wrapText(`• ${bullet}`, pageWidth - 20, regularFont, 10)
-        for (const line of lines) {
-          draw(line, margin + 12, 10, regularFont, textColor)
+          // Institution name
+          draw(edu.institution, margin, 11, boldFont, textColor)
           yOffset -= 12
+
+          // Degree
+          draw(edu.degree, margin, 10, regularFont, textColor)
+          yOffset -= 12
+
+          // Dates and location
+          const eduDates = `${edu.startDate} - ${edu.endDate}${edu.location ? ` • ${edu.location}` : ''}`
+          draw(eduDates, margin, 9, regularFont, secondaryColor)
+          yOffset -= 12
+
+          // Highlights
+          if (edu.highlights?.length) {
+            for (const highlight of edu.highlights) {
+              ensureSpace(12)
+              const lines = wrapText(`• ${highlight}`, pageWidth - 20, regularFont, 10)
+              for (const line of lines) {
+                draw(line, margin + 12, 10, regularFont, textColor)
+                yOffset -= 12
+              }
+            }
+          }
+          yOffset -= 5
         }
-      }
-      yOffset -= 5
+        break;
+
+      case "experience":
+        for (const exp of section.items) {
+          ensureSpace(15)
+
+          // Company name
+          draw(exp.company, margin, 11, boldFont, textColor)
+          yOffset -= 12
+
+          // Role
+          draw(exp.role, margin, 10, regularFont, textColor)
+          yOffset -= 12
+
+          // Dates and location
+          const expDates = `${exp.startDate} - ${exp.endDate}${exp.location ? ` • ${exp.location}` : ''}`
+          draw(expDates, margin, 9, regularFont, secondaryColor)
+          yOffset -= 12
+
+          // Achievements
+          if (exp.achievements?.length) {
+            for (const achievement of exp.achievements) {
+              ensureSpace(12)
+              const lines = wrapText(`• ${achievement}`, pageWidth - 20, regularFont, 10)
+              for (const line of lines) {
+                draw(line, margin + 12, 10, regularFont, textColor)
+                yOffset -= 12
+              }
+            }
+          }
+          yOffset -= 5
+        }
+        break;
+
+      case "skills":
+      case "languages":
+      case "certifications":
+        if (section.items?.length) {
+          ensureSpace(12)
+          const lines = wrapText(section.items.join(" • "), pageWidth - 20, regularFont, 10)
+          for (const line of lines) {
+            draw(line, margin, 10, regularFont, textColor)
+            yOffset -= 12
+          }
+        }
+        break;
+
+      case "custom":
+        if (section.content?.length) {
+          for (const text of section.content) {
+            ensureSpace(12)
+            const lines = wrapText(`• ${text}`, pageWidth - 20, regularFont, 10)
+            for (const line of lines) {
+              draw(line, margin + 12, 10, regularFont, textColor)
+              yOffset -= 12
+            }
+          }
+          yOffset -= 5
+        }
+        break;
     }
 
     yOffset -= 10
@@ -261,7 +319,7 @@ export async function generateResumePDF({ resumeData, filename = "resume.pdf" }:
 
   // Save PDF
   const pdfBytes = await pdfDoc.save()
-  const blob = new Blob([pdfBytes], { type: "application/pdf" })
+  const blob = new Blob([pdfBytes as unknown as ArrayBuffer], { type: "application/pdf" })
   const link = document.createElement("a")
   link.href = URL.createObjectURL(blob)
   link.download = filename

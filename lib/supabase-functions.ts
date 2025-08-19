@@ -58,7 +58,7 @@ export async function saveResumeData(data: ResumeData, resumeId?: string) {
         .from("resumes")
         .insert({
           user_id: user.id,
-          title: data.name || "Untitled Resume",
+          title: data?.basics?.name || "Untitled Resume",
           resume_data: compressedData,
           template_id: "google",
         })
@@ -68,9 +68,9 @@ export async function saveResumeData(data: ResumeData, resumeId?: string) {
       if (error) throw error
       return { success: true, data: resume, message: "Resume created successfully" }
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error saving resume:", error)
-    return { success: false, error: error.message, message: "Failed to save resume" }
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error", message: "Failed to save resume" }
   }
 }
 
@@ -100,9 +100,9 @@ export async function saveSection(sectionName: string, sectionData: any, resumeI
 
     if (error) throw error
     return { success: true, data: section, message: `${sectionName} section saved successfully` }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error saving section:", error)
-    return { success: false, error: error.message, message: `Failed to save ${sectionName} section` }
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error", message: `Failed to save ${sectionName} section` }
   }
 }
 
@@ -129,9 +129,9 @@ export async function loadResumeData(resumeId: string) {
     const decompressedData = await decompressData(resume.resume_data)
     
     return { success: true, data: decompressedData as ResumeData }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error loading resume:", error)
-    return { success: false, error: error.message, data: null }
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error", data: null }
   }
 }
 
@@ -153,9 +153,9 @@ export async function getUserResumes() {
 
     if (error) throw error
     return { success: true, data: resumes }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error loading resumes:", error)
-    return { success: false, error: error.message, data: [] }
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error", data: [] }
   }
 }
 
@@ -173,9 +173,9 @@ export async function deleteResume(resumeId: string) {
 
     if (error) throw error
     return { success: true, message: "Resume deleted successfully" }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error deleting resume:", error)
-    return { success: false, error: error.message, message: "Failed to delete resume" }
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error", message: "Failed to delete resume" }
   }
 }
 
@@ -196,9 +196,9 @@ export async function getUserResumeCount() {
 
     if (error) throw error
     return { success: true, count: count || 0 }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error getting resume count:", error)
-    return { success: false, error: error.message, count: 0 }
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error", count: 0 }
   }
 }
 
@@ -224,19 +224,21 @@ export async function saveUserProgress(completedSteps: number[], achievements: a
 
     if (error) throw error
     return { success: true, data: profile, message: "User progress saved successfully" }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error saving user progress:", error)
-    return { success: false, error: error.message, message: "Failed to save user progress" }
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error", message: "Failed to save user progress" }
   }
 }
 
+type SectionName = 'personal' | 'education' | 'experience' | 'skills' | 'custom';
+
 function getSectionOrder(sectionName: string): number {
-  const sectionOrder = {
+  const sectionOrder: Record<SectionName, number> = {
     personal: 0,
     education: 1,
     experience: 2,
     skills: 3,
     custom: 4,
   }
-  return sectionOrder[sectionName.toLowerCase()] || 99
+  return sectionOrder[sectionName.toLowerCase() as SectionName] || 99
 }

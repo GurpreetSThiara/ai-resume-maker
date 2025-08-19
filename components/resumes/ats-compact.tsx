@@ -151,7 +151,7 @@ export const CompactATSResume: React.FC<ResumeProps> = ({
               <h2 className="text-base font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-2 uppercase tracking-wide" contentEditable suppressContentEditableWarning onBlur={(e) => handleSectionTitleChange(section.id, e.currentTarget.textContent || "")}>
                 {section.title}
               </h2>
-              {Object.entries(section.content).map(([key, bullets]) => (
+              {Object.entries(section?.content ?? {}).map(([key, bullets]) => (
                 <div key={key} className="mb-3">
                   {key && (
                     <div className="mb-1">

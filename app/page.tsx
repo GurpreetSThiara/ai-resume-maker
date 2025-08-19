@@ -9,28 +9,6 @@ import { Badge } from "@/components/ui/badge"
 import { CheckCircle, Star, Users, Download, Zap, Shield, Globe, ArrowRight, FileText, Sparkles, User, Settings, Award, Clock, Target, TrendingUp, Play } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 
-export interface ResumeData {
-  name: string
-  email: string
-  phone: string
-  location: string
-  linkedin: string
-  custom: Record<
-    string,
-    {
-      title: string
-      content: string
-      hidden: boolean
-      id: string
-      link: boolean
-    }
-  >
-  sections: Array<{
-    id: string
-    title: string
-    content: Record<string, string[]>
-  }>
-}
 
 
 

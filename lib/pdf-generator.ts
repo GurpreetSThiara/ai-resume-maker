@@ -206,24 +206,38 @@ export async function generateImpact({ pdfRef, theme, resumeData }: GenerationPr
 
     yOffset -= pdFtheme.pdfSpacing?.page || 15
 
-    for (const [key, bullets] of Object.entries(section.content)) {
-      ensureSpace((pdFtheme.pdfSpacing?.item || 10) + 20)
+    if (section.type === "education") {
+      for (const education of section.items) {
+        ensureSpace((pdFtheme.pdfSpacing?.item || 10) + 20)
 
-      if (key) {
-        const [title, subtitle] = key.split(" | ")
-
-        currentPage.drawText(title, {
+        // Institution name
+        currentPage.drawText(education.institution, {
           x: margin,
           y: yOffset,
           size: pdFtheme.pdfSize?.content || 12,
           font: boldFont,
           color: rgb(pdFtheme.rgb?.text.r || 0.2, pdFtheme.rgb?.text.g || 0.2, pdFtheme.rgb?.text.b || 0.2),
         })
-
         yOffset -= pdFtheme.pdfSize?.content || 12
 
-        if (subtitle) {
-          currentPage.drawText(subtitle, {
+        // Degree and dates
+        const degreeText = `${education.degree} (${education.startDate} - ${education.endDate})`
+        currentPage.drawText(degreeText, {
+          x: margin,
+          y: yOffset,
+          size: pdFtheme.pdfSize?.small || 10,
+          font: regularFont,
+          color: rgb(
+            pdFtheme.rgb?.secondary.r || 0.4,
+            pdFtheme.rgb?.secondary.g || 0.4,
+            pdFtheme.rgb?.secondary.b || 0.4,
+          ),
+        })
+        yOffset -= pdFtheme.pdfSize?.small || 10
+
+        // Location if available
+        if (education.location) {
+          currentPage.drawText(education.location, {
             x: margin,
             y: yOffset,
             size: pdFtheme.pdfSize?.small || 10,
@@ -236,7 +250,93 @@ export async function generateImpact({ pdfRef, theme, resumeData }: GenerationPr
           })
           yOffset -= pdFtheme.pdfSize?.small || 10
         }
+
+        // Highlights
+        if (education.highlights) {
+          for (const highlight of education.highlights) {
+            const bulletText = `• ${highlight}`
+            const lines = wrapText(bulletText, pageWidth - 20)
+            for (const line of lines) {
+              currentPage.drawText(line, {
+                x: margin + 10,
+                y: yOffset,
+                size: pdFtheme.pdfSize?.small || 10,
+                font: regularFont,
+                color: rgb(pdFtheme.rgb?.text.r || 0.2, pdFtheme.rgb?.text.g || 0.2, pdFtheme.rgb?.text.b || 0.2),
+              })
+              yOffset -= 15
+            }
+          }
+        }
+        yOffset -= (pdFtheme.pdfSpacing?.item || 10) / 2
       }
+    } else if (section.type === "experience") {
+      for (const experience of section.items) {
+        ensureSpace((pdFtheme.pdfSpacing?.item || 10) + 20)
+
+        // Company name and role
+        currentPage.drawText(`${experience.company} - ${experience.role}`, {
+          x: margin,
+          y: yOffset,
+          size: pdFtheme.pdfSize?.content || 12,
+          font: boldFont,
+          color: rgb(pdFtheme.rgb?.text.r || 0.2, pdFtheme.rgb?.text.g || 0.2, pdFtheme.rgb?.text.b || 0.2),
+        })
+        yOffset -= pdFtheme.pdfSize?.content || 12
+
+        // Dates and location
+        const dateLocation = `${experience.startDate} - ${experience.endDate}${experience.location ? ` • ${experience.location}` : ''}`
+        currentPage.drawText(dateLocation, {
+          x: margin,
+          y: yOffset,
+          size: pdFtheme.pdfSize?.small || 10,
+          font: regularFont,
+          color: rgb(
+            pdFtheme.rgb?.secondary.r || 0.4,
+            pdFtheme.rgb?.secondary.g || 0.4,
+            pdFtheme.rgb?.secondary.b || 0.4,
+          ),
+        })
+        yOffset -= pdFtheme.pdfSize?.small || 10
+
+        // Achievements
+        if (experience.achievements) {
+          for (const achievement of experience.achievements) {
+            const bulletText = `• ${achievement}`
+            const lines = wrapText(bulletText, pageWidth - 20)
+            for (const line of lines) {
+              currentPage.drawText(line, {
+                x: margin + 10,
+                y: yOffset,
+                size: pdFtheme.pdfSize?.small || 10,
+                font: regularFont,
+                color: rgb(pdFtheme.rgb?.text.r || 0.2, pdFtheme.rgb?.text.g || 0.2, pdFtheme.rgb?.text.b || 0.2),
+              })
+              yOffset -= 15
+            }
+          }
+        }
+        yOffset -= (pdFtheme.pdfSpacing?.item || 10) / 2
+      }
+    } else if (section.type === "skills" || section.type === "languages" || section.type === "certifications") {
+      const items = section.items
+      if (Array.isArray(items)) {
+        const text = items.join(" • ")
+        const lines = wrapText(text, pageWidth - 20)
+        for (const line of lines) {
+          currentPage.drawText(line, {
+            x: margin,
+            y: yOffset,
+            size: pdFtheme.pdfSize?.small || 10,
+            font: regularFont,
+            color: rgb(pdFtheme.rgb?.text.r || 0.2, pdFtheme.rgb?.text.g || 0.2, pdFtheme.rgb?.text.b || 0.2),
+          })
+          yOffset -= 15
+        }
+      }
+    } else if (section.type === "custom") {
+      if (Array.isArray(section.content)) {
+        for (const text of section.content) {
 
       for (const bullet of bullets) {
         ensureSpace((pdFtheme.pdfSize?.small ?? 0) + 5)

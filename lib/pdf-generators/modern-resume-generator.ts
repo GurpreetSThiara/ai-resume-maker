@@ -71,7 +71,7 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
   // ==== SECTIONS ====
   resumeData.sections.forEach((section) => {
     // Check if section has any content
-    const hasContent = Object.entries(section.content).some(([key, bullets]) => {
+    const hasContent = Object.entries(section?.content ?? {}).some(([key, bullets]) => {
       return key && bullets && bullets.length > 0 && bullets.some(bullet => bullet.trim() !== '')
     })
 
@@ -97,7 +97,7 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
     y -= 14
 
     // Section Content
-    Object.entries(section.content).forEach(([header, bullets]) => {
+    Object.entries(section?.content ?? {}).forEach(([header, bullets]) => {
       // Skip empty keys or empty bullet arrays
       if (!header || !bullets || bullets.length === 0) {
         return

@@ -151,7 +151,7 @@ export const CreativeATSResume: React.FC<ResumeProps> = ({
               <h2 className="text-lg font-semibold text-sky-700 border-b border-gray-300 pb-1 mb-3 uppercase tracking-wide" contentEditable suppressContentEditableWarning onBlur={(e) => handleSectionTitleChange(section.id, e.currentTarget.textContent || "")}>
                 {section.title}
               </h2>
-              {Object.entries(section.content).map(([key, bullets]) => (
+              {Object.entries(section?.content ?? {}).map(([key, bullets]) => (
                 <div key={key} className="mb-4">
                   {key && (
                     <div className="mb-1">

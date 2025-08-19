@@ -41,7 +41,7 @@ export async function generateCompactResumePDF({ resumeData, filename = "resume.
   // Sections
   for (const section of resumeData.sections) {
     // Check if section has any content
-    const hasContent = Object.entries(section.content).some(([key, bullets]) => {
+    const hasContent = Object.entries(section?.content ?? {}).some(([key, bullets]) => {
       return key && bullets && bullets.length > 0 && bullets.some(bullet => bullet.trim() !== '')
     })
 
@@ -59,7 +59,7 @@ export async function generateCompactResumePDF({ resumeData, filename = "resume.
     draw(section.title.toUpperCase(), margin, 11, bold, accent)
     y -= 12
 
-    for (const [header, bullets] of Object.entries(section.content)) {
+    for (const [header, bullets] of Object.entries(section?.content ?? {})) {
       // Skip empty keys or empty bullet arrays
       if (!header || !bullets || bullets.length === 0) {
         continue

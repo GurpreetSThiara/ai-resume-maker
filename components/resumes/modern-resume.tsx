@@ -191,7 +191,7 @@ export const ModernResume: React.FC<ResumeProps> = ({
             >
               {section.title}
             </h2>
-            {Object.entries(section.content).map(([key, bullets]) => (
+            {Object.entries(section?.content ?? {}).map(([key, bullets]) => (
               <div key={key} className="mb-4">
                 {key && (
                   <div className="mb-1">

@@ -11,7 +11,7 @@ interface ReviewSectionProps {
 
 export function ReviewSection({ data, template }: ReviewSectionProps) {
   const completionStats = {
-    personalInfo: !!(data?.basics.name && data.basics?.email),
+    personalInfo: !!(data.basics.name && data.basics.email),
     education: data.sections.some(s => s.type === "education" && (s.items as any[]).length > 0),
     experience: data.sections.some(s => s.type === "experience" && (s.items as any[]).length > 0),
     skills: data.sections.some(s => s.type === "skills" && (s.items as string[]).length > 0),
@@ -49,12 +49,12 @@ export function ReviewSection({ data, template }: ReviewSectionProps) {
     let wordCount = 0
 
     // Count words in basic info
-    wordCount += countWords(resumeData?.basics?.name)
-    wordCount += countWords(resumeData?.basics?.email)
-    wordCount += countWords(resumeData?.basics?.phone)
-    wordCount += countWords(resumeData?.basics?.location)
-    wordCount += countWords(resumeData?.basics?.linkedin)
-    wordCount += countWords(resumeData?.basics?.summary)
+    wordCount += countWords(resumeData.basics.name)
+    wordCount += countWords(resumeData.basics.email)
+    wordCount += countWords(resumeData.basics.phone)
+    wordCount += countWords(resumeData.basics.location)
+    wordCount += countWords(resumeData.basics.linkedin)
+    wordCount += countWords(resumeData.basics.summary)
 
     // Count words in custom fields
     Object.values(resumeData.custom).forEach((field) => {

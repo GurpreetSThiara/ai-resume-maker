@@ -7,7 +7,8 @@ export interface DOCXGenerationOptions {
 }
 
 export async function generateClassic1ResumeDOCX({ resumeData, filename = "resume.docx" }: DOCXGenerationOptions) {
-  const children: (Paragraph | Table)[] = []
+  // Create an array to store all document children
+  const documentChildren: (Paragraph | Table)[] = []
 
   // Colors matching PDF generator
   const accentColor = "2666A6" // rgb(0.15, 0.4, 0.65) converted to hex
@@ -16,11 +17,11 @@ export async function generateClassic1ResumeDOCX({ resumeData, filename = "resum
   const linkColor = "0000FF" // rgb(0, 0, 1) converted to hex
 
   // Name - Large, bold, blue
-  children.push(
+  documentChildren.push(
     new Paragraph({
       children: [
         new TextRun({
-          text: resumeData.name,
+          text: resumeData.basics.name,
           bold: true,
           size: 40, // 20pt in half-points
           color: accentColor,
@@ -32,8 +33,9 @@ export async function generateClassic1ResumeDOCX({ resumeData, filename = "resum
   )
 
   // Contact Info - Small, gray
-  const contactInfo = `${resumeData.email} | ${resumeData.phone} | ${resumeData.location}`
-  children.push(
+  const { email, phone, location, linkedin } = resumeData.basics
+  const contactInfo = [email, phone, location, linkedin].filter(Boolean).join(" | ")
+  documentChildren.push(
     new Paragraph({
       children: [
         new TextRun({
@@ -47,100 +49,44 @@ export async function generateClassic1ResumeDOCX({ resumeData, filename = "resum
     }),
   )
 
-  // Custom Details - Flex-wrap style layout using table
-  const customEntries = Object.entries(resumeData.custom).filter(([_, item]) => !item.hidden)
+  // // LinkedIn link
+  // if (resumeData.basics.linkedin) {
+  //   documentChildren.push(
+  //     new Paragraph({
+  //       children: [
+  //         new TextRun({
+  //           text: resumeData.basics.linkedin,
+  //           size: 20,
+  //           color: linkColor,
+  //           font: "Helvetica",
+  //         }),
+  //       ],
+  //       spacing: { after: 200 },
+  //     }),
+  //   )
+  // }
 
-  if (customEntries.length > 0) {
-    // Create table for custom details to simulate flex-wrap
-    const customRows: TableRow[] = []
-    let currentRowCells: TableCell[] = []
-    const maxCellsPerRow = 3 // Adjust based on content width
-
-    customEntries.forEach((entry, index) => {
-      const [key, item] = entry
-      const cell = new TableCell({
+  // Summary
+  if (resumeData.basics.summary) {
+    documentChildren.push(
+      new Paragraph({
         children: [
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: `${item.title}: `,
-                bold: true,
-                size: 20, // 10pt
-                color: textColor,
-                font: "Helvetica",
-              }),
-              new TextRun({
-                text: item.content,
-                size: 20, // 10pt
-                color: item.link ? linkColor : textColor,
-                font: "Helvetica",
-              }),
-            ],
+          new TextRun({
+            text: resumeData.basics.summary,
+            size: 20,
+            color: textColor,
+            font: "Helvetica",
           }),
         ],
-        borders: {
-          top: { style: BorderStyle.NONE },
-          bottom: { style: BorderStyle.NONE },
-          left: { style: BorderStyle.NONE },
-          right: { style: BorderStyle.NONE },
-        },
-        margins: { top: 50, bottom: 50, left: 0, right: 200 },
-      })
-
-      currentRowCells.push(cell)
-
-      // Create new row when we have enough cells or it's the last item
-      if (currentRowCells.length === maxCellsPerRow || index === customEntries.length - 1) {
-        // Fill remaining cells if needed
-        while (currentRowCells.length < maxCellsPerRow) {
-          currentRowCells.push(
-            new TableCell({
-              children: [new Paragraph({ text: "" })],
-              borders: {
-                top: { style: BorderStyle.NONE },
-                bottom: { style: BorderStyle.NONE },
-                left: { style: BorderStyle.NONE },
-                right: { style: BorderStyle.NONE },
-              },
-            }),
-          )
-        }
-
-        customRows.push(new TableRow({ children: [...currentRowCells] }))
-        currentRowCells = []
-      }
-    })
-
-    const customTable = new Table({
-      rows: customRows,
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      borders: {
-        top: { style: BorderStyle.NONE },
-        bottom: { style: BorderStyle.NONE },
-        left: { style: BorderStyle.NONE },
-        right: { style: BorderStyle.NONE },
-        insideHorizontal: { style: BorderStyle.NONE },
-        insideVertical: { style: BorderStyle.NONE },
-      },
-    })
-
-    children.push(customTable)
-
-    // Add spacing after custom section
-    children.push(new Paragraph({ text: "", spacing: { after: 200 } }))
+        spacing: { after: 300 },
+      }),
+    )
   }
 
   // Sections
   for (const section of resumeData.sections) {
-    // Check if section has content
-    const hasContent = Object.entries(section.content).some(([key, bullets]) => {
-      return key && bullets && bullets.length > 0 && bullets.some((bullet) => bullet.trim() !== "")
-    })
-
-    if (!hasContent) continue
-
     // Section Title with underline
-    children.push(
+    documentChildren.push(
       new Paragraph({
         children: [
           new TextRun({
@@ -163,76 +109,194 @@ export async function generateClassic1ResumeDOCX({ resumeData, filename = "resum
       }),
     )
 
-    // Section Content
-    for (const [key, bullets] of Object.entries(section.content)) {
-      if (!key || !bullets || bullets.length === 0) continue
+    switch (section.type) {
+      case "education":
+        for (const edu of section.items) {
+          // Institution
+          documentChildren.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: edu.institution,
+                  bold: true,
+                  size: 24, // 12pt
+                  color: textColor,
+                  font: "Helvetica",
+                }),
+              ],
+              spacing: { after: 120 },
+            }),
+          )
 
-      const hasBulletContent = bullets.some((bullet) => bullet.trim() !== "")
-      if (!hasBulletContent) continue
+          // Degree and dates
+          documentChildren.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: edu.degree,
+                  size: 20, // 10pt
+                  color: textColor,
+                  font: "Helvetica",
+                }),
+              ],
+              spacing: { after: 120 },
+            }),
+          )
 
-      const [title, subtitle] = key.split(" | ")
+          // Dates and location
+          documentChildren.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `${edu.startDate} - ${edu.endDate}${edu.location ? ` • ${edu.location}` : ''}`,
+                  size: 20, // 10pt
+                  color: secondaryColor,
+                  font: "Helvetica",
+                }),
+              ],
+              spacing: { after: 120 },
+            }),
+          )
 
-      // Title
-      if (title && title.trim() !== "") {
-        children.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: title,
-                bold: true,
-                size: 22, // 11pt in half-points
-                color: textColor,
-                font: "Helvetica",
+          // Highlights
+          if (edu.highlights?.length) {
+            for (const highlight of edu.highlights) {
+              documentChildren.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: `• ${highlight}`,
+                      size: 20,
+                      color: textColor,
+                      font: "Helvetica",
+                    }),
+                  ],
+                  spacing: { after: 120 },
+                  indent: { left: 360 }, // 0.25 inch in twips
+                }),
+              )
+            }
+          }
+
+          // Spacing between entries
+          documentChildren.push(new Paragraph({ spacing: { after: 240 } }))
+        }
+        break;
+
+      case "experience":
+        for (const exp of section.items) {
+          // Company and role
+          documentChildren.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: exp.company,
+                  bold: true,
+                  size: 24,
+                  color: textColor,
+                  font: "Helvetica",
+                }),
+              ],
+              spacing: { after: 120 },
+            }),
+          )
+
+          documentChildren.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: exp.role,
+                  size: 20,
+                  color: textColor,
+                  font: "Helvetica",
+                }),
+              ],
+              spacing: { after: 120 },
+            }),
+          )
+
+          // Dates and location
+          documentChildren.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `${exp.startDate} - ${exp.endDate}${exp.location ? ` • ${exp.location}` : ''}`,
+                  size: 20,
+                  color: secondaryColor,
+                  font: "Helvetica",
+                }),
+              ],
+              spacing: { after: 120 },
+            }),
+          )
+
+          // Achievements
+          if (exp.achievements?.length) {
+            for (const achievement of exp.achievements) {
+              documentChildren.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: `• ${achievement}`,
+                      size: 20,
+                      color: textColor,
+                      font: "Helvetica",
+                    }),
+                  ],
+                  spacing: { after: 120 },
+                  indent: { left: 360 },
+                }),
+              )
+            }
+          }
+
+          // Spacing between entries
+          documentChildren.push(new Paragraph({ spacing: { after: 240 } }))
+        }
+        break;
+
+      case "skills":
+      case "languages":
+      case "certifications":
+        if (section.items?.length) {
+          documentChildren.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: section.items.join(" • "),
+                  size: 20,
+                  color: textColor,
+                  font: "Helvetica",
+                }),
+              ],
+              spacing: { after: 240 },
+            }),
+          )
+        }
+        break;
+
+      case "custom":
+        if (section.content?.length) {
+          for (const item of section.content) {
+            documentChildren.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: `• ${item}`,
+                    size: 20,
+                    color: textColor,
+                    font: "Helvetica",
+                  }),
+                ],
+                spacing: { after: 120 },
+                indent: { left: 360 },
               }),
-            ],
-            spacing: { after: 100 },
-          }),
-        )
-      }
-
-      // Subtitle
-      if (subtitle && subtitle.trim() !== "") {
-        children.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: subtitle,
-                size: 18, // 9pt in half-points
-                color: secondaryColor,
-                font: "Helvetica",
-              }),
-            ],
-            spacing: { after: 100 },
-          }),
-        )
-      }
-
-      // Bullets
-      for (const bullet of bullets) {
-        if (!bullet || bullet.trim() === "") continue
-
-        children.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: `• ${bullet}`,
-                size: 20, // 10pt in half-points
-                color: textColor,
-                font: "Helvetica",
-              }),
-            ],
-            indent: { left: 240 }, // Indent for bullet points
-            spacing: { after: 100 },
-          }),
-        )
-      }
-
-      // Add spacing between entries
-      children.push(new Paragraph({ text: "", spacing: { after: 100 } }))
+            )
+          }
+          documentChildren.push(new Paragraph({ spacing: { after: 240 } }))
+        }
+        break;
     }
-
-    // Add spacing between sections
-    children.push(new Paragraph({ text: "", spacing: { after: 200 } }))
   }
 
   // Create document
@@ -249,14 +313,14 @@ export async function generateClassic1ResumeDOCX({ resumeData, filename = "resum
             },
           },
         },
-        children,
+        children: documentChildren,
       },
     ],
   })
 
   // Generate and download
   const buffer = await Packer.toBuffer(doc)
-  const blob = new Blob([buffer], {
+  const blob = new Blob([buffer as unknown as ArrayBuffer], {
     type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   })
 

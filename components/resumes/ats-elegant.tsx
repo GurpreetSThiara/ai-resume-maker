@@ -140,7 +140,7 @@ export const ElegantATSResume: React.FC<ResumeProps> = ({
           <div className="mt-6">
             {resumeData.sections.map((section) => {
               // Check if section has any content
-              const hasContent = Object.entries(section.content).some(([key, bullets]) => {
+              const hasContent = Object.entries(section?.content ?? {}).some(([key, bullets]) => {
                 return key && bullets && bullets.length > 0 && bullets.some(bullet => bullet.trim() !== '')
               })
 
@@ -162,7 +162,7 @@ export const ElegantATSResume: React.FC<ResumeProps> = ({
                   <h2 className="text-lg font-semibold text-indigo-700 border-b border-gray-200 pb-1 mb-3 uppercase tracking-wide" contentEditable suppressContentEditableWarning onBlur={(e) => handleSectionTitleChange(section.id, e.currentTarget.textContent || "")}>
                     {section.title}
                   </h2>
-                  {Object.entries(section.content).map(([key, bullets]) => {
+                  {Object.entries(section?.content ?? {}).map(([key, bullets]) => {
                     // Skip empty keys or empty bullet arrays
                     if (!key || !bullets || bullets.length === 0) {
                       return null

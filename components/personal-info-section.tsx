@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
-import type { ResumeData } from "@/app/page"
+import type { ResumeData } from "@/types/resume"
 
 interface PersonalInfoSectionProps {
   data: ResumeData
@@ -12,8 +12,8 @@ interface PersonalInfoSectionProps {
 }
 
 export function PersonalInfoSection({ data, onUpdate }: PersonalInfoSectionProps) {
-  const handleChange = (field: keyof ResumeData, value: string) => {
-    onUpdate({ [field]: value })
+  const handleChange = (field: keyof typeof data.basics, value: string) => {
+    onUpdate({ basics: { ...data.basics, [field]: value } })
   }
 
   return (
@@ -31,7 +31,7 @@ export function PersonalInfoSection({ data, onUpdate }: PersonalInfoSectionProps
           <Input
             id="name"
             placeholder="John Doe"
-            value={data.name}
+            value={data?.basics?.name}
             onChange={(e) => handleChange("name", e.target.value)}
             className="h-12"
           />
@@ -45,7 +45,7 @@ export function PersonalInfoSection({ data, onUpdate }: PersonalInfoSectionProps
             id="email"
             type="email"
             placeholder="john.doe@example.com"
-            value={data.email}
+            value={data?.basics?.email}
             onChange={(e) => handleChange("email", e.target.value)}
             className="h-12"
           />
@@ -58,7 +58,7 @@ export function PersonalInfoSection({ data, onUpdate }: PersonalInfoSectionProps
           <Input
             id="phone"
             placeholder="+1 (123) 456-7890"
-            value={data.phone}
+            value={data?.basics?.phone}
             onChange={(e) => handleChange("phone", e.target.value)}
             className="h-12"
           />
@@ -71,7 +71,7 @@ export function PersonalInfoSection({ data, onUpdate }: PersonalInfoSectionProps
           <Input
             id="location"
             placeholder="City, Country"
-            value={data.location}
+            value={data?.basics?.location}
             onChange={(e) => handleChange("location", e.target.value)}
             className="h-12"
           />
@@ -84,7 +84,7 @@ export function PersonalInfoSection({ data, onUpdate }: PersonalInfoSectionProps
           <Input
             id="linkedin"
             placeholder="https://linkedin.com/in/yourprofile"
-            value={data.linkedin}
+            value={data?.basics?.linkedin}
             onChange={(e) => handleChange("linkedin", e.target.value)}
             className="h-12"
           />

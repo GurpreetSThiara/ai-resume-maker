@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, Briefcase, Edit2, Save } from "lucide-react"
-import type { ResumeData } from "@/app/create/page"
+import type { ResumeData, Experience, ExperienceSection as ExperienceSectionType } from "@/types/resume"
 
 interface ExperienceSectionProps {
   data: ResumeData
@@ -14,13 +14,32 @@ interface ExperienceSectionProps {
 }
 
 export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
-  const [newExperience, setNewExperience] = useState({ company: "", details: [""] })
-  const [editingExperience, setEditingExperience] = useState<string | null>(null)
-  const [editData, setEditData] = useState<{ company: string; details: string[] }>({ company: "", details: [] })
+  const [newExperience, setNewExperience] = useState<Experience>({
+    company: "",
+    role: "",
+    startDate: "",
+    endDate: "",
+    location: "",
+    achievements: []
+  })
+  const [editingExperienceId, setEditingExperienceId] = useState<string | null>(null)
+  const [editData, setEditData] = useState<Experience>({
+    company: "",
+    role: "",
+    startDate: "",
+    endDate: "",
+    location: "",
+    achievements: []
+  })
   const [isSectionDirty, setIsSectionDirty] = useState(false)
   const [isAddingNew, setIsAddingNew] = useState(false)
 
-  const experienceSection = data.sections.find((s) => s.title === "Professional Experience") || { content: {} }
+  const experienceSection = data.sections.find((s): s is ExperienceSectionType => s.type === "experience") || {
+    id: "experience",
+    title: "Professional Experience",
+    type: "experience" as const,
+    items: []
+  }
 
   useEffect(() => {
     // Compare the current state with the original data to determine if there are unsaved changes
@@ -156,7 +175,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
 
       {/* Existing Experience Entries */}
       <div className="space-y-4">
-        {Object.entries(experienceSection.content).map(([company, details]) => (
+        {Object.entries(experienceSection?.content ?? {}).map(([company, details]) => (
           <Card key={company} className="relative">
             {editingExperience === company ? (
               <CardContent className="pt-6 space-y-4">
@@ -285,7 +304,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
 
             <div className="space-y-3">
               <Label>Experience Details</Label>
-              {newExperience.details.map((detail, index) => (
+              {newExperience?.details?.map((detail, index) => (
                 <div key={index} className="flex gap-2">
                   <Input
                     placeholder={
