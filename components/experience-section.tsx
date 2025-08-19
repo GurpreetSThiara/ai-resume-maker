@@ -22,7 +22,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
     location: "",
     achievements: []
   })
-  const [editingExperienceId, setEditingExperienceId] = useState<string | null>(null)
+  const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [editData, setEditData] = useState<Experience>({
     company: "",
     role: "",
@@ -37,117 +37,116 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
   const experienceSection = data.sections.find((s): s is ExperienceSectionType => s.type === "experience") || {
     id: "experience",
     title: "Professional Experience",
-    type: "experience" as const,
+    type: "experience",
     items: []
   }
 
   useEffect(() => {
     // Compare the current state with the original data to determine if there are unsaved changes
-    const originalContent = data.sections.find((s) => s.title === "Professional Experience")?.content || {}
-    const currentContent = experienceSection.content
-
-    const isDifferent = JSON.stringify(originalContent) !== JSON.stringify(currentContent)
+    const originalItems = data.sections.find((s) => s.type === "experience")?.items || []
+    const currentItems = experienceSection.items
+    const isDifferent = JSON.stringify(originalItems) !== JSON.stringify(currentItems)
     setIsSectionDirty(isDifferent)
-  }, [experienceSection.content, data.sections])
+  }, [experienceSection.items, data.sections])
 
   const addExperience = () => {
-    if (newExperience.company && newExperience.details[0]) {
+    if (newExperience.company && newExperience.role) {
       const updatedSections = data.sections.map((section) => {
-        if (section.title === "Professional Experience") {
+        if (section.type === "experience") {
           return {
             ...section,
-            content: {
-              ...section.content,
-              [newExperience.company]: newExperience.details.filter((detail) => detail.trim()),
-            },
+            items: [...(section.items || []), newExperience],
           }
         }
         return section
       })
       onUpdate({ sections: updatedSections })
-      setNewExperience({ company: "", details: [""] })
-      setIsAddingNew(false) // Hide the "Add New" form after adding
+      setNewExperience({ company: "", role: "", startDate: "", endDate: "", location: "", achievements: [] })
+      setIsAddingNew(false)
     }
   }
 
-  const removeExperience = (company: string) => {
+  const removeExperience = (index: number) => {
     const updatedSections = data.sections.map((section) => {
-      if (section.title === "Professional Experience") {
-        const updatedContent = { ...section.content }
-        delete updatedContent[company]
-        return { ...section, content: updatedContent }
+      if (section.type === "experience") {
+        return {
+          ...section,
+          items: section.items.filter((_, i) => i !== index),
+        }
       }
       return section
     })
     onUpdate({ sections: updatedSections })
   }
 
-  const startEditing = (company: string, details: string[]) => {
-    setEditingExperience(company)
-    setEditData({ company, details: [...details] })
+  const startEditing = (index: number, exp: Experience) => {
+    setEditingIndex(index)
+    setEditData({ ...exp })
   }
 
   const saveEdit = () => {
-    if (editingExperience && editData.company) {
+    if (editingIndex !== null && editData.company && editData.role) {
       const updatedSections = data.sections.map((section) => {
-        if (section.title === "Professional Experience") {
-          const updatedContent = { ...section.content }
-          delete updatedContent[editingExperience]
-          updatedContent[editData.company] = editData.details.filter((detail) => detail.trim())
-          return { ...section, content: updatedContent }
+        if (section.type === "experience") {
+          const newItems = [...section.items]
+          newItems[editingIndex] = editData
+          return {
+            ...section,
+            items: newItems,
+          }
         }
         return section
       })
       onUpdate({ sections: updatedSections })
-      setEditingExperience(null)
-      setEditData({ company: "", details: [] })
+      setEditingIndex(null)
+      setEditData({ company: "", role: "", startDate: "", endDate: "", location: "", achievements: [] })
     }
   }
 
   const cancelEdit = () => {
-    setEditingExperience(null)
-    setEditData({ company: "", details: [] })
+    setEditingIndex(null)
+    setEditData({ company: "", role: "", startDate: "", endDate: "", location: "", achievements: [] })
   }
 
-  const addDetailField = () => {
+  const addAchievementField = () => {
     setNewExperience((prev) => ({
       ...prev,
-      details: [...prev.details, ""],
+      achievements: [...(prev.achievements || []), ""],
     }))
   }
 
-  const updateDetail = (index: number, value: string) => {
+  const updateAchievement = (index: number, value: string) => {
     setNewExperience((prev) => ({
       ...prev,
-      details: prev.details.map((detail, i) => (i === index ? value : detail)),
+      achievements: prev.achievements.map((ach, i) => (i === index ? value : ach)),
     }))
   }
 
-  const removeDetail = (index: number) => {
+  const removeAchievement = (index: number) => {
     setNewExperience((prev) => ({
       ...prev,
-      details: prev.details.filter((_, i) => i !== index),
+      achievements: prev.achievements.filter((_, i) => i !== index),
     }))
   }
 
-  const updateEditDetail = (index: number, value: string) => {
+  const updateEditAchievement = (index: number, value: string) => {
     setEditData((prev) => ({
       ...prev,
-      details: prev.details.map((detail, i) => (i === index ? value : detail)),
+      achievements: prev.achievements.map((ach, i) => (i === index ? value : ach)),
     }))
   }
 
-  const addEditDetailField = () => {
+  const addEditAchievementField = () => {
     setEditData((prev) => ({
       ...prev,
-      details: [...prev.details, ""],
+      achievements: [...(prev.achievements || []), ""],
     }))
   }
 
-  const removeEditDetail = (index: number) => {
+  const removeEditAchievement = (index: number) => {
     setEditData((prev) => ({
       ...prev,
-      details: prev.details.filter((_, i) => i !== index),
+      achievements: prev.achievements.filter((_, i) => i !== index),
     }))
   }
 
@@ -175,12 +174,12 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
 
       {/* Existing Experience Entries */}
       <div className="space-y-4">
-        {Object.entries(experienceSection?.content ?? {}).map(([company, details]) => (
-          <Card key={company} className="relative">
-            {editingExperience === company ? (
+        {experienceSection.items.map((exp, index) => (
+          <Card key={index} className="relative">
+            {editingIndex === index ? (
               <CardContent className="pt-6 space-y-4">
                 <div>
-                  <Label htmlFor="edit-company">Company & Position</Label>
+                  <Label htmlFor="edit-company">Company</Label>
                   <Input
                     id="edit-company"
                     value={editData.company}
@@ -188,27 +187,58 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                     className="mt-1"
                   />
                 </div>
-
+                <div>
+                  <Label htmlFor="edit-role">Role</Label>
+                  <Input
+                    id="edit-role"
+                    value={editData.role}
+                    onChange={(e) => setEditData((prev) => ({ ...prev, role: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Label htmlFor="edit-start">Start Date</Label>
+                    <Input
+                      id="edit-start"
+                      value={editData.startDate}
+                      onChange={(e) => setEditData((prev) => ({ ...prev, startDate: e.target.value }))}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Label htmlFor="edit-end">End Date</Label>
+                    <Input
+                      id="edit-end"
+                      value={editData.endDate}
+                      onChange={(e) => setEditData((prev) => ({ ...prev, endDate: e.target.value }))}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="edit-location">Location</Label>
+                  <Input
+                    id="edit-location"
+                    value={editData.location}
+                    onChange={(e) => setEditData((prev) => ({ ...prev, location: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
                 <div className="space-y-3">
-                  <Label>Experience Details</Label>
-                  {editData.details.map((detail, index) => (
-                    <div key={index} className="flex gap-2">
+                  <Label>Achievements</Label>
+                  {editData.achievements?.map((ach, i) => (
+                    <div key={i} className="flex gap-2">
                       <Input
-                        value={detail}
-                        onChange={(e) => updateEditDetail(index, e.target.value)}
-                        placeholder={
-                          index === 0
-                            ? "Employment dates (e.g., Jan 2020 - Present)"
-                            : index === 1
-                              ? "Location (e.g., San Francisco, CA)"
-                              : "Achievement or responsibility"
-                        }
+                        value={ach}
+                        onChange={(e) => updateEditAchievement(i, e.target.value)}
+                        placeholder="Achievement or responsibility"
                       />
-                      {editData.details.length > 1 && (
+                      {editData.achievements.length > 1 && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => removeEditDetail(index)}
+                          onClick={() => removeEditAchievement(i)}
                           className="text-red-500"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -216,13 +246,11 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                       )}
                     </div>
                   ))}
-
-                  <Button variant="outline" size="sm" onClick={addEditDetailField} className="w-full bg-transparent">
+                  <Button variant="outline" size="sm" onClick={addEditAchievementField} className="w-full bg-transparent">
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Detail
+                    Add Achievement
                   </Button>
                 </div>
-
                 <div className="flex gap-2">
                   <Button onClick={saveEdit} className="flex-1">
                     Save Changes
@@ -238,13 +266,13 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Briefcase className="w-5 h-5" />
-                      {company}
+                      {exp.company} | {exp.role}
                     </CardTitle>
                     <div className="flex gap-2">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => startEditing(company, details)}
+                        onClick={() => startEditing(index, exp)}
                         className="text-blue-500 hover:text-blue-700"
                       >
                         <Edit2 className="w-4 h-4" />
@@ -252,7 +280,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeExperience(company)}
+                        onClick={() => removeExperience(index)}
                         className="text-red-500 hover:text-red-700"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -262,10 +290,14 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {details.map((detail, index) => (
-                      <div key={index} className="flex items-start gap-2">
+                    <div className="flex gap-4 text-sm text-muted-foreground">
+                      <span>{exp.startDate} - {exp.endDate}</span>
+                      {exp.location && <span>{exp.location}</span>}
+                    </div>
+                    {exp.achievements?.map((ach, i) => (
+                      <div key={i} className="flex items-start gap-2">
                         <span className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-2"></span>
-                        <span className="text-sm">{detail}</span>
+                        <span className="text-sm">{ach}</span>
                       </div>
                     ))}
                   </div>
@@ -292,45 +324,78 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="company">Company & Position</Label>
+              <Label htmlFor="company">Company</Label>
               <Input
                 id="company"
-                placeholder="e.g., Google Inc. | Senior Software Engineer"
+                placeholder="e.g., Google Inc."
                 value={newExperience.company}
                 onChange={(e) => setNewExperience((prev) => ({ ...prev, company: e.target.value }))}
                 className="mt-1"
               />
             </div>
-
+            <div>
+              <Label htmlFor="role">Role</Label>
+              <Input
+                id="role"
+                placeholder="e.g., Senior Software Engineer"
+                value={newExperience.role}
+                onChange={(e) => setNewExperience((prev) => ({ ...prev, role: e.target.value }))}
+                className="mt-1"
+              />
+            </div>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <Label htmlFor="start">Start Date</Label>
+                <Input
+                  id="start"
+                  placeholder="e.g., Jan 2020"
+                  value={newExperience.startDate}
+                  onChange={(e) => setNewExperience((prev) => ({ ...prev, startDate: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+              <div className="flex-1">
+                <Label htmlFor="end">End Date</Label>
+                <Input
+                  id="end"
+                  placeholder="e.g., Present"
+                  value={newExperience.endDate}
+                  onChange={(e) => setNewExperience((prev) => ({ ...prev, endDate: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="location">Location</Label>
+              <Input
+                id="location"
+                placeholder="e.g., San Francisco, CA"
+                value={newExperience.location}
+                onChange={(e) => setNewExperience((prev) => ({ ...prev, location: e.target.value }))}
+                className="mt-1"
+              />
+            </div>
             <div className="space-y-3">
-              <Label>Experience Details</Label>
-              {newExperience?.details?.map((detail, index) => (
-                <div key={index} className="flex gap-2">
+              <Label>Achievements</Label>
+              {newExperience.achievements?.map((ach, i) => (
+                <div key={i} className="flex gap-2">
                   <Input
-                    placeholder={
-                      index === 0
-                        ? "Employment dates (e.g., Jan 2020 - Present)"
-                        : index === 1
-                          ? "Location (e.g., San Francisco, CA)"
-                          : "Achievement or responsibility"
-                    }
-                    value={detail}
-                    onChange={(e) => updateDetail(index, e.target.value)}
+                    placeholder="Achievement or responsibility"
+                    value={ach}
+                    onChange={(e) => updateAchievement(i, e.target.value)}
                   />
-                  {newExperience.details.length > 1 && (
-                    <Button variant="ghost" size="sm" onClick={() => removeDetail(index)} className="text-red-500">
+                  {newExperience.achievements.length > 1 && (
+                    <Button variant="ghost" size="sm" onClick={() => removeAchievement(i)} className="text-red-500">
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   )}
                 </div>
               ))}
-
-              <Button variant="outline" size="sm" onClick={addDetailField} className="w-full bg-transparent">
+              <Button variant="outline" size="sm" onClick={addAchievementField} className="w-full bg-transparent">
                 <Plus className="w-4 h-4 mr-2" />
-                Add Detail
+                Add Achievement
               </Button>
             </div>
-
             <Button onClick={addExperience} className="w-full">
               Save Experience Entry
             </Button>
