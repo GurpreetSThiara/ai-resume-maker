@@ -337,24 +337,21 @@ export async function generateImpact({ pdfRef, theme, resumeData }: GenerationPr
     } else if (section.type === "custom") {
       if (Array.isArray(section.content)) {
         for (const text of section.content) {
-
-      for (const bullet of bullets) {
-        ensureSpace((pdFtheme.pdfSize?.small ?? 0) + 5)
-        const bulletText = `• ${bullet}`
-        const lines = wrapText(bulletText, pageWidth - 20)
-
-        for (const line of lines) {
-          currentPage.drawText(line, {
-            x: margin + 10,
-            y: yOffset,
-            size: pdFtheme.pdfSize?.small || 10,
-            font: regularFont,
-            color: rgb(pdFtheme.rgb?.text.r || 0.2, pdFtheme.rgb?.text.g || 0.2, pdFtheme.rgb?.text.b || 0.2),
-          })
-          yOffset -= 15
+          ensureSpace((pdFtheme.pdfSize?.small ?? 0) + 5)
+          const lines = wrapText(text, pageWidth - 20)
+          for (const line of lines) {
+            currentPage.drawText(line, {
+              x: margin + 10,
+              y: yOffset,
+              size: pdFtheme.pdfSize?.small || 10,
+              font: regularFont,
+              color: rgb(pdFtheme.rgb?.text.r || 0.2, pdFtheme.rgb?.text.g || 0.2, pdFtheme.rgb?.text.b || 0.2),
+            })
+            yOffset -= 15
+          }
         }
+        yOffset -= (pdFtheme.pdfSpacing?.item || 10) / 2
       }
-      yOffset -= (pdFtheme.pdfSpacing?.item || 10) / 2
     }
     yOffset -= (pdFtheme.pdfSpacing?.section || 20) / 2
   }
