@@ -236,7 +236,7 @@ export function ReviewSection({ data, template }: ReviewSectionProps) {
         <div className="text-4xl mb-4">🎉</div>
         <h3 className="text-xl font-bold text-blue-800 mb-2">Your Resume is Ready!</h3>
         <p className="text-blue-700 mb-4">
-          Use the preview panel to see your resume and make final edits. When you're satisfied, download your
+          Use the preview panel to see your resume and make final edits. When you&apos;re satisfied, download your
           professional PDF resume and start applying to your dream jobs.
         </p>
         <div className="flex items-center justify-center gap-4 text-sm text-blue-600">

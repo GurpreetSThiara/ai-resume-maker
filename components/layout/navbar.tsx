@@ -43,8 +43,18 @@ export function Navbar() {
                 Create Resume
               </Link>
             )}
+
+<Link
+                href="/cover-letter"
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                  pathname === "/cover-letter" ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                <Plus className="w-4 h-4" />
+                Cover Letter
+              </Link>
           </nav>
-/pplx
+
           <div className="flex items-center gap-2">
             {user ? (
               <DropdownMenu>

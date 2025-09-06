@@ -298,7 +298,7 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
         </div>
         <p className="text-cyan-700 text-sm">
           Use custom sections to highlight unique aspects of your profile such as awards, publications,
-          volunteer work, or any other achievements that don't fit into standard categories.
+          volunteer work, or any other achievements that don&apos;t fit into standard categories.
         </p>
       </div>
     </div>

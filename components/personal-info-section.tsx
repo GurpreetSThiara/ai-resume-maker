@@ -19,7 +19,7 @@ export function PersonalInfoSection({ data, onUpdate }: PersonalInfoSectionProps
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold mb-2">Let's start with the basics! 🚀</h2>
+        <h2 className="text-2xl font-bold mb-2">Let&apos;s start with the basics! 🚀</h2>
         <p className="text-muted-foreground">Tell us about yourself to get started</p>
       </div>
 

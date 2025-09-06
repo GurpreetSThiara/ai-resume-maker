@@ -196,7 +196,7 @@ export default function HomePage() {
               <h3 className="text-2xl font-bold mb-4">Enter Your Information</h3>
               <p className="text-gray-600">
                 Fill in your personal details, work experience, education, and skills through our intuitive step-by-step
-                process. Our guided approach ensures you don't miss anything important.
+                process. Our guided approach ensures you don&apos;t miss anything important.
               </p>
             </div>
 
@@ -206,7 +206,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-2xl font-bold mb-4">Customize & Preview</h3>
               <p className="text-gray-600">
-                See your resume come to life with our live preview feature. Edit and customize until it's perfect. Choose from multiple professional templates.
+                See your resume come to life with our live preview feature. Edit and customize until it&apos;s perfect. Choose from multiple professional templates.
               </p>
             </div>
 
@@ -351,7 +351,7 @@ export default function HomePage() {
         <div className="container mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Ready to Build Your Perfect Resume?</h2>
           <p className="text-xl text-purple-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of successful job seekers and create your professional resume today. It's completely free and takes just minutes to complete!
+            Join thousands of successful job seekers and create your professional resume today. It&apos;s completely free and takes just minutes to complete!
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

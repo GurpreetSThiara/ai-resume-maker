@@ -13,24 +13,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CoverLetterSwitcher } from '@/components/cover-letters/cover-letter-switcher';
 import { downloadCoverLetterPDF, downloadCoverLetterDOCX } from '@/lib/export/cover-letter';
 
-interface CoverLetterEditorProps {
-  // No props needed as we're using context
-}
-
-export function CoverLetterEditor({}: CoverLetterEditorProps) {
+export function CoverLetterEditor() {
   const { state, updateContent, updateCoverLetter, syncCoverLetter } = useCoverLetter();
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
   const [isDownloading, setIsDownloading] = useState<'pdf' | 'docx' | null>(null);
   
-  // Handle loading state
-  if (state.isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
   const { coverLetter, isSaving, error } = state;
   const content = coverLetter.content;
   const recipient = content.recipient;
@@ -82,6 +69,12 @@ export function CoverLetterEditor({}: CoverLetterEditorProps) {
 
   return (
     <div className="space-y-6 p-6">
+      {state.isLoading ? (
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      ) : (
+      <>
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <div className="flex-1 pr-4">
@@ -271,6 +264,8 @@ export function CoverLetterEditor({}: CoverLetterEditorProps) {
           </div>
         </TabsContent>
       </Tabs>
+      </>
+      )}
     </div>
   );
 }

@@ -20,8 +20,8 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
   const [isAddingNew, setIsAddingNew] = useState(false)
 
   // Find the skills section
-  let skillsSectionIndex = data.sections.findIndex((s) => s.type === "skills")
-  let skillsSection = data.sections[skillsSectionIndex] as ISkillsSection || {
+  const skillsSectionIndex = data.sections.findIndex((s) => s.type === "skills")
+  const skillsSection = data.sections[skillsSectionIndex] as ISkillsSection || {
     id: (data.sections.length + 1).toString(),
     title: "Skills & More",
     type: "skills" as const,
@@ -65,7 +65,7 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
 
   // Helper to update or create the skills section
   const updateSkillsSection = (skills: string[]) => {
-    let updatedSections = [...data.sections]
+    const updatedSections = [...data.sections]
     if (skillsSectionIndex === -1) {
       // Create new skills section
       updatedSections.push({
@@ -189,7 +189,7 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
             <span className="font-medium text-red-800">Technical Skills</span>
           </div>
           <p className="text-red-700 text-xs">
-            Programming languages, frameworks, tools, and technologies you're proficient in.
+            Programming languages, frameworks, tools, and technologies you&apos;re proficient in.
           </p>
         </div>
 
@@ -209,7 +209,7 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
             <span className="font-medium text-yellow-800">Certifications</span>
           </div>
           <p className="text-yellow-700 text-xs">
-            Professional certifications, licenses, and credentials you've earned.
+            Professional certifications, licenses, and credentials you&apos;ve earned.
           </p>
         </div>
       </div>

@@ -107,7 +107,7 @@ export default function ProfilePage() {
 
   // Debounce function to prevent duplicate API calls
   const debounceRef = useRef<number | null>(null)
-  const debounce = (func: Function, delay: number) => {
+  const debounce = (func: () => void, delay: number) => {
     if (debounceRef.current) {
       window.clearTimeout(debounceRef.current)
     }
@@ -490,7 +490,7 @@ export default function ProfilePage() {
 
           {/* Preview Panel */}
           <div className="lg:col-span-1">
-            {showPreview && selectedResume && resumeData ? (
+            {showPreview && selectedResume && resumeData && (
               <Card className="sticky top-6">
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -503,7 +503,6 @@ export default function ProfilePage() {
                       <EyeOff className="w-4 h-4" />
                     </Button>
                   </div>
-                  <CardDescription>{selectedResume.title}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ResumePreview 
@@ -511,35 +510,8 @@ export default function ProfilePage() {
                     template={defaultTemplate} 
                     onDataUpdate={handleResumeDataUpdate}
                     activeSection=""
+                    setResumeData={setResumeData}
                   />
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="sticky top-6">
-                <CardHeader>
-                  <CardTitle className="text-lg">Quick Stats</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Total Resumes</span>
-                    <Badge variant="secondary">{resumes.length}/3</Badge>
-                  </div>
-                  {usage && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">AI Credits (month)</span>
-                      <Badge variant="secondary">${usage.totalUsdUsedThisMonth.toFixed(2)} / ${usage.monthUsdLimit.toFixed(2)}</Badge>
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Account Status</span>
-                    <Badge variant="default">Active</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Member Since</span>
-                    <span className="text-sm text-gray-900">
-                      {user.created_at ? formatDate(user.created_at) : "N/A"}
-                    </span>
-                  </div>
                 </CardContent>
               </Card>
             )}
@@ -548,4 +520,5 @@ export default function ProfilePage() {
       </div>
     </div>
   )
-} 
+}
+ 
