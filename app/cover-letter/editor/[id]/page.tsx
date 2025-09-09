@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { CoverLetterEditor } from '@/components/cover-letters/editor/editor';
 import { CoverLetterPreview } from '@/components/cover-letters/preview/preview';
 import { CoverLetterProvider } from '@/contexts/CoverLetterContext';
@@ -16,56 +16,29 @@ interface EditorPageProps {
 export default function CoverLetterEditorPage({ params }: EditorPageProps) {
   const { id } = params;
   const [initialCoverLetter, setInitialCoverLetter] = useState<CoverLetter | undefined>(undefined);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (id === 'new') {
-      setInitialCoverLetter(undefined); // Use default from context
-      setLoading(false);
-      return;
-    }
+    
+    if (id === 'new') return;
+    const controller = new AbortController();
 
     const fetchCoverLetter = async () => {
-      try {
-        const response = await fetch(`/api/cover-letters/${id}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch cover letter. Please try again later.');
-        }
-        const data = await response.json();
-        setInitialCoverLetter(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+      const response = await fetch(`/api/cover-letters/${id}`, { signal: controller.signal });
+      if (!response.ok) throw new Error('Failed to fetch cover letter.');
+      const data = await response.json();
+      setInitialCoverLetter(data);
     };
 
-    fetchCoverLetter();
+    fetchCoverLetter().catch((err) => {
+      throw err; 
+    });
+
+    return () => controller.abort();
   }, [id]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-12 w-12 animate-spin" />
-      </div>
-    );
-  }
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen text-center">
-        <h2 className="text-2xl font-semibold mb-2">Error Loading Cover Letter</h2>
-        <p className="text-red-500 mb-4">{error}</p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
-        >
-          Try Again
-        </button>
-      </div>
-    );
-  }
+
+
 
   return (
     <CoverLetterProvider initialCoverLetter={initialCoverLetter}>

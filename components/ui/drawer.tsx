@@ -60,21 +60,22 @@ function Drawer({ open, onOpenChange, direction = "bottom", children }: DrawerPr
   )
 }
 
-function DrawerTrigger({
-  children,
-  onClick,
-  ...props
-}: React.HTMLAttributes<HTMLButtonElement>) {
-  return (
+interface DrawerTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+
+const DrawerTrigger = React.forwardRef<HTMLButtonElement, DrawerTriggerProps>(
+  ({ children, ...props }, ref) => (
     <button
+      ref={ref}
+      type="button"
       data-slot="drawer-trigger"
-      onClick={onClick}
       {...props}
     >
       {children}
     </button>
   )
-}
+);
+
+DrawerTrigger.displayName = 'DrawerTrigger'
 
 function DrawerClose({
   children,

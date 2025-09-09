@@ -9,6 +9,7 @@ import {
   MinimalistTemplate,
 } from '@/components/cover-letters/templates';
 import { CoverLetter } from '@/types/cover-letter';
+import { coverLetterExample } from '@/lib/examples/cover-letter';
 
 type Layout = 'traditional' | 'modern' | 'creative' | 'minimalist';
 
@@ -22,6 +23,8 @@ const templateMap: Record<Layout, React.ComponentType<{ coverLetter: CoverLetter
 export function CoverLetterPreview() {
   const { state } = useCoverLetter();
   const { coverLetter } = state;
+  console.log("coverLetter",coverLetter)
+
 
   if (!coverLetter) {
     return <div className="p-8">Loading preview...</div>;
