@@ -6,7 +6,7 @@ interface TemplateProps {
 }
 
 export function MinimalistTemplate({ coverLetter }: TemplateProps) {
-  const { applicant, recipient, content } = coverLetter;
+  const { applicant , recipient , content } = coverLetter;
   const yourName = `${applicant.firstName} ${applicant.lastName}`.trim();
   const yourEmail = applicant.contactInfo.email;
   const yourPhone = applicant.contactInfo.phone;

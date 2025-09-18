@@ -1,8 +1,8 @@
-import { Document, Packer, Paragraph, TextRun } from "docx"
+import { Document, Packer, Paragraph, TextRun, AlignmentType } from "docx"
 import type { CoverLetter } from "@/types/cover-letter"
 import { format } from "date-fns"
 
-export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise<Uint8Array> {
+export async function generateProfessionalStandardDOCX(coverLetter: CoverLetter): Promise<Uint8Array> {
   const { applicant , recipient , content } = coverLetter
   const yourName = `${applicant.firstName} ${applicant.lastName}`.trim()
   const yourEmail = applicant.contactInfo.email
@@ -39,39 +39,42 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
           },
         },
         children: [
-          // Simple header block
+          // Centered Header
           new Paragraph({
             children: [
               new TextRun({
-                text: yourName,
+                text: yourName.toUpperCase(),
                 bold: true,
                 size: 28, // 14pt
                 color: "000000",
               }),
             ],
-            spacing: { after: 120 },
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 180 },
           }),
 
           new Paragraph({
             children: [
               new TextRun({
                 text: yourAddress,
-                size: 22, // 11pt
+                size: 20, // 10pt
                 color: "000000",
               }),
             ],
+            alignment: AlignmentType.CENTER,
             spacing: { after: 60 },
           }),
 
           new Paragraph({
             children: [
               new TextRun({
-                text: `${yourPhone} | ${yourEmail}`,
-                size: 22, // 11pt
+                text: `${yourPhone} • ${yourEmail}`,
+                size: 20, // 10pt
                 color: "000000",
               }),
             ],
-            spacing: { after: 320 },
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 360 },
           }),
 
           // Date
@@ -86,7 +89,7 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
             spacing: { after: 240 },
           }),
 
-          // Recipient block
+          // Recipient
           new Paragraph({
             children: [
               new TextRun({
@@ -128,14 +131,15 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
                 color: "000000",
               }),
             ],
-            spacing: { after: 300 },
+            spacing: { after: 240 },
           }),
 
-          // Salutation
+          // Subject line
           new Paragraph({
             children: [
               new TextRun({
-                text: `Dear ${recipient.name},`,
+                text: "RE: Application for Position",
+                bold: true,
                 size: 22, // 11pt
                 color: "000000",
               }),
@@ -152,7 +156,7 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
                 color: "000000",
               }),
             ],
-            spacing: { after: 180 },
+            spacing: { after: 160 },
           }),
 
           new Paragraph({
@@ -163,7 +167,7 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
                 color: "000000",
               }),
             ],
-            spacing: { after: 180 },
+            spacing: { after: 160 },
           }),
 
           new Paragraph({

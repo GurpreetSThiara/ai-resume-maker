@@ -16,10 +16,10 @@ export default function CoverLetterPage() {
 
   return (
     <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col  items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">Create a New Cover Letter</h1>
-          <p className="text-muted-foreground">Choose a template to get started</p>
+          {/* <p className="text-muted-foreground">Choose a template to get started</p> */}
         </div>
         <Button 
           variant="outline" 
@@ -29,7 +29,7 @@ export default function CoverLetterPage() {
         </Button>
       </div>
 
-      <TemplateSelector onSelect={handleTemplateSelect} />
+      {/* <TemplateSelector onSelect={handleTemplateSelect} /> */}
     </div>
   );
 }

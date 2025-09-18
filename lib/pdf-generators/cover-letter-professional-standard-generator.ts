@@ -2,7 +2,7 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
 import type { CoverLetter } from "@/types/cover-letter"
 import { format } from "date-fns"
 
-export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<Uint8Array> {
+export async function generateProfessionalStandardPDF(coverLetter: CoverLetter): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create()
   const page = pdfDoc.addPage([612, 792])
 
@@ -33,33 +33,37 @@ export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<
 
   let yPosition = 720
 
-  // Simple block header
-  page.drawText(yourName, {
-    x: 72,
+  // Centered Header
+  const nameWidth = helveticaBold.widthOfTextAtSize(yourName.toUpperCase(), 14)
+  page.drawText(yourName.toUpperCase(), {
+    x: (612 - nameWidth) / 2,
     y: yPosition,
     size: 14,
     font: helveticaBold,
     color: rgb(0, 0, 0),
   })
-  yPosition -= 20
+  yPosition -= 25
 
+  const addressWidth = helvetica.widthOfTextAtSize(yourAddress, 10)
   page.drawText(yourAddress, {
-    x: 72,
+    x: (612 - addressWidth) / 2,
     y: yPosition,
-    size: 11,
+    size: 10,
     font: helvetica,
     color: rgb(0, 0, 0),
   })
   yPosition -= 15
 
-  page.drawText(`${yourPhone} | ${yourEmail}`, {
-    x: 72,
+  const contactInfo = `${yourPhone} • ${yourEmail}`
+  const contactWidth = helvetica.widthOfTextAtSize(contactInfo, 10)
+  page.drawText(contactInfo, {
+    x: (612 - contactWidth) / 2,
     y: yPosition,
-    size: 11,
+    size: 10,
     font: helvetica,
     color: rgb(0, 0, 0),
   })
-  yPosition -= 40
+  yPosition -= 50
 
   // Date
   page.drawText(format(new Date(content.date), "MMMM d, yyyy"), {
@@ -69,9 +73,9 @@ export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<
     font: helvetica,
     color: rgb(0, 0, 0),
   })
-  yPosition -= 30
+  yPosition -= 35
 
-  // Recipient block
+  // Recipient
   page.drawText(recipient.name, {
     x: 72,
     y: yPosition,
@@ -110,17 +114,17 @@ export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<
     })
     yPosition -= 15
   })
-  yPosition -= 25
+  yPosition -= 20
 
-  // Salutation
-  page.drawText(`Dear ${recipient.name},`, {
+  // Subject line
+  page.drawText("RE: Application for Position", {
     x: 72,
     y: yPosition,
     size: 11,
-    font: helvetica,
+    font: helveticaBold,
     color: rgb(0, 0, 0),
   })
-  yPosition -= 25
+  yPosition -= 35
 
   // Content paragraphs
   const paragraphs = [opening, body, closing]
@@ -162,7 +166,7 @@ export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<
         yPosition -= 16
       }
     })
-    yPosition -= 12
+    yPosition -= 8
   })
 
   // Signature

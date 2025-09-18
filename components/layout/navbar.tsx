@@ -32,7 +32,7 @@ export function Navbar() {
               <Home className="w-4 h-4" aria-hidden="true" />
               Home
             </Link>
-            {user && (
+            { (
               <Link
                 href="/create"
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${

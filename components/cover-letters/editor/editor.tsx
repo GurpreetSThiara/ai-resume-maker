@@ -9,16 +9,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CoverLetterSwitcher } from '@/components/cover-letters/cover-letter-switcher';
-import { downloadCoverLetterPDF, downloadCoverLetterDOCX } from '@/lib/export/cover-letter';
+import { coverLetterExample } from '@/lib/examples/cover-letter';
 
 export function CoverLetterEditor() {
   const { state, updateCoverLetter, updateContent, syncCoverLetter } = useCoverLetter();
-  const { coverLetter, isSaving, error } = state;
-  const [activeTab, setActiveTab] = useState<'details' | 'content' | 'formatting' | 'export'>('details');
+  const {   isSaving, error } = state;
+  const coverLetter = coverLetterExample;
+  const [activeTab, setActiveTab] = useState<'details' | 'content' | 'formatting' >('details');
 
   // Derived helpers
-  const title: string | undefined = (coverLetter as any)?.title;
+  const title: string | undefined = (coverLetter as any)?.title ?? "sample";
   const canExport = Boolean(title && title.trim().length > 0);
 
   // Field updaters
@@ -80,51 +80,14 @@ export function CoverLetterEditor() {
     await syncCoverLetter().catch(() => {});
   };
 
-  const handleDownloadPDF = async () => {
-    if (!canExport) return;
-    try {
-      await downloadCoverLetterPDF(coverLetter);
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
-  const handleDownloadDOCX = async () => {
-    if (!canExport) return;
-    try {
-      await downloadCoverLetterDOCX(coverLetter);
-    } catch (e) {
-      console.error(e);
-    }
-  };
+
+
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
+  <div className="max-w-5xl mx-auto px-4 py-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
-        <div className="flex-1 min-w-0">
-          <CoverLetterSwitcher />
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={handleSave} disabled={isSaving} aria-label="Save cover letter">
-            {isSaving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" /> Save
-              </>
-            )}
-          </Button>
-          <Button variant="outline" onClick={handleDownloadPDF} disabled={!canExport} aria-label="Download PDF">
-            <FileText className="mr-2 h-4 w-4" /> PDF
-          </Button>
-          <Button variant="outline" onClick={handleDownloadDOCX} disabled={!canExport} aria-label="Download DOCX">
-            <Download className="mr-2 h-4 w-4" /> DOCX
-          </Button>
-        </div>
-      </div>
+   
 
       {error && (
         <div className="flex items-start gap-2 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4" role="alert">
@@ -138,7 +101,6 @@ export function CoverLetterEditor() {
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="content">Content</TabsTrigger>
           <TabsTrigger value="formatting">Formatting</TabsTrigger>
-          <TabsTrigger value="export">Export</TabsTrigger>
         </TabsList>
 
         {/* Details Tab */}
@@ -395,21 +357,7 @@ export function CoverLetterEditor() {
         </TabsContent>
 
         {/* Export Tab */}
-        <TabsContent value="export" className="mt-4">
-          <div className="rounded border p-4">
-            <p className="text-sm text-muted-foreground mb-3">
-              To enable export, please ensure your cover letter has a title property. Until then, export is disabled to prevent filename errors.
-            </p>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" disabled={!canExport} onClick={handleDownloadPDF}>
-                <FileText className="mr-2 h-4 w-4" /> Download PDF
-              </Button>
-              <Button variant="outline" disabled={!canExport} onClick={handleDownloadDOCX}>
-                <Download className="mr-2 h-4 w-4" /> Download DOCX
-              </Button>
-            </div>
-          </div>
-        </TabsContent>
+    
       </Tabs>
     </div>
   );

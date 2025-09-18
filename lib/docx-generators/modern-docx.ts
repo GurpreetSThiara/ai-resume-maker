@@ -3,7 +3,7 @@ import { CoverLetter } from '@/types/cover-letter';
 import { format } from 'date-fns';
 
 export async function generateModernDOCX(coverLetter: CoverLetter): Promise<Buffer> {
-  const { applicant, recipient, content } = coverLetter;
+  const { applicant , recipient , content } = coverLetter;
   const yourName = `${applicant.firstName} ${applicant.lastName}`.trim();
   const yourEmail = applicant.contactInfo.email;
   const yourPhone = applicant.contactInfo.phone;

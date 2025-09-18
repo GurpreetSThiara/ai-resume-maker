@@ -5,7 +5,7 @@ interface TemplateProps {
   coverLetter: CoverLetter
 }
 
-export function ModernMinimalTemplate({ coverLetter }: TemplateProps) {
+export function ProfessionalStandardTemplate({ coverLetter }: TemplateProps) {
   const { applicant , recipient , content } = coverLetter
   const yourName = `${applicant.firstName} ${applicant.lastName}`.trim()
   const yourEmail = applicant.contactInfo.email
@@ -16,7 +16,7 @@ export function ModernMinimalTemplate({ coverLetter }: TemplateProps) {
     applicant.contactInfo.address.country,
   ]
     .filter(Boolean)
-    .join(" | ")
+    .join(", ")
   const opening = content.openingParagraph.text
   const body = content.bodyParagraphs.map((p) => p.text).join("\n\n")
   const closing = content.closingParagraph.text
@@ -28,41 +28,49 @@ export function ModernMinimalTemplate({ coverLetter }: TemplateProps) {
     .join("\n")
 
   return (
-    <div className="bg-white text-gray-900 font-sans p-8 max-w-4xl mx-auto">
-      {/* Header Section */}
-      <div className="border-b-2 border-gray-200 pb-6 mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">{yourName}</h1>
-        <div className="text-sm text-gray-600 space-y-1">
-          <p>
-            {yourEmail} | {yourPhone}
-          </p>
+    <div className="bg-white text-black font-sans p-10 leading-normal">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-xl font-bold uppercase tracking-wide mb-3">{yourName}</h1>
+        <div className="text-sm">
           <p>{yourAddress}</p>
+          <p>
+            {yourPhone} • {yourEmail}
+          </p>
         </div>
       </div>
 
       {/* Date */}
       <div className="mb-6">
-        <p className="text-sm text-gray-600">{format(new Date(content.date), "MMMM d, yyyy")}</p>
+        <p>{format(new Date(content.date), "MMMM d, yyyy")}</p>
       </div>
 
       {/* Recipient */}
-      <div className="mb-8">
-        <p className="font-semibold text-gray-900">{recipient.name}</p>
-        <p className="text-gray-700">{recipient.title}</p>
-        <p className="text-gray-700">{recipient.company}</p>
-        <p className="text-gray-600 text-sm whitespace-pre-line">{recipientAddress}</p>
+      <div className="mb-6">
+        <p>{recipient.name}</p>
+        <p>{recipient.title}</p>
+        <p>{recipient.company}</p>
+        <p className="whitespace-pre-line">{recipientAddress}</p>
+      </div>
+
+      {/* Subject Line */}
+      <div className="mb-6">
+        <p>
+          <strong>RE: Application for Position</strong>
+        </p>
       </div>
 
       {/* Content */}
-      <div className="space-y-6">
-        <p className="text-gray-900 leading-relaxed">{opening}</p>
-        <p className="text-gray-900 leading-relaxed whitespace-pre-line">{body}</p>
-        <p className="text-gray-900 leading-relaxed">{closing}</p>
+      <div className="space-y-4">
+        <p>{opening}</p>
+        <div className="whitespace-pre-line">{body}</div>
+        <p>{closing}</p>
       </div>
 
       {/* Signature */}
       <div className="mt-8">
-        <p className="font-semibold text-gray-900">{yourName}</p>
+        <p>Sincerely,</p>
+        <p className="mt-4 font-semibold">{yourName}</p>
       </div>
     </div>
   )
