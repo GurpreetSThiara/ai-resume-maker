@@ -11,10 +11,11 @@ interface ResumePreviewProps {
   onDataUpdate: (data: ResumeData | ((prev: ResumeData) => ResumeData)) => void
   activeSection: string
   setResumeData: any
+  className?: string
 }
 
 const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
-  ({ resumeData, template, onDataUpdate, activeSection, setResumeData }, ref) => {
+  ({ resumeData, template, onDataUpdate, activeSection, setResumeData, className }, ref) => {
     // Refs for each section to scroll to
     const personalInfoRef = useRef<HTMLDivElement>(null)
     const customFieldsRef = useRef<HTMLDivElement>(null)
@@ -108,9 +109,8 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
     }
 
     return (
-      <div ref={ref} className="bg-blue-50 min-h-screen font-serif">
+      <div ref={ref} className={`bg-green-50 font-serif ${className || 'min-h-screen'}`}>
         {ResumeComponent && <ResumeComponent resumeData={resumeData} setResumeData={setResumeData} activeSection={activeSection} />}
-  
       </div>
     )
   },

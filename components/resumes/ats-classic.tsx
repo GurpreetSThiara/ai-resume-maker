@@ -178,8 +178,8 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
           ref={pdfRef}
           className={`relative ${font.className}`}
           style={{
-            width: 595,
-            minHeight: 842,
+            minWidth: 595,
+           // minHeight: 842,
             maxWidth: '100%',
             transform: `scale(${scale})`,
             transformOrigin: 'top center',
@@ -193,7 +193,7 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
           }}
         >
           {/* A4 page container with exact dimensions */}
-          <div className="px-8 py-8" style={{ minHeight: 842, width: 595, maxWidth: '100%' }}>
+          <div className="px-8 py-8" style={{  minWidth: 595, maxWidth: '100%' }}>
             
             {/* Header */}
             <header ref={personalInfoRef} className="mb-6">

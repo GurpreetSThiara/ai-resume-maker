@@ -37,7 +37,7 @@ export function CoverLetterPreview() {
   const handleDownloadPDF = async () => {
     if (!canExport) return;
     try {
-      await downloadCoverLetterPDF({coverLetter: coverLetterExample, templateName: coverLetter?.formatting?.layout || 'traditional' });
+      await downloadCoverLetterPDF({coverLetter: coverLetter, templateName: coverLetter?.formatting?.layout || 'traditional' });
     } catch (e) {
       console.error(e);
     }
@@ -46,14 +46,18 @@ export function CoverLetterPreview() {
   const handleDownloadDOCX = async () => {
     if (!canExport) return;
     try {
-      await downloadCoverLetterDOCX({coverLetter:coverLetterExample, templateName: coverLetter?.formatting?.layout || 'traditional' });
+      await downloadCoverLetterDOCX({coverLetter: coverLetter, templateName: coverLetter?.formatting?.layout || 'traditional' });
     } catch (e) {
       console.error(e);
     }
   };
 
   if (!coverLetter) {
-    return <div className="p-8">Loading preview...</div>;
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-gray-500">No preview available</div>
+      </div>
+    );
   }
 
   const layout = coverLetter.formatting?.layout ?? 'traditional';
@@ -73,7 +77,7 @@ export function CoverLetterPreview() {
           <Download className="mr-2 h-4 w-4" /> Download DOCX
         </Button>
       </div>
-      <SelectedTemplate coverLetter={coverLetterExample} />
+      <SelectedTemplate coverLetter={coverLetter} />
     </div>
   );
 }

@@ -13,8 +13,7 @@ import { coverLetterExample } from '@/lib/examples/cover-letter';
 
 export function CoverLetterEditor() {
   const { state, updateCoverLetter, updateContent, syncCoverLetter } = useCoverLetter();
-  const {   isSaving, error } = state;
-  const coverLetter = coverLetterExample;
+  const { coverLetter, isSaving, error } = state;
   const [activeTab, setActiveTab] = useState<'details' | 'content' | 'formatting' >('details');
 
   // Derived helpers

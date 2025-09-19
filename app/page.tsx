@@ -20,14 +20,14 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 opacity-60">
-          <div className="absolute -top-24 -left-24 h-80 w-80 rounded-full bg-purple-300 blur-3xl" />
-          <div className="absolute top-20 right-0 h-96 w-96 rounded-full bg-blue-300 blur-3xl" />
+          <div className="absolute -top-24 -left-24 h-80 w-80 rounded-full bg-green-100 blur-3xl" />
+          <div className="absolute top-20 right-0 h-96 w-96 rounded-full bg-green-50 blur-3xl" />
         </div>
         <div className="container mx-auto px-4 pt-20 pb-14 md:pt-28 md:pb-20 relative text-center">
-          <Badge className="mb-5 bg-white/80 text-purple-700 border border-purple-200">
+          <Badge className="mb-5 bg-white/80 text-green-700 border border-green-200">
             <Sparkles className="w-4 h-4 mr-2" /> AI + ATS Optimized
           </Badge>
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 bg-gradient-to-r from-slate-900 via-purple-700 to-indigo-700 bg-clip-text text-transparent">
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 bg-gradient-to-r from-slate-900 via-green-700 to-indigo-700 bg-clip-text text-transparent">
             Your Resume, Perfected in Minutes
           </h1>
           <p className="text-lg md:text-2xl text-slate-600 mb-8 max-w-3xl mx-auto">
@@ -35,29 +35,29 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
             <Link href="/create">
-              <Button size="lg" className="h-12 px-7 text-base bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+              <Button size="lg" className="h-12 px-7 text-base bg-gradient-to-r from-green-600 to-slate-600 hover:from-purple-700 hover:to-blue-700">
                 Create Free Resume
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
             <Link href="/create">
-              <Button size="lg" variant="outline" className="h-12 px-7 text-base bg-white/70 backdrop-blur border-slate-200">
+              <Button size="lg" variant="outline" className="h-12 px-7 text-base bg-white/70 backdrop-blur border-green-200">
                 <Play className="w-5 h-5 mr-2" /> Try Interactive Demo
               </Button>
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-left md:text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center md:text-center">
             <div>
-              <div className="text-3xl font-bold text-purple-700">50K+</div>
+              <div className="text-3xl font-bold text-primary">50K+</div>
               <div className="text-slate-500">Resumes Created</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-blue-700">95%</div>
+              <div className="text-3xl font-bold text-secondary">95%</div>
               <div className="text-slate-500">Success Rate</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-indigo-700">4.9★</div>
+              <div className="text-3xl font-bold text-secondary">4.9★</div>
               <div className="text-slate-500">User Rating</div>
             </div>
             <div>
@@ -69,7 +69,7 @@ export default function HomePage() {
       </section>
 
       {/* Template Showcase */}
-      <section className="py-16 px-4 bg-white/70">
+      {/* <section className="py-16 px-4 bg-white/70">
         <div className="container mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">Professionally Designed Templates</h2>
@@ -109,15 +109,15 @@ export default function HomePage() {
               </Carousel>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Value Props */}
       <section className="py-20 px-4">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100">
               <CardHeader>
-                <Zap className="w-12 h-12 text-purple-600 mb-4" />
+                <Zap className="w-12 h-12 text-green-600 mb-4" />
                 <CardTitle className="text-xl">Gamified Experience</CardTitle>
                 <CardDescription>
                   Unlock achievements and track progress as you build your perfect resume step by step. Make resume writing fun and engaging.
@@ -127,7 +127,7 @@ export default function HomePage() {
 
             <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
               <CardHeader>
-                <Shield className="w-12 h-12 text-blue-600 mb-4" />
+                <Shield className="w-12 h-12 text-green-600 mb-4" />
                 <CardTitle className="text-xl">ATS-Friendly</CardTitle>
                 <CardDescription>
                   Our templates are optimized for Applicant Tracking Systems to ensure your resume gets noticed by recruiters and hiring managers.
@@ -179,7 +179,7 @@ export default function HomePage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 px-4 bg-white/70">
+      <section className="py-20 px-4 bg-green-50">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 text-gray-800">How It Works</h2>
@@ -190,7 +190,7 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6">
+              <div className="w-16 h-16 bg-gradient-to-r from-green-600 to-green-800 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6">
                 1
               </div>
               <h3 className="text-2xl font-bold mb-4">Enter Your Information</h3>
@@ -201,7 +201,7 @@ export default function HomePage() {
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6">
+              <div className="w-16 h-16 bg-gradient-to-r from-green-600 to-green-800 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6">
                 2
               </div>
               <h3 className="text-2xl font-bold mb-4">Customize & Preview</h3>
@@ -211,7 +211,7 @@ export default function HomePage() {
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6">
+              <div className="w-16 h-16 bg-gradient-to-r from-green-600 to-green-800 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6">
                 3
               </div>
               <h3 className="text-2xl font-bold mb-4">Download & Apply</h3>
@@ -236,7 +236,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Target className="w-6 h-6 text-purple-600" />
+                <Target className="w-6 h-6 text-primary" />
               </div>
               <div>
                 <h3 className="text-xl font-bold mb-2">ATS Optimization</h3>
@@ -286,7 +286,7 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials + FAQ */}
-      <section className="py-20 px-4">
+      {/* <section className="py-20 px-4">
         <div className="container mx-auto grid gap-12 lg:grid-cols-2 items-start">
           <div>
             <h3 className="text-3xl font-bold text-slate-900 mb-6">Loved by Job Seekers</h3>
@@ -344,41 +344,61 @@ export default function HomePage() {
             </Accordion>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600">
-        <div className="container mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Ready to Build Your Perfect Resume?</h2>
-          <p className="text-xl text-purple-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of successful job seekers and create your professional resume today. It&apos;s completely free and takes just minutes to complete!
-          </p>
+  <section className="relative overflow-hidden py-24 px-6 bg-card">
+  <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-secondary/10 to-accent/10 animate-gradient-x"></div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/create">
-              <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 text-lg px-8 py-4 font-semibold">
-                Create Free Resume Now
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
-          </div>
+  <div className="container relative z-10 mx-auto text-center max-w-3xl">
+    <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
+      Build Your <span className="text-primary">Perfect Resume</span> in Minutes
+    </h2>
 
-          <div className="mt-8 flex items-center justify-center gap-8 text-purple-100">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5" />
-              <span>100% Free</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5" />
-              <span>No Registration Required</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5" />
-              <span>Instant Download</span>
-            </div>
-          </div>
-        </div>
-      </section>
+    <p className="mt-6 text-lg md:text-xl text-muted-foreground leading-relaxed">
+      Join thousands of successful job seekers who created their professional resume — 
+      <span className="font-semibold text-primary"> free, fast, and easy</span>.
+    </p>
+
+    <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+      <Link href="/create">
+        <Button
+          size="lg"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-4 font-semibold rounded-xl shadow-lg shadow-primary/20 transition-all duration-300 hover:scale-105"
+        >
+          Create Free Resume
+          <ArrowRight className="w-5 h-5 ml-2" />
+        </Button>
+      </Link>
+
+      <Link href="/templates">
+        <Button
+          size="lg"
+          variant="outline"
+          className="border-2 border-primary text-primary hover:bg-primary/10 text-lg px-8 py-4 font-semibold rounded-xl transition-all duration-300"
+        >
+          Browse Templates
+        </Button>
+      </Link>
+    </div>
+
+    <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+      <div className="flex flex-col items-center">
+        <CheckCircle className="w-7 h-7 text-primary mb-2" />
+        <p className="text-sm font-medium text-foreground">100% Free</p>
+      </div>
+      <div className="flex flex-col items-center">
+        <CheckCircle className="w-7 h-7 text-primary mb-2" />
+        <p className="text-sm font-medium text-foreground">No Signup Required</p>
+      </div>
+      <div className="flex flex-col items-center">
+        <CheckCircle className="w-7 h-7 text-primary mb-2" />
+        <p className="text-sm font-medium text-foreground">Instant Download</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 
  
     </div>

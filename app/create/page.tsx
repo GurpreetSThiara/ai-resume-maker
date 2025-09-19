@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { ChevronLeft, ChevronRight, Trophy, Star, Zap, Target, Eye, Download, Save } from "lucide-react"
+import { ChevronLeft, ChevronRight, Trophy, Star, Zap, Target, Eye, Download, Save, X } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { PersonalInfoSection } from "@/components/personal-info-section"
 import { EducationSection as EducationSectionComponent } from "@/components/education-section"
 import { ExperienceSection as ExperienceSectionComponent } from "@/components/experience-section"
@@ -38,24 +39,26 @@ import SaveResumeModal from '@/components/save-resume-modal';
 import { sanitizeTextForPdf } from '@/lib/utils'
 import DownloadDropDown from "@/components/global/DropDown/DropDown"
 import type { FC } from 'react'
-import { CustomSection } from "@/components/custom-section"
+import { CustomSection as CustomSectionComponent } from "@/components/custom-section"
+import { sampleResumeData } from "@/lib/examples/resume-example"
 
-const initialData: ResumeData = {
-  basics: {
-    name: "",
-    email: "",
-    phone: "",
-    location: "",
-    linkedin: "",
-    summary: ""
-  },
-  custom: {},
-  sections: [
-    { id: "1", type: "education", title: "Education", items: [] },
-    { id: "2", type: "experience", title: "Professional Experience", items: [] },
-    { id: "3", type: "skills", title: "Skills", items: [] },
-  ]
-}
+const initialData: ResumeData =sampleResumeData
+//  {
+//   basics: {
+//     name: "",
+//     email: "",
+//     phone: "",
+//     location: "",
+//     linkedin: "",
+//     summary: ""
+//   },
+//   custom: {},
+//   sections: [
+//     { id: "1", type: "education", title: "Education", items: [] },
+//     { id: "2", type: "experience", title: "Professional Experience", items: [] },
+//     { id: "3", type: "skills", title: "Skills", items: [] },
+//   ]
+// }
 
 const steps = [
   { id: 0, title: "Personal Info", icon: "👤", description: "Tell us about yourself" },
@@ -397,7 +400,7 @@ const CreateResumeContent: FC = () => {
       case 5:
         return <CustomFieldsSection data={resumeData} onUpdate={handleResumeDataUpdate} onSave={saveToLocal} isDirty={false} />
       case 6:
-        return <CustomSection data={resumeData} onUpdate={handleResumeDataUpdate} />
+        return <CustomSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
       case 7:
         return <ReviewSection data={resumeData} template={selectedTemplate} />
       default:
@@ -414,7 +417,7 @@ const CreateResumeContent: FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-green-50 to-indigo-100">
       {/* Celebration Animation */}
       {showCelebration && (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
@@ -423,62 +426,85 @@ const CreateResumeContent: FC = () => {
       )}
 
       <div className="container mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Create Your Resume</h1>
-            <p className="text-gray-600 mt-2">Step {currentStep + 1} of {steps.length}</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowPreview(!showPreview)}
-              className="flex items-center gap-2"
-            >
-              <Eye className="w-4 h-4" />
-              {showPreview ? "Hide Preview" : "Show Preview"}
-            </Button>
+       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+  {/* Left Section */}
+  <div>
+    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Create Your Resume</h1>
+    <p className="text-gray-600 mt-1 md:mt-2">
+      Step {currentStep + 1} of {steps.length}
+    </p>
+  </div>
 
-            <div className="">
-              <DownloadDropDown data={{
-                resumeData,
-                template: selectedTemplate,
-                filename: `${resumeData.basics.name || "resume"}.pdf`,
-              }}/>
-            </div>
-            {/* Template Selector */}
-            <select
-              className="border rounded px-2 py-1 text-sm"
-              value={selectedTemplate.id}
-              onChange={(e) => {
-                const t = availableTemplates.find((t) => t.id === e.target.value)
-                if (t) setSelectedTemplate(t)
-              }}
-            >
-              {availableTemplates.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
-            <Button onClick={() => setModalOpen(true)} disabled={!effectiveAiEnabled} className="flex items-center gap-2">
-              <Star className="w-4 h-4" />
-              Create with AI
-            </Button>
-            {!effectiveAiEnabled && <span className="text-xs text-red-600">Login to use AI</span>}
-            <div className="flex gap-1">
-              {userAchievements.map((achievement) => (
-                <Badge
-                  key={achievement.id}
-                  variant={achievement.unlocked ? "default" : "secondary"}
-                  className={`${achievement.unlocked ? "bg-yellow-500 text-white" : "opacity-50"}`}
-                >
-                  {achievement.icon}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </div>
+  {/* Right Section */}
+  <div className="flex flex-wrap items-center gap-3">
+    {/* Show/Hide Preview Button */}
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setShowPreview(!showPreview)}
+      className="flex items-center gap-2"
+    >
+      <Eye className="w-4 h-4" />
+      {showPreview ? "Hide Preview" : "Show Preview"}
+    </Button>
+
+    {/* Download Dropdown */}
+    <DownloadDropDown
+      data={{
+        resumeData,
+        template: selectedTemplate,
+        filename: `${resumeData.basics.name || "resume"}.pdf`,
+      }}
+    />
+
+    {/* Template Selector */}
+    <select
+      className="border rounded px-2 py-1 text-sm"
+      value={selectedTemplate.id}
+      onChange={(e) => {
+        const t = availableTemplates.find((t) => t.id === e.target.value)
+        if (t) setSelectedTemplate(t)
+      }}
+    >
+      {availableTemplates.map((t) => (
+        <option key={t.id} value={t.id}>
+          {t.name}
+        </option>
+      ))}
+    </select>
+
+    {/* AI Button */}
+    <Button
+      onClick={() => setModalOpen(true)}
+      disabled={!effectiveAiEnabled}
+      className="flex items-center gap-2"
+    >
+      <Star className="w-4 h-4" />
+      Create with AI
+    </Button>
+    {!effectiveAiEnabled && (
+      <span className="text-xs text-red-600">Login to use AI</span>
+    )}
+
+    {/* Achievements */}
+    <div className="flex flex-wrap gap-1">
+      {userAchievements.map((achievement) => (
+        <Badge
+          key={achievement.id}
+          variant={achievement.unlocked ? "default" : "secondary"}
+          className={
+            achievement.unlocked
+              ? "bg-yellow-500 text-white"
+              : "opacity-50"
+          }
+        >
+          {achievement.icon}
+        </Badge>
+      ))}
+    </div>
+  </div>
+</div>
+
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
@@ -571,20 +597,52 @@ const CreateResumeContent: FC = () => {
             {/* Preview Panel */}
             {showPreview && (
               <div className="lg:col-span-1">
-                <Card className="sticky top-32">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Preview</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ResumePreview 
-                      resumeData={resumeData} 
-                      template={selectedTemplate} 
-                      onDataUpdate={handleResumeDataUpdate}
-                      activeSection=""
-                      setResumeData={setResumeData}
-                    />
-                  </CardContent>
-                </Card>
+                {/* On mobile: Dialog, On desktop: Regular panel */}
+                {typeof window !== 'undefined' && window.innerWidth < 1024 ? (
+                  <Dialog open={showPreview} onOpenChange={setShowPreview}>
+                    <DialogContent className="w-full sm:max-w-[95vw] h-[90vh] flex flex-col">
+                      <DialogHeader>
+                        <DialogTitle className="text-lg flex items-center justify-between">
+                          Resume Preview
+                          {/* <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setShowPreview(false)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Close</span>
+                          </Button> */}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="flex-grow overflow-y-auto">
+                        <ResumePreview 
+                          resumeData={resumeData} 
+                          template={selectedTemplate} 
+                          onDataUpdate={handleResumeDataUpdate}
+                          activeSection=""
+                          setResumeData={setResumeData}
+                          className="min-h-full"
+                        />
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                ) : (
+                  <Card className="sticky top-32">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Preview</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResumePreview 
+                        resumeData={resumeData} 
+                        template={selectedTemplate} 
+                        onDataUpdate={handleResumeDataUpdate}
+                        activeSection=""
+                        setResumeData={setResumeData}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             )}
           </div>

@@ -185,8 +185,8 @@ export const GoogleResume: React.FC<ResumeProps> = ({
           ref={pdfRef}
           className="relative"
           style={{
-            width: 595,
-            minHeight: 842,
+            minWidth: 595,
+       //     minHeight: 842,
             maxWidth: '100%',
             transform: `scale(${scale})`,
             transformOrigin: 'top center',
@@ -200,7 +200,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
           }}
         >
           {/* A4 page container with exact PDF dimensions */}
-          <div className="px-12 py-12" style={{ minHeight: 842, width: 595, maxWidth: '100%' }}>
+          <div className="px-12 py-12" style={{  minWidth: 595, maxWidth: '100%' }}>
             {/* Header - Name */}
             <div className="mb-5" ref={personalInfoRef}>
               <h1
