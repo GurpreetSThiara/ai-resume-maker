@@ -1,4 +1,6 @@
 import { Download, Globe, Shield, Sparkles, Users, Zap, } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trophy, Star, Target, Eye, Save, X } from "lucide-react"
+
 
 export const stats = [
     { value: "50K+", label: "Resumes Created", color: "text-primary" },
@@ -7,7 +9,6 @@ export const stats = [
     { value: "2 min", label: "To First Draft", color: "text-emerald-700" },
   ];
   
-
 
 export const ValueProps = [
     {
@@ -81,3 +82,23 @@ export const CREATE_STEPS = [
         "Download your professional PDF resume and start applying to your dream jobs with confidence. Get ready for more interviews and job offers.",
     },
   ];  
+
+
+export const CREATE_RESUME_STEPS =  [
+    { id: 0, title: "Personal Info", icon: "👤", description: "Tell us about yourself" },
+    { id: 1, title: "Professional Summary", icon: "📝", description: "Your career overview" },
+    { id: 2, title: "Education", icon: "🎓", description: "Your academic journey" },
+    { id: 3, title: "Experience", icon: "💼", description: "Professional background" },
+    { id: 4, title: "Skills & More", icon: "🚀", description: "Showcase your abilities" },
+    { id: 5, title: "Custom Fields", icon: "⚡", description: "Add personal details" },
+    { id: 6, title: "Custom Sections", icon: "🎨", description: "Add additional sections" },
+    { id: 7, title: "Review", icon: "✨", description: "Final review" },
+  ]  
+
+
+export const CREATE_RESUME_ACHIEVEMENTS = [
+    { id: "first_step", title: "Getting Started", icon: <Star className="w-4 h-4" />, unlocked: false },
+    { id: "half_way", title: "Halfway Hero", icon: <Zap className="w-4 h-4" />, unlocked: false },
+    { id: "complete", title: "Resume Master", icon: <Trophy className="w-4 h-4" />, unlocked: false },
+    { id: "perfectionist", title: "Detail Oriented", icon: <Target className="w-4 h-4" />, unlocked: false },
+  ]  

@@ -16,18 +16,16 @@ import { SummarySection } from "@/components/summary-section"
 import { CustomFieldsSection } from "@/components/custom-fields-section"
 import { ReviewSection } from "@/components/review-section"
 import { saveResumeData, getUserResumeCount, loadResumeData, deleteResume } from "@/lib/supabase-functions"
-import { generateResumePDF } from "@/lib/pdf-generators"
 import ResumePreview from "@/components/resume-preview"
 import type { 
   ResumeData, 
   ResumeTemplate, 
-  Section, 
   EducationSection,
   ExperienceSection,
   SkillsSection,
   CustomSection
 } from "@/types/resume"
-import { availableTemplates } from "@/lib/templates"
+import { availableTemplates, googleTemplate } from "@/lib/templates"
 
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -36,33 +34,15 @@ import { useAi } from '@/hooks/use-ai';
 import { getLocalResumes, saveLocalResume } from '@/lib/local-storage';
 import ManageCloudModal from '@/components/manage-cloud-modal';
 import SaveResumeModal from '@/components/save-resume-modal';
-import { sanitizeTextForPdf } from '@/lib/utils'
 import DownloadDropDown from "@/components/global/DropDown/DropDown"
 import type { FC } from 'react'
 import { CustomSection as CustomSectionComponent } from "@/components/custom-section"
 import { sampleResumeData } from "@/lib/examples/resume-example"
 import { useAuth } from "@/contexts/auth-context"
+import { CREATE_RESUME_ACHIEVEMENTS, CREATE_RESUME_STEPS } from "@/app/constants/global"
 
 const initialData: ResumeData =sampleResumeData
-
-
-const steps = [
-  { id: 0, title: "Personal Info", icon: "👤", description: "Tell us about yourself" },
-  { id: 1, title: "Professional Summary", icon: "📝", description: "Your career overview" },
-  { id: 2, title: "Education", icon: "🎓", description: "Your academic journey" },
-  { id: 3, title: "Experience", icon: "💼", description: "Professional background" },
-  { id: 4, title: "Skills & More", icon: "🚀", description: "Showcase your abilities" },
-  { id: 5, title: "Custom Fields", icon: "⚡", description: "Add personal details" },
-  { id: 6, title: "Custom Sections", icon: "🎨", description: "Add additional sections" },
-  { id: 7, title: "Review", icon: "✨", description: "Final review" },
-]
-
-const achievements = [
-  { id: "first_step", title: "Getting Started", icon: <Star className="w-4 h-4" />, unlocked: false },
-  { id: "half_way", title: "Halfway Hero", icon: <Zap className="w-4 h-4" />, unlocked: false },
-  { id: "complete", title: "Resume Master", icon: <Trophy className="w-4 h-4" />, unlocked: false },
-  { id: "perfectionist", title: "Detail Oriented", icon: <Target className="w-4 h-4" />, unlocked: false },
-]
+const achievements = CREATE_RESUME_ACHIEVEMENTS
 
 // Default template - Google style
 const defaultTemplate: ResumeTemplate = {
@@ -134,21 +114,16 @@ const CreateResumeContent: FC = () => {
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
     const tplId = params?.get('template')
     const fromList = tplId ? availableTemplates.find((t) => t.id === tplId) : null
-    return fromList || defaultTemplate
+    return fromList || googleTemplate
   })
   const [showPreview, setShowPreview] = useState(false)
-  const [showCelebration, setShowCelebration] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [currentResumeId, setCurrentResumeId] = useState<string | null>(null)
-  const [userAchievements, setUserAchievements] = useState(achievements)
-  const [resumeCount, setResumeCount] = useState(0)
-  const [isCheckingLimit, setIsCheckingLimit] = useState(false)
-  const [isLoadingResume, setIsLoadingResume] = useState(false)
-  const [hasProcessedResumeId, setHasProcessedResumeId] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [limitModalOpen, setLimitModalOpen] = useState(false)
   const [limitModalBusy, setLimitModalBusy] = useState(false)
   const [saveModalOpen, setSaveModalOpen] = useState(false)
+  const steps = CREATE_RESUME_STEPS
 
   // ... [Keep your existing hooks and handlers]
 
@@ -394,7 +369,7 @@ const CreateResumeContent: FC = () => {
     }
   };
 
-  if (loading || isCheckingLimit || isLoadingResume) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
@@ -404,12 +379,7 @@ const CreateResumeContent: FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-green-50 to-indigo-100">
-      {/* Celebration Animation */}
-      {showCelebration && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-          <div className="text-6xl animate-bounce">🎉</div>
-        </div>
-      )}
+ 
 
       <div className="container mx-auto px-4 py-6">
        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
@@ -473,7 +443,7 @@ const CreateResumeContent: FC = () => {
     )}
 
     {/* Achievements */}
-    <div className="flex flex-wrap gap-1">
+    {/* <div className="flex flex-wrap gap-1">
       {userAchievements.map((achievement) => (
         <Badge
           key={achievement.id}
@@ -487,7 +457,7 @@ const CreateResumeContent: FC = () => {
           {achievement.icon}
         </Badge>
       ))}
-    </div>
+    </div> */}
   </div>
 </div>
 
