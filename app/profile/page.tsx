@@ -28,6 +28,7 @@ import type { ResumeData, ResumeTemplate } from "@/types/resume"
 import { CREATE_RESUME } from "@/config/urls"
 import { loadUserResumes } from "@/services/resumeService"
 import { useAuth } from "@/contexts/auth-context"
+import { LS_KEYS, setLocalStorageJSON, setLocalStorageItem } from "@/utils/localstorage"
 
 interface ResumeItem {
   id: string
@@ -247,9 +248,9 @@ export default function ProfilePage() {
   // Local resume actions
   const handleEditLocalResume = (localResume: LocalResumeItem) => {
     // Save the resume data to localStorage for the builder to pick up
-    localStorage.setItem('resumeData', JSON.stringify(localResume.data))
-    localStorage.setItem('currentStep', '1')
-    localStorage.setItem('completedSteps', JSON.stringify([0, 1, 2, 3, 4]))
+    setLocalStorageJSON(LS_KEYS.resumeData, localResume.data)
+    setLocalStorageItem(LS_KEYS.currentStep, '1')
+    setLocalStorageJSON(LS_KEYS.completedSteps, [0, 1, 2, 3, 4])
     router.push(CREATE_RESUME)
   }
 

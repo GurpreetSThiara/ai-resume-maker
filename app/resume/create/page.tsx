@@ -40,72 +40,20 @@ import { CustomSection as CustomSectionComponent } from "@/components/custom-sec
 import { sampleResumeData } from "@/lib/examples/resume-example"
 import { useAuth } from "@/contexts/auth-context"
 import { CREATE_RESUME_ACHIEVEMENTS, CREATE_RESUME_STEPS } from "@/app/constants/global"
+import { LS_KEYS, setLocalStorageJSON, setLocalStorageItem, removeLocalStorageItems } from "@/utils/localstorage"
 
 const initialData: ResumeData =sampleResumeData
 const achievements = CREATE_RESUME_ACHIEVEMENTS
 
-// Default template - Google style
-const defaultTemplate: ResumeTemplate = {
-  id: "google",
-  name: "Google Style",
-  description: "Clean, professional template inspired by Google's design principles",
-  theme: {
-    fontSize: {
-      name: "text-3xl",
-      section: "text-xl",
-      content: "text-base",
-      small: "text-sm",
-    },
-    colors: {
-      primary: "text-blue-700",
-      secondary: "text-gray-600",
-      text: "text-gray-800",
-      accent: "text-blue-600",
-    },
-    spacing: {
-      section: "mb-8",
-      item: "mb-4",
-      content: "mb-2",
-    },
-    layout: {
-      container: "max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden",
-      header: "border-b border-gray-200 p-4",
-      content: "p-6",
-    },
-  },
-  pdfConfig: {
-    fonts: {
-      regular: "TimesRoman",
-      bold: "TimesRomanBold",
-    },
-    sizes: {
-      name: 20,
-      section: 14,
-      content: 12,
-      small: 10,
-    },
-    colors: {
-      text: { r: 0.2, g: 0.2, b: 0.2 },
-      heading: { r: 0.1, g: 0.3, b: 0.7 },
-      secondary: { r: 0.4, g: 0.4, b: 0.4 },
-      linkColor: { r: 0, g: 0, b: 1 },
-    },
-    spacing: {
-      page: 15,
-      section: 20,
-      item: 10,
-    },
-  },
-}
+
 
 const CreateResumeContent: FC = () => {
-  const { user, loading } = useAuth()
+  const { loading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
   const { effectiveAiEnabled } = useAi()
 
-  // State management
   const [currentStep, setCurrentStep] = useState(0)
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set())
   const [resumeData, setResumeData] = useState<ResumeData>(initialData)
@@ -125,9 +73,7 @@ const CreateResumeContent: FC = () => {
   const [saveModalOpen, setSaveModalOpen] = useState(false)
   const steps = CREATE_RESUME_STEPS
 
-  // ... [Keep your existing hooks and handlers]
-
-  // Sanitize resume data for PDF
+ 
   const sanitizeResumeData = (data: ResumeData): ResumeData => ({
     ...data,
     basics: {
@@ -155,9 +101,9 @@ const CreateResumeContent: FC = () => {
   // Save to local storage
   const saveToLocal = () => {
     try {
-      localStorage.setItem('resumeData', JSON.stringify(resumeData))
-      localStorage.setItem('currentStep', currentStep.toString())
-      localStorage.setItem('completedSteps', JSON.stringify(Array.from(completedSteps)))
+      setLocalStorageJSON(LS_KEYS.resumeData, resumeData)
+      setLocalStorageItem(LS_KEYS.currentStep, currentStep.toString())
+      setLocalStorageJSON(LS_KEYS.completedSteps, Array.from(completedSteps))
     } catch (error) {
       console.error('Error saving to local storage:', error)
     }
@@ -175,9 +121,7 @@ const CreateResumeContent: FC = () => {
       const res = await saveResumeData(resumeData)
       if (res.success && res.data) {
         setCurrentResumeId(res.data.id)
-        localStorage.removeItem('resumeData')
-        localStorage.removeItem('currentStep')
-        localStorage.removeItem('completedSteps')
+        removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps)
         setSaveModalOpen(false)
         toast({ title: 'Resume Saved! 🎉', description: 'Cloud resume created successfully.' })
         router.push('/profile')
@@ -195,9 +139,7 @@ const CreateResumeContent: FC = () => {
       const res = await saveResumeData(resumeData, resumeId)
       if (res.success && res.data) {
         setCurrentResumeId(res.data.id)
-        localStorage.removeItem('resumeData')
-        localStorage.removeItem('currentStep')
-        localStorage.removeItem('completedSteps')
+        removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps)
         setSaveModalOpen(false)
         toast({ title: 'Resume Updated! 🎉', description: 'Cloud resume updated successfully.' })
         router.push('/profile')
@@ -220,9 +162,7 @@ const CreateResumeContent: FC = () => {
       if (res.success && res.data) {
         setLimitModalOpen(false)
         setCurrentResumeId(res.data.id)
-        localStorage.removeItem('resumeData')
-        localStorage.removeItem('currentStep')
-        localStorage.removeItem('completedSteps')
+        removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps)
         toast({ title: "Resume Completed! 🎉", description: "Saved to cloud successfully." })
         router.push('/profile')
       } else {

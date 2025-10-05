@@ -1,6 +1,7 @@
 "use client"
 
 import type { ResumeData } from "@/types/resume"
+import { LS_KEYS, setLocalStorageJSON, getLocalStorageJSON } from "@/utils/localstorage"
 
 export interface SaveManager {
   saveSection: (sectionName: string, data: any) => Promise<void>
@@ -27,8 +28,8 @@ export const saveManager: SaveManager = {
     await new Promise((resolve) => setTimeout(resolve, 1500))
    // console.log("Saving all resume data", data)
 
-    // Store in localStorage for now
-    localStorage.setItem("resumeData", JSON.stringify(data))
+    // Store in localStorage for now (centralized util)
+    setLocalStorageJSON(LS_KEYS.resumeData, data)
 
     // Simulate occasional errors for testing
     if (Math.random() < 0.05) {
@@ -44,11 +45,8 @@ export const saveManager: SaveManager = {
   },
 
   async loadData(userId?: string) {
-    // Load from localStorage for now
-    const saved = localStorage.getItem("resumeData")
-    if (saved) {
-      return JSON.parse(saved) as ResumeData
-    }
-    return null
+    // Load from localStorage for now (centralized util)
+    const saved = getLocalStorageJSON<ResumeData>(LS_KEYS.resumeData, null)
+    return saved
   },
 }

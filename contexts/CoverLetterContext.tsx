@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
+import { LS_KEYS, getLocalStorageItem, setLocalStorageItem } from '@/utils/localstorage';
 import { CoverLetter } from '@/types/cover-letter';
 
 type CoverLetterState = {
@@ -125,7 +126,7 @@ const getInitialState = (initialCoverLetter?: CoverLetter): CoverLetterState => 
 
   try {
     const id = initialCoverLetter?.id || 'new';
-    const savedData = localStorage.getItem(`coverLetter_${id}`);
+    const savedData = getLocalStorageItem(LS_KEYS.coverLetter(id));
     if (savedData) {
       const savedCoverLetter = JSON.parse(savedData) as CoverLetter;
       // Merge with initialCoverLetter to respect fetched data over stale local data if timestamps differ
@@ -195,7 +196,7 @@ export const CoverLetterProvider: React.FC<CoverLetterProviderProps> = ({
   useEffect(() => {
     if (state.coverLetter) {
       try {
-        localStorage.setItem(`coverLetter_${state.coverLetter.id}`, JSON.stringify(state.coverLetter));
+        setLocalStorageItem(LS_KEYS.coverLetter(state.coverLetter.id), JSON.stringify(state.coverLetter));
       } catch (error) {
         console.error('Failed to save cover letter to local storage:', error);
       }
