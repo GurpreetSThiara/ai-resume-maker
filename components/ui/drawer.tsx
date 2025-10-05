@@ -12,15 +12,20 @@ type DrawerProps = {
 }
 
 function Drawer({ open, onOpenChange, direction = "bottom", children }: DrawerProps) {
+  const [mounted, setMounted] = React.useState(false)
+
   React.useEffect(() => {
+    setMounted(true)
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onOpenChange(false)
     }
     document.addEventListener("keydown", handleEsc)
-    return () => document.removeEventListener("keydown", handleEsc)
+    return () => {
+      document.removeEventListener("keydown", handleEsc)
+    }
   }, [onOpenChange])
 
-  if (typeof window === "undefined") return null
+  if (!mounted) return null
 
   return createPortal(
     <>

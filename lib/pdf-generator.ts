@@ -1,6 +1,6 @@
 import type React from "react"
 import { PDFDocument, StandardFonts, rgb, PDFName, PDFArray } from "pdf-lib"
-import type { ResumeData } from "@/app/create/page"
+import { ResumeData } from "@/types/resume"
 
 interface ThemeConfig {
   fontSize: {

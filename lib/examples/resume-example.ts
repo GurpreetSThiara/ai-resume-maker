@@ -19,13 +19,7 @@ export const sampleResumeData: ResumeData = {
       id: "dob-1",
       link: false
     },
-    gender: {
-      title: "Gender",
-      content: "Male",
-      hidden: false,
-      id: "gender-1",
-      link: false
-    },
+
     portfolio: {
       title: "Portfolio",
       content: "https://arjun.dev",
@@ -69,18 +63,6 @@ export const sampleResumeData: ResumeData = {
             "Led a team of 5 engineers to develop a SaaS product used by 50,000+ users.",
             "Reduced API response times by 40% through performance optimizations.",
             "Implemented CI/CD pipelines, cutting deployment time by 60%."
-          ]
-        },
-        {
-          company: "NextGen Web Labs",
-          role: "Software Engineer",
-          startDate: "2017-06",
-          endDate: "2021-03",
-          location: "Hyderabad, India",
-          achievements: [
-            "Built and maintained React-based dashboards for enterprise clients.",
-            "Integrated third-party APIs, improving customer onboarding speed.",
-            "Collaborated with cross-functional teams in agile sprints."
           ]
         }
       ]

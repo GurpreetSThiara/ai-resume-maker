@@ -1,0 +1,516 @@
+"use client"
+
+import type React from "react"
+import { useRef, useEffect, useState } from "react"
+import type { ResumeData } from "@/types/resume"
+
+
+
+
+export const ATS_GREEN_HEADERS: React.FC<> = ({
+  resumeData ,
+  setResumeData,
+  className = "",
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
+
+  useEffect(() => {
+    function updateScale() {
+      if (!containerRef.current) return
+      const parent = containerRef.current.parentElement
+      if (!parent) return
+      const parentWidth = parent.clientWidth
+      const parentHeight = parent.clientHeight
+      // A4 size in px: 595x842
+      const widthScale = parentWidth / 595
+      const heightScale = parentHeight / 842
+      // Use the smaller scale to fit both width and height
+      let newScale = Math.min(widthScale, heightScale, 1)
+      // On md+ screens, make it a bit smaller for aesthetics
+      if (window.innerWidth >= 768 && newScale > 0.9) newScale = 0.9
+      setScale(newScale)
+    }
+    updateScale()
+    window.addEventListener("resize", updateScale)
+    return () => window.removeEventListener("resize", updateScale)
+  }, [])
+
+  const handleNameChange = (e: React.FormEvent<HTMLHeadingElement>) => {
+    if (!setResumeData) return
+    const name = e.currentTarget?.textContent ?? ""
+    setResumeData((prev) => ({ ...prev, basics: { ...prev.basics, name } }))
+  }
+
+  const handleSummaryChange = (e: React.FormEvent<HTMLParagraphElement>) => {
+    if (!setResumeData) return
+    const summary = e.currentTarget?.textContent ?? ""
+    setResumeData((prev) => ({ ...prev, basics: { ...prev.basics, summary } }))
+  }
+
+  const handleContactInfoChange = (e: React.FormEvent<HTMLSpanElement>, key: keyof typeof resumeData.basics) => {
+    if (!setResumeData) return
+    const value = e.currentTarget?.textContent ?? ""
+    setResumeData((prev) => ({ ...prev, basics: { ...prev.basics, [key]: value } }))
+  }
+
+  const handleSectionTitleChange = (sectionId: string, newTitle: string) => {
+    if (!setResumeData) return
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const idx = updated.sections.findIndex((s) => s.id === sectionId)
+      if (idx !== -1) updated.sections[idx].title = newTitle
+      return updated
+    })
+  }
+
+  const handleSectionItemChange = (sectionId: string, itemIndex: number, field: string, value: string) => {
+    if (!setResumeData) return
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const section = updated.sections.find((s) => s.id === sectionId)
+      if (!section) return prev
+
+      if (section.type === "education") {
+        ;(section.items[itemIndex] as any)[field] = value
+      } else if (section.type === "experience") {
+        ;(section.items[itemIndex] as any)[field] = value
+      }
+      return updated
+    })
+  }
+
+  const handleSkillsChange = (sectionId: string, value: string) => {
+    if (!setResumeData) return
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const section = updated.sections.find((s) => s.id === sectionId)
+      if (!section) return prev
+
+      section.items = [value]
+      return updated
+    })
+  }
+
+  const handleHighlightChange = (sectionId: string, itemIndex: number, highlightIndex: number, newText: string) => {
+    if (!setResumeData) return
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const section = updated.sections.find((s) => s.id === sectionId)
+      if (!section || section.type !== "education") return prev
+
+      const edu = section.items[itemIndex]
+      if (edu.highlights && edu.highlights[highlightIndex] !== undefined) {
+        edu.highlights[highlightIndex] = newText
+      }
+      return updated
+    })
+  }
+
+  const handleAchievementChange = (sectionId: string, itemIndex: number, achievementIndex: number, newText: string) => {
+    if (!setResumeData) return
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const section = updated.sections.find((s) => s.id === sectionId)
+      if (!section || section.type !== "experience") return prev
+
+      const exp = section.items[itemIndex]
+      if (exp.achievements && exp.achievements[achievementIndex] !== undefined) {
+        exp.achievements[achievementIndex] = newText
+      }
+      return updated
+    })
+  }
+
+  const handleCustomContentChange = (sectionId: string, contentIndex: number, value: string) => {
+    if (!setResumeData) return
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const section = updated.sections.find((s) => s.id === sectionId)
+      if (!section || section.type !== "custom") return prev
+
+      if (!section.content) section.content = []
+      section.content[contentIndex] = value
+      return updated
+    })
+  }
+
+  return (
+    <div
+      className={`w-full h-full flex justify-center items-start overflow-auto ${className}`}
+      style={{ minHeight: 0, minWidth: 0 }}
+    >
+      <div
+        ref={containerRef}
+        style={{ width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "flex-start" }}
+      >
+        <div
+          className="relative"
+          style={{
+            minWidth: 595,
+            maxWidth: "100%",
+            transform: `scale(${scale})`,
+            transformOrigin: "top center",
+            transition: "transform 0.2s",
+            background: "white",
+            boxShadow: "0 2px 16px rgba(0,0,0,0.08)",
+            borderRadius: 8,
+            overflow: "hidden",
+            margin: "0 auto",
+            fontFamily: "Arial, sans-serif",
+          }}
+        >
+          {/* A4 page container with exact PDF dimensions */}
+          <div className="px-12 py-8" style={{ minWidth: 595, maxWidth: "100%" }}>
+            {/* Header - Name */}
+            <div className="mb-2">
+              <h1
+                className="text-2xl font-bold leading-tight"
+                style={{
+                  color: "#000000",
+                  fontSize: "24px",
+                  fontWeight: "bold",
+                  marginBottom: "4px",
+                }}
+                contentEditable={!!setResumeData}
+                suppressContentEditableWarning
+                onBlur={handleNameChange}
+              >
+                {resumeData.basics.name}
+              </h1>
+            </div>
+
+            {/* Contact Info */}
+            <div className="mb-4">
+              <p className="text-sm leading-tight" style={{ color: "#000000", fontSize: "12px", marginBottom: "2px" }}>
+                <span
+                  contentEditable={!!setResumeData}
+                  suppressContentEditableWarning
+                  onBlur={(e) => handleContactInfoChange(e, "phone")}
+                >
+                  {resumeData.basics.phone}
+                </span>
+                {" • "}
+                <span
+                  contentEditable={!!setResumeData}
+                  suppressContentEditableWarning
+                  onBlur={(e) => handleContactInfoChange(e, "email")}
+                >
+                  {resumeData.basics.email}
+                </span>
+              </p>
+              <p className="text-sm leading-tight" style={{ color: "#000000", fontSize: "12px" }}>
+                <span
+                  contentEditable={!!setResumeData}
+                  suppressContentEditableWarning
+                  onBlur={(e) => handleContactInfoChange(e, "location")}
+                >
+                  {resumeData.basics.location}
+                </span>
+                {" • "}
+                <span
+                  contentEditable={!!setResumeData}
+                  suppressContentEditableWarning
+                  onBlur={(e) => handleContactInfoChange(e, "linkedin")}
+                >
+                  {resumeData.basics.linkedin}
+                </span>
+              </p>
+            </div>
+
+            {/* Summary */}
+            <div className="mb-6">
+              <p
+                className="text-sm leading-relaxed"
+                style={{
+                  color: "#000000",
+                  fontSize: "12px",
+                  lineHeight: "1.4",
+                  textAlign: "justify",
+                }}
+                contentEditable={!!setResumeData}
+                suppressContentEditableWarning
+                onBlur={handleSummaryChange}
+              >
+                {resumeData.basics.summary}
+              </p>
+            </div>
+
+            {resumeData.sections.map((section) => {
+              // Check if section has content
+              let hasContent = false
+
+              if (section.type === "education" || section.type === "experience") {
+                hasContent = section.items && section.items.length > 0
+              } else if (
+                section.type === "skills" ||
+                section.type === "languages" ||
+                section.type === "certifications"
+              ) {
+                hasContent = section.items && section.items.length > 0
+              } else if (section.type === "custom") {
+                hasContent =
+                  section.content && section.content.length > 0 && section.content.some((item) => item.trim() !== "")
+              }
+
+              if (!hasContent) return null
+
+              return (
+                <div key={section.id} className="mb-6">
+                  {/* Section Header with green background */}
+                  <div className="mb-3">
+                    <h2
+                      className="font-bold text-sm leading-none mb-1"
+                      style={{
+                        color: "#000000",
+                        fontSize: "14px",
+                        backgroundColor: "#90c695",
+                        padding: "4px 8px",
+                        fontWeight: "bold",
+                      }}
+                      contentEditable={!!setResumeData}
+                      suppressContentEditableWarning
+                      onBlur={(e) => handleSectionTitleChange(section.id, e.currentTarget.textContent || "")}
+                    >
+                      {section.title}
+                    </h2>
+                  </div>
+
+                  <div className="space-y-3">
+                    {/* Education Section */}
+                    {section.type === "education" &&
+                      section.items.map((edu, eduIdx) => (
+                        <div key={eduIdx}>
+                          <p
+                            className="font-bold text-sm leading-tight mb-1"
+                            style={{ color: "#000000", fontSize: "12px", fontWeight: "bold" }}
+                            contentEditable={!!setResumeData}
+                            suppressContentEditableWarning
+                            onBlur={(e) =>
+                              handleSectionItemChange(
+                                section.id,
+                                eduIdx,
+                                "institution",
+                                e.currentTarget.textContent || "",
+                              )
+                            }
+                          >
+                            {edu.institution}
+                          </p>
+                          <p
+                            className="text-sm leading-tight mb-1"
+                            style={{ color: "#000000", fontSize: "12px" }}
+                            contentEditable={!!setResumeData}
+                            suppressContentEditableWarning
+                            onBlur={(e) =>
+                              handleSectionItemChange(section.id, eduIdx, "degree", e.currentTarget.textContent || "")
+                            }
+                          >
+                            {edu.degree}
+                          </p>
+                          <div className="space-y-1 ml-4">
+                            {edu.highlights?.map((highlight, highlightIdx) => (
+                              <div key={highlightIdx} className="flex items-start">
+                                <span
+                                  className="text-sm leading-tight mr-2 flex-shrink-0"
+                                  style={{ color: "#000000", fontSize: "12px" }}
+                                >
+                                  •
+                                </span>
+                                <p
+                                  className="text-sm leading-tight"
+                                  style={{ color: "#000000", fontSize: "12px" }}
+                                  contentEditable={!!setResumeData}
+                                  suppressContentEditableWarning
+                                  onBlur={(e) =>
+                                    handleHighlightChange(
+                                      section.id,
+                                      eduIdx,
+                                      highlightIdx,
+                                      e.currentTarget.textContent || "",
+                                    )
+                                  }
+                                >
+                                  {highlight}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+
+                    {/* Experience Section */}
+                    {section.type === "experience" &&
+                      section.items.map((exp, expIdx) => (
+                        <div key={expIdx}>
+                          <div className="flex justify-between items-start mb-1">
+                            <p
+                              className="font-bold text-sm leading-tight"
+                              style={{ color: "#000000", fontSize: "12px", fontWeight: "bold" }}
+                              contentEditable={!!setResumeData}
+                              suppressContentEditableWarning
+                              onBlur={(e) =>
+                                handleSectionItemChange(
+                                  section.id,
+                                  expIdx,
+                                  "company",
+                                  e.currentTarget.textContent || "",
+                                )
+                              }
+                            >
+                              {exp.company}
+                            </p>
+                            <p className="text-sm leading-tight" style={{ color: "#000000", fontSize: "12px" }}>
+                              <span
+                                contentEditable={!!setResumeData}
+                                suppressContentEditableWarning
+                                onBlur={(e) =>
+                                  handleSectionItemChange(
+                                    section.id,
+                                    expIdx,
+                                    "startDate",
+                                    e.currentTarget.textContent || "",
+                                  )
+                                }
+                              >
+                                {exp.startDate}
+                              </span>
+                              {" - "}
+                              <span
+                                contentEditable={!!setResumeData}
+                                suppressContentEditableWarning
+                                onBlur={(e) =>
+                                  handleSectionItemChange(
+                                    section.id,
+                                    expIdx,
+                                    "endDate",
+                                    e.currentTarget.textContent || "",
+                                  )
+                                }
+                              >
+                                {exp.endDate}
+                              </span>
+                            </p>
+                          </div>
+                          <p
+                            className="text-sm leading-tight mb-2"
+                            style={{ color: "#000000", fontSize: "12px" }}
+                            contentEditable={!!setResumeData}
+                            suppressContentEditableWarning
+                            onBlur={(e) =>
+                              handleSectionItemChange(section.id, expIdx, "role", e.currentTarget.textContent || "")
+                            }
+                          >
+                            {exp.role}
+                          </p>
+                          <div className="space-y-1 ml-4">
+                            {exp.achievements?.map((achievement, achievementIdx) => (
+                              <div key={achievementIdx} className="flex items-start">
+                                <span
+                                  className="text-sm leading-tight mr-2 flex-shrink-0"
+                                  style={{ color: "#000000", fontSize: "12px" }}
+                                >
+                                  •
+                                </span>
+                                <p
+                                  className="text-sm leading-tight"
+                                  style={{ color: "#000000", fontSize: "12px" }}
+                                  contentEditable={!!setResumeData}
+                                  suppressContentEditableWarning
+                                  onBlur={(e) =>
+                                    handleAchievementChange(
+                                      section.id,
+                                      expIdx,
+                                      achievementIdx,
+                                      e.currentTarget.textContent || "",
+                                    )
+                                  }
+                                >
+                                  {achievement}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+
+                    {/* Skills, Languages Sections */}
+                    {(section.type === "skills" || section.type === "languages") && section.items?.length > 0 && (
+                      <div className="mb-3">
+                        <p
+                          className="text-sm leading-relaxed"
+                          style={{ color: "#000000", fontSize: "12px" }}
+                          contentEditable={!!setResumeData}
+                          suppressContentEditableWarning
+                          onBlur={(e) => handleSkillsChange(section.id, e.currentTarget.textContent || "")}
+                        >
+                          {section.items.join("")}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Certifications Section */}
+                    {section.type === "certifications" && section.items?.length > 0 && (
+                      <div className="space-y-1 ml-4">
+                        {section.items.map((cert, certIdx) => (
+                          <div key={certIdx} className="flex items-start">
+                            <span
+                              className="text-sm leading-tight mr-2 flex-shrink-0"
+                              style={{ color: "#000000", fontSize: "12px" }}
+                            >
+                              •
+                            </span>
+                            <p
+                              className="text-sm leading-tight"
+                              style={{ color: "#000000", fontSize: "12px" }}
+                              contentEditable={!!setResumeData}
+                              suppressContentEditableWarning
+                              onBlur={(e) => {
+                                if (!setResumeData) return
+                                setResumeData((prev) => {
+                                  const updated = structuredClone(prev)
+                                  const sec = updated.sections.find((s) => s.id === section.id)
+                                  if (sec && sec.type === "certifications") {
+                                    sec.items[certIdx] = e.currentTarget.textContent || ""
+                                  }
+                                  return updated
+                                })
+                              }}
+                            >
+                              {cert}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Custom Section (Projects) */}
+                    {section.type === "custom" && section.content?.length > 0 && (
+                      <div className="space-y-2">
+                        {section.content.map((project, projectIdx) => (
+                          <div key={projectIdx}>
+                            <p
+                              className="text-sm leading-tight"
+                              style={{ color: "#000000", fontSize: "12px" }}
+                              contentEditable={!!setResumeData}
+                              suppressContentEditableWarning
+                              onBlur={(e) =>
+                                handleCustomContentChange(section.id, projectIdx, e.currentTarget.textContent || "")
+                              }
+                            >
+                              {project}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

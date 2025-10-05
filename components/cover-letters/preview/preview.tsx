@@ -34,23 +34,6 @@ export function CoverLetterPreview() {
   const title: string | undefined = (coverLetter as any)?.title ?? "sample";
   const canExport = Boolean(title && title.trim().length > 0);
 
-  const handleDownloadPDF = async () => {
-    if (!canExport) return;
-    try {
-      await downloadCoverLetterPDF({coverLetter: coverLetter, templateName: coverLetter?.formatting?.layout || 'traditional' });
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleDownloadDOCX = async () => {
-    if (!canExport) return;
-    try {
-      await downloadCoverLetterDOCX({coverLetter: coverLetter, templateName: coverLetter?.formatting?.layout || 'traditional' });
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   if (!coverLetter) {
     return (
@@ -66,17 +49,7 @@ export function CoverLetterPreview() {
   return (
     <div className="flex flex-col gap-4">
      
-      <div className="flex items-center gap-2 self-end">
-         <div className="self-end mb-2">
-        <CoverLetterTemplateSwitch />
-      </div>
-        <Button variant="outline" disabled={!canExport} onClick={handleDownloadPDF}>
-          <FileText className="mr-2 h-4 w-4" /> Download PDF
-        </Button>
-        <Button variant="outline" disabled={!canExport} onClick={handleDownloadDOCX}>
-          <Download className="mr-2 h-4 w-4" /> Download DOCX
-        </Button>
-      </div>
+
       <SelectedTemplate coverLetter={coverLetter} />
     </div>
   );

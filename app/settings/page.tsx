@@ -21,11 +21,11 @@ import {
   Eye,
   EyeOff
 } from "lucide-react"
-import { useAuth } from "@/hooks/use-auth"
 import { useAi } from "@/hooks/use-ai"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/lib/supabase/client"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function SettingsPage() {
   const { user, loading, signOut } = useAuth()

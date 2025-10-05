@@ -5,6 +5,7 @@ import "./globals.css"
 import { AiProvider } from "@/hooks/use-ai"
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
+import Providers from "@/contexts/provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -87,11 +88,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} min-h-screen flex flex-col`}>
+      <Providers>
         <AiProvider>
+         
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
+      
         </AiProvider>
+      </Providers>
       </body>
     </html>
   )

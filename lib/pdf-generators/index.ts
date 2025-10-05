@@ -5,6 +5,10 @@ import { generateClassic2ResumePDF } from "@/lib/pdf-generators/template-classic
 import { generateElegantResumePDF } from "@/lib/pdf-generators/template-elegant-generator"
 import { generateCompactResumePDF } from "@/lib/pdf-generators/template-compact-generator"
 import { generateCreativeResumePDF } from "@/lib/pdf-generators/template-creative-generator"
+import { generateATSGreenResume } from "./ats-green-resume-generator"
+import { generateModernSidebarResumePDF } from "./twoside"
+import { RESUME_NAMES } from "@/config/resumeConfig"
+import { ATS_GREEN } from "../templates"
 
 export async function generateResumePDF(options: PDFGenerationOptions) {
   const { template } = options
@@ -22,6 +26,8 @@ export async function generateResumePDF(options: PDFGenerationOptions) {
       return generateCompactResumePDF(options)
     case "ats-creative":
       return generateCreativeResumePDF(options)
+    case ATS_GREEN.id:
+      return generateATSGreenResume(options)
     default:
       return generateGooglePDF(options)
   }

@@ -210,7 +210,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
                 suppressContentEditableWarning
                 onBlur={handleNameChange}
               >
-                {resumeData.basics.name}
+                {resumeData?.basics?.name}
               </h1>
             </div>
             
@@ -222,7 +222,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
                   suppressContentEditableWarning
                   onBlur={(e) => handleContactInfoChange(e, 'email')}
                 >
-                  {resumeData.basics.email}
+                  {resumeData?.basics?.email}
                 </span>
                 {' | '}
                 <span

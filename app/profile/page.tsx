@@ -21,11 +21,13 @@ import { getUserResumes, deleteResume, loadResumeData } from "@/lib/supabase-fun
 import { getLocalResumes, removeLocalResume, LocalResumeItem } from "@/lib/local-storage"
 import { useAi } from "@/hooks/use-ai"
 import { saveResumeData } from "@/lib/supabase-functions"
-import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import ResumePreview from "@/components/resume-preview"
 import type { ResumeData, ResumeTemplate } from "@/types/resume"
+import { CREATE_RESUME } from "@/config/urls"
+import { loadUserResumes } from "@/services/resumeService"
+import { useAuth } from "@/contexts/auth-context"
 
 interface ResumeItem {
   id: string
@@ -105,14 +107,6 @@ export default function ProfilePage() {
   const [hasLoadedResumes, setHasLoadedResumes] = useState(false)
   const [isSyncingLocal, setIsSyncingLocal] = useState(false)
 
-  // Debounce function to prevent duplicate API calls
-  const debounceRef = useRef<number | null>(null)
-  const debounce = (func: () => void, delay: number) => {
-    if (debounceRef.current) {
-      window.clearTimeout(debounceRef.current)
-    }
-    debounceRef.current = window.setTimeout(() => func(), delay)
-  }
 
   useEffect(() => {
     if (loading) return
@@ -120,37 +114,11 @@ export default function ProfilePage() {
     setLocalResumes(getLocalResumes())
     // Load cloud resumes once per mount when user present
     if (user && !hasLoadedResumes) {
-      loadUserResumes()
+      loadUserResumes({loadingResumes,setResumes,setHasLoadedResumes,setLoadingResumes})
     }
   }, [loading, user, hasLoadedResumes])
 
-  const loadUserResumes = async () => {
-    if (loadingResumes) return // Prevent duplicate calls
-    
-    setLoadingResumes(true)
-    try {
-      const result = await getUserResumes()
-      if (result.success) {
-        setResumes(result.data || [])
-        setHasLoadedResumes(true)
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to load your resumes.",
-          variant: "destructive",
-        })
-      }
-    } catch (error) {
-      console.error("Error loading resumes:", error)
-      toast({
-        title: "Error",
-        description: "Failed to load your resumes.",
-        variant: "destructive",
-      })
-    } finally {
-      setLoadingResumes(false)
-    }
-  }
+
 
   const handleResumeClick = async (resume: ResumeItem) => {
     setSelectedResume(resume)
@@ -178,7 +146,7 @@ export default function ProfilePage() {
   }
 
   const handleEditResume = (resumeId: string) => {
-    router.push(`/create?id=${resumeId}`)
+    router.push(`${CREATE_RESUME}?id=${resumeId}`)
   }
 
   const handleDeleteResume = async (resumeId: string) => {
@@ -220,7 +188,7 @@ export default function ProfilePage() {
   }
 
   const handleCreateNew = () => {
-    router.push("/create")
+    router.push(CREATE_RESUME)
   }
 
   const handleSyncLocalToCloud = async () => {
@@ -246,7 +214,7 @@ export default function ProfilePage() {
         }
       }
       toast({ title: "Sync Complete", description: "Selected local resumes were synced to cloud." })
-      await loadUserResumes()
+      await loadUserResumes({loadingResumes,setResumes,setHasLoadedResumes,setLoadingResumes})
     } catch (err) {
       console.error(err)
       toast({ title: "Sync Failed", description: "Some items could not be synced.", variant: "destructive" })
@@ -282,7 +250,7 @@ export default function ProfilePage() {
     localStorage.setItem('resumeData', JSON.stringify(localResume.data))
     localStorage.setItem('currentStep', '1')
     localStorage.setItem('completedSteps', JSON.stringify([0, 1, 2, 3, 4]))
-    router.push('/create')
+    router.push(CREATE_RESUME)
   }
 
   const handleDeleteLocalResume = (id: string) => {

@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { supabase } from "@/lib/supabase/client"
 import { Eye, EyeOff, Mail, Lock, User, Loader2 } from "lucide-react"
+import { CREATE_RESUME } from "@/config/urls"
 
 interface AuthFormProps {
   onSuccess?: () => void
@@ -84,7 +85,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
             full_name: signUpData.fullName,
           },
           // Persist session via cookie for 30 days after email confirmation
-          emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/create`,
+          emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}${CREATE_RESUME}`,
         },
       })
 
@@ -112,7 +113,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
         options: {
           // Persist session cookie; Supabase sets long-lived refresh token cookies by default.
           // We provide a redirect so the browser writes cookies in our domain and route.
-          redirectTo: `${window.location.origin}/create`,
+          redirectTo: `${window.location.origin}${CREATE_RESUME}`,
         },
       })
 

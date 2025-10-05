@@ -21,6 +21,11 @@ export default function CoverLetterEditorPage({ params }: EditorPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
 
+  // Handler for preview toggle from CoverLetterEditor
+  const handlePreviewToggle = (show: boolean) => {
+    setShowMobilePreview(show);
+  };
+
   useEffect(() => {
     if (id === 'new') {
       setInitialCoverLetter(undefined);
@@ -64,10 +69,6 @@ export default function CoverLetterEditorPage({ params }: EditorPageProps) {
     return () => controller.abort();
   }, [id]);
 
-
-
-
-
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 h-[calc(100vh-var(--header-height))]">
@@ -99,13 +100,6 @@ export default function CoverLetterEditorPage({ params }: EditorPageProps) {
       </div>
     );
   }
-
-  // Add state for mobile preview
-
-  // Handler for preview toggle from CoverLetterEditor
-  const handlePreviewToggle = (show: boolean) => {
-    setShowMobilePreview(show);
-  };
 
   return (
     <CoverLetterProvider initialCoverLetter={initialCoverLetter}>

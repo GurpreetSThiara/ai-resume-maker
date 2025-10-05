@@ -1,7 +1,7 @@
 "use client"
 
+import { useAuth } from "@/contexts/auth-context"
 import React, { createContext, useContext, useEffect, useMemo, useState, ReactNode } from "react"
-import { useAuth } from "./use-auth"
 
 export interface AiUsage {
   monthUsdRemaining: number

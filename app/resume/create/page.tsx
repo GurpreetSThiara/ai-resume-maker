@@ -28,10 +28,10 @@ import type {
   CustomSection
 } from "@/types/resume"
 import { availableTemplates } from "@/lib/templates"
-import { useAuth } from "@/hooks/use-auth"
+
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
-import AIResumeModal from '../../components/ai-resume-modal';
+import AIResumeModal from '../../../components/ai-resume-modal';
 import { useAi } from '@/hooks/use-ai';
 import { getLocalResumes, saveLocalResume } from '@/lib/local-storage';
 import ManageCloudModal from '@/components/manage-cloud-modal';
@@ -41,24 +41,10 @@ import DownloadDropDown from "@/components/global/DropDown/DropDown"
 import type { FC } from 'react'
 import { CustomSection as CustomSectionComponent } from "@/components/custom-section"
 import { sampleResumeData } from "@/lib/examples/resume-example"
+import { useAuth } from "@/contexts/auth-context"
 
 const initialData: ResumeData =sampleResumeData
-//  {
-//   basics: {
-//     name: "",
-//     email: "",
-//     phone: "",
-//     location: "",
-//     linkedin: "",
-//     summary: ""
-//   },
-//   custom: {},
-//   sections: [
-//     { id: "1", type: "education", title: "Education", items: [] },
-//     { id: "2", type: "experience", title: "Professional Experience", items: [] },
-//     { id: "3", type: "skills", title: "Skills", items: [] },
-//   ]
-// }
+
 
 const steps = [
   { id: 0, title: "Personal Info", icon: "👤", description: "Tell us about yourself" },

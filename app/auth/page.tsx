@@ -3,7 +3,9 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { AuthForm } from "@/components/auth/auth-form"
-import { useAuth } from "@/hooks/use-auth"
+
+import { CREATE_RESUME } from "@/config/urls"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function AuthPage() {
   const { user, loading } = useAuth()
@@ -11,7 +13,7 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (user && !loading) {
-      router.push("/create")
+      router.push(CREATE_RESUME)
     }
   }, [user, loading, router])
 
@@ -27,5 +29,5 @@ export default function AuthPage() {
     return null // Will redirect
   }
 
-  return <AuthForm onSuccess={() => router.push("/create")} />
+  return <AuthForm onSuccess={() => router.push(CREATE_RESUME)} />
 }

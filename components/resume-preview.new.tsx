@@ -118,7 +118,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
               suppressContentEditableWarning={true}
               onBlur={handleNameChange}
             >
-              {resumeData.basics.name}
+              {resumeData?.basics?.name}
             </h1>
           </div>
           <div className={template.theme.layout.content}>
@@ -130,24 +130,24 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
                 suppressContentEditableWarning={true}
                 onBlur={(e) => handleContactInfoChange(e, "email")}
               >
-                {resumeData.basics.email}
+                {resumeData?.basics?.email}
               </span>
               <span
                 contentEditable={true}
                 suppressContentEditableWarning={true}
                 onBlur={(e) => handleContactInfoChange(e, "phone")}
               >
-                {resumeData.basics.phone}
+                {resumeData?.basics?.phone}
               </span>
               <span
                 contentEditable={true}
                 suppressContentEditableWarning={true}
                 onBlur={(e) => handleContactInfoChange(e, "location")}
               >
-                {resumeData.basics.location}
+                {resumeData?.basics?.location}
               </span>
               <span>
-                <a href={resumeData.basics.linkedin}>
+                <a href={resumeData?.basics?.linkedin}>
                   <span
                     contentEditable={true}
                     suppressContentEditableWarning={true}

@@ -49,12 +49,12 @@ export function ReviewSection({ data, template }: ReviewSectionProps) {
     let wordCount = 0
 
     // Count words in basic info
-    wordCount += countWords(resumeData.basics.name)
-    wordCount += countWords(resumeData.basics.email)
-    wordCount += countWords(resumeData.basics.phone)
-    wordCount += countWords(resumeData.basics.location)
-    wordCount += countWords(resumeData.basics.linkedin)
-    wordCount += countWords(resumeData.basics.summary)
+    wordCount += countWords(resumeData?.basics?.name)
+    wordCount += countWords(resumeData?.basics?.email)
+    wordCount += countWords(resumeData?.basics?.phone)
+    wordCount += countWords(resumeData?.basics?.location)
+    wordCount += countWords(resumeData?.basics?.linkedin)
+    wordCount += countWords(resumeData?.basics?.summary)
 
     // Count words in custom fields
     Object.values(resumeData.custom).forEach((field) => {

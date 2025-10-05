@@ -26,8 +26,8 @@ export function CoverLetterTemplateSwitch() {
   };
 
   return (
-    <div className="flex flex-col gap-1 min-w-[180px]">
-      <Label>Design Template</Label>
+    <div className="flex flex-col  min-w-[180px] border rounded-sm border-primary">
+      {/* <Label>Design Template</Label> */}
       <Select value={layout} onValueChange={handleChange}>
         <SelectTrigger className="w-full">
           <SelectValue />

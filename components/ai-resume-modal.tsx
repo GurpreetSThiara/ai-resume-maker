@@ -4,9 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Textarea } from './ui/textarea';
 import type { ResumeData } from '@/types/resume';
 import { useAi } from '@/hooks/use-ai';
-import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/lib/supabase/client';
 import { sanitizeTextForPdf } from '@/lib/utils';
+import { useAuth } from '@/contexts/auth-context';
 
 interface AIResumeModalProps {
   open: boolean;

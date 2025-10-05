@@ -112,7 +112,7 @@ export const CreativeATSResume: React.FC<ResumeProps> = ({
               </span>
             ))}
             {resumeData.linkedin && (
-              <a href={resumeData.linkedin} target="_blank" rel="noopener noreferrer" className="text-sky-600 underline">
+              <a href={resumeData?.linkedin} target="_blank" rel="noopener noreferrer" className="text-sky-600 underline">
                 <span contentEditable suppressContentEditableWarning onBlur={(e) => handleContactInfoChange(e, "linkedin")}>
                   LinkedIn
                 </span>
@@ -164,7 +164,7 @@ export const CreativeATSResume: React.FC<ResumeProps> = ({
                     </div>
                   )}
                   <ul className="list-disc ml-5 space-y-1 text-sm text-gray-700">
-                    {bullets.map((bullet, index) => (
+                    {bullets?.map((bullet, index) => (
                       <li key={index} contentEditable suppressContentEditableWarning onBlur={(e) => handleBulletChange(section.id, key, index, e.currentTarget.textContent || "")}>
                         {bullet}
                       </li>

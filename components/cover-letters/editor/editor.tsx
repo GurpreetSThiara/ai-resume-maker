@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { useCoverLetter } from '@/contexts/CoverLetterContext';
 import { CoverLetter } from '@/types/cover-letter';
-import { Loader2, Save, FileText, AlertCircle, Download } from 'lucide-react';
+import { AlertCircle, Eye } from 'lucide-react';
+import DownloadDropDown from './download-dropdown';
+import { CoverLetterTemplateSwitch } from '@/components/cover-letters/cover-letter-template-switch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,10 +13,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { coverLetterExample } from '@/lib/examples/cover-letter';
 
-export function CoverLetterEditor() {
+interface CoverLetterEditorProps {
+  onPreviewToggle?: (show: boolean) => void;
+}
+
+export function CoverLetterEditor({ onPreviewToggle }: CoverLetterEditorProps) {
   const { state, updateCoverLetter, updateContent, syncCoverLetter } = useCoverLetter();
   const { coverLetter, isSaving, error } = state;
   const [activeTab, setActiveTab] = useState<'details' | 'content' | 'formatting' >('details');
+  const [showPreview, setShowPreview] = useState(false);
 
   // Derived helpers
   const title: string | undefined = (coverLetter as any)?.title ?? "sample";
@@ -83,10 +90,34 @@ export function CoverLetterEditor() {
 
 
 
+
+
   return (
   <div className="max-w-5xl mx-auto px-4 py-6">
       {/* Header */}
+      <div className="flex items-center justify-between gap-2 self-end mb-4">
+         <div className="">
+           <CoverLetterTemplateSwitch />
+         </div>
    
+      </div>
+
+            <div className="flex items-center gap-2">
+           <Button
+             variant="outline"
+             size="sm"
+             onClick={() => {
+               const newValue = !showPreview;
+               setShowPreview(newValue);
+               onPreviewToggle?.(newValue);
+             }}
+             className="flex items-center gap-2 lg:hidden"
+           >
+             <Eye className="w-4 h-4" />
+             {showPreview ? "Hide Preview" : "Show Preview"}
+           </Button>
+           <DownloadDropDown coverLetter={coverLetter} disabled={!canExport} />
+         </div>
 
       {error && (
         <div className="flex items-start gap-2 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4" role="alert">

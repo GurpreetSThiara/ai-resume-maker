@@ -39,7 +39,7 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
       const widthScale = parentWidth / 595
       const heightScale = parentHeight / 842
       // Use the smaller scale to fit both width and height
-      let newScale = Math.min(widthScale, heightScale, 1)
+      let newScale = Math.min(widthScale, 1)
       // On md+ screens, make it a bit smaller for aesthetics
       if (window.innerWidth >= 768 && newScale > 0.9) newScale = 0.9
       setScale(newScale)
@@ -169,31 +169,32 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
     });
 
   return (
-    <div className="w-full h-full flex justify-center items-start overflow-auto bg-gray-50" style={{ minHeight: 0, minWidth: 0 }}>
+    <div className="border w-full h-full flex justify-center items-start overflow-auto bg-gray-50" style={{ minHeight: 0, minWidth: 0 }}>
       <div
         ref={containerRef}
         style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}
       >
         <div
           ref={pdfRef}
-          className={`relative ${font.className}`}
+          className={`border border-pink-950 relative ${font.className}`}
           style={{
             minWidth: 595,
            // minHeight: 842,
             maxWidth: '100%',
-            transform: `scale(${scale})`,
-            transformOrigin: 'top center',
-            transition: 'transform 0.2s',
-            background: 'white',
-            boxShadow: '0 2px 16px rgba(0,0,0,0.08)',
-            borderRadius: 8,
-            overflow: 'hidden',
-            margin: '0 auto',
+            scale:0.5,
+            // transform: `scale(${scale})`,
+            // transformOrigin: 'top center',
+            // transition: 'transform 0.2s',
+            // background: 'white',
+            // boxShadow: '0 2px 16px rgba(0,0,0,0.08)',
+            // borderRadius: 8,
+            // overflow: 'hidden',
+            // margin: '0 auto',
             fontFamily: font?.name || 'Arial, sans-serif',
           }}
         >
           {/* A4 page container with exact dimensions */}
-          <div className="px-8 py-8" style={{  minWidth: 595, maxWidth: '100%' }}>
+          <div className="px-8 py-8 border border-green-900" style={{  minWidth: 595, maxWidth: '100%' }} >
             
             {/* Header */}
             <header ref={personalInfoRef} className="mb-6">
@@ -203,7 +204,7 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
                 suppressContentEditableWarning
                 onBlur={handleNameChange}
               >
-                {resumeData.basics.name}
+                {resumeData?.basics?.name}
               </h1>
 
               {/* Contact information */}
@@ -233,7 +234,7 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
               </div>
 
               {/* Summary */}
-              {resumeData.basics.summary && (
+              {resumeData?.basics?.summary && (
                 <div className="mb-4">
                   <p 
                     className="text-sm text-gray-700 leading-relaxed"
@@ -241,7 +242,7 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
                     suppressContentEditableWarning
                     onBlur={handleSummaryChange}
                   >
-                    {resumeData.basics.summary}
+                    {resumeData?.basics?.summary}
                   </p>
                 </div>
               )}
