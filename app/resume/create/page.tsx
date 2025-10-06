@@ -326,9 +326,9 @@ const CreateResumeContent: FC = () => {
   {/* Left Section */}
   <div>
     <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Create Your Resume</h1>
-    <p className="text-gray-600 mt-1 md:mt-2">
+    {/* <p className="text-gray-600 mt-1 md:mt-2">
       Step {currentStep + 1} of {steps.length}
-    </p>
+    </p> */}
   </div>
 
   {/* Right Section */}
@@ -402,12 +402,12 @@ const CreateResumeContent: FC = () => {
 </div>
 
 
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="font-medium">Progress</span>
           </div>
           <Progress value={progress} className="h-2" />
-        </div>
+        </div> */}
 
         <div className="grid gap-6 mt-6">
           <div className={`grid gap-6 ${showPreview ? "lg:grid-cols-2" : "lg:grid-cols-4"}`}>
@@ -416,7 +416,7 @@ const CreateResumeContent: FC = () => {
               <div className="hidden lg:block">
                 <Card className="sticky top-32">
                   <CardHeader>
-                    <CardTitle className="text-lg">Steps</CardTitle>
+                    <CardTitle className="text-lg">Step {currentStep + 1} of {steps.length}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {steps.map((step, index) => (
@@ -429,8 +429,8 @@ const CreateResumeContent: FC = () => {
                             : completedSteps.has(index)
                               ? "bg-green-100 text-green-800 hover:bg-green-200"
                               : "hover:bg-gray-100"
-                        } ${index > Math.max(...Array.from(completedSteps)) + 1 ? "opacity-50 cursor-not-allowed" : ""}`}
-                        disabled={index > Math.max(...Array.from(completedSteps)) + 1}
+                        } `}
+                      //  disabled={index > Math.max(...Array.from(completedSteps)) + 1}
                       >
                         <div className="flex items-center gap-3">
                           <span className="text-xl">{step.icon}</span>
