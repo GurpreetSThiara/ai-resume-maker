@@ -1,3 +1,3 @@
-const CREATE_RESUME = `/resume/create`
+const CREATE_RESUME = `/resume`
 
 export {CREATE_RESUME}

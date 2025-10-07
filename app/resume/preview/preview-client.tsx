@@ -1,29 +1,37 @@
 "use client"
 
-import { Suspense, useMemo } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import ResumePreview from "@/components/resume-preview"
 import { availableTemplates, getTemplateById } from "@/lib/templates"
 import { RESUME_TEMPLATES } from "@/constants/resumeConstants"
 import Image from "next/image"
+import { useMemo } from "react"
 import DownloadDropDown from "@/components/global/DropDown/DropDown"
 import Link from "next/link"
 import { devopsResumeData1 } from "@/lib/examples/resume/deveops"
 
-function PreviewContent() {
+export default function PreviewClient() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const tplId = (searchParams.get("template") || "classic").toString()
 
   const template = useMemo(() => {
+    // normalize common aliases
     const normalized = tplId.replace(/_/g, "-").toLowerCase()
+    // try exact lookup first
     const byGet = getTemplateById(normalized)
     if (byGet) return byGet
+
+    // fallback mapping: 'classic' maps to 'ats-classic' in our templates list
     if (normalized === "classic") return getTemplateById("ats-classic") || availableTemplates[0]
+
+    // try find by includes
     return availableTemplates.find((t) => t.id === normalized || t.id.includes(normalized)) || availableTemplates[0]
   }, [tplId])
 
+  // minimal resume data for preview; the preview component expects a full ResumeData shape
   const sampleData = devopsResumeData1
+
   const templateMeta = RESUME_TEMPLATES.find((r) => r.id === template.id) || (template as any)
 
   return (
@@ -82,17 +90,5 @@ function PreviewContent() {
         </div>
       </div>
     </div>
-  )
-}
-
-export default function ResumePreviewPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
-      </div>
-    }>
-      <PreviewContent />
-    </Suspense>
   )
 }
