@@ -7,7 +7,8 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: true,
+    // Allow external template preview images from jsdelivr CDN
+    domains: ["cdn.jsdelivr.net"],
   },
   reactStrictMode: false,
 }

@@ -24,7 +24,8 @@ import type {
   CustomSection
 } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
-import { availableTemplates, googleTemplate } from "@/lib/templates"
+import { availableTemplates, googleTemplate, getTemplateById } from "@/lib/templates"
+import { RESUME_TEMPLATES } from "@/constants/resumeConstants"
 
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -40,8 +41,9 @@ import { sampleResumeData } from "@/lib/examples/resume-example"
 import { useAuth } from "@/contexts/auth-context"
 import { CREATE_RESUME_ACHIEVEMENTS, CREATE_RESUME_STEPS } from "@/app/constants/global"
 import { LS_KEYS, setLocalStorageJSON, setLocalStorageItem, removeLocalStorageItems } from "@/utils/localstorage"
+import { devopsResumeData3, devopsResumeData2, devopsResumeData4 } from "@/lib/examples/resume/deveops"
 
-const initialData: ResumeData =sampleResumeData
+const initialData: ResumeData =devopsResumeData4 //sampleResumeData
 const achievements = CREATE_RESUME_ACHIEVEMENTS
 
 
@@ -56,13 +58,50 @@ const CreateResumeContent: FC = () => {
   const [currentStep, setCurrentStep] = useState(0)
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set())
   const [resumeData, setResumeData] = useState<ResumeData>(initialData)
-  const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplate>(() => {
-    // allow selecting via query param from homepage
-    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
-    const tplId = params?.get('template')
-    const fromList = tplId ? availableTemplates.find((t) => t.id === tplId) : null
-    return fromList || googleTemplate
-  })
+  const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplate>(googleTemplate)
+
+  // Map incoming template query param to one of the availableTemplates
+  useEffect(() => {
+    const tplId = searchParams.get('template')
+    if (!tplId) return
+
+    const normalize = tplId.replace(/_/g, '-').toLowerCase()
+
+    // try direct lookup by id
+    let found = getTemplateById(normalize)
+    if (found) {
+      setSelectedTemplate(found)
+      return
+    }
+
+    // try exact id match on available templates
+    found = availableTemplates.find((t) => t.id === normalize || t.id === tplId)
+    if (found) {
+      setSelectedTemplate(found)
+      return
+    }
+
+    // fallback: use presentation metadata from RESUME_TEMPLATES to find a matching available template by name or keyword
+    const meta = RESUME_TEMPLATES.find((r) => r.id === tplId || r.id === normalize)
+    if (meta) {
+      const keyword = meta.name.toLowerCase().split(/\s|\-/)[0]
+      const byName = availableTemplates.find((t) => t.name.toLowerCase().includes(keyword) || t.id.includes(keyword))
+      if (byName) {
+        setSelectedTemplate(byName)
+        return
+      }
+    }
+
+    // last resort: try to match by partial id
+    const partial = availableTemplates.find((t) => t.id.includes(normalize) || normalize.includes(t.id))
+    if (partial) {
+      setSelectedTemplate(partial)
+      return
+    }
+
+    // default
+    setSelectedTemplate(googleTemplate)
+  }, [searchParams])
   const [showPreview, setShowPreview] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [currentResumeId, setCurrentResumeId] = useState<string | null>(null)

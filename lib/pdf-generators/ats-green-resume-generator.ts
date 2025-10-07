@@ -5,11 +5,14 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 interface GenerateResumeProps {
   resumeData: ResumeData;
   filename?: string;
+  // theme: 'green' (default) or 'yellow' to reuse generator for both styles
+  theme?: 'green' | 'yellow';
 }
 
 export async function generateATSGreenResume({
   resumeData,
-  filename = "resume.pdf"
+  filename = "resume.pdf",
+  theme = 'green'
 }: GenerateResumeProps) {
 
   // Create a new PDF document
@@ -21,12 +24,17 @@ export async function generateATSGreenResume({
   const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-  // Define colors matching the original resume
-  const colors = {
-    text: rgb(0, 0, 0),           // Black text
-    white: rgb(1, 1, 1),          // White background
-    sectionHeader: rgb(0.75, 0.86, 0.75), // Light green for section headers
-    lightGray: rgb(0.95, 0.95, 0.95), // Very light gray
+  // Define colors matching the original resume; switch palette by theme
+  const colors = theme === 'yellow' ? {
+    text: rgb(0.05, 0.05, 0.05),
+    white: rgb(1, 1, 1),
+    sectionHeader: rgb(0.98, 0.94, 0.65), // soft yellow
+    lightGray: rgb(0.98, 0.97, 0.95),
+  } : {
+    text: rgb(0, 0, 0),
+    white: rgb(1, 1, 1),
+    sectionHeader: rgb(0.75, 0.86, 0.75), // light green
+    lightGray: rgb(0.95, 0.95, 0.95),
   };
 
   // Define font sizes
@@ -403,6 +411,8 @@ export async function generateATSGreenResume({
   link.href = URL.createObjectURL(blob)
   link.download = filename
   link.click()
+  // return bytes in case caller wants them (keeps compatibility)
+  return pdfBytes
 }
 
 // Export function to save PDF to file (Node.js environment)
@@ -410,9 +420,8 @@ export async function saveResumeToFile({
   resumeData,
   filename = "resume.pdf"
 }: GenerateResumeProps): Promise<void> {
-  const pdfBytes = await generateATSGreenResume({ resumeData, filename });
-
-
+  // generateATSGreenResume will return the bytes and also trigger a download in browser contexts
+  await generateATSGreenResume({ resumeData, filename });
 
 }
 
@@ -421,20 +430,8 @@ export async function downloadResume({
   resumeData,
   filename = "resume.pdf"
 }: GenerateResumeProps): Promise<void> {
-  const pdfBytes = await generateATSGreenResume({ resumeData, filename });
-
-  // Create blob and download link
-  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  URL.revokeObjectURL(url);
+  // generateATSGreenResume already creates and triggers a download in browser environments
+  await generateATSGreenResume({ resumeData, filename });
 }
 
 // Example usage with sample data

@@ -15,9 +15,14 @@ export const Hero = () => {
                   <Badge className="mb-5 bg-white/80 text-green-700 border border-green-200">
                     <Sparkles className="w-4 h-4 mr-2" /> AI + ATS Optimized
                   </Badge>
+
+                   <p className="text-sm md:text-xl text-slate-600 mb-8 max-w-3xl mx-auto">
+                    This app is currently in development mode and under contruction. Still you can create resume for free!
+                  </p>
                   <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 bg-gradient-to-r from-slate-900 via-green-700 to-indigo-700 bg-clip-text text-transparent">
                     Your Resume, Perfected in Minutes
                   </h1>
+                  
                   <p className="text-lg md:text-2xl text-slate-600 mb-8 max-w-3xl mx-auto">
                     Build a modern, recruiter-ready resume with live preview, AI guidance, and world-class templates.
                   </p>

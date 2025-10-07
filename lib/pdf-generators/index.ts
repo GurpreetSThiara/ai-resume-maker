@@ -8,7 +8,7 @@ import { generateCreativeResumePDF } from "@/lib/pdf-generators/template-creativ
 import { generateATSGreenResume } from "./ats-green-resume-generator"
 import { generateModernSidebarResumePDF } from "./twoside"
 import { RESUME_NAMES } from "@/config/resumeConfig"
-import { ATS_GREEN } from "../templates"
+import { ATS_GREEN, ATS_YELLOW } from "../templates"
 
 export async function generateResumePDF(options: PDFGenerationOptions) {
   const { template } = options
@@ -28,6 +28,8 @@ export async function generateResumePDF(options: PDFGenerationOptions) {
       return generateCreativeResumePDF(options)
     case ATS_GREEN.id:
       return generateATSGreenResume(options)
+    case ATS_YELLOW.id:
+      generateATSGreenResume({...options , theme: "yellow"}) // using same generator for now  
     default:
       return generateGooglePDF(options)
   }
