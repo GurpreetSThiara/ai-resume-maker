@@ -1,4 +1,6 @@
-import { ResumeData } from "@/types/resume";
+import { ResumeData, SECTION_TYPES } from "@/types/resume";
+
+
 
 export const sampleResumeData: ResumeData = {
   basics: {
@@ -33,7 +35,7 @@ export const sampleResumeData: ResumeData = {
     {
       id: "edu-1",
       title: "Education",
-      type: "education",
+      type: SECTION_TYPES.EDUCATION,
       items: [
         {
           institution: "Indian Institute of Technology, Delhi",
@@ -51,7 +53,7 @@ export const sampleResumeData: ResumeData = {
     {
       id: "exp-1",
       title: "Experience",
-      type: "experience",
+      type: SECTION_TYPES.EXPERIENCE,
       items: [
         {
           company: "TechNova Solutions",
@@ -70,7 +72,7 @@ export const sampleResumeData: ResumeData = {
     {
       id: "skills-1",
       title: "Skills",
-      type: "skills",
+      type: SECTION_TYPES.SKILLS,
       items: [
         "JavaScript / TypeScript",
         "React.js / Next.js",
@@ -84,13 +86,13 @@ export const sampleResumeData: ResumeData = {
     {
       id: "lang-1",
       title: "Languages",
-      type: "languages",
+      type: SECTION_TYPES.LANGUAGES,
       items: ["English (Fluent)", "Hindi (Native)", "Kannada (Intermediate)"]
     },
     {
       id: "certs-1",
       title: "Certifications",
-      type: "certifications",
+      type: SECTION_TYPES.CERTIFICATIONS,
       items: [
         "AWS Certified Solutions Architect – Associate (2022)",
         "Certified Kubernetes Administrator (CKA, 2021)"

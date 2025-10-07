@@ -1,6 +1,6 @@
 "use client"
 
-import { ResumeData } from "@/types/resume"
+import { ResumeData, SECTION_TYPES } from "@/types/resume"
 import type React from "react"
 import { useRef, useEffect, useState } from "react"
 
@@ -94,9 +94,9 @@ export const GoogleResume: React.FC<ResumeProps> = ({
       const section = updated.sections.find((s) => s.id === sectionId);
       if (!section) return prev;
       
-      if (section.type === "education") {
+      if (section.type === SECTION_TYPES.EDUCATION) {
         (section.items[itemIndex] as any)[field] = value;
-      } else if (section.type === "experience") {
+      } else if (section.type === SECTION_TYPES.EXPERIENCE) {
         (section.items[itemIndex] as any)[field] = value;
       }
       return updated;
@@ -120,7 +120,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
     setResumeData((prev) => {
       const updated = structuredClone(prev);
       const section = updated.sections.find((s) => s.id === sectionId);
-      if (!section || section.type !== "custom") return prev;
+      if (!section || section.type !== SECTION_TYPES.CUSTOM) return prev;
       
       if (!section.content) section.content = [];
       section.content[contentIndex] = value;
@@ -147,7 +147,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
     setResumeData((prev) => {
       const updated = structuredClone(prev);
       const section = updated.sections.find((s) => s.id === sectionId);
-      if (!section || section.type !== "education") return prev;
+      if (!section || section.type !== SECTION_TYPES.EDUCATION) return prev;
       
       const edu = section.items[itemIndex];
       if (edu.highlights && edu.highlights[highlightIndex] !== undefined) {
@@ -160,7 +160,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
     setResumeData((prev) => {
       const updated = structuredClone(prev);
       const section = updated.sections.find((s) => s.id === sectionId);
-      if (!section || section.type !== "experience") return prev;
+      if (!section || section.type !== SECTION_TYPES.EXPERIENCE) return prev;
       
       const exp = section.items[itemIndex];
       if (exp.achievements && exp.achievements[achievementIndex] !== undefined) {
@@ -309,11 +309,11 @@ export const GoogleResume: React.FC<ResumeProps> = ({
               // Check if section has content based on section type
               let hasContent = false;
               
-              if (section.type === 'education' || section.type === 'experience') {
+              if (section.type === SECTION_TYPES.EDUCATION || section.type === SECTION_TYPES.EXPERIENCE) {
                 hasContent = section.items && section.items.length > 0;
-              } else if (section.type === 'skills' || section.type === 'languages' || section.type === 'certifications') {
+              } else if (section.type === SECTION_TYPES.SKILLS || section.type === SECTION_TYPES.LANGUAGES || section.type === SECTION_TYPES.CERTIFICATIONS) {
                 hasContent = section.items && section.items.length > 0;
-              } else if (section.type === 'custom') {
+              } else if (section.type === SECTION_TYPES.CUSTOM) {
                 hasContent = section.content && section.content.length > 0 && section.content.some(item => item.trim() !== '');
               } else {
                 // Fallback to original check for other types
@@ -351,7 +351,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
                   {/* Section Content */}
                   <div className="space-y-4">
                     {/* Education Section */}
-                    {section.type === 'education' && section.items.map((edu, eduIdx) => (
+                    {section.type === SECTION_TYPES.EDUCATION && section.items.map((edu, eduIdx) => (
                       <div key={edu.institution} className="mb-4">
                         {/* Institution Name */}
                         <h3
@@ -429,7 +429,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
                     ))}
 
                     {/* Experience Section */}
-                    {section.type === 'experience' && section.items.map((exp, expIdx) => (
+                    {section.type === SECTION_TYPES.EXPERIENCE && section.items.map((exp, expIdx) => (
                       <div key={exp.company} className="mb-4">
                         {/* Company Name */}
                         <h3
@@ -507,7 +507,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
                     ))}
 
                     {/* Skills, Languages, Certifications Sections */}
-                    {(section.type === 'skills' || section.type === 'languages' || section.type === 'certifications') && section.items?.length > 0 && (
+                    {(section.type === SECTION_TYPES.SKILLS || section.type === SECTION_TYPES.LANGUAGES || section.type === SECTION_TYPES.CERTIFICATIONS) && section.items?.length > 0 && (
                       <div className="mb-4">
                         <p
                           className="text-xs leading-relaxed"
@@ -522,7 +522,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
                     )}
 
                     {/* Custom Section */}
-                    {section.type === 'custom' && section.content?.length > 0 && (
+                    {section.type === SECTION_TYPES.CUSTOM && section.content?.length > 0 && (
                       <div className="space-y-1">
                         {section.content.map((item, contentIdx) => (
                           <div key={contentIdx} className="flex items-start">

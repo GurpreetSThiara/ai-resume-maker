@@ -3,6 +3,7 @@
 import type React from "react"
 import { useRef, useEffect, useState } from "react"
 import type { ResumeData } from "@/types/resume"
+import { SECTION_TYPES } from "@/types/resume"
 
 
 
@@ -71,9 +72,9 @@ export const ATS_GREEN_HEADERS: React.FC<> = ({
       const section = updated.sections.find((s) => s.id === sectionId)
       if (!section) return prev
 
-      if (section.type === "education") {
+      if (section.type === SECTION_TYPES.EDUCATION) {
         ;(section.items[itemIndex] as any)[field] = value
-      } else if (section.type === "experience") {
+      } else if (section.type === SECTION_TYPES.EXPERIENCE) {
         ;(section.items[itemIndex] as any)[field] = value
       }
       return updated
@@ -97,7 +98,7 @@ export const ATS_GREEN_HEADERS: React.FC<> = ({
     setResumeData((prev) => {
       const updated = structuredClone(prev)
       const section = updated.sections.find((s) => s.id === sectionId)
-      if (!section || section.type !== "education") return prev
+      if (!section || section.type !== SECTION_TYPES.EDUCATION) return prev
 
       const edu = section.items[itemIndex]
       if (edu.highlights && edu.highlights[highlightIndex] !== undefined) {
@@ -112,7 +113,7 @@ export const ATS_GREEN_HEADERS: React.FC<> = ({
     setResumeData((prev) => {
       const updated = structuredClone(prev)
       const section = updated.sections.find((s) => s.id === sectionId)
-      if (!section || section.type !== "experience") return prev
+      if (!section || section.type !== SECTION_TYPES.EXPERIENCE) return prev
 
       const exp = section.items[itemIndex]
       if (exp.achievements && exp.achievements[achievementIndex] !== undefined) {
@@ -127,7 +128,7 @@ export const ATS_GREEN_HEADERS: React.FC<> = ({
     setResumeData((prev) => {
       const updated = structuredClone(prev)
       const section = updated.sections.find((s) => s.id === sectionId)
-      if (!section || section.type !== "custom") return prev
+      if (!section || section.type !== SECTION_TYPES.CUSTOM) return prev
 
       if (!section.content) section.content = []
       section.content[contentIndex] = value
@@ -240,15 +241,15 @@ export const ATS_GREEN_HEADERS: React.FC<> = ({
               // Check if section has content
               let hasContent = false
 
-              if (section.type === "education" || section.type === "experience") {
+              if (section.type === SECTION_TYPES.EDUCATION || section.type === SECTION_TYPES.EXPERIENCE) {
                 hasContent = section.items && section.items.length > 0
               } else if (
-                section.type === "skills" ||
-                section.type === "languages" ||
-                section.type === "certifications"
+                section.type === SECTION_TYPES.SKILLS ||
+                section.type === SECTION_TYPES.LANGUAGES ||
+                section.type === SECTION_TYPES.CERTIFICATIONS
               ) {
                 hasContent = section.items && section.items.length > 0
-              } else if (section.type === "custom") {
+              } else if (section.type === SECTION_TYPES.CUSTOM) {
                 hasContent =
                   section.content && section.content.length > 0 && section.content.some((item) => item.trim() !== "")
               }
@@ -278,7 +279,7 @@ export const ATS_GREEN_HEADERS: React.FC<> = ({
 
                   <div className="space-y-3">
                     {/* Education Section */}
-                    {section.type === "education" &&
+                    {section.type === SECTION_TYPES.EDUCATION &&
                       section.items.map((edu, eduIdx) => (
                         <div key={eduIdx}>
                           <p
@@ -340,7 +341,7 @@ export const ATS_GREEN_HEADERS: React.FC<> = ({
                       ))}
 
                     {/* Experience Section */}
-                    {section.type === "experience" &&
+                    {section.type === SECTION_TYPES.EXPERIENCE &&
                       section.items.map((exp, expIdx) => (
                         <div key={expIdx}>
                           <div className="flex justify-between items-start mb-1">
@@ -435,7 +436,7 @@ export const ATS_GREEN_HEADERS: React.FC<> = ({
                       ))}
 
                     {/* Skills, Languages Sections */}
-                    {(section.type === "skills" || section.type === "languages") && section.items?.length > 0 && (
+                    {(section.type === SECTION_TYPES.SKILLS || section.type === SECTION_TYPES.LANGUAGES) && section.items?.length > 0 && (
                       <div className="mb-3">
                         <p
                           className="text-sm leading-relaxed"
@@ -450,7 +451,7 @@ export const ATS_GREEN_HEADERS: React.FC<> = ({
                     )}
 
                     {/* Certifications Section */}
-                    {section.type === "certifications" && section.items?.length > 0 && (
+                    {section.type === SECTION_TYPES.CERTIFICATIONS && section.items?.length > 0 && (
                       <div className="space-y-1 ml-4">
                         {section.items.map((cert, certIdx) => (
                           <div key={certIdx} className="flex items-start">
@@ -470,7 +471,7 @@ export const ATS_GREEN_HEADERS: React.FC<> = ({
                                 setResumeData((prev) => {
                                   const updated = structuredClone(prev)
                                   const sec = updated.sections.find((s) => s.id === section.id)
-                                  if (sec && sec.type === "certifications") {
+                                  if (sec && sec.type === SECTION_TYPES.CERTIFICATIONS) {
                                     sec.items[certIdx] = e.currentTarget.textContent || ""
                                   }
                                   return updated
@@ -485,7 +486,7 @@ export const ATS_GREEN_HEADERS: React.FC<> = ({
                     )}
 
                     {/* Custom Section (Projects) */}
-                    {section.type === "custom" && section.content?.length > 0 && (
+                    {section.type === SECTION_TYPES.CUSTOM && section.content?.length > 0 && (
                       <div className="space-y-2">
                         {section.content.map((project, projectIdx) => (
                           <div key={projectIdx}>

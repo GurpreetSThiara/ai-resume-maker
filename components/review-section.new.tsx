@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, FileText, User, GraduationCap, Briefcase, Zap, Settings } from "lucide-react"
 import type { ResumeData, ResumeTemplate } from "@/types/resume"
+import { SECTION_TYPES } from "@/types/resume"
 
 interface ReviewSectionProps {
   data: ResumeData
@@ -12,9 +13,9 @@ interface ReviewSectionProps {
 export function ReviewSection({ data, template }: ReviewSectionProps) {
   const completionStats = {
     personalInfo: !!(data.basics.name && data.basics.email),
-    education: data.sections.some(s => s.type === "education" && (s.items as any[]).length > 0),
-    experience: data.sections.some(s => s.type === "experience" && (s.items as any[]).length > 0),
-    skills: data.sections.some(s => s.type === "skills" && (s.items as string[]).length > 0),
+    education: data.sections.some(s => s.type === SECTION_TYPES.EDUCATION && (s.items as any[]).length > 0),
+    experience: data.sections.some(s => s.type === SECTION_TYPES.EXPERIENCE && (s.items as any[]).length > 0),
+    skills: data.sections.some(s => s.type === SECTION_TYPES.SKILLS && (s.items as string[]).length > 0),
     customFields: Object.keys(data.custom).length > 0,
   }
 
@@ -28,14 +29,14 @@ export function ReviewSection({ data, template }: ReviewSectionProps) {
       Object.keys(data.custom).length +
       data.sections.reduce((acc, section) => {
         switch (section.type) {
-          case "education":
-          case "experience":
+          case SECTION_TYPES.EDUCATION:
+          case SECTION_TYPES.EXPERIENCE:
             return acc + section.items.length
-          case "skills":
-          case "languages":
-          case "certifications":
+          case SECTION_TYPES.SKILLS:
+          case SECTION_TYPES.LANGUAGES:
+          case SECTION_TYPES.CERTIFICATIONS:
             return acc + section.items.length
-          case "custom":
+          case SECTION_TYPES.CUSTOM:
             return acc + section.content.length
           default:
             return acc
@@ -66,7 +67,7 @@ export function ReviewSection({ data, template }: ReviewSectionProps) {
     resumeData.sections.forEach((section) => {
       wordCount += countWords(section.title)
       switch (section.type) {
-        case "education":
+        case SECTION_TYPES.EDUCATION:
           section.items.forEach(edu => {
             wordCount += countWords(edu.institution)
             wordCount += countWords(edu.degree)
@@ -74,7 +75,7 @@ export function ReviewSection({ data, template }: ReviewSectionProps) {
             edu.highlights?.forEach(highlight => wordCount += countWords(highlight))
           })
           break
-        case "experience":
+        case SECTION_TYPES.EXPERIENCE:
           section.items.forEach(exp => {
             wordCount += countWords(exp.company)
             wordCount += countWords(exp.role)
@@ -82,12 +83,12 @@ export function ReviewSection({ data, template }: ReviewSectionProps) {
             exp.achievements?.forEach(achievement => wordCount += countWords(achievement))
           })
           break
-        case "skills":
-        case "languages":
-        case "certifications":
+        case SECTION_TYPES.SKILLS:
+        case SECTION_TYPES.LANGUAGES:
+        case SECTION_TYPES.CERTIFICATIONS:
           section.items.forEach(item => wordCount += countWords(item))
           break
-        case "custom":
+        case SECTION_TYPES.CUSTOM:
           section.content.forEach(content => wordCount += countWords(content))
           break
       }

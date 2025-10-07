@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, PDFName, PDFArray } from "pdf-lib"
 import type { PDFGenerationOptions } from "@/types/resume"
+import { SECTION_TYPES } from "@/types/resume"
 import { sanitizeTextForPdf } from '@/lib/utils'
 
 export async function generateResumePDF({ resumeData, filename = "resume.pdf" }: PDFGenerationOptions) {
@@ -222,7 +223,7 @@ export async function generateResumePDF({ resumeData, filename = "resume.pdf" }:
     yOffset -= 18
 
     switch (section.type) {
-      case "education":
+      case SECTION_TYPES.EDUCATION:
         for (const edu of section.items) {
           ensureSpace(15)
 
@@ -254,7 +255,7 @@ export async function generateResumePDF({ resumeData, filename = "resume.pdf" }:
         }
         break;
 
-      case "experience":
+      case SECTION_TYPES.EXPERIENCE:
         for (const exp of section.items) {
           ensureSpace(15)
 
@@ -286,9 +287,9 @@ export async function generateResumePDF({ resumeData, filename = "resume.pdf" }:
         }
         break;
 
-      case "skills":
-      case "languages":
-      case "certifications":
+      case SECTION_TYPES.SKILLS:
+      case SECTION_TYPES.LANGUAGES:
+      case SECTION_TYPES.CERTIFICATIONS:
         if (section.items?.length) {
           ensureSpace(12)
           const lines = wrapText(section.items.join(" • "), pageWidth - 20, regularFont, 10)
@@ -299,7 +300,7 @@ export async function generateResumePDF({ resumeData, filename = "resume.pdf" }:
         }
         break;
 
-      case "custom":
+      case SECTION_TYPES.CUSTOM:
         if (section.content?.length) {
           for (const text of section.content) {
             ensureSpace(12)

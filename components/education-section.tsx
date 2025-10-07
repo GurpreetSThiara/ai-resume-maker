@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, GraduationCap, Edit2, Save } from "lucide-react"
 import type { ResumeData, Education, EducationSection as EducationSectionType } from "@/types/resume"
+import { SECTION_TYPES } from "@/types/resume"
+import { DEFAULT_EDUCATION } from "@/constants/resumeConstants"
 
 interface EducationSectionProps {
   data: ResumeData
@@ -14,52 +16,25 @@ interface EducationSectionProps {
 }
 
 export function EducationSection({ data, onUpdate }: EducationSectionProps) {
-  const [newEducation, setNewEducation] = useState<Education>({
-    institution: "",
-    degree: "",
-    startDate: "",
-    endDate: "",
-    location: "",
-    highlights: []
-  })
+  const [newEducation, setNewEducation] = useState<Education>(DEFAULT_EDUCATION)
   const [editingEducationId, setEditingEducationId] = useState<string | null>(null)
-  const [editData, setEditData] = useState<Education>({
-    institution: "",
-    degree: "",
-    startDate: "",
-    endDate: "",
-    location: "",
-    highlights: []
-  })
-  const [isSectionDirty, setIsSectionDirty] = useState(false)
+  const [editData, setEditData] = useState<Education>(DEFAULT_EDUCATION)
+
   const [isAddingNew, setIsAddingNew] = useState(false)
 
-  const educationSection = data.sections.find((s): s is EducationSection => s.type === "education") || {
-    id: "education",
-    title: "Education",
-    type: "education" as const,
-    items: []
-  }
+  const educationSection = data.sections.find((s) => s.type === SECTION_TYPES.EDUCATION)
 
-  useEffect(() => {
-    // Check for unsaved changes whenever data or newEducation changes
-    const initialContent = data.sections.find((s) => s.title === "Education")?.content || {}
-    const hasChanges =
-      JSON.stringify(educationSection.content) !== JSON.stringify(initialContent) ||
-      newEducation.institution !== "" ||
-      newEducation.details.some((detail) => detail !== "")
-    setIsSectionDirty(hasChanges)
-  }, [data, newEducation, educationSection.content])
+
 
   const addEducation = () => {
     if (newEducation.institution && newEducation.degree) {
       const updatedSections = data.sections.map((section) => {
-        if (section.type === "education") {
+        if (section.type === SECTION_TYPES.EDUCATION) {
           return {
             ...section,
             items: [...section.items, { 
               ...newEducation,
-              highlights: newEducation.highlights.filter(h => h.trim())
+              highlights: newEducation?.highlights?.filter(h => h.trim())
             }]
           }
         }
@@ -80,7 +55,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
 
   const removeEducation = (index: number) => {
     const updatedSections = data.sections.map((section) => {
-      if (section.type === "education") {
+      if (section.type === SECTION_TYPES.EDUCATION) {
         return {
           ...section,
           items: section.items.filter((_, i) => i !== index)
@@ -100,11 +75,11 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
     if (editingEducationId !== null && editData.institution) {
       const index = parseInt(editingEducationId)
       const updatedSections = data.sections.map((section) => {
-        if (section.type === "education") {
+        if (section.type === SECTION_TYPES.EDUCATION) {
           const updatedItems = [...section.items]
           updatedItems[index] = {
             ...editData,
-            highlights: editData.highlights.filter(h => h.trim())
+            highlights: editData?.highlights?.filter(h => h.trim())
           }
           return {
             ...section,
@@ -126,76 +101,13 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
     }
   }
 
-  const cancelEdit = () => {
-    setEditingEducation(null)
-    setEditData({ institution: "", details: [] })
-  }
-
-  const addDetailField = () => {
-    setNewEducation((prev) => ({
-      ...prev,
-      details: [...prev.details, ""],
-    }))
-  }
-
-  const updateDetail = (index: number, value: string) => {
-    setNewEducation((prev) => ({
-      ...prev,
-      details: prev.details.map((detail, i) => (i === index ? value : detail)),
-    }))
-  }
-
-  const removeDetail = (index: number) => {
-    setNewEducation((prev) => ({
-      ...prev,
-      details: prev.details.filter((_, i) => i !== index),
-    }))
-  }
-
-  const updateEditDetail = (index: number, value: string) => {
-    setEditData((prev) => ({
-      ...prev,
-      details: prev.details.map((detail, i) => (i === index ? value : detail)),
-    }))
-  }
-
-  const addEditDetailField = () => {
-    setEditData((prev) => ({
-      ...prev,
-      details: [...prev.details, ""],
-    }))
-  }
-
-  const removeEditDetail = (index: number) => {
-    setEditData((prev) => ({
-      ...prev,
-      details: prev.details.filter((_, i) => i !== index),
-    }))
-  }
-
-  const handleSectionSave = () => {
-    // This function currently does nothing, but it's here to indicate
-    // where you would trigger the save for the entire section's data.
-    // In a real application, you would likely call an API to persist
-    // the data to a database.
-    alert("Section saved!")
-    setIsSectionDirty(false) // Reset the dirty state after saving
-  }
-
+  
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold mb-2">Your Academic Journey 🎓</h2>
         <p className="text-muted-foreground">Share your educational background and achievements</p>
-        {isSectionDirty && (
-          <div className="text-yellow-500 mt-2">
-            <span className="animate-pulse">*</span> Unsaved changes
-          </div>
-        )}
-        <Button onClick={handleSectionSave} disabled={!isSectionDirty} className="mt-2">
-          <Save className="w-4 h-4 mr-2" />
-          Save Education Section
-        </Button>
+  
       </div>
 
       {/* Existing Education Entries */}
@@ -336,7 +248,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                         variant="ghost"
                         size="sm"
                         onClick={() => startEditing(education, index)}
-                        className="text-blue-500 hover:text-blue-700"
+                        className="text-blue-500 hover:text-blue-700 cursor-pointer"
                       >
                         <Edit2 className="w-4 h-4" />
                       </Button>
@@ -344,7 +256,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                         variant="ghost"
                         size="sm"
                         onClick={() => removeEducation(index)}
-                        className="text-red-500 hover:text-red-700"
+                        className="text-red-500 hover:text-red-700 cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -489,7 +401,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
           </div>
 
           <Button onClick={addEducation} className="w-full">
-            Add Education Entry
+            Save Education
           </Button>
         </CardContent>
       </Card>

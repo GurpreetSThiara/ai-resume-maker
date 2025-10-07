@@ -1,6 +1,6 @@
 import type React from "react"
 import { PDFDocument, StandardFonts, rgb, PDFName, PDFArray } from "pdf-lib"
-import { ResumeData } from "@/types/resume"
+import { ResumeData, SECTION_TYPES } from "@/types/resume"
 
 interface ThemeConfig {
   fontSize: {
@@ -206,7 +206,7 @@ export async function generateImpact({ pdfRef, theme, resumeData }: GenerationPr
 
     yOffset -= pdFtheme.pdfSpacing?.page || 15
 
-    if (section.type === "education") {
+    if (section.type === SECTION_TYPES.EDUCATION) {
       for (const education of section.items) {
         ensureSpace((pdFtheme.pdfSpacing?.item || 10) + 20)
 
@@ -270,7 +270,7 @@ export async function generateImpact({ pdfRef, theme, resumeData }: GenerationPr
         }
         yOffset -= (pdFtheme.pdfSpacing?.item || 10) / 2
       }
-    } else if (section.type === "experience") {
+    } else if (section.type === SECTION_TYPES.EXPERIENCE) {
       for (const experience of section.items) {
         ensureSpace((pdFtheme.pdfSpacing?.item || 10) + 20)
 
@@ -318,7 +318,7 @@ export async function generateImpact({ pdfRef, theme, resumeData }: GenerationPr
         }
         yOffset -= (pdFtheme.pdfSpacing?.item || 10) / 2
       }
-    } else if (section.type === "skills" || section.type === "languages" || section.type === "certifications") {
+    } else if (section.type === SECTION_TYPES.SKILLS || section.type === SECTION_TYPES.LANGUAGES || section.type === SECTION_TYPES.CERTIFICATIONS) {
       const items = section.items
       if (Array.isArray(items)) {
         const text = items.join(" • ")
@@ -334,7 +334,7 @@ export async function generateImpact({ pdfRef, theme, resumeData }: GenerationPr
           yOffset -= 15
         }
       }
-    } else if (section.type === "custom") {
+    } else if (section.type === SECTION_TYPES.CUSTOM) {
       if (Array.isArray(section.content)) {
         for (const text of section.content) {
           ensureSpace((pdFtheme.pdfSize?.small ?? 0) + 5)

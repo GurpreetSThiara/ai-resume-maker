@@ -4,8 +4,6 @@ import React, { useState, useEffect, useRef, Suspense, ReactNode } from "react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
 import { ChevronLeft, ChevronRight, Trophy, Star, Zap, Target, Eye, Download, Save, X } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { PersonalInfoSection } from "@/components/personal-info-section"
@@ -25,6 +23,7 @@ import type {
   SkillsSection,
   CustomSection
 } from "@/types/resume"
+import { SECTION_TYPES } from "@/types/resume"
 import { availableTemplates, googleTemplate } from "@/lib/templates"
 
 import { useRouter } from "next/navigation"
@@ -218,40 +217,40 @@ const CreateResumeContent: FC = () => {
         };
 
         switch (existingSection.type) {
-          case "education":
+          case SECTION_TYPES.EDUCATION:
             return {
               ...baseSection,
-              type: "education" as const,
+              type: SECTION_TYPES.EDUCATION,
               items: [
                 ...(existingSection as EducationSection).items,
                 ...(aiSection as EducationSection).items
               ]
             } as EducationSection;
 
-          case "experience":
+          case SECTION_TYPES.EXPERIENCE:
             return {
               ...baseSection,
-              type: "experience" as const,
+              type: SECTION_TYPES.EXPERIENCE,
               items: [
                 ...(existingSection as ExperienceSection).items,
                 ...(aiSection as ExperienceSection).items
               ]
             } as ExperienceSection;
 
-          case "skills":
+          case SECTION_TYPES.SKILLS:
             return {
               ...baseSection,
-              type: "skills" as const,
+              type: SECTION_TYPES.SKILLS,
               items: Array.from(new Set([
                 ...(existingSection as SkillsSection).items,
                 ...(aiSection as SkillsSection).items
               ]))
             } as SkillsSection;
 
-          case "custom":
+          case SECTION_TYPES.CUSTOM:
             return {
               ...baseSection,
-              type: "custom" as const,
+              type: SECTION_TYPES.CUSTOM,
               content: [...(existingSection as CustomSection).content]
             } as CustomSection;
 
@@ -269,13 +268,13 @@ const CreateResumeContent: FC = () => {
     if (updatedData.basics.name && updatedData.basics.email) newCompletedSteps.add(0); // Personal info
     if (updatedData.basics.summary) newCompletedSteps.add(1); // Summary
     
-    const educationSection = updatedData.sections.find(s => s.type === "education") as EducationSection | undefined;
+    const educationSection = updatedData.sections.find(s => s.type === SECTION_TYPES.EDUCATION) as EducationSection | undefined;
     if (educationSection?.items && educationSection.items.length > 0) newCompletedSteps.add(2);
     
-    const experienceSection = updatedData.sections.find(s => s.type === "experience") as ExperienceSection | undefined;
+    const experienceSection = updatedData.sections.find(s => s.type === SECTION_TYPES.EXPERIENCE) as ExperienceSection | undefined;
     if (experienceSection?.items && experienceSection.items.length > 0) newCompletedSteps.add(3);
     
-    const skillsSection = updatedData.sections.find(s => s.type === "skills") as SkillsSection | undefined;
+    const skillsSection = updatedData.sections.find(s => s.type === SECTION_TYPES.SKILLS) as SkillsSection | undefined;
     if (skillsSection?.items && skillsSection.items.length > 0) newCompletedSteps.add(4);
     
     setCompletedSteps(newCompletedSteps);
@@ -382,22 +381,7 @@ const CreateResumeContent: FC = () => {
       <span className="text-xs text-red-600">Login to use AI</span>
     )}
 
-    {/* Achievements */}
-    {/* <div className="flex flex-wrap gap-1">
-      {userAchievements.map((achievement) => (
-        <Badge
-          key={achievement.id}
-          variant={achievement.unlocked ? "default" : "secondary"}
-          className={
-            achievement.unlocked
-              ? "bg-yellow-500 text-white"
-              : "opacity-50"
-          }
-        >
-          {achievement.icon}
-        </Badge>
-      ))}
-    </div> */}
+
   </div>
 </div>
 

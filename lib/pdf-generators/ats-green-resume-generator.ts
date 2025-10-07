@@ -1,4 +1,4 @@
-import { ResumeData } from '@/types/resume';
+import { ResumeData, SECTION_TYPES } from '@/types/resume';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
 
@@ -198,7 +198,7 @@ export async function generateATSGreenResume({
     yPosition = drawSectionHeader(section.title, yPosition);
 
     switch (section.type) {
-      case 'experience':
+      case SECTION_TYPES.EXPERIENCE:
         const expSection = section as any; // Type assertion for experience section
         if (expSection.items) {
           for (const exp of expSection.items) {
@@ -248,7 +248,7 @@ export async function generateATSGreenResume({
         }
         break;
 
-      case 'education':
+      case SECTION_TYPES.EDUCATION:
         const eduSection = section as any;
         if (eduSection.items) {
           for (const edu of eduSection.items) {
@@ -295,7 +295,7 @@ export async function generateATSGreenResume({
         }
         break;
 
-      case 'skills':
+      case SECTION_TYPES.SKILLS:
         const skillsSection = section as any;
         if (skillsSection.items) {
           // Join skills with commas and wrap text
@@ -316,7 +316,7 @@ export async function generateATSGreenResume({
         }
         break;
 
-      case 'languages':
+      case SECTION_TYPES.LANGUAGES:
         const langSection = section as any;
         if (langSection.items) {
           const languagesText = langSection.items.join(', ');
@@ -336,7 +336,7 @@ export async function generateATSGreenResume({
         }
         break;
 
-      case 'certifications':
+      case SECTION_TYPES.CERTIFICATIONS:
         const certSection = section as any;
         if (certSection.items) {
           for (const cert of certSection.items) {
@@ -357,7 +357,7 @@ export async function generateATSGreenResume({
         }
         break;
 
-      case 'custom':
+      case SECTION_TYPES.CUSTOM:
         const customSection = section as any;
         if (customSection.content) {
           for (const content of customSection.content) {

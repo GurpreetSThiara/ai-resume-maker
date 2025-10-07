@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, Edit2, Save } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import type { ResumeData, CustomSection } from "@/types/resume"
+import { SECTION_TYPES } from "@/types/resume"
 
 interface CustomSectionProps {
   data: ResumeData
@@ -18,7 +19,7 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
   const [newSection, setNewSection] = useState<CustomSection>({
     id: "",
     title: "",
-    type: "custom",
+    type: SECTION_TYPES.CUSTOM,
     content: []
   })
   const [isAddingNew, setIsAddingNew] = useState(false)
@@ -26,11 +27,11 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
   const [editData, setEditData] = useState<CustomSection>({
     id: "",
     title: "",
-    type: "custom",
+    type: SECTION_TYPES.CUSTOM,
     content: []
   })
 
-  const customSections = data.sections.filter((s): s is CustomSection => s.type === "custom")
+  const customSections = data.sections.filter((s): s is CustomSection => s.type === SECTION_TYPES.CUSTOM)
 
   const addSection = () => {
     if (newSection.title && newSection.content.length > 0) {
@@ -45,7 +46,7 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
       setNewSection({
         id: "",
         title: "",
-        type: "custom",
+        type: SECTION_TYPES.CUSTOM,
         content: []
       })
       setIsAddingNew(false)
@@ -72,7 +73,7 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
       setEditData({
         id: "",
         title: "",
-        type: "custom",
+        type: SECTION_TYPES.CUSTOM,
         content: []
       })
     }

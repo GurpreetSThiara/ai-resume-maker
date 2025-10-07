@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, Briefcase, Edit2, Save } from "lucide-react"
 import type { ResumeData, Experience, ExperienceSection as ExperienceSectionType } from "@/types/resume"
+import { SECTION_TYPES } from "@/types/resume"
 
 interface ExperienceSectionProps {
   data: ResumeData
@@ -34,16 +35,16 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
   const [isSectionDirty, setIsSectionDirty] = useState(false)
   const [isAddingNew, setIsAddingNew] = useState(false)
 
-  const experienceSection = data.sections.find((s): s is ExperienceSectionType => s.type === "experience") || {
+  const experienceSection = data.sections.find((s): s is ExperienceSectionType => s.type === SECTION_TYPES.EXPERIENCE) || {
     id: "experience",
     title: "Professional Experience",
-    type: "experience",
+    type: SECTION_TYPES.EXPERIENCE,
     items: []
   }
 
   useEffect(() => {
     // Compare the current state with the original data to determine if there are unsaved changes
-    const originalItems = data.sections.find((s) => s.type === "experience")?.items || []
+    const originalItems = data.sections.find((s) => s.type === SECTION_TYPES.EXPERIENCE)?.items || []
     const currentItems = experienceSection.items
     const isDifferent = JSON.stringify(originalItems) !== JSON.stringify(currentItems)
     setIsSectionDirty(isDifferent)
@@ -52,7 +53,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
   const addExperience = () => {
     if (newExperience.company && newExperience.role) {
       const updatedSections = data.sections.map((section) => {
-        if (section.type === "experience") {
+        if (section.type === SECTION_TYPES.EXPERIENCE) {
           return {
             ...section,
             items: [...(section.items || []), newExperience],
@@ -68,7 +69,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
 
   const removeExperience = (index: number) => {
     const updatedSections = data.sections.map((section) => {
-      if (section.type === "experience") {
+      if (section.type === SECTION_TYPES.EXPERIENCE) {
         return {
           ...section,
           items: section.items.filter((_, i) => i !== index),
@@ -87,7 +88,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
   const saveEdit = () => {
     if (editingIndex !== null && editData.company && editData.role) {
       const updatedSections = data.sections.map((section) => {
-        if (section.type === "experience") {
+        if (section.type === SECTION_TYPES.EXPERIENCE) {
           const newItems = [...section.items]
           newItems[editingIndex] = editData
           return {

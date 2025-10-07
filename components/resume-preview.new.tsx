@@ -3,6 +3,7 @@
 import type React from "react"
 import { useRef, useEffect, forwardRef, useState } from "react"
 import type { ResumeData, ResumeTemplate, Section } from "@/types/resume"
+import { SECTION_TYPES } from "@/types/resume"
 import { getResumePreview } from "./resumes"
 
 interface ResumePreviewProps {
@@ -200,7 +201,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
                 >
                   {section.title}
                 </h2>
-                {section.type === "education" && (
+                {section.type === SECTION_TYPES.EDUCATION && (
                   <div>
                     {section.items.map((edu, index) => (
                       <div key={index} className={template.theme.spacing.item}>
@@ -231,7 +232,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
                     ))}
                   </div>
                 )}
-                {section.type === "experience" && (
+                {section.type === SECTION_TYPES.EXPERIENCE && (
                   <div>
                     {section.items.map((exp, index) => (
                       <div key={index} className={template.theme.spacing.item}>
@@ -262,7 +263,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
                     ))}
                   </div>
                 )}
-                {(section.type === "skills" || section.type === "languages" || section.type === "certifications") && (
+                {(section.type === SECTION_TYPES.SKILLS || section.type === SECTION_TYPES.LANGUAGES || section.type === SECTION_TYPES.CERTIFICATIONS) && (
                   <div className="flex flex-wrap gap-2">
                     {section.items.map((item, index) => (
                       <span
@@ -274,7 +275,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
                     ))}
                   </div>
                 )}
-                {section.type === "custom" && (
+                {section.type === SECTION_TYPES.CUSTOM && (
                   <div className={template.theme.spacing.content}>
                     {section.content.map((item, index) => (
                       <p

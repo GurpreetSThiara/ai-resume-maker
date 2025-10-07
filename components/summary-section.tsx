@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useAi } from "@/hooks/use-ai"
-import { ResumeData } from "@/types/resume"
+import { ResumeData, SECTION_TYPES } from "@/types/resume"
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
 
@@ -33,9 +33,9 @@ export function SummarySection({ data, onUpdate }: SummarySectionProps) {
         },
         body: JSON.stringify({
           name: data.basics.name,
-          experience: data.sections.find(section => section.type === "experience")?.items || [],
-          skills: data.sections.find(section => section.type === "skills")?.items || [],
-          education: data.sections.find(section => section.type === "education")?.items || [],
+          experience: data.sections.find(section => section.type === SECTION_TYPES.EXPERIENCE)?.items || [],
+          skills: data.sections.find(section => section.type === SECTION_TYPES.SKILLS)?.items || [],
+          education: data.sections.find(section => section.type === SECTION_TYPES.EDUCATION)?.items || [],
         }),
       })
 

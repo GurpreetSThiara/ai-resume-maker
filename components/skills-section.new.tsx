@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, Rocket, Edit2 } from "lucide-react"
 import type { ResumeData, SkillsSection as ISkillsSection } from "@/types/resume"
+import { SECTION_TYPES } from "@/types/resume"
 
 interface SkillsSectionProps {
   data: ResumeData
@@ -20,11 +21,11 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
   const [isAddingNew, setIsAddingNew] = useState(false)
 
   // Find the skills section
-  const skillsSectionIndex = data.sections.findIndex((s) => s.type === "skills")
+  const skillsSectionIndex = data.sections.findIndex((s) => s.type === SECTION_TYPES.SKILLS)
   const skillsSection = data.sections[skillsSectionIndex] as ISkillsSection || {
     id: (data.sections.length + 1).toString(),
     title: "Skills & More",
-    type: "skills" as const,
+    type: SECTION_TYPES.SKILLS,
     items: []
   }
 
@@ -71,7 +72,7 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
       updatedSections.push({
         id: (data.sections.length + 1).toString(),
         title: "Skills & More",
-        type: "skills" as const,
+        type: SECTION_TYPES.SKILLS,
         items: skills
       })
     } else {

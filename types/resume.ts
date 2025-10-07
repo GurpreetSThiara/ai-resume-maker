@@ -33,43 +33,47 @@ export interface BaseSection {
   type: SectionType
 }
 
-// 🔹 Allowed Section Types
-export type SectionType =
-  | "education"
-  | "experience"
-  | "skills"
-  | "languages"
-  | "certifications"
-  | "custom"
+// 🔹 Centralized Section Type constants
+export const SECTION_TYPES = {
+  EDUCATION: "education",
+  EXPERIENCE: "experience",
+  SKILLS: "skills",
+  LANGUAGES: "languages",
+  CERTIFICATIONS: "certifications",
+  CUSTOM: "custom",
+} as const
+
+// 🔹 Allowed Section Types (derived from constants)
+export type SectionType = typeof SECTION_TYPES[keyof typeof SECTION_TYPES]
 
 // 🔹 Specialized Sections
 export interface EducationSection extends BaseSection {
-  type: "education"
+  type: typeof SECTION_TYPES.EDUCATION
   items: Education[]
 }
 
 export interface ExperienceSection extends BaseSection {
-  type: "experience"
+  type: typeof SECTION_TYPES.EXPERIENCE
   items: Experience[]
 }
 
 export interface SkillsSection extends BaseSection {
-  type: "skills"
+  type: typeof SECTION_TYPES.SKILLS
   items: string[]
 }
 
 export interface LanguagesSection extends BaseSection {
-  type: "languages"
+  type: typeof SECTION_TYPES.LANGUAGES
   items: string[]
 }
 
 export interface CertificationsSection extends BaseSection {
-  type: "certifications"
+  type: typeof SECTION_TYPES.CERTIFICATIONS
   items: string[]
 }
 
 export interface CustomSection extends BaseSection {
-  type: "custom"
+  type: typeof SECTION_TYPES.CUSTOM
   content: string[]
 }
 
