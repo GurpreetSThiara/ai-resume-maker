@@ -10,7 +10,7 @@ import { Values } from "@/components/appUI/home/ValueProps"
 
 export const metadata: Metadata = {
   title: 'Free ATS Resume Builder - No Sign Up | Optional AI with Free Account',
-  description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download, no credit card. Create a free account for AI-powered content generation.',
+  description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download. Create a free account for AI-powered content generation.',
   keywords: ['free resume builder no sign up', 'ats resume builder', 'free resume download', 'ai resume writer', 'live preview resume builder', 'completely free resume builder'],
   authors: [{ name: 'CreateFreeCV Team', url: 'https://createfreecv.com' }],
   creator: 'CreateFreeCV Team',
@@ -61,9 +61,25 @@ export const metadata: Metadata = {
 };
 
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  'name': 'CreateFreeCV',
+  'url': 'https://createfreecv.com',
+  'potentialAction': {
+    '@type': 'SearchAction',
+    'target': 'https://createfreecv.com/resume-builder?q={search_term_string}',
+    'query-input': 'required name=search_term_string',
+  },
+};
+
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white via-indigo-50 to-white">
+        <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white via-indigo-50 to-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
      
 
       {/* Hero Section */}

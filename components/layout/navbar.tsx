@@ -59,9 +59,9 @@ export function Navbar() {
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             {/* <FileText className="w-8 h-8 text-blue-600" aria-hidden="true" /> */}
-            <h1 className="text-2xl font-bold bg-gradient-to-r text-primary ">
+            <div className="text-2xl font-bold bg-gradient-to-r text-primary ">
               Resume Builder
-            </h1>
+            </div>
           </Link>
 
           {/* Desktop nav */}
