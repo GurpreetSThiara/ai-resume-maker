@@ -4,65 +4,67 @@ import { ChevronLeft, ChevronRight, Trophy, Star, Target, Eye, Save, X } from "l
 
 export const stats = [
     { value: "50K+", label: "Resumes Created", color: "text-primary" },
-    { value: "95%", label: "Success Rate", color: "text-secondary" },
     { value: "4.9★", label: "User Rating", color: "text-secondary" },
     { value: "2 min", label: "To First Draft", color: "text-emerald-700" },
   ];
   
 
-export const ValueProps = [
+export const CoreFeatures = [
     {
-      icon: Zap,
-      title: "Gamified Experience",
-      description: "Unlock achievements and track progress as you build your perfect resume step by step. Make resume writing fun and engaging.",
+      icon: Shield,
+      title: "ATS-Friendly Templates",
+      description: "Beat the bots. Our resume templates are optimized for Applicant Tracking Systems to ensure your application gets seen by human recruiters.",
       gradientFrom: "from-green-50",
       gradientTo: "to-green-100",
       iconColor: "text-green-600"
     },
     {
-      icon: Shield,
-      title: "ATS-Friendly",
-      description: "Our templates are optimized for Applicant Tracking Systems to ensure your resume gets noticed by recruiters and hiring managers.",
+      icon: Eye,
+      title: "Live Resume Preview",
+      description: "See your changes in real-time as you type. What you see is exactly what you get, making the editing process seamless and intuitive.",
       gradientFrom: "from-blue-50",
       gradientTo: "to-blue-100",
       iconColor: "text-blue-600"
     },
     {
-      icon: Globe,
-      title: "Mobile-First Design",
-      description: "Build your resume on any device with our responsive, mobile-optimized interface. Create professional resumes on the go.",
+      icon: Download,
+      title: "Instant DOCX Download",
+      description: "No sign-up, no watermarks, no hassle. Download your professional resume in DOCX format the moment you're done, completely free.",
       gradientFrom: "from-indigo-50",
       gradientTo: "to-indigo-100",
       iconColor: "text-indigo-600"
     },
+];
+
+export const AIFeatures = [
     {
-      icon: Download,
-      title: "Instant PDF Export",
-      description: "Download your professional resume as a high-quality PDF with just one click. Perfect for job applications and interviews.",
-      gradientFrom: "from-green-50",
-      gradientTo: "to-green-100",
-      iconColor: "text-green-600"
-    },
-    {
-      icon: Users,
-      title: "Expert Templates",
-      description: "Choose from professionally designed templates created by HR experts and career coaches. Stand out in any industry.",
+      icon: Sparkles,
+      title: "AI Content Writer",
+      description: "Struggling with words? Generate professional summaries and job descriptions with a single click. (Free Account Required)",
       gradientFrom: "from-yellow-50",
       gradientTo: "to-yellow-100",
       iconColor: "text-yellow-600"
     },
     {
-      icon: Sparkles,
-      title: "Smart Suggestions",
-      description: "Get intelligent recommendations and tips to improve your resume content and formatting. AI-powered insights for better results.",
+      icon: Zap,
+      title: "AI Bullet Point Generator",
+      description: "Transform your responsibilities into impactful, achievement-oriented bullet points that catch a recruiter's eye. (Free Account Required)",
       gradientFrom: "from-pink-50",
       gradientTo: "to-pink-100",
       iconColor: "text-pink-600"
+    },
+    {
+      icon: Target,
+      title: "AI Keyword Optimization",
+      description: "Tailor your resume to a specific job description by letting our AI identify and suggest relevant keywords to include. (Free Account Required)",
+      gradientFrom: "from-purple-50",
+      gradientTo: "to-purple-100",
+      iconColor: "text-purple-600"
     }
-  ]  
+];
 
 
-export const CREATE_STEPS = [
+export const CREATE_STEPS =  [
     {
       number: 1,
       title: "Enter Your Information",

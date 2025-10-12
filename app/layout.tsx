@@ -3,55 +3,31 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { AiProvider } from "@/hooks/use-ai"
+import { DevelopmentBanner } from "@/components/global/DevelopmentBanner";
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import Providers from "@/contexts/provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Resume Builder - Create Professional Resumes | Free ATS-Friendly Templates",
-  description:
-    "Build professional, ATS-friendly resumes with our free resume builder. Get hired faster with our easy-to-use tools, expert templates, and gamified experience. Create your perfect resume in minutes!",
-  keywords: [
-    "resume builder",
-    "free resume builder",
-    "ATS friendly resume",
-    "professional resume templates",
-    "resume maker",
-    "CV builder",
-    "job application",
-    "career tools",
-    "resume templates",
-    "professional resume",
-    "resume writing",
-    "job search",
-    "career development",
-    "resume format",
-    "resume examples"
-  ],
-  authors: [{ name: "Resume Builder Team" }],
-  creator: "Resume Builder",
-  publisher: "Resume Builder",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  metadataBase: new URL('https://resume-builder.com'),
-  alternates: {
-    canonical: '/',
-  },
+  title: 'Free ATS Resume Builder - No Sign Up | CreateFreeCV.com',
+  description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download, no credit card, no hidden fees. Create a free account for optional AI features.',
+  keywords: ['free resume builder no sign up', 'ats resume builder', 'free resume download', 'ai resume writer', 'live preview resume builder', 'completely free resume builder', 'free resume builder no hidden fees'],
+  authors: [{ name: 'CreateFreeCV Team', url: 'https://createfreecv.com' }],
+  creator: 'CreateFreeCV Team',
+  publisher: 'CreateFreeCV',
+  metadataBase: new URL('https://createfreecv.com'),
   openGraph: {
-    title: "Resume Builder - Create Professional Resumes | Free ATS-Friendly Templates",
-    description: "Build professional, ATS-friendly resumes with our free resume builder. Get hired faster with our easy-to-use tools, expert templates, and gamified experience.",
-    url: 'https://resume-builder.com',
-    siteName: 'Resume Builder',
+    title: 'Free ATS Resume Builder - No Sign Up | CreateFreeCV.com',
+    description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download. Optional AI assistant with a free account.',
+    url: 'https://createfreecv.com',
+    siteName: 'CreateFreeCV',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Resume Builder - Professional Resume Creation Tool',
+        alt: 'Create a professional resume with CreateFreeCV.com',
       },
     ],
     locale: 'en_US',
@@ -59,9 +35,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Resume Builder - Create Professional Resumes",
-    description: "Build professional, ATS-friendly resumes with our free resume builder. Get hired faster!",
-    images: ['/og-image.jpg'],
+    title: 'Free ATS Resume Builder - No Sign Up | CreateFreeCV.com',
+    description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download. Optional AI assistant with a free account.',
+    images: ['/twitter-image.png'], 
   },
   robots: {
     index: true,
@@ -91,6 +67,7 @@ export default function RootLayout({
       <Providers>
         <AiProvider>
          
+          <DevelopmentBanner />
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />

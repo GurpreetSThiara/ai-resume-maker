@@ -13,18 +13,15 @@ export const Hero = () => {
                 </div>
                 <div className="container mx-auto px-4 pt-20 pb-14 md:pt-28 md:pb-20 relative text-center">
                   <Badge className="mb-5 bg-white/80 text-green-700 border border-green-200">
-                    <Sparkles className="w-4 h-4 mr-2" /> AI + ATS Optimized
+                    <Sparkles className="w-4 h-4 mr-2" /> Free Forever. No Sign-Up Required.
                   </Badge>
 
-                   <p className="text-sm md:text-xl text-slate-600 mb-8 max-w-3xl mx-auto">
-                    This app is currently in development mode and under contruction. Still you can create resume for free!
-                  </p>
                   <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 bg-gradient-to-r from-slate-900 via-green-700 to-indigo-700 bg-clip-text text-transparent">
-                    Your Resume, Perfected in Minutes
+                    Free ATS Resume Builder. No Sign-Up Required.
                   </h1>
                   
                   <p className="text-lg md:text-2xl text-slate-600 mb-8 max-w-3xl mx-auto">
-                    Build a modern, recruiter-ready resume with live preview, AI guidance, and world-class templates.
+                    Build and download a professional, ATS-friendly resume instantly. We're a free resume builder with no hidden fees. Live preview, free DOCX download, no credit card needed. Optional AI assistant with a free account.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
                     <Link href={CREATE_RESUME}>

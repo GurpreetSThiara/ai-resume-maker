@@ -1,5 +1,6 @@
-"use client"
 
+
+import type { Metadata } from 'next'
 import ResumeCarousel from "@/components/appUI/Carausol/ResumeCarausol"
 import { CTA } from "@/components/appUI/home/CTA"
 import AdvancedFeatures from "@/components/appUI/home/FeatureDeepDive"
@@ -7,7 +8,57 @@ import { Hero } from "@/components/appUI/home/Hero"
 import { HowItWorks } from "@/components/appUI/home/HowItWorks"
 import { Values } from "@/components/appUI/home/ValueProps"
 
-
+export const metadata: Metadata = {
+  title: 'Free ATS Resume Builder - No Sign Up | Optional AI with Free Account',
+  description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download, no credit card. Create a free account for AI-powered content generation.',
+  keywords: ['free resume builder no sign up', 'ats resume builder', 'free resume download', 'ai resume writer', 'live preview resume builder', 'completely free resume builder'],
+  authors: [{ name: 'CreateFreeCV Team', url: 'https://createfreecv.com' }],
+  creator: 'CreateFreeCV Team',
+  publisher: 'CreateFreeCV',
+  metadataBase: new URL('https://createfreecv.com'),
+  openGraph: {
+    title: 'Free ATS Resume Builder - No Sign Up | Optional AI with Free Account',
+    description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download. Optional AI assistant with a free account.',
+    url: 'https://createfreecv.com',
+    siteName: 'CreateFreeCV',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Create a professional resume with CreateFreeCV.com',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Free ATS Resume Builder - No Sign Up | Optional AI with Free Account',
+    description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download. Optional AI assistant with a free account.',
+    images: ['/twitter-image.png'], 
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  alternates: {
+    canonical: 'https://createfreecv.com',
+  },
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon-16x16.png',
+    apple: '/apple-touch-icon.png',
+  },
+  manifest: '/site.webmanifest',
+};
 
 
 export default function HomePage() {

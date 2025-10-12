@@ -13,7 +13,7 @@ export function Footer() {
           <div className="flex items-center gap-2">
             <FileText className="w-7 h-7 text-primary" />
             <h2 className="text-2xl font-extrabold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Resume Builder
+              CreateFreeCV
             </h2>
           </div>
           <p className="text-muted-foreground text-sm leading-relaxed">
@@ -93,7 +93,7 @@ export function Footer() {
             </li>
             <li>
               <Link
-                href="#"
+                href="/blog"
                 className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
               >
                 Blog
@@ -111,7 +111,7 @@ export function Footer() {
           <ul className="space-y-3">
             <li>
               <Link
-                href="#"
+                href="/about"
                 className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
               >
                 About Us
@@ -119,7 +119,7 @@ export function Footer() {
             </li>
             <li>
               <Link
-                href="#"
+                href="/contact"
                 className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
               >
                 Contact
@@ -127,7 +127,7 @@ export function Footer() {
             </li>
             <li>
               <Link
-                href="#"
+                href="/privacy-policy"
                 className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
               >
                 Privacy Policy
@@ -139,7 +139,7 @@ export function Footer() {
 
       {/* Bottom */}
       <div className="border-t border-border/50 mt-12 pt-6 text-center text-muted-foreground text-sm">
-        <p>&copy; {currentYear} Resume Builder. All rights reserved.</p>
+        <p>&copy; {currentYear} CreateFreeCV. All rights reserved.</p>
       </div>
     </div>
   </footer>
