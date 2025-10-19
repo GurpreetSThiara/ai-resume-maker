@@ -35,7 +35,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         priority: 0.3,
     },
     {
-  url: `${baseUrl}/resume`,
+  url: `${baseUrl}/free-ats-resume-templates`,
   lastModified: new Date(),
   changeFrequency: 'weekly',
   priority: 1,

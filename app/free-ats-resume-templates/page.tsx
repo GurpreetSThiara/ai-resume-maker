@@ -3,6 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { RESUME_TEMPLATES } from "../../constants/resumeConstants"
+import { CREATE_RESUME } from "@/config/urls"
 
 export default function ResumePage() {
   return (
@@ -36,10 +37,10 @@ export default function ResumePage() {
               <p className="mt-3 text-sm text-muted-foreground">{t.description}</p>
 
               <div className="mt-4 flex items-center justify-between gap-2">
-                <Link className="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium bg-primary text-white hover:opacity-95" href={`/resume/create?template=${t.id}`}>
+                <Link className="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium bg-primary text-white hover:opacity-95" href={`${CREATE_RESUME}/create?template=${t.id}`}>
                   Use this template
                 </Link>
-                <Link className="text-sm text-primary hover:underline" href={`/resume/preview?template=${t.id}`}>Preview</Link>
+                <Link className="text-sm text-primary hover:underline" href={`${CREATE_RESUME}/preview?template=${t.id}`}>Preview</Link>
               </div>
             </div>
           </article>

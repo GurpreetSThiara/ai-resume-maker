@@ -1,13 +1,17 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Roboto } from "next/font/google"
 import "./globals.css"
 import { AiProvider } from "@/hooks/use-ai"
 import { DevelopmentBanner } from "@/components/global/DevelopmentBanner";
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import Providers from "@/contexts/provider"
-const inter = Inter({ subsets: ["latin"] })
+const roboto = Roboto({
+  weight: ['300', '400', '500', '700'],
+  subsets: ['latin'],
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'Free ATS Resume Builder - No Sign Up | CreateFreeCV.com',
@@ -63,7 +67,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} min-h-screen flex flex-col`}>
+      <body className={`${roboto.className} min-h-screen flex flex-col`}>
       <Providers>
         <AiProvider>
          

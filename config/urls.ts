@@ -1,3 +1,3 @@
-const CREATE_RESUME = `/resume`
+const CREATE_RESUME = `/free-ats-resume-templates`
 
 export {CREATE_RESUME}
