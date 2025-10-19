@@ -181,7 +181,7 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
             minWidth: 595,
            // minHeight: 842,
             maxWidth: '100%',
-            scale:0.5,
+           // scale:0.5,
             // transform: `scale(${scale})`,
             // transformOrigin: 'top center',
             // transition: 'transform 0.2s',
