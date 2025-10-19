@@ -280,9 +280,14 @@ Parse the user's information and return ONLY the JSON object, no additional text
             />
           </div>
           
-          <Button onClick={handleStart} disabled={loading || !userInput}>
-            {loading ? 'Analyzing...' : 'Parse with AI'}
-          </Button>
+          <div title="Coming soon">
+            <Button
+              onClick={effectiveAiEnabled ? handleStart : undefined}
+              disabled
+            >
+              {loading ? 'Analyzing...' : 'Parse with AI'}
+            </Button>
+          </div>
           
           {error && <div className="text-red-500 text-sm">{error}</div>}
           

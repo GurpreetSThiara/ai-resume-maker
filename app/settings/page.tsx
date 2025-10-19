@@ -340,12 +340,15 @@ export default function SettingsPage() {
                     <p className="text-xs text-gray-500 mt-1">Monthly credits: ${'{'}usage.totalUsdUsedThisMonth.toFixed(2){'}'} used / ${'{'}usage.monthUsdLimit.toFixed(2){'}'}</p>
                   )}
                 </div>
-                <Switch
-                  id="ai_enabled"
-                  checked={aiEnabled}
-                  onCheckedChange={(checked) => setAiEnabled(checked)}
-                  disabled={!user}
-                />
+                <div title="Coming soon" className="inline-block">
+                  <Switch
+                    id="ai_enabled"
+                    checked={aiEnabled}
+                    onCheckedChange={(checked) => setAiEnabled(checked)}
+                    disabled
+                  />
+                </div>
+
               </div>
 
               <div className="flex items-center justify-between">

@@ -66,12 +66,12 @@ export function SummarySection({ data, onUpdate }: SummarySectionProps) {
           <Label htmlFor="summary" className="text-sm font-medium">
             Professional Summary
           </Label>
-          {effectiveAiEnabled && (
+          <div title="Coming soon" className="inline-block">
             <Button
               variant="outline"
               size="sm"
-              onClick={generateSummary}
-              disabled={isGenerating}
+              onClick={effectiveAiEnabled ? generateSummary : undefined}
+              disabled
             >
               {isGenerating ? (
                 <>
@@ -82,7 +82,7 @@ export function SummarySection({ data, onUpdate }: SummarySectionProps) {
                 "✨ Generate with AI"
               )}
             </Button>
-          )}
+          </div>
         </div>
         <Textarea
           id="summary"

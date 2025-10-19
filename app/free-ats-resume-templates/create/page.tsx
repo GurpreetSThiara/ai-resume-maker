@@ -408,17 +408,16 @@ const CreateResumeContent: FC = () => {
     </select>
 
     {/* AI Button */}
-    <Button
-      onClick={() => setModalOpen(true)}
-      disabled={!effectiveAiEnabled}
-      className="flex items-center gap-2"
-    >
-      <Star className="w-4 h-4" />
-      Create with AI
-    </Button>
-    {!effectiveAiEnabled && (
-      <span className="text-xs text-red-600">Login to use AI</span>
-    )}
+    <div title="Coming soon" className="inline-block">
+      <Button
+        onClick={effectiveAiEnabled ? () => setModalOpen(true) : undefined}
+        disabled
+        className="flex items-center gap-2"
+      >
+        <Star className="w-4 h-4" />
+        Create with AI
+      </Button>
+    </div>
 
 
   </div>
