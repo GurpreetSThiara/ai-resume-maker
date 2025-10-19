@@ -125,8 +125,8 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
+    <div className="w-full max-w-md">
+      <Card className="w-full">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
             Resume Builder
@@ -294,14 +294,14 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
           </Tabs>
 
           <div className="mt-6">
-            <div className="relative">
+            {/* <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
+                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
               </div>
-            </div>
+            </div> */}
 
             {/* <Button
               variant="outline"

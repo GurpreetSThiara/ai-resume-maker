@@ -29,5 +29,9 @@ export default function AuthPage() {
     return null // Will redirect
   }
 
-  return <AuthForm onSuccess={() => router.push(CREATE_RESUME)} />
+  return (
+    <div className="container mx-auto px-4 py-12 flex justify-center">
+      <AuthForm onSuccess={() => router.push(CREATE_RESUME)} />
+    </div>
+  )
 }

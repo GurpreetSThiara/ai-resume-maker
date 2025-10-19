@@ -45,7 +45,7 @@ export default function PreviewClient() {
           </div>
           <div className="flex items-center gap-3">
             <DownloadDropDown data={{ resumeData: sampleData, template, filename: `resume-preview-${template.id}` }} />
-            <Link href={`${CREATE_RESUME}`} className="px-3 py-2 rounded-md bg-white border">Choose another template</Link>
+            <Link href={`${CREATE_RESUME}`} className="px-3 py-2 rounded-md bg-white border">browseother template</Link>
           </div>
         </div>
 

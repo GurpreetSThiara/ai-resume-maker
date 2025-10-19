@@ -29,7 +29,7 @@ export const CTA = () => {
               </Button>
             </Link>
       
-            <Link href="/templates">
+            <Link href={`${CREATE_RESUME}/templates`}>
               <Button
                 size="lg"
                 variant="outline"
