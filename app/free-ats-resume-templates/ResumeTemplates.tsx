@@ -5,7 +5,7 @@ import Image from "next/image"
 import { RESUME_TEMPLATES } from "../../constants/resumeConstants"
 import { CREATE_RESUME } from "@/config/urls"
 
-export default function ResumePage() {
+export  function Templates() {
   return (
     <main className="max-w-7xl mx-auto px-4 py-10">
       <header className="mb-8">

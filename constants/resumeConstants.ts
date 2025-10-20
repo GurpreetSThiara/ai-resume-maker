@@ -11,12 +11,14 @@ export const DEFAULT_EDUCATION = {
       CLASSIC: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/classic.png",
       ATS_GREEN: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/atsgreen.png",
       ATS_YELLOW: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/atsyellow.png",
+      ATS_TIMELINE: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/timeline.png",
 
       CLASSIC_BLUE: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/deveops/devops1.png",
       MODERN: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/modern.png",
       CREATIVE: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/creative.png",
       ELEGANT: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/elegant.png",
       GOOGLE_STYLE: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/google-resume.png",
+      TIMELINE_1:"https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/timeline_1.png",
   }
 
     export const RESUME_TEMPLATES = [
@@ -51,6 +53,14 @@ export const DEFAULT_EDUCATION = {
         category: "Contemporary",
         description: "A modern layout with subtle accents and clear sectioning for creative and product roles.",
         suggestedFor: ["Product", "Design", "Marketing"]
+      },
+      {
+        id: "ats-timeline",
+        name: "Timeline",
+        url: RESUME_IMAGES.TIMELINE_1,
+        category: "Modern",
+        description: "Visual timeline design with blue accents. Perfect for showcasing career progression clearly.",
+        suggestedFor: ["All industries", "Career progression focused"]
       },
      
       // },

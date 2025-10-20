@@ -1,5 +1,5 @@
 import React from 'react'
-import ResumePage from './Templates'
+import ResumePage from './ResumeTemplates'
 
 import type { Metadata } from 'next'
 
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   }
 }
 
-const page = () => {
+const FreeAtsResumeTemplatesPage = () => {
   return (
     <div>
       <ResumePage />
@@ -49,4 +49,4 @@ const page = () => {
   )
 }
 
-export default page
+export default FreeAtsResumeTemplatesPage

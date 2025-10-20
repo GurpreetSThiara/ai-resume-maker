@@ -109,6 +109,24 @@ export const ATS_YELLOW: ResumeTemplate = {
   },
 }
 
+export const ATS_TIMELINE: ResumeTemplate = {
+  id: "ats-timeline",
+  name: "Timeline",
+  description: "Modern single-column layout with visual timeline for experience and education",
+  theme: {
+    fontSize: { name: "text-3xl", section: "text-xl", content: "text-base", small: "text-sm" },
+    colors: { primary: "text-gray-800", secondary: "text-gray-500", text: "text-gray-900", accent: "text-blue-500" },
+    spacing: { section: "mb-8", item: "mb-4", content: "mb-2" },
+    layout: { container: "max-w-4xl mx-auto bg-white shadow rounded-lg overflow-hidden", header: "border-b p-4", content: "p-6" },
+  },
+  pdfConfig: {
+    fonts: { regular: "Arial", bold: "ArialBold" },
+    sizes: { name: 28, section: 14, content: 12, small: 11 },
+    colors: { text: { r: 0.176, g: 0.216, b: 0.282 }, heading: { r: 0.102, g: 0.125, b: 0.173 }, secondary: { r: 0.29, g: 0.333, b: 0.408 }, linkColor: { r: 0.259, g: 0.6, b: 0.882 } },
+    spacing: { page: 15, section: 18, item: 12 },
+  },
+}
+
 
 
 
@@ -119,7 +137,8 @@ export const availableTemplates: ResumeTemplate[] = [
  // modernTemplate,
   classicATSTemplate,
   ATS_GREEN,
-  ATS_YELLOW
+  ATS_YELLOW,
+  ATS_TIMELINE
  // elegantATSTemplate,
  // compactATSTemplate,
   //creativeATSTemplate,

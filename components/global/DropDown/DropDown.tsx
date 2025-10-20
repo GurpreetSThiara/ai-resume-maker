@@ -29,9 +29,18 @@ const DownloadDropDown = ({data}) => {
         }}>
           PDF
         </DropdownMenuItem>
-        <DropdownMenuItem className="capitalize cursor-pointer" onClick={()=>{
-            generateResumeDOCX({...data , filename:`${data.filename}.docx`})
-        }}>
+        <DropdownMenuItem
+          className="capitalize cursor-pointer"
+          disabled={!['ats-classic', 'google-docs'].includes(data.template.name)}
+          style={{
+            cursor: !['ats-classic', 'google-docs'].includes(data.template.name) ? 'not-allowed' : 'pointer'
+          }}
+          onClick={() => {
+            if (['ats-classic', 'google-docs'].includes(data.template.name)) {
+              generateResumeDOCX({ ...data, filename: `${data.filename}.docx` })
+            }
+          }}
+        >
           DOCX
         </DropdownMenuItem>
       </DropdownMenuContent>

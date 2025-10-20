@@ -208,30 +208,29 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
               </h1>
 
               {/* Contact information */}
-              <div className="text-sm text-gray-600 mb-4">
-                {[resumeData.basics.email, resumeData.basics.phone, resumeData.basics.location, resumeData.basics.linkedin]
-                  .filter(Boolean)
-                  .map((field, index, array) => (
-                    <span key={index}>
-                      <span
-                        contentEditable
-                        suppressContentEditableWarning
-                        onBlur={(e) => {
-                          const textContent = e.currentTarget?.textContent
-                          if (textContent !== null) {
-                            const key = index === 0 ? 'email' : 
-                                      index === 1 ? 'phone' : 
-                                      index === 2 ? 'location' : 'linkedin'
-                            handleContactInfoChange(e, key as keyof typeof resumeData.basics)
-                          }
-                        }}
-                      >
-                        {field}
-                      </span>
-                      {index < array.length - 1 && <span className="mx-2">|</span>}
-                    </span>
-                  ))}
-              </div>
+             <div className="text-sm text-gray-600 mb-4 flex flex-col space-y-2">
+  {[resumeData.basics.email, resumeData.basics.phone, resumeData.basics.location, resumeData.basics.linkedin]
+    .filter(Boolean)
+    .map((field, index) => (
+      <div key={index} className="flex items-center">
+        <span
+          contentEditable
+          suppressContentEditableWarning
+          onBlur={(e) => {
+            const textContent = e.currentTarget?.textContent
+            if (textContent !== null) {
+              const key = index === 0 ? 'email' : 
+                        index === 1 ? 'phone' : 
+                        index === 2 ? 'location' : 'linkedin'
+              handleContactInfoChange(e, key as keyof typeof resumeData.basics)
+            }
+          }}
+        >
+          {field}
+        </span>
+      </div>
+    ))}
+</div>
 
               {/* Summary */}
               {resumeData?.basics?.summary && (

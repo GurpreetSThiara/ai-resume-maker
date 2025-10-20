@@ -6,9 +6,10 @@ import { generateElegantResumePDF } from "@/lib/pdf-generators/template-elegant-
 import { generateCompactResumePDF } from "@/lib/pdf-generators/template-compact-generator"
 import { generateCreativeResumePDF } from "@/lib/pdf-generators/template-creative-generator"
 import { generateATSGreenResume } from "./ats-green-resume-generator"
+import { generateTimelineResumePDF } from "./timeline-resume-generator"
 import { generateModernSidebarResumePDF } from "./twoside"
 import { RESUME_NAMES } from "@/config/resumeConfig"
-import { ATS_GREEN, ATS_YELLOW } from "../templates"
+import { ATS_GREEN, ATS_YELLOW, ATS_TIMELINE } from "../templates"
 
 export async function generateResumePDF(options: PDFGenerationOptions) {
   const { template } = options
@@ -29,7 +30,9 @@ export async function generateResumePDF(options: PDFGenerationOptions) {
     case ATS_GREEN.id:
       return generateATSGreenResume(options)
     case ATS_YELLOW.id:
-      generateATSGreenResume({...options , theme: "yellow"}) // using same generator for now  
+      return generateATSGreenResume({...options , theme: "yellow"}) // using same generator for now
+    case ATS_TIMELINE.id:
+      return generateTimelineResumePDF(options)
     default:
       return generateGooglePDF(options)
   }
