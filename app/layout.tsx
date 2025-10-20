@@ -6,6 +6,7 @@ import { AiProvider } from "@/hooks/use-ai"
 import { DevelopmentBanner } from "@/components/global/DevelopmentBanner";
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
+import { Analytics } from "@vercel/analytics/next"
 import Providers from "@/contexts/provider"
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -75,6 +76,7 @@ export default function RootLayout({
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
+          <Analytics/>
       
         </AiProvider>
       </Providers>
