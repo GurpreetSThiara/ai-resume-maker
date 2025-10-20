@@ -8,6 +8,7 @@ import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { Analytics } from "@vercel/analytics/next"
 import Providers from "@/contexts/provider"
+ 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
   subsets: ['latin'],
@@ -21,6 +22,26 @@ export const metadata: Metadata = {
   authors: [{ name: 'CreateFreeCV Team', url: 'https://createfreecv.com' }],
   creator: 'CreateFreeCV Team',
   publisher: 'CreateFreeCV',
+  manifest: '/site.webmanifest',
+  icons: {
+    icon: [
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon.ico', sizes: 'any' }
+    ],
+    shortcut: '/favicon-16x16.png',
+    apple: '/apple-touch-icon.png',
+    other: [
+      {
+        rel: 'android-chrome-192x192',
+        url: '/android-chrome-192x192.png',
+      },
+      {
+        rel: 'android-chrome-512x512',
+        url: '/android-chrome-512x512.png',
+      },
+    ],
+  },
   metadataBase: new URL('https://createfreecv.com'),
   openGraph: {
     title: 'Free ATS Resume Builder - No Sign Up | CreateFreeCV.com',
@@ -67,16 +88,24 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={`${roboto.className} min-h-screen flex flex-col`}>
+    <html lang="en" className={roboto.className}>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
+        <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+      </head>
+      <body className="min-h-screen bg-background font-sans antialiased">
       <Providers>
         <AiProvider>
          
           <DevelopmentBanner />
           <Navbar />
+          
           <main className="flex-1">{children}</main>
           <Footer />
-          <Analytics/>
+          {/* <Analytics/> */}
       
         </AiProvider>
       </Providers>

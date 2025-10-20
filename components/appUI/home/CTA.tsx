@@ -19,7 +19,7 @@ export const CTA = () => {
           </p>
       
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href={CREATE_RESUME}>
+            {/* <Link href={CREATE_RESUME}>
               <Button
                 size="lg"
                 className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-4 font-semibold rounded-xl shadow-lg shadow-primary/20 transition-all duration-300 hover:scale-105"
@@ -28,8 +28,8 @@ export const CTA = () => {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-      
-            <Link href={`${CREATE_RESUME}/templates`}>
+       */}
+            <Link href={`${CREATE_RESUME}`}>
               <Button
                 size="lg"
                 variant="outline"
