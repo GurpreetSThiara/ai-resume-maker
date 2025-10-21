@@ -25,86 +25,39 @@ import type {
   Section
 } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
-import { availableTemplates, googleTemplate, getTemplateById } from "@/lib/templates"
-import { RESUME_TEMPLATES } from "@/constants/resumeConstants"
-
+import { availableTemplates, googleTemplate } from "@/lib/templates"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import AIResumeModal from '../../../components/ai-resume-modal';
-import { useAi } from '@/hooks/use-ai';
-import { getLocalResumes, saveLocalResume } from '@/lib/local-storage';
 import ManageCloudModal from '@/components/manage-cloud-modal';
 import SaveResumeModal from '@/components/save-resume-modal';
-import DownloadDropDown from "@/components/global/DropDown/DropDown"
 import type { FC } from 'react'
 import { CustomSection as CustomSectionComponent } from "@/components/custom-section"
-import { sampleResumeData } from "@/lib/examples/resume-example"
 import { useAuth } from "@/contexts/auth-context"
-import { CREATE_RESUME_ACHIEVEMENTS, CREATE_RESUME_STEPS } from "@/app/constants/global"
+import {  CREATE_RESUME_STEPS } from "@/app/constants/global"
 import { LS_KEYS, setLocalStorageJSON, setLocalStorageItem, removeLocalStorageItems } from "@/utils/localstorage"
-import { devopsResumeData3, devopsResumeData2, devopsResumeData4 } from "@/lib/examples/resume/deveops"
-import { CreateResumeHeader } from "@/components/CreateResumeHeader"
 import { initializeSectionOrder } from "@/utils/sectionOrdering"
+import { devopsResumeData4 } from "@/lib/examples/resume/deveops"
+import { CreateResumeHeader } from "@/components/CreateResumeHeader"
+import { useTemplateSelector } from "@/hooks/use-template-selector"
+import { sanitizeResumeData } from "@/utils/createResume"
 
-const initialData: ResumeData =devopsResumeData4 //sampleResumeData
-const achievements = CREATE_RESUME_ACHIEVEMENTS
-
-
+const initialData: ResumeData = devopsResumeData4 //sampleResumeData
 
 const CreateResumeContent: FC = () => {
+  console.log("Rendering CreateResumeContent")
   const { loading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
-  const { effectiveAiEnabled } = useAi()
+  // const { effectiveAiEnabled } = useAi()
 
   const [currentStep, setCurrentStep] = useState(0)
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set())
   const [resumeData, setResumeData] = useState<ResumeData>(initialData)
   const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplate>(googleTemplate)
+  const template = useTemplateSelector(availableTemplates)
 
-  // Map incoming template query param to one of the availableTemplates
-  useEffect(() => {
-    const tplId = searchParams.get('template')
-    if (!tplId) return
-
-    const normalize = tplId.replace(/_/g, '-').toLowerCase()
-
-    // try direct lookup by id
-    let found = getTemplateById(normalize)
-    if (found) {
-      setSelectedTemplate(found)
-      return
-    }
-
-    // try exact id match on available templates
-    found = availableTemplates.find((t) => t.id === normalize || t.id === tplId)
-    if (found) {
-      setSelectedTemplate(found)
-      return
-    }
-
-    // fallback: use presentation metadata from RESUME_TEMPLATES to find a matching available template by name or keyword
-    const meta = RESUME_TEMPLATES.find((r) => r.id === tplId || r.id === normalize)
-    if (meta) {
-      const keyword = meta.name.toLowerCase().split(/\s|\-/)[0]
-      const byName = availableTemplates.find((t) => t.name.toLowerCase().includes(keyword) || t.id.includes(keyword))
-      if (byName) {
-        setSelectedTemplate(byName)
-        return
-      }
-    }
-
-    // last resort: try to match by partial id
-    const partial = availableTemplates.find((t) => t.id.includes(normalize) || normalize.includes(t.id))
-    if (partial) {
-      setSelectedTemplate(partial)
-      return
-    }
-
-    // default
-    setSelectedTemplate(googleTemplate)
-  }, [searchParams])
   const [showPreview, setShowPreview] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [currentResumeId, setCurrentResumeId] = useState<string | null>(null)
@@ -114,30 +67,10 @@ const CreateResumeContent: FC = () => {
   const [saveModalOpen, setSaveModalOpen] = useState(false)
   const steps = CREATE_RESUME_STEPS
 
- 
-  const sanitizeResumeData = (data: ResumeData): ResumeData => ({
-    ...data,
-    basics: {
-      ...data.basics,
-      name: data.basics.name || '',
-      email: data.basics.email || '',
-      phone: data.basics.phone || '',
-      location: data.basics.location || '',
-      linkedin: data.basics.linkedin || '',
-      summary: data.basics.summary || ''
-    },
-    custom: Object.fromEntries(
-      Object.entries(data.custom || {}).map(([key, field]) => [
-        key,
-        {
-          ...field,
-          title: field.title || '',
-          content: field.content || ''
-        }
-      ])
-    ),
-    sections: data.sections
-  });
+   useEffect(() => {
+    setSelectedTemplate(template)
+  }, [searchParams, availableTemplates, template])
+
   
   // Save to local storage
   const saveToLocal = () => {
@@ -217,8 +150,7 @@ const CreateResumeContent: FC = () => {
     }
   };
 
-  // Calculate progress
-  const progress = (Array.from(completedSteps).length / steps.length) * 100
+
 
   const handleResumeDataUpdate = (updates: Partial<ResumeData> | ((prev: ResumeData) => ResumeData)) => {
     if (typeof updates === 'function') {
@@ -383,17 +315,9 @@ const CreateResumeContent: FC = () => {
           selectedTemplate={selectedTemplate}
           setSelectedTemplate={setSelectedTemplate}
           availableTemplates={availableTemplates}
-          effectiveAiEnabled={effectiveAiEnabled}
+          effectiveAiEnabled={false}
           setModalOpen={setModalOpen}
         />
-
-
-        {/* <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-medium">Progress</span>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div> */}
 
         <div className="grid gap-6 mt-6">
           <div className={`grid gap-6 ${showPreview ? "lg:grid-cols-2" : "lg:grid-cols-4"}`}>
