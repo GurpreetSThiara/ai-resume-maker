@@ -3,6 +3,7 @@
 import { ResumeData, SECTION_TYPES } from "@/types/resume"
 import type React from "react"
 import { useRef, useEffect, useState } from "react"
+import { sortSectionsByOrder } from "@/utils/sectionOrdering"
 
 
 interface ResumeProps {
@@ -305,7 +306,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
             </div>
             
             {/* Sections */}
-            {resumeData.sections.map((section) => {
+            {sortSectionsByOrder(resumeData.sections).map((section) => {
               // Check if section has content based on section type
               let hasContent = false;
               

@@ -21,7 +21,8 @@ import type {
   EducationSection,
   ExperienceSection,
   SkillsSection,
-  CustomSection
+  CustomSection,
+  Section
 } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { availableTemplates, googleTemplate, getTemplateById } from "@/lib/templates"
@@ -42,6 +43,8 @@ import { useAuth } from "@/contexts/auth-context"
 import { CREATE_RESUME_ACHIEVEMENTS, CREATE_RESUME_STEPS } from "@/app/constants/global"
 import { LS_KEYS, setLocalStorageJSON, setLocalStorageItem, removeLocalStorageItems } from "@/utils/localstorage"
 import { devopsResumeData3, devopsResumeData2, devopsResumeData4 } from "@/lib/examples/resume/deveops"
+import { CreateResumeHeader } from "@/components/CreateResumeHeader"
+import { initializeSectionOrder } from "@/utils/sectionOrdering"
 
 const initialData: ResumeData =devopsResumeData4 //sampleResumeData
 const achievements = CREATE_RESUME_ACHIEVEMENTS
@@ -347,6 +350,17 @@ const CreateResumeContent: FC = () => {
     }
   };
 
+  const handleSectionReorder = (reorderedSections: Section[]) => {
+    handleResumeDataUpdate((prev: ResumeData) => ({
+      ...prev,
+      sections: reorderedSections
+    }))
+  }
+
+  // Initialize section order if not set
+  const sectionsWithOrder = initializeSectionOrder(resumeData.sections)
+
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -360,68 +374,18 @@ const CreateResumeContent: FC = () => {
  
 
       <div className="container mx-auto px-4 py-6">
-       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-  {/* Left Section */}
-  <div>
-    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Create Your Resume</h1>
-    {/* <p className="text-gray-600 mt-1 md:mt-2">
-      Step {currentStep + 1} of {steps.length}
-    </p> */}
-  </div>
-
-  {/* Right Section */}
-  <div className="flex flex-wrap items-center gap-3">
-    {/* Show/Hide Preview Button */}
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={() => setShowPreview(!showPreview)}
-      className="flex items-center gap-2"
-    >
-      <Eye className="w-4 h-4" />
-      {showPreview ? "Hide Preview" : "Show Preview"}
-    </Button>
-
-    {/* Download Dropdown */}
-    <DownloadDropDown
-      data={{
-        resumeData,
-        template: selectedTemplate,
-        filename: `${resumeData.basics.name || "resume"}.pdf`,
-      }}
-    />
-
-    {/* Template Selector */}
-    <select
-      className="border rounded px-2 py-1 text-sm"
-      value={selectedTemplate.id}
-      onChange={(e) => {
-        const t = availableTemplates.find((t) => t.id === e.target.value)
-        if (t) setSelectedTemplate(t)
-      }}
-    >
-      {availableTemplates.map((t) => (
-        <option key={t.id} value={t.id}>
-          {t.name}
-        </option>
-      ))}
-    </select>
-
-    {/* AI Button */}
-    <div title="Coming soon" className="inline-block">
-      <Button
-        onClick={effectiveAiEnabled ? () => setModalOpen(true) : undefined}
-        disabled
-        className="flex items-center gap-2"
-      >
-        <Star className="w-4 h-4" />
-        Create with AI
-      </Button>
-    </div>
-
-
-  </div>
-</div>
+       <CreateResumeHeader
+          sectionsWithOrder={sectionsWithOrder}
+          handleSectionReorder={handleSectionReorder}
+          showPreview={showPreview}
+          setShowPreview={setShowPreview}
+          resumeData={resumeData}
+          selectedTemplate={selectedTemplate}
+          setSelectedTemplate={setSelectedTemplate}
+          availableTemplates={availableTemplates}
+          effectiveAiEnabled={effectiveAiEnabled}
+          setModalOpen={setModalOpen}
+        />
 
 
         {/* <div className="space-y-2">

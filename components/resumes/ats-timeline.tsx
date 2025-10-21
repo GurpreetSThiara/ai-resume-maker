@@ -4,6 +4,7 @@ import type React from "react"
 import { useRef, useEffect, useState } from "react"
 import type { ResumeData } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
+import { sortSectionsByOrder } from "@/utils/sectionOrdering"
 
 interface ResumeProps {
   pdfRef: React.RefObject<HTMLDivElement>
@@ -294,7 +295,7 @@ export const ATS_TIMELINE: React.FC<ResumeProps> = ({
           )}
 
           {/* Sections with Timeline Design */}
-          {resumeData.sections.map((section) => {
+          {sortSectionsByOrder(resumeData.sections).map((section) => {
             // Check if section has content
             let hasContent = false
 

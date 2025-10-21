@@ -3,6 +3,7 @@
 import type React from "react"
 import { useRef, useEffect, useState } from "react"
 import type { ResumeData } from "@/types/resume"
+import { sortSectionsByOrder } from "@/utils/sectionOrdering"
 
 interface ResumeProps {
   pdfRef: React.RefObject<HTMLDivElement>
@@ -277,7 +278,7 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
 
             {/* Main Sections */}
             <main>
-              {resumeData.sections.map((section) => {
+              {sortSectionsByOrder(resumeData.sections).map((section) => {
                 // Check if section has content based on section type
                 let hasContent = false;
                 
