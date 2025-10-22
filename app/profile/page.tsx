@@ -29,6 +29,7 @@ import { loadUserResumes } from "@/services/resumeService"
 import { useAuth } from "@/contexts/auth-context"
 import { LS_KEYS, setLocalStorageJSON, setLocalStorageItem } from "@/utils/localstorage"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
+import DeleteConfirmModal from "@/components/appUI/modals/DeleteConfirmModal"
 
 interface ResumeItem {
   id: string
@@ -108,6 +109,9 @@ export default function ProfilePage() {
   const [hasLoadedResumes, setHasLoadedResumes] = useState(false)
   const [isSyncingLocal, setIsSyncingLocal] = useState(false)
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+  const [deleteResumeId, setDeleteResumeId] = React.useState<string | null>(null)
+
 
 
   useEffect(() => {
@@ -142,13 +146,11 @@ export default function ProfilePage() {
   }
 
   const handleEditResume = (resumeId: string) => {
-    router.push(`${CREATE_RESUME}?id=${resumeId}`)
+    router.push(`${CREATE_RESUME}/create?id=${resumeId}`)
   }
 
-  const handleDeleteResume = async (resumeId: string) => {
-    if (!confirm("Are you sure you want to delete this resume? This action cannot be undone.")) {
-      return
-    }
+  const handleDeleteResume = async (resumeId: string | null) => {
+    if (!resumeId) return
 
     setDeletingResume(resumeId)
     try {
@@ -361,7 +363,9 @@ export default function ProfilePage() {
                                 size="sm"
                                 aria-label="Delete"
                                 className="w-10 h-10 text-red-600 hover:text-red-700"
-                                onClick={() => handleDeleteResume(resume.id)}
+                                onClick={() =>{ setIsDeleteModalOpen(true) 
+                                  setDeleteResumeId(resume.id)
+                                }}
                                 disabled={deletingResume === resume.id}
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -456,6 +460,10 @@ export default function ProfilePage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      <DeleteConfirmModal   open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        onConfirm={()=>{handleDeleteResume(deleteResumeId)}} />
     </div>
   )
 }

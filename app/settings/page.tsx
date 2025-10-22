@@ -31,7 +31,6 @@ export default function SettingsPage() {
   const { user, loading, signOut } = useAuth()
   const { aiEnabled, setAiEnabled, usage, refreshUsage } = useAi()
   const router = useRouter()
-  const { toast } = useToast()
   
   const [profileData, setProfileData] = useState({
     full_name: user?.user_metadata?.full_name || "",
@@ -75,17 +74,10 @@ export default function SettingsPage() {
 
       if (error) throw error
 
-      toast({
-        title: "Profile Updated",
-        description: "Your profile has been updated successfully.",
-      })
+
     } catch (error) {
       console.error("Error updating profile:", error)
-      toast({
-        title: "Update Failed",
-        description: "Failed to update your profile. Please try again.",
-        variant: "destructive",
-      })
+
     } finally {
       setIsUpdating(false)
     }
@@ -95,20 +87,12 @@ export default function SettingsPage() {
     if (!user) return
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast({
-        title: "Password Mismatch",
-        description: "New passwords do not match.",
-        variant: "destructive",
-      })
+
       return
     }
 
     if (passwordData.newPassword.length < 6) {
-      toast({
-        title: "Password Too Short",
-        description: "Password must be at least 6 characters long.",
-        variant: "destructive",
-      })
+ 
       return
     }
 
@@ -120,10 +104,7 @@ export default function SettingsPage() {
 
       if (error) throw error
 
-      toast({
-        title: "Password Updated",
-        description: "Your password has been updated successfully.",
-      })
+ 
 
       setPasswordData({
         currentPassword: "",
@@ -132,11 +113,7 @@ export default function SettingsPage() {
       })
     } catch (error) {
       console.error("Error updating password:", error)
-      toast({
-        title: "Update Failed",
-        description: "Failed to update your password. Please try again.",
-        variant: "destructive",
-      })
+
     } finally {
       setIsUpdating(false)
     }
@@ -162,19 +139,10 @@ export default function SettingsPage() {
 
       if (error) throw error
 
-      toast({
-        title: "Account Deleted",
-        description: "Your account has been permanently deleted.",
-      })
-
       router.push("/auth")
     } catch (error) {
       console.error("Error deleting account:", error)
-      toast({
-        title: "Deletion Failed",
-        description: "Failed to delete your account. Please try again.",
-        variant: "destructive",
-      })
+ 
     } finally {
       setIsUpdating(false)
     }

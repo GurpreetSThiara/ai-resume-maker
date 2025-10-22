@@ -10,6 +10,7 @@ import { Drawer } from "@/components/ui/drawer"
 import React from "react"
 import { CREATE_RESUME } from "@/config/urls"
 import { useAuth } from "@/contexts/auth-context"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 
 
 export function Navbar() {
@@ -17,6 +18,7 @@ export function Navbar() {
   const { user, signOut } = useAuth();
   const [drawerOpen, setDrawerOpen] = React.useState(false);
 
+  console.log(user)
   // Navigation links for reuse
   const navLinks = (
     <>
@@ -70,13 +72,16 @@ export function Navbar() {
           </nav>
 
           
-          <div className="flex items-center gap-2">
+        <div className="flex gap-2 items-center">
+        <div className="flex items-center gap-2">
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="flex items-center gap-2 bg-transparent">
-                    <User className="w-4 h-4" aria-hidden="true" />
-                    {user.email}
+                  <Button variant="outline" size="sm" className="flex items-center gap-2 bg-transparent p-0 border-0 shadow-none">
+                    <Avatar className="h-8 w-8 bg-primary">
+                      <AvatarImage src={user.user_metadata?.avatar_url || undefined} alt={user.email || 'User'} />
+                      <AvatarFallback>{user.email ? user.email.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                    </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -117,6 +122,7 @@ export function Navbar() {
           >
             <Menu className="w-6 h-6" />
           </button>
+        </div>
 
         </div>
       </div>

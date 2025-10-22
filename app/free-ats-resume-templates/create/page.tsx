@@ -49,7 +49,6 @@ const CreateResumeContent: FC = () => {
   const { loading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { toast } = useToast()
   // const { effectiveAiEnabled } = useAi()
 
   const [currentStep, setCurrentStep] = useState(0)
@@ -97,10 +96,8 @@ const CreateResumeContent: FC = () => {
         setCurrentResumeId(res.data.id)
         removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps)
         setSaveModalOpen(false)
-        toast({ title: 'Resume Saved! 🎉', description: 'Cloud resume created successfully.' })
         router.push('/profile')
       } else {
-        toast({ title: 'Save Failed', description: res.message || 'Could not save resume.', variant: 'destructive' })
       }
     } finally {
       setIsSaving(false)
@@ -115,10 +112,8 @@ const CreateResumeContent: FC = () => {
         setCurrentResumeId(res.data.id)
         removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps)
         setSaveModalOpen(false)
-        toast({ title: 'Resume Updated! 🎉', description: 'Cloud resume updated successfully.' })
         router.push('/profile')
       } else {
-        toast({ title: 'Update Failed', description: res.message || 'Could not update resume.', variant: 'destructive' })
       }
     } finally {
       setIsSaving(false)
@@ -137,14 +132,11 @@ const CreateResumeContent: FC = () => {
         setLimitModalOpen(false)
         setCurrentResumeId(res.data.id)
         removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps)
-        toast({ title: "Resume Completed! 🎉", description: "Saved to cloud successfully." })
         router.push('/profile')
       } else {
-        toast({ title: 'Save Failed', description: res.message || 'Could not save after deletion', variant: 'destructive' })
       }
     } catch (e) {
       console.error(e)
-      toast({ title: 'Delete/Save Failed', description: 'Please try again', variant: 'destructive' })
     } finally {
       setLimitModalBusy(false)
     }
@@ -253,10 +245,7 @@ const CreateResumeContent: FC = () => {
     
     setCompletedSteps(newCompletedSteps);
     
-    toast({
-      title: "AI Data Applied",
-      description: "Your resume has been populated with AI-extracted information. You can now edit and refine it.",
-    });
+
   };
 
   const renderCurrentSection = () => {
