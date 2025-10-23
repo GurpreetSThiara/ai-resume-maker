@@ -5,6 +5,7 @@ export const LS_KEYS = {
   currentStep: "currentStep",
   completedSteps: "completedSteps",
   localResumes: "local_resumes_v1",
+  currentResumeId: "currentResumeId",
   coverLetter: (id: string) => `coverLetter_${id}`,
 } as const
 

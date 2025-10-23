@@ -18,7 +18,7 @@ import {
   EyeOff
 } from "lucide-react"
 import { getUserResumes, deleteResume, loadResumeData } from "@/lib/supabase-functions"
-import { getLocalResumes, removeLocalResume, LocalResumeItem } from "@/lib/local-storage"
+import { getLocalResumes, deleteLocalResume as removeLocalResume, getLocalResumeById, LocalResumeItem, duplicateLocalResume } from "@/lib/local-storage"
 import { useAi } from "@/hooks/use-ai"
 import { saveResumeData } from "@/lib/supabase-functions"
 import { useRouter } from "next/navigation"
@@ -28,8 +28,8 @@ import { CREATE_RESUME } from "@/config/urls"
 import { loadUserResumes } from "@/services/resumeService"
 import { useAuth } from "@/contexts/auth-context"
 import { LS_KEYS, setLocalStorageJSON, setLocalStorageItem } from "@/utils/localstorage"
+import DeleteConfirmModal from '@/components/appUI/modals/DeleteConfirmModal'
 import { Dialog, DialogContent } from "@/components/ui/dialog"
-import DeleteConfirmModal from "@/components/appUI/modals/DeleteConfirmModal"
 
 interface ResumeItem {
   id: string
@@ -111,6 +111,8 @@ export default function ProfilePage() {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [deleteResumeId, setDeleteResumeId] = React.useState<string | null>(null)
+  const [isLocalDeleteModalOpen, setIsLocalDeleteModalOpen] = useState(false)
+  const [deleteLocalResumeId, setDeleteLocalResumeId] = useState<string | null>(null)
 
 
 
@@ -175,7 +177,7 @@ export default function ProfilePage() {
   }
 
   const handleCreateNew = () => {
-    router.push(CREATE_RESUME)
+    router.push(`${CREATE_RESUME}/create`)
   }
 
   const handleSyncLocalToCloud = async () => {
@@ -233,14 +235,27 @@ export default function ProfilePage() {
     setLocalStorageJSON(LS_KEYS.resumeData, localResume.data)
     setLocalStorageItem(LS_KEYS.currentStep, '1')
     setLocalStorageJSON(LS_KEYS.completedSteps, [0, 1, 2, 3, 4])
-    router.push(CREATE_RESUME)
+    setLocalStorageItem(LS_KEYS.currentResumeId, localResume.id)
+    router.push(`${CREATE_RESUME}/create`)
   }
 
   const handleDeleteLocalResume = (id: string) => {
-    if (confirm('Are you sure you want to delete this local resume? This action cannot be undone.')) {
-      removeLocalResume(id)
+    setDeleteLocalResumeId(id)
+    setIsLocalDeleteModalOpen(true)
+  }
+
+  const confirmDeleteLocalResume = () => {
+    if (deleteLocalResumeId) {
+      removeLocalResume(deleteLocalResumeId)
       setLocalResumes(getLocalResumes())
- 
+      setDeleteLocalResumeId(null)
+    }
+  }
+
+  const handleDuplicateLocalResume = (id: string) => {
+    const duplicatedResume = duplicateLocalResume(id)
+    if (duplicatedResume) {
+      setLocalResumes(getLocalResumes())
     }
   }
 
@@ -396,15 +411,34 @@ export default function ProfilePage() {
                     ) : (
                       <div className="space-y-2 sm:space-y-3">
                         {localResumes.map((localResume) => (
-                          <div key={localResume.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 sm:p-3 border rounded-lg gap-2 sm:gap-0">
-                            <div className="flex-1">
-                              <h4 className="font-medium text-sm sm:text-base">{localResume.title}</h4>
-                              <p className="text-xs sm:text-sm text-muted-foreground">Last updated: {new Date(localResume.updatedAt).toLocaleDateString()}</p>
+                          <div key={localResume.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border rounded-lg gap-3 sm:gap-0 hover:shadow-sm transition-shadow">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm sm:text-base truncate">{localResume.title}</h4>
+                              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                                Last updated: {new Date(localResume.updatedAt).toLocaleDateString()}
+                              </p>
                             </div>
-                            <div className="flex gap-1 sm:gap-2 mt-2 sm:mt-0">
-                              <Button variant="outline" size="sm" className="w-10 h-10" onClick={() => handleViewLocalResume(localResume)}>View</Button>
-                              <Button variant="outline" size="sm" className="w-10 h-10" onClick={() => handleEditLocalResume(localResume)}>Edit</Button>
-                              <Button variant="outline" size="sm" className="w-10 h-10" onClick={() => handleDeleteLocalResume(localResume.id)}>Delete</Button>
+                            <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="flex-1 sm:w-10 sm:h-10 sm:p-0 sm:flex-none" 
+                                onClick={() => handleEditLocalResume(localResume)}
+                                title="Edit Resume"
+                              >
+                                <Edit className="w-4 h-4 sm:mr-0 mr-2" />
+                                <span className="sm:hidden">Edit</span>
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="flex-1 sm:w-10 sm:h-10 sm:p-0 sm:flex-none text-red-600 hover:text-red-700 hover:border-red-300" 
+                                onClick={() => handleDeleteLocalResume(localResume.id)}
+                                title="Delete Resume"
+                              >
+                                <Trash2 className="w-4 h-4 sm:mr-0 mr-2" />
+                                <span className="sm:hidden">Delete</span>
+                              </Button>
                             </div>
                           </div>
                         ))}
@@ -461,9 +495,19 @@ export default function ProfilePage() {
         </Dialog>
       </div>
 
-      <DeleteConfirmModal   open={isDeleteModalOpen}
+      <DeleteConfirmModal   
+        open={isDeleteModalOpen}
         onOpenChange={setIsDeleteModalOpen}
-        onConfirm={()=>{handleDeleteResume(deleteResumeId)}} />
+        onConfirm={()=>{handleDeleteResume(deleteResumeId)}} 
+      />
+
+      <DeleteConfirmModal   
+        open={isLocalDeleteModalOpen}
+        onOpenChange={setIsLocalDeleteModalOpen}
+        onConfirm={confirmDeleteLocalResume}
+        title="Delete Local Resume"
+        description="Are you sure you want to delete this local resume? This action cannot be undone and will permanently remove the resume from your browser storage."
+      />
     </div>
   )
 }

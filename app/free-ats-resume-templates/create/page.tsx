@@ -35,12 +35,14 @@ import type { FC } from 'react'
 import { CustomSection as CustomSectionComponent } from "@/components/custom-section"
 import { useAuth } from "@/contexts/auth-context"
 import {  CREATE_RESUME_STEPS } from "@/app/constants/global"
-import { LS_KEYS, setLocalStorageJSON, setLocalStorageItem, removeLocalStorageItems } from "@/utils/localstorage"
+import { LS_KEYS, setLocalStorageJSON, setLocalStorageItem, removeLocalStorageItems, getLocalStorageJSON, getLocalStorageItem } from "@/utils/localstorage"
 import { initializeSectionOrder } from "@/utils/sectionOrdering"
 import { devopsResumeData4 } from "@/lib/examples/resume/deveops"
 import { CreateResumeHeader } from "@/components/CreateResumeHeader"
 import { useTemplateSelector } from "@/hooks/use-template-selector"
+import { generateResumePDF } from "@/lib/pdf-generators"
 import { sanitizeResumeData } from "@/utils/createResume"
+import { createLocalResume, updateLocalResume, getLocalResumeById } from "@/lib/local-storage"
 
 const initialData: ResumeData = devopsResumeData4 //sampleResumeData
 
@@ -66,26 +68,134 @@ const CreateResumeContent: FC = () => {
   const [saveModalOpen, setSaveModalOpen] = useState(false)
   const steps = CREATE_RESUME_STEPS
 
+  // Load data from localStorage on component mount (only if no cloud resume ID)
+  useEffect(() => {
+    const resumeId = searchParams.get('id')
+    
+    // Only load localStorage data if we're not editing a cloud resume
+    if (!resumeId) {
+      const savedResumeData = getLocalStorageJSON<ResumeData>(LS_KEYS.resumeData, null)
+      const savedCurrentStep = getLocalStorageItem(LS_KEYS.currentStep)
+      const savedCompletedSteps = getLocalStorageJSON<number[]>(LS_KEYS.completedSteps, [])
+      const savedResumeId = getLocalStorageItem(LS_KEYS.currentResumeId)
+
+      if (savedResumeData) {
+        setResumeData(savedResumeData)
+      }
+      if (savedCurrentStep) {
+        setCurrentStep(parseInt(savedCurrentStep, 10))
+      }
+      if (savedCompletedSteps) {
+        setCompletedSteps(new Set(savedCompletedSteps))
+      }
+      if (savedResumeId) {
+        setCurrentResumeId(savedResumeId)
+        
+        // If it's a local resume ID, load the actual data from the new system
+        if (savedResumeId.startsWith('local_')) {
+          const localResume = getLocalResumeById(savedResumeId)
+          if (localResume) {
+            setResumeData(localResume.data)
+          }
+        }
+      }
+    }
+  }, [searchParams])
+
+  // Load cloud resume data if id query parameter is present
+  useEffect(() => {
+    const resumeId = searchParams.get('id')
+    if (resumeId && !loading) {
+      console.log('Loading cloud resume with ID:', resumeId)
+      loadResumeData(resumeId).then((result) => {
+        console.log('Cloud resume load result:', result)
+        if (result.success && result.data) {
+          setResumeData(result.data)
+          setCurrentResumeId(resumeId)
+          // Clear localStorage when loading cloud resume
+          removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps, LS_KEYS.currentResumeId)
+        } else {
+          console.error('Failed to load cloud resume:', result)
+        }
+      }).catch((error) => {
+        console.error('Error loading cloud resume:', error)
+      })
+    }
+  }, [searchParams, loading])
+
    useEffect(() => {
     setSelectedTemplate(template)
   }, [searchParams, availableTemplates, template])
 
   
+  // Auto-save functionality
+  useEffect(() => {
+    const autoSaveInterval = setInterval(() => {
+      if (resumeData && currentResumeId) {
+        saveToLocal()
+      }
+    }, 30000) // Auto-save every 30 seconds
+
+    return () => clearInterval(autoSaveInterval)
+  }, [resumeData, currentResumeId])
+
   // Save to local storage
   const saveToLocal = () => {
     try {
       setLocalStorageJSON(LS_KEYS.resumeData, resumeData)
       setLocalStorageItem(LS_KEYS.currentStep, currentStep.toString())
       setLocalStorageJSON(LS_KEYS.completedSteps, Array.from(completedSteps))
+      if (currentResumeId) {
+        setLocalStorageItem(LS_KEYS.currentResumeId, currentResumeId)
+      }
     } catch (error) {
       console.error('Error saving to local storage:', error)
     }
   };
 
+  // Download resume as PDF
+  const downloadResume = async () => {
+    try {
+      const filename = `${resumeData.basics?.name || 'resume'}_${new Date().toISOString().split('T')[0]}.pdf`
+      await generateResumePDF({
+        resumeData,
+        template: selectedTemplate,
+        filename
+      })
+    } catch (error) {
+      console.error('Error downloading resume:', error)
+    }
+  }
+
   // Save handlers
   const onChooseLocal = async () => {
-    await saveToLocal()
-    setSaveModalOpen(false)
+    try {
+      let savedResume
+      
+      if (currentResumeId && currentResumeId.startsWith('local_')) {
+        // Update existing local resume
+        savedResume = updateLocalResume(currentResumeId, resumeData)
+        if (!savedResume) {
+          throw new Error('Failed to update local resume')
+        }
+      } else {
+        // Create new local resume
+        savedResume = createLocalResume(resumeData)
+      }
+      
+      setCurrentResumeId(savedResume.id)
+      
+      // Also save to localStorage for immediate access
+      await saveToLocal()
+      
+      // Auto-download after successful save
+      await downloadResume()
+      
+      setSaveModalOpen(false)
+      router.push('/profile')
+    } catch (error) {
+      console.error('Error saving local resume:', error)
+    }
   };
 
   const onChooseCloudCreate = async () => {
@@ -94,7 +204,11 @@ const CreateResumeContent: FC = () => {
       const res = await saveResumeData(resumeData)
       if (res.success && res.data) {
         setCurrentResumeId(res.data.id)
-        removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps)
+        removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps, LS_KEYS.currentResumeId)
+        
+        // Auto-download after successful save
+        await downloadResume()
+        
         setSaveModalOpen(false)
         router.push('/profile')
       } else {
@@ -110,13 +224,27 @@ const CreateResumeContent: FC = () => {
       const res = await saveResumeData(resumeData, resumeId)
       if (res.success && res.data) {
         setCurrentResumeId(res.data.id)
-        removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps)
+        removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps, LS_KEYS.currentResumeId)
+        
+        // Auto-download after successful save
+        await downloadResume()
+        
         setSaveModalOpen(false)
         router.push('/profile')
       } else {
       }
     } finally {
       setIsSaving(false)
+    }
+  };
+
+  const onDownloadOnly = async () => {
+    try {
+      await downloadResume()
+      setSaveModalOpen(false)
+      router.push('/profile')
+    } catch (error) {
+      console.error('Error downloading resume:', error)
     }
   };
 
@@ -131,7 +259,7 @@ const CreateResumeContent: FC = () => {
       if (res.success && res.data) {
         setLimitModalOpen(false)
         setCurrentResumeId(res.data.id)
-        removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps)
+        removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps, LS_KEYS.currentResumeId)
         router.push('/profile')
       } else {
       }
@@ -451,6 +579,7 @@ const CreateResumeContent: FC = () => {
         onChooseLocal={onChooseLocal}
         onChooseCloudCreate={onChooseCloudCreate}
         onChooseCloudUpdate={onChooseCloudUpdate}
+        onDownloadOnly={onDownloadOnly}
         busy={isSaving}
       />
       <ManageCloudModal
