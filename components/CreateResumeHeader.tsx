@@ -85,11 +85,11 @@ export function CreateResumeHeader({
           ))}
         </SelectContent>
       </Select>
-      <div title="Coming soon" className="inline-block">
+      <div title="Coming soon" className="inline-block w-full border">
         <Button
           onClick={effectiveAiEnabled ? () => setModalOpen(true) : undefined}
           disabled
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 w-full"
         >
           <Star className="w-4 h-4" />
           Create with AI
@@ -124,7 +124,7 @@ export function CreateResumeHeader({
             <SheetHeader>
               <SheetTitle>Resume Tools</SheetTitle>
             </SheetHeader>
-            <div className="flex flex-col gap-4 py-4">{renderControls()}</div>
+            <div className="flex flex-col gap-4 py-4 px-8">{renderControls()}</div>
           </SheetContent>
         </Sheet>
       </div>

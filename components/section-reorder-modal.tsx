@@ -93,10 +93,12 @@ export const SectionReorderModal: React.FC<SectionReorderModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="flex items-center gap-2 hover:bg-gray-50">
+        <div className="">
+        <Button variant="outline" className="hover:bg-gray-50">
           <GripVertical className="w-4 h-4" />
           Reorder Sections
         </Button>
+        </div>
       </DialogTrigger>
       
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
