@@ -405,12 +405,13 @@ export async function generateATSGreenResume({
 
   // Save the PDF
   const pdfBytes = await pdfDoc.save();
-  console.log("calllleddddddddd return")
+
   const blob = new Blob([pdfBytes as unknown as ArrayBuffer], { type: "application/pdf" })
   const link = document.createElement("a")
   link.href = URL.createObjectURL(blob)
   link.download = filename
   link.click()
+  
   // return bytes in case caller wants them (keeps compatibility)
   return pdfBytes
 }

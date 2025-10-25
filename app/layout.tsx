@@ -8,6 +8,7 @@ import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { Analytics } from "@vercel/analytics/next"
 import Providers from "@/contexts/provider"
+import { ToastContainer } from "@/components/toast/toast-contaner"
  
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -105,6 +106,7 @@ export default function RootLayout({
           
           <main className="flex-1">{children}</main>
           <Footer />
+           <ToastContainer />
           {/* <Analytics/> */}
       
         </AiProvider>

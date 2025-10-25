@@ -30,6 +30,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { LS_KEYS, setLocalStorageJSON, setLocalStorageItem } from "@/utils/localstorage"
 import DeleteConfirmModal from '@/components/appUI/modals/DeleteConfirmModal'
 import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { SHOW_SUCCESS, SHOW_ERROR, SHOW_WARNING } from "@/utils/toast"
 
 interface ResumeItem {
   id: string
@@ -138,12 +139,13 @@ export default function ProfilePage() {
       const result = await loadResumeData(resume.id)
       if (result.success && result.data) {
         setResumeData(result.data)
+        SHOW_SUCCESS({ title: "Resume loaded", description: "Resume data loaded successfully" })
       } else {
-  
+        SHOW_ERROR({ title: "Failed to load resume", description: result.error || "Unknown error" })
       }
     } catch (error) {
       console.error("Error loading resume data:", error)
-
+      SHOW_ERROR({ title: "Error loading resume", description: "Failed to load resume data" })
     }
   }
 
@@ -164,13 +166,13 @@ export default function ProfilePage() {
           setResumeData(null)
           setShowPreview(false)
         }
- 
+        SHOW_SUCCESS({ title: "Resume deleted", description: "Resume deleted successfully" })
       } else {
- 
+        SHOW_ERROR({ title: "Failed to delete resume", description: result.error || "Unknown error" })
       }
     } catch (error) {
       console.error("Error deleting resume:", error)
-  
+      SHOW_ERROR({ title: "Error deleting resume", description: "Failed to delete resume" })
     } finally {
       setDeletingResume(null)
     }
@@ -183,9 +185,11 @@ export default function ProfilePage() {
   const handleSyncLocalToCloud = async () => {
     if (!user) return
     if (resumes.length >= 3) {
+      SHOW_WARNING({ title: "Resume limit reached", description: "You can only have 3 resumes in your account" })
       return
     }
     if (localResumes.length === 0) {
+      SHOW_WARNING({ title: "No local resumes", description: "No local resumes found to sync" })
       return
     }
     const confirmSync = confirm("Sync up to the last 3 local resumes to your account?")
@@ -201,8 +205,10 @@ export default function ProfilePage() {
         }
       }
       await loadUserResumes({loadingResumes,setResumes,setHasLoadedResumes,setLoadingResumes})
+      SHOW_SUCCESS({ title: "Sync completed", description: `Successfully synced ${toSync.length} resume(s) to your account` })
     } catch (err) {
       console.error(err)
+      SHOW_ERROR({ title: "Sync failed", description: err instanceof Error ? err.message : "Failed to sync resumes" })
     } finally {
       setIsSyncingLocal(false)
     }

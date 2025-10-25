@@ -27,8 +27,8 @@ import type {
 import { SECTION_TYPES } from "@/types/resume"
 import { availableTemplates, googleTemplate } from "@/lib/templates"
 import { useRouter } from "next/navigation"
-import { useToast } from "@/hooks/use-toast"
 import AIResumeModal from '../../../components/ai-resume-modal';
+import { usePostDownloadReview } from "@/hooks/use-post-download-review";
 import ManageCloudModal from '@/components/manage-cloud-modal';
 import SaveResumeModal from '@/components/save-resume-modal';
 import type { FC } from 'react'
@@ -43,6 +43,7 @@ import { useTemplateSelector } from "@/hooks/use-template-selector"
 import { generateResumePDF } from "@/lib/pdf-generators"
 import { sanitizeResumeData } from "@/utils/createResume"
 import { createLocalResume, updateLocalResume, getLocalResumeById } from "@/lib/local-storage"
+import { SHOW_ERROR, SHOW_SUCCESS } from "@/utils/toast"
 
 const initialData: ResumeData = devopsResumeData4 //sampleResumeData
 
@@ -51,6 +52,7 @@ const CreateResumeContent: FC = () => {
   const { loading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { triggerReviewModal, ReviewModalComponent } = usePostDownloadReview({ actionType: 'download' })
   // const { effectiveAiEnabled } = useAi()
 
   const [currentStep, setCurrentStep] = useState(0)
@@ -162,8 +164,15 @@ const CreateResumeContent: FC = () => {
         template: selectedTemplate,
         filename
       })
+      SHOW_SUCCESS({title: "Resume downloaded successfully!"})
+      
+      // Trigger review modal after successful download
+      setTimeout(() => {
+        triggerReviewModal()
+      }, 1000) // Small delay to let the success toast show
     } catch (error) {
       console.error('Error downloading resume:', error)
+      SHOW_ERROR({title: "Failed to download resume."})
     }
   }
 
@@ -192,9 +201,10 @@ const CreateResumeContent: FC = () => {
       await downloadResume()
       
       setSaveModalOpen(false)
-      router.push('/profile')
+      // Don't redirect to profile, let user stay on page
     } catch (error) {
       console.error('Error saving local resume:', error)
+      SHOW_ERROR({ title: "Failed to save locally", description: "Error saving resume to local storage" })
     }
   };
 
@@ -210,8 +220,9 @@ const CreateResumeContent: FC = () => {
         await downloadResume()
         
         setSaveModalOpen(false)
-        router.push('/profile')
+        // Don't redirect to profile, let user stay on page
       } else {
+        SHOW_ERROR({ title: "Failed to save resume", description: res.message || "Unknown error occurred" })
       }
     } finally {
       setIsSaving(false)
@@ -230,8 +241,9 @@ const CreateResumeContent: FC = () => {
         await downloadResume()
         
         setSaveModalOpen(false)
-        router.push('/profile')
+        // Don't redirect to profile, let user stay on page
       } else {
+        SHOW_ERROR({ title: "Failed to update resume", description: res.message || "Unknown error occurred" })
       }
     } finally {
       setIsSaving(false)
@@ -242,7 +254,7 @@ const CreateResumeContent: FC = () => {
     try {
       await downloadResume()
       setSaveModalOpen(false)
-      router.push('/profile')
+      // Don't redirect, let user stay on page
     } catch (error) {
       console.error('Error downloading resume:', error)
     }
@@ -589,6 +601,7 @@ const CreateResumeContent: FC = () => {
         onSaveLocally={onChooseLocal}
         loading={limitModalBusy}
       />
+      <ReviewModalComponent />
     </div>
   );
 };

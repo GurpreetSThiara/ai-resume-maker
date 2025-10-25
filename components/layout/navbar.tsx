@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { FileText, Home, Plus, User, LogOut, User2, Menu } from "lucide-react"
+import { FileText, Home, Plus, User, LogOut, User2, Menu, Star } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Drawer } from "@/components/ui/drawer"
@@ -51,6 +51,16 @@ export function Navbar() {
       >
         <Plus className="w-4 h-4" aria-hidden="true" />
         Cover Letter
+      </Link>
+      <Link
+        href="/reviews"
+        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+          pathname === "/reviews" ? "bg-yellow-100 text-yellow-700" : "text-gray-600 hover:text-gray-900"
+        }`}
+        onClick={() => setDrawerOpen(false)}
+      >
+        <Star className="w-4 h-4" aria-hidden="true" />
+        Reviews
       </Link>
     </>
   );

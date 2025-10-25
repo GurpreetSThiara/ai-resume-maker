@@ -2,11 +2,14 @@ import { Download, Globe, Shield, Sparkles, Users, Zap, } from "lucide-react";
 import { ChevronLeft, ChevronRight, Trophy, Star, Target, Eye, Save, X } from "lucide-react"
 
 
-export const stats = [
-    { value: "50K+", label: "Resumes Created", color: "text-primary" },
-    { value: "4.9★", label: "User Rating", color: "text-secondary" },
-    { value: "2 min", label: "To First Draft", color: "text-emerald-700" },
+export const getStats = () => [
+    { value: "50K+", label: "Resumes Created", color: "text-primary", dynamic: true },
+    { value: "4.9★", label: "User Rating", color: "text-secondary", dynamic: false },
+    { value: "2 min", label: "To First Draft", color: "text-emerald-700", dynamic: false },
+    { value: "100%", label: "Free to Use", color: "text-blue-600", dynamic: false },
   ];
+
+export const stats = getStats();
   
 
 export const CoreFeatures = [

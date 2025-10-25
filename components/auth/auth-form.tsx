@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { supabase } from "@/lib/supabase/client"
 import { Eye, EyeOff, Mail, Lock, User, Loader2 } from "lucide-react"
 import { CREATE_RESUME } from "@/config/urls"
+import { SHOW_SUCCESS, SHOW_ERROR } from "@/utils/toast"
 
 interface AuthFormProps {
   onSuccess?: () => void
@@ -49,9 +50,11 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
 
       if (error) throw error
 
+      SHOW_SUCCESS({ title: "Welcome back!", description: "Successfully signed in!" })
       setSuccess("Successfully signed in!")
       onSuccess?.()
     } catch (error: any) {
+      SHOW_ERROR({ title: "Sign in failed", description: error.message })
       setError(error.message)
     } finally {
       setIsLoading(false)
@@ -65,12 +68,14 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
     setSuccess(null)
 
     if (signUpData.password !== signUpData.confirmPassword) {
+      SHOW_ERROR({ title: "Password mismatch", description: "Passwords do not match" })
       setError("Passwords do not match")
       setIsLoading(false)
       return
     }
 
     if (signUpData.password.length < 6) {
+      SHOW_ERROR({ title: "Password too short", description: "Password must be at least 6 characters long" })
       setError("Password must be at least 6 characters long")
       setIsLoading(false)
       return
@@ -95,8 +100,10 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
       // Supabase auth already enforces unique emails unless configured otherwise.
       // We mirror user in profiles with unique email too (see schema), so duplicates are prevented at DB level.
 
+      SHOW_SUCCESS({ title: "Account created!", description: "Check your email for the confirmation link!" })
       setSuccess("Check your email for the confirmation link!")
     } catch (error: any) {
+      SHOW_ERROR({ title: "Sign up failed", description: error.message })
       setError(error.message)
     } finally {
       setIsLoading(false)
@@ -118,7 +125,9 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
       })
 
       if (error) throw error
+      SHOW_SUCCESS({ title: "Redirecting...", description: "Signing in with Google" })
     } catch (error: any) {
+      SHOW_ERROR({ title: "Google sign in failed", description: error.message })
       setError(error.message)
       setIsLoading(false)
     }
