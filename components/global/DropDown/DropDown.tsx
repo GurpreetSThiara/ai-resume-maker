@@ -49,14 +49,14 @@ const DownloadDropDown = ({data}) => {
             className="capitalize cursor-pointer" 
             onClick={() => handleDownload(async () => {
               await generateResumePDF({...data, filename:`${data.filename}.pdf`});
-              try{
-                     setTimeout(() => {
-      loadInterstitialAd('10097033')
-    }, 100)
-              }catch(e){
-                console.error("failed to load prop")
+              try {
+                console.log("[PropellerAd] About to load interstitial ad after PDF...");
+                setTimeout(() => {
+                  loadInterstitialAd('10097033');
+                }, 100);
+              } catch(e) {
+                console.error("[PropellerAd] Failed to load ad after PDF", e);
               }
-          
             })}
           >
             PDF
@@ -71,6 +71,14 @@ const DownloadDropDown = ({data}) => {
               if (['ats-classic', 'google-docs'].includes(data.template.name)) {
                 handleDownload(async () => {
                   await generateResumeDOCX({ ...data, filename: `${data.filename}.docx` });
+                  try {
+                    console.log("[PropellerAd] About to load interstitial ad after DOCX...");
+                    setTimeout(() => {
+                      loadInterstitialAd('10097033');
+                    }, 100);
+                  } catch(e) {
+                    console.error("[PropellerAd] Failed to load ad after DOCX", e);
+                  }
                 });
               }
             }}
