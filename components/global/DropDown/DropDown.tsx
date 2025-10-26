@@ -14,6 +14,7 @@ import { generateResumePDF } from "@/lib/pdf-generators"
 import { generateResumeDOCX } from "@/lib/docx-generators";
 import { SHOW_ERROR, SHOW_SUCCESS } from "@/utils/toast";
 import { usePostDownloadReview } from "@/hooks/use-post-download-review";
+import { loadInterstitialAd } from "@/components/ads/InterstitialAd";
 
 
 const DownloadDropDown = ({data}) => {
@@ -48,6 +49,14 @@ const DownloadDropDown = ({data}) => {
             className="capitalize cursor-pointer" 
             onClick={() => handleDownload(async () => {
               await generateResumePDF({...data, filename:`${data.filename}.pdf`});
+              try{
+                     setTimeout(() => {
+      loadInterstitialAd('10097033')
+    }, 100)
+              }catch(e){
+                console.error("failed to load prop")
+              }
+          
             })}
           >
             PDF
