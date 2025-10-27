@@ -14,33 +14,33 @@ const features: Feature[] = [
     icon: Target,
     bgColor: "bg-purple-100",
     iconColor: "text-primary",
-    title: "ATS Optimization",
+    title: "ATS-Optimized Resumes",
     description:
-      "Our templates are specifically designed to pass through Applicant Tracking Systems. Use industry-standard formatting and keywords to increase your chances of getting noticed.",
+      "Our ATS resume generator creates resumes that are fully optimized for Applicant Tracking Systems. We use the one-page format preferred by 95% of US hiring managers, ensuring your resume gets seen.",
   },
   {
     icon: Clock,
     bgColor: "bg-blue-100",
     iconColor: "text-blue-600",
-    title: "Quick & Easy",
+    title: "Create a Resume in Minutes",
     description:
-      "Create a professional resume in under 5 minutes. Our streamlined process guides you through each section with helpful tips and suggestions.",
+      "With our intuitive builder, you can create an ATS-optimized resume in under 5 minutes. No watermarks, no locked features, and no surprise charges—just a professional resume, fast.",
   },
   {
     icon: Award,
     bgColor: "bg-green-100",
     iconColor: "text-green-600",
-    title: "Professional Templates",
+    title: "Free Professional Templates",
     description:
-      "Choose from a variety of professionally designed templates suitable for different industries and career levels. All templates are ATS-friendly.",
+      "Our free resume templates require no sign up and are designed by experts to be both visually appealing and highly functional. Make a great first impression without spending a dime.",
   },
   {
     icon: TrendingUp,
     bgColor: "bg-yellow-100",
     iconColor: "text-yellow-600",
-    title: "Career Growth",
+    title: "No Hidden Fees, Ever",
     description:
-      "Our resume builder helps you highlight your achievements and skills effectively, positioning you for career advancement and better job opportunities.",
+      "This is a truly free resume builder with no credit card required and no hidden fees. We believe everyone deserves a chance to build a great resume, so our core features are free forever.",
   },
 ];
 

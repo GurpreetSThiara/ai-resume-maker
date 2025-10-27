@@ -2,6 +2,11 @@
 
 import type { Metadata } from 'next'
 import ResumeCarousel from "@/components/appUI/Carausol/ResumeCarausol"
+import { FreeTemplatesSection } from "@/components/appUI/home/FreeTemplatesSection"
+import { AtsResumeGeneratorSection } from "@/components/appUI/home/AtsResumeGeneratorSection"
+import { WhyChooseUsSection } from "@/components/appUI/home/WhyChooseUsSection"
+import { TrustedBySection } from "@/components/appUI/home/TrustedBySection"
+import { FaqSection } from "@/components/appUI/home/FaqSection"
 import { CTA } from "@/components/appUI/home/CTA"
 import AdvancedFeatures from "@/components/appUI/home/FeatureDeepDive"
 import { Hero } from "@/components/appUI/home/Hero"
@@ -99,7 +104,11 @@ export default function HomePage() {
       {/* Value Props */}
      <Values/>
 
-     <ResumeCarousel/>
+     {/* <ResumeCarousel/> */}
+     <FreeTemplatesSection/>
+     <AtsResumeGeneratorSection/>
+     <WhyChooseUsSection/>
+     {/* <TrustedBySection/> */}
 
       {/* How It Works */}
       <HowItWorks/>
@@ -173,6 +182,7 @@ export default function HomePage() {
 
       {/* CTA Section */}
 
+    <FaqSection/>
     <CTA/>
 
  

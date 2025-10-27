@@ -20,18 +20,6 @@ export function Footer() {
             Create professional resumes and cover letters that get you hired.
             Fast, easy, and completely free.
           </p>
-          {/* Social Icons */}
-          <div className="flex gap-4 mt-4">
-            {[Facebook, Twitter, Linkedin, Instagram].map((Icon, i) => (
-              <Link
-                key={i}
-                href="#"
-                className="p-2 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"
-              >
-                <Icon className="w-4 h-4" />
-              </Link>
-            ))}
-          </div>
         </div>
 
         {/* Product */}

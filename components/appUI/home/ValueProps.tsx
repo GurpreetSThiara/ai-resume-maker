@@ -30,7 +30,7 @@ export const Values = () => {
                   </div>
 
                   <div className="text-center mb-12">
-                    <h2 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl mb-4">Supercharge Your Resume with a Free AI Account</h2>
+                    <h2 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl mb-4">Supercharge Your Resume with a Free AI Account (Coming Soon)</h2>
                                         <p className="text-lg text-slate-600 max-w-2xl mx-auto">AI features are coming soon for free</p>
 
                     <p className="text-lg text-slate-600 max-w-2xl mx-auto">Create a free account to unlock powerful AI features that will make your resume stand out.</p>

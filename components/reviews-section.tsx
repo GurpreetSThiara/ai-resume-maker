@@ -108,26 +108,7 @@ export function ReviewsSection({ className }: ReviewsSectionProps) {
   }
 
   if (!stats || reviews.length === 0) {
-    return (
-      <section className={`py-16 px-4 bg-gray-50 ${className}`}>
-        <div className="container mx-auto text-center">
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Be the First to Review!
-            </h2>
-            <p className="text-lg text-gray-600 mb-8">
-              Help others by sharing your experience with our resume builder
-            </p>
-            <Button 
-              onClick={() => window.location.href = '/reviews'}
-              className=" text-white px-8 py-3 rounded-lg cursor-pointer"
-            >
-              Write a Review
-            </Button>
-          </div>
-        </div>
-      </section>
-    )
+    return null
   }
 
   return (

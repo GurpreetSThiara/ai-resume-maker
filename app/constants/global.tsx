@@ -31,8 +31,8 @@ export const CoreFeatures = [
     },
     {
       icon: Download,
-      title: "Instant DOCX Download",
-      description: "No sign-up, no watermarks, no hassle. Download your professional resume in DOCX format the moment you're done, completely free.",
+      title: "Instant PDF Download",
+      description: "No sign-up, no watermarks, no hassle. Download your professional resume in PDF format the moment you're done, completely free.",
       gradientFrom: "from-indigo-50",
       gradientTo: "to-indigo-100",
       iconColor: "text-indigo-600"
