@@ -119,7 +119,7 @@ export default function RootLayout({
       <Providers>
         <AiProvider>
          
-          <DevelopmentBanner />
+          {/* <DevelopmentBanner /> */}
           <Navbar />
           
           <main className="flex-1">{children}</main>
