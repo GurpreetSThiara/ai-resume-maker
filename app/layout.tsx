@@ -9,6 +9,7 @@ import { Footer } from "@/components/layout/footer"
 import { Analytics } from "@vercel/analytics/next"
 import Providers from "@/contexts/provider"
 import { ToastContainer } from "@/components/toast/toast-contaner"
+import Script from "next/script"
  
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -96,8 +97,25 @@ export default function RootLayout({
         <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
+        <Script id="google-tag-manager" strategy="afterInteractive">
+          {`
+            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer','GTM-W6W84N5N');
+          `}
+        </Script>
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
+      <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-W6W84N5N"
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
       <Providers>
         <AiProvider>
          
