@@ -8,7 +8,12 @@ const nextConfig = {
   },
   images: {
     // Allow external template preview images from jsdelivr CDN
-    domains: ["cdn.jsdelivr.net"],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cdn.jsdelivr.net',
+      },
+    ],
   },
   reactStrictMode: false,
   async headers() {
