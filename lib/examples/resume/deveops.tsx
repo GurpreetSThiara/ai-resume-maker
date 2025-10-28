@@ -480,17 +480,7 @@ export const devopsResumeData4: ResumeData = {
         "Security Tools: OWASP ZAP, Burp Suite, Nmap"
       ]
     },
-    {
-      id: "certs-1",
-      title: "Certifications",
-      type: SECTION_TYPES.CERTIFICATIONS,
-      items: [
-        "Certified Ethical Hacker (CEH, 2023)",
-        "Certified Information Security Manager (CISM, 2022)",
-        "AWS Certified Security - Specialty (2023)",
-        "Certified Kubernetes Security Specialist (CKS, 2024)"
-      ]
-    }
+   
   ]
 };
 

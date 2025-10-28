@@ -83,6 +83,59 @@ export async function generateClassic1ResumeDOCX({ resumeData, filename = "resum
     )
   }
 
+  // Custom Information Section
+  const customEntries = Object.entries(resumeData.custom || {})
+  if (customEntries.length > 0) {
+    documentChildren.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "Custom Information",
+            bold: true,
+            size: 28, // 14pt
+            color: accentColor,
+            font: "Helvetica",
+          }),
+        ],
+        border: {
+          bottom: {
+            color: accentColor,
+            space: 1,
+            style: BorderStyle.SINGLE,
+            size: 6,
+          },
+        },
+        spacing: { after: 200 },
+      }),
+    )
+
+    customEntries.forEach(([key, item]) => {
+      if (item.hidden) return
+      documentChildren.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `${item.title}: `,
+              bold: true,
+              size: 20,
+              color: textColor,
+              font: "Helvetica",
+            }),
+            new TextRun({
+              text: item.content || "",
+              size: 20,
+              color: textColor,
+              font: "Helvetica",
+            }),
+          ],
+          spacing: { after: 120 },
+        }),
+      )
+    })
+
+    documentChildren.push(new Paragraph({ spacing: { after: 240 } }))
+  }
+
   // Sections
   for (const section of resumeData.sections) {
     // Section Title with underline

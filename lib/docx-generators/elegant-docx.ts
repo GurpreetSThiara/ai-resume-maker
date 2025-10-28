@@ -3,8 +3,17 @@ import { CoverLetter } from '@/types/cover-letter';
 import { format } from 'date-fns';
 
 export async function generateElegantDOCX(coverLetter: CoverLetter): Promise<Buffer> {
-  const { content } = coverLetter;
-  const { yourName, yourEmail, yourPhone, yourAddress, recipient, opening, body, closing } = content;
+  const { applicant, recipient, content } = coverLetter;
+  const yourName = `${applicant.firstName} ${applicant.lastName}`.trim();
+  const yourEmail = applicant.contactInfo.email;
+  const yourPhone = applicant.contactInfo.phone;
+  const yourAddress = [
+    applicant.contactInfo.address.street,
+    `${applicant.contactInfo.address.city}, ${applicant.contactInfo.address.state} ${applicant.contactInfo.address.zipCode}`,
+  ].filter(Boolean).join(' ');
+  const opening = content.openingParagraph.text;
+  const body = content.bodyParagraphs.map((p) => p.text).join('\n\n');
+  const closing = content.closingParagraph.text;
 
   const doc = new Document({
     sections: [{
@@ -88,13 +97,13 @@ export async function generateElegantDOCX(coverLetter: CoverLetter): Promise<Buf
             }),
           ],
         }),
-        ...(recipient.position ? [
+        ...(recipient.title ? [
           new Paragraph({
             alignment: AlignmentType.LEFT,
             spacing: { after: 60 },
             children: [
               new TextRun({
-                text: recipient.position,
+                text: recipient.title,
                 size: 18,
                 font: 'Georgia',
               }),
@@ -120,7 +129,7 @@ export async function generateElegantDOCX(coverLetter: CoverLetter): Promise<Buf
             spacing: { after: 400 },
             children: [
               new TextRun({
-                text: recipient.address,
+                text: `${recipient.address.street}, ${recipient.address.city}, ${recipient.address.state} ${recipient.address.zipCode}`,
                 size: 18,
                 font: 'Georgia',
               }),

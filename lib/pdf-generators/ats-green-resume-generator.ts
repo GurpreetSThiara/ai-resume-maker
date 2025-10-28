@@ -17,7 +17,7 @@ export async function generateATSGreenResume({
 
   // Create a new PDF document
   const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([595, 842]); // A4 size in points
+  let page = pdfDoc.addPage([595, 842]); // A4 size in points
   const { width, height } = page.getSize();
 
   // Load fonts
@@ -130,6 +130,16 @@ export async function generateATSGreenResume({
 
     return y - 30;
   };
+
+  // Helper function to check if we need a new page
+  const checkNewPage = (requiredSpace: number) => {
+    if (yPosition - requiredSpace < margins.bottom) {
+      page = pdfDoc.addPage([595, 842]);
+      yPosition = height - margins.top;
+      return true;
+    }
+    return false;
+  };
   // Helper function to wrap text and return lines
   const wrapText = (text: string, maxWidth: number, font: any, fontSize: number): string[] => {
     // Sanitize upfront so measurement matches what will be rendered
@@ -196,6 +206,63 @@ export async function generateATSGreenResume({
         size: fontSizes.content,
       });
       yPosition -= 15;
+    }
+    yPosition -= 10;
+  }
+
+  // CUSTOM FIELDS (Flex Layout)
+  const customEntries = Object.entries(resumeData.custom || {}).filter(([_, item]) => !item.hidden);
+  if (customEntries.length > 0) {
+    const pageWidth = width - margins.left - margins.right;
+    const items = customEntries.map(([key, item]) => {
+      const keyText = `${item.title}:`;
+      const keyWidth = boldFont.widthOfTextAtSize(keyText, fontSizes.content);
+      const content = sanitizeForFont(item.content, regularFont);
+      const maxContentWidth = Math.min(250, pageWidth - keyWidth - 15);
+      const wrappedLines = wrapText(content, maxContentWidth, regularFont, fontSizes.content);
+      const actualContentWidth = Math.max(...wrappedLines.map(line => regularFont.widthOfTextAtSize(line, fontSizes.content)));
+      return {
+        key, item,
+        width: keyWidth + actualContentWidth + 10,
+        height: wrappedLines.length * 15,
+        keyWidth,
+        wrappedLines
+      };
+    });
+
+    const rows: any[][] = [];
+    let currentRow: any[] = [];
+    let currentRowWidth = 0;
+    const minGap = 20;
+
+    for (const item of items) {
+      if (currentRowWidth + item.width + minGap <= pageWidth) {
+        currentRow.push(item);
+        currentRowWidth += item.width + minGap;
+      } else {
+        rows.push(currentRow);
+        currentRow = [item];
+        currentRowWidth = item.width + minGap;
+      }
+    }
+    if (currentRow.length > 0) rows.push(currentRow);
+
+    for (const row of rows) {
+      const rowHeight = Math.max(...row.map(item => item.height));
+      checkNewPage(rowHeight);
+      const totalItemsWidth = row.reduce((sum, item) => sum + item.width, 0);
+      const extraGap = row.length > 1 ? (pageWidth - totalItemsWidth) / (row.length - 1) : 0;
+      let currentX = margins.left;
+
+      for (const item of row) {
+        const keyText = `${item.item.title}:`;
+        drawText(keyText, currentX, yPosition, { font: boldFont, size: fontSizes.content });
+        item.wrappedLines.forEach((line: string, lineIndex: number) => {
+          drawText(line, currentX + item.keyWidth + 5, yPosition - (lineIndex * 15), { size: fontSizes.content });
+        });
+        currentX += item.width + extraGap;
+      }
+      yPosition -= rowHeight + 8;
     }
     yPosition -= 10;
   }

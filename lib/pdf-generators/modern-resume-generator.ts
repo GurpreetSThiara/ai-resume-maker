@@ -22,13 +22,13 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
   }
 
   // ==== HEADER ====
-  drawText(resumeData.name, margin, fontBold, 22)
+  drawText(resumeData.basics.name, margin, fontBold, 22)
 
   const contactText = [
-    resumeData.email,
-    resumeData.phone,
-    resumeData.location,
-    resumeData.linkedin
+    resumeData.basics.email,
+    resumeData.basics.phone,
+    resumeData.basics.location,
+    resumeData.basics.linkedin
   ]
     .filter(Boolean)
     .join(" | ")
@@ -68,18 +68,68 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
 
   y -= 10
 
+  // ==== CUSTOM FIELDS (Flex Layout) ====
+  const customEntries = Object.entries(resumeData.custom || {}).filter(([_, item]) => !item.hidden);
+  if (customEntries.length > 0) {
+    const pageWidth = page.getWidth() - 2 * margin;
+    const items = customEntries.map(([key, item]) => {
+      const keyText = `${item.title}:`;
+      const keyWidth = fontBold.widthOfTextAtSize(keyText, 9);
+      const content = sanitizeTextForPdf(item.content);
+      const maxContentWidth = Math.min(250, pageWidth - keyWidth - 15);
+      const wrappedLines = wrapText(content, Math.floor(maxContentWidth / (fontRegular.widthOfTextAtSize('a', 9))));
+      const actualContentWidth = Math.max(...wrappedLines.map(line => fontRegular.widthOfTextAtSize(line, 9)));
+      return {
+        key, item, 
+        width: keyWidth + actualContentWidth + 10,
+        height: wrappedLines.length * lineHeight,
+        keyWidth,
+        wrappedLines
+      };
+    });
+
+    const rows: any[][] = [];
+    let currentRow: any[] = [];
+    let currentRowWidth = 0;
+    const minGap = 20;
+
+    for (const item of items) {
+      if (currentRowWidth + item.width + minGap <= pageWidth) {
+        currentRow.push(item);
+        currentRowWidth += item.width + minGap;
+      } else {
+        rows.push(currentRow);
+        currentRow = [item];
+        currentRowWidth = item.width + minGap;
+      }
+    }
+    if (currentRow.length > 0) rows.push(currentRow);
+
+    for (const row of rows) {
+      const rowHeight = Math.max(...row.map(item => item.height));
+      if (y - rowHeight < margin) {
+        page = pdfDoc.addPage([595.28, 841.89]);
+        y = height - margin;
+      }
+      const totalItemsWidth = row.reduce((sum, item) => sum + item.width, 0);
+      const extraGap = row.length > 1 ? (pageWidth - totalItemsWidth) / (row.length - 1) : 0;
+      let currentX = margin;
+
+      for (const item of row) {
+        const keyText = `${item.item.title}:`;
+        page.drawText(keyText, { x: currentX, y, size: 9, font: fontBold, color: lightGray });
+        item.wrappedLines.forEach((line: string, lineIndex: number) => {
+          page.drawText(line, { x: currentX + item.keyWidth + 5, y: y - (lineIndex * lineHeight), size: 9, font: fontRegular, color: gray });
+        });
+        currentX += item.width + extraGap;
+      }
+      y -= rowHeight + 8;
+    }
+    y -= 10;
+  }
+
   // ==== SECTIONS ====
   resumeData.sections.forEach((section) => {
-    // Check if section has any content
-    const hasContent = Object.entries(section?.content ?? {}).some(([key, bullets]) => {
-      return key && bullets && bullets.length > 0 && bullets.some(bullet => bullet.trim() !== '')
-    })
-
-    // Skip sections with no content
-    if (!hasContent) {
-      return
-    }
-
     if (y < 60) {
       page = pdfDoc.addPage([595.28, 841.89])
       y = height - 50
@@ -92,63 +142,103 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
       start: { x: margin, y },
       end: { x: page.getWidth() - margin, y },
       thickness: 0.5,
-      color: lightGray
+      color: lightGray,
     })
     y -= 14
 
     // Section Content
-    Object.entries(section?.content ?? {}).forEach(([header, bullets]) => {
-      // Skip empty keys or empty bullet arrays
-      if (!header || !bullets || bullets.length === 0) {
-        return
-      }
-
-      // Check if bullets have actual content
-      const hasBulletContent = bullets.some(bullet => bullet.trim() !== '')
-      if (!hasBulletContent) {
-        return
-      }
-
-      const [role, date] = header.split(" | ")
-
-      if (role && role.trim() !== '') {
-        drawText(role, margin, fontBold, 10)
-        if (date && date.trim() !== '') {
-          const dateWidth = fontRegular.widthOfTextAtSize(date, 9)
-          page.drawText(date, {
+    switch (section.type) {
+      case "education":
+        section.items.forEach((edu) => {
+          drawText(edu.institution, margin, fontBold, 10)
+          const eduDates = `${edu.startDate} - ${edu.endDate}`
+          const dateWidth = fontRegular.widthOfTextAtSize(eduDates, 9)
+          page.drawText(eduDates, {
             x: page.getWidth() - margin - dateWidth,
             y,
             size: 9,
             font: fontRegular,
-            color: lightGray
+            color: lightGray,
           })
-        }
-        y -= lineHeight
-      }
+          y -= lineHeight
 
-      bullets.forEach((bullet) => {
-        // Skip empty bullets
-        if (!bullet || bullet.trim() === '') {
-          return
-        }
+          drawText(edu.degree, margin, fontRegular, 9)
+          y -= lineHeight
 
-        const bulletText = `• ${bullet}`
-        const wrapped = wrapText(bulletText, 80)
+          if (edu.highlights) {
+            edu.highlights.forEach((highlight) => {
+              const bulletText = `• ${highlight}`
+              const wrapped = wrapText(bulletText, 80)
+              wrapped.forEach((line) => {
+                drawText(line, margin + 10, fontRegular, 9)
+                y -= lineHeight
+              })
+            })
+          }
+          y -= 6
+        })
+        break
+
+      case "experience":
+        section.items.forEach((exp) => {
+          drawText(exp.company, margin, fontBold, 10)
+          const expDates = `${exp.startDate} - ${exp.endDate}`
+          const dateWidth = fontRegular.widthOfTextAtSize(expDates, 9)
+          page.drawText(expDates, {
+            x: page.getWidth() - margin - dateWidth,
+            y,
+            size: 9,
+            font: fontRegular,
+            color: lightGray,
+          })
+          y -= lineHeight
+
+          drawText(exp.role, margin, fontRegular, 9)
+          y -= lineHeight
+
+          if (exp.achievements) {
+            exp.achievements.forEach((achievement) => {
+              const bulletText = `• ${achievement}`
+              const wrapped = wrapText(bulletText, 80)
+              wrapped.forEach((line) => {
+                drawText(line, margin + 10, fontRegular, 9)
+                y -= lineHeight
+              })
+            })
+          }
+          y -= 6
+        })
+        break
+
+      case "skills":
+      case "languages":
+      case "certifications":
+        const itemsText = section.items.join(", ")
+        const wrapped = wrapText(itemsText, 80)
         wrapped.forEach((line) => {
-          drawText(line, margin + 10, fontRegular, 9)
+          drawText(line, margin, fontRegular, 9)
           y -= lineHeight
         })
-      })
+        break
 
-      y -= 6
-    })
+      case "custom":
+        section.content.forEach((item) => {
+          const bulletText = `• ${item}`
+          const wrapped = wrapText(bulletText, 80)
+          wrapped.forEach((line) => {
+            drawText(line, margin + 10, fontRegular, 9)
+            y -= lineHeight
+          })
+        })
+        break
+    }
 
     y -= 8
   })
 
   // Save & Download PDF
   const pdfBytes = await pdfDoc.save()
-  const blob = new Blob([pdfBytes], { type: "application/pdf" })
+  const blob = new Blob([pdfBytes as unknown as ArrayBuffer], { type: "application/pdf" })
   const link = document.createElement("a")
   link.href = URL.createObjectURL(blob)
   link.download = filename

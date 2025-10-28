@@ -24,22 +24,12 @@ export async function generateCreativeResumePDF({ resumeData, filename = "resume
   // Name with accent bar
   page.drawRectangle({ x: margin, y: y - 4, width: width - 2 * margin, height: 3, color: accent })
   y -= 10
-  draw(resumeData.name, margin, 22, bold, text)
+  draw(resumeData.basics.name, margin, 22, bold, text)
   y -= 16
-  draw([resumeData.email, resumeData.phone, resumeData.location].filter(Boolean).join(" | "), margin, 9, regular, secondary)
+  draw([resumeData.basics.email, resumeData.basics.phone, resumeData.basics.location].filter(Boolean).join(" | "), margin, 9, regular, secondary)
   y -= 18
 
   for (const section of resumeData.sections) {
-    // Check if section has any content
-    const hasContent = Object.entries(section?.content ?? {}).some(([key, bullets]) => {
-      return key && bullets && bullets.length > 0 && bullets.some(bullet => bullet.trim() !== '')
-    })
-
-    // Skip sections with no content
-    if (!hasContent) {
-      continue
-    }
-
     if (y < 70) {
       page = pdfDoc.addPage([595.28, 841.89])
       y = height - margin
@@ -47,53 +37,102 @@ export async function generateCreativeResumePDF({ resumeData, filename = "resume
     draw(section.title.toUpperCase(), margin, 11, bold, accent)
     y -= 12
 
-    for (const [header, bullets] of Object.entries(section?.content ?? {})) {
-      // Skip empty keys or empty bullet arrays
-      if (!header || !bullets || bullets.length === 0) {
-        continue
-      }
+    switch (section.type) {
+      case "education":
+        section.items.forEach((edu) => {
+          draw(edu.institution, margin, 10, bold)
+          const eduDates = `${edu.startDate} - ${edu.endDate}`
+          const dateWidth = regular.widthOfTextAtSize(eduDates, 9)
+          page.drawText(eduDates, { x: width - margin - dateWidth, y, size: 9, font: regular, color: secondary })
+          y -= 12
 
-      // Check if bullets have actual content
-      const hasBulletContent = bullets.some(bullet => bullet.trim() !== '')
-      if (!hasBulletContent) {
-        continue
-      }
+          draw(edu.degree, margin, 9, regular)
+          y -= 12
 
-      const [role, date] = header.split(" | ")
-      if (role && role.trim() !== '') {
-        draw(role, margin, 10, bold)
-        if (date && date.trim() !== '') {
-          const dw = regular.widthOfTextAtSize(date, 9)
-          page.drawText(date, { x: width - margin - dw, y, size: 9, font: regular, color: secondary })
-        }
-        y -= 12
-      }
-      for (const b of bullets) {
-        // Skip empty bullets
-        if (!b || b.trim() === '') {
-          continue
-        }
+          if (edu.highlights) {
+            edu.highlights.forEach((highlight) => {
+              const lines = wrapText(`• ${highlight}`, 86)
+              for (const line of lines) {
+                draw(line, margin + 10, 9)
+                y -= 12
+              }
+            })
+          }
+          y -= 6
+        })
+        break
 
-        const lines = wrapText(`• ${b}`, 86)
+      case "experience":
+        section.items.forEach((exp) => {
+          draw(exp.company, margin, 10, bold)
+          const expDates = `${exp.startDate} - ${exp.endDate}`
+          const dateWidth = regular.widthOfTextAtSize(expDates, 9)
+          page.drawText(expDates, { x: width - margin - dateWidth, y, size: 9, font: regular, color: secondary })
+          y -= 12
+
+          draw(exp.role, margin, 9, regular)
+          y -= 12
+
+          if (exp.achievements) {
+            exp.achievements.forEach((achievement) => {
+              const lines = wrapText(`• ${achievement}`, 86)
+              for (const line of lines) {
+                draw(line, margin + 10, 9)
+                y -= 12
+              }
+            })
+          }
+          y -= 6
+        })
+        break
+
+      case "skills":
+      case "languages":
+      case "certifications":
+        const itemsText = section.items.join(", ")
+        const lines = wrapText(itemsText, 86)
         for (const line of lines) {
-          draw(line, margin + 10, 9)
+          draw(line, margin, 9)
           y -= 12
         }
-      }
-      y -= 6
+        break
+
+      case "custom":
+        section.content.forEach((item) => {
+          const lines = wrapText(`• ${item}`, 86)
+          for (const line of lines) {
+            draw(line, margin + 10, 9)
+            y -= 12
+          }
+        })
+        break
     }
     y -= 8
   }
 
-  // custom
-  for (const item of Object.values(resumeData.custom)) {
-    if (item.hidden) continue
-    draw(`${item.title.toUpperCase()}: ${item.content}`, margin, 9, regular, text)
-    y -= 10
+  // Custom Information
+  const customEntries = Object.entries(resumeData.custom || {})
+  if (customEntries.length > 0) {
+    if (y < 70) {
+      page = pdfDoc.addPage([595.28, 841.89])
+      y = height - margin
+    }
+    draw("CUSTOM INFORMATION", margin, 11, bold, accent)
+    y -= 12
+
+    for (const [key, item] of customEntries) {
+      if (item.hidden) continue
+      const lines = wrapText(`${item.title}: ${item.content}`, 86)
+      for (const line of lines) {
+        draw(line, margin, 9, regular, text)
+        y -= 12
+      }
+    }
+    y -= 8
   }
 
   const bytes = await pdfDoc.save()
-  const blob = new Blob([bytes], { type: "application/pdf" })
+  const blob = new Blob([bytes as unknown as ArrayBuffer], { type: "application/pdf" })
   const link = document.createElement("a")
   link.href = URL.createObjectURL(blob)
   link.download = filename
