@@ -106,6 +106,20 @@ export default function RootLayout({
             })(window,document,'script','dataLayer','GTM-W6W84N5N');
           `}
         </Script>
+
+          <Script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-YYGPPFLBZW"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-YYGPPFLBZW');
+          `}
+        </Script>
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
       <noscript>
