@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Section } from '@/types/resume'
+import { Switch } from '@/components/ui/switch'
 import { reorderSections, getSectionTypeDisplayName, getSectionTypeIcon } from '@/utils/sectionOrdering'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -56,6 +57,7 @@ export const SectionReorderModal: React.FC<SectionReorderModalProps> = ({
     if (draggedIndex !== null && draggedIndex !== dropIndex) {
       const reorderedSections = reorderSections(localSections, draggedIndex, dropIndex)
       setLocalSections(reorderedSections)
+      onReorder(reorderedSections)
     }
     setDraggedIndex(null)
     setDragOverIndex(null)
@@ -70,6 +72,7 @@ export const SectionReorderModal: React.FC<SectionReorderModalProps> = ({
     if (index > 0) {
       const reorderedSections = reorderSections(localSections, index, index - 1)
       setLocalSections(reorderedSections)
+      onReorder(reorderedSections)
     }
   }
 
@@ -77,6 +80,7 @@ export const SectionReorderModal: React.FC<SectionReorderModalProps> = ({
     if (index < localSections.length - 1) {
       const reorderedSections = reorderSections(localSections, index, index + 1)
       setLocalSections(reorderedSections)
+      onReorder(reorderedSections)
     }
   }
 
@@ -174,6 +178,21 @@ export const SectionReorderModal: React.FC<SectionReorderModalProps> = ({
                   </div>
                 </div>
                 
+                {/* Visibility Toggle */}
+                <div className="flex items-center gap-2 mr-2">
+                  <span className="text-xs text-gray-500">Visible</span>
+                  <Switch
+                    checked={!section.hidden}
+                    onCheckedChange={(checked: boolean) => {
+                      setLocalSections(prev => {
+                        const next = prev.map((s, i) => i === index ? { ...s, hidden: !checked } : s)
+                        onReorder(next)
+                        return next
+                      })
+                    }}
+                  />
+                </div>
+
                 {/* Position Number */}
                 <div className="flex-shrink-0 text-sm text-gray-400 font-mono bg-gray-100 px-2 py-1 rounded">
                   #{index + 1}

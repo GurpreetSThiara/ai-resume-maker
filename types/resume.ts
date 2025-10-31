@@ -32,6 +32,7 @@ export interface BaseSection {
   title: string
   type: SectionType
   order?: number // Add order field for reordering
+  hidden?: boolean
 }
 
 // 🔹 Centralized Section Type constants

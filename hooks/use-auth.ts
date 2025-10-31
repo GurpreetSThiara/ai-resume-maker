@@ -16,7 +16,6 @@ export function useAuth() {
 
     // Only fetch if we don't already have a cached user
     if (!cachedUser) {
-      console.log("fetching user")
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (mounted) {
           cachedUser = session?.user ?? null
@@ -25,7 +24,6 @@ export function useAuth() {
         }
       })
     } else {
-      console.log("returned cached user")
       setLoading(false)
     }
 

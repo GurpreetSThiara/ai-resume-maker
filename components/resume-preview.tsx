@@ -3,6 +3,7 @@
 import type React from "react"
 import { useRef, useEffect, forwardRef, useState } from "react"
 import type { ResumeData, ResumeTemplate, Section } from "@/types/resume"
+import { SECTION_TYPES } from "@/types/resume"
 import { getResumePreview } from "./resumes"
 
 interface ResumePreviewProps {
@@ -66,6 +67,28 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
       };
     }, [template.id]);
 
+    const hasSectionContent = (section: any): boolean => {
+      if (!section || section.hidden) return false
+      switch (section.type) {
+        case SECTION_TYPES.EDUCATION:
+        case SECTION_TYPES.EXPERIENCE:
+          return Array.isArray(section.items) && section.items.length > 0
+        case SECTION_TYPES.SKILLS:
+        case SECTION_TYPES.LANGUAGES:
+        case SECTION_TYPES.CERTIFICATIONS:
+          return Array.isArray(section.items) && section.items.filter((s: string) => s && s.trim()).length > 0
+        case SECTION_TYPES.CUSTOM:
+          return Array.isArray(section.content) && section.content.some((s: string) => s && s.trim() !== "")
+        default:
+          return false
+      }
+    }
+
+    const filteredResumeData: ResumeData = {
+      ...resumeData,
+      sections: (resumeData.sections || []).filter((s: any) => hasSectionContent(s)) as any
+    }
+
     const handleNameChange = (e: React.FocusEvent<HTMLHeadingElement>) => {
       onDataUpdate((prev: ResumeData) => ({
         ...prev,
@@ -110,7 +133,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
 
     return (
       <div ref={ref} className={`bg-green-50 font-serif ${className || 'min-h-screen'}`}>
-        {ResumeComponent && <ResumeComponent resumeData={resumeData} setResumeData={setResumeData} activeSection={activeSection} />}
+        {ResumeComponent && <ResumeComponent resumeData={filteredResumeData} setResumeData={setResumeData} activeSection={activeSection} />}
       </div>
     )
   },

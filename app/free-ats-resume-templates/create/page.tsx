@@ -10,6 +10,7 @@ import { PersonalInfoSection } from "@/components/personal-info-section"
 import { EducationSection as EducationSectionComponent } from "@/components/education-section"
 import { ExperienceSection as ExperienceSectionComponent } from "@/components/experience-section"
 import { SkillsSection as SkillsSectionComponent } from "@/components/skills-section"
+import { CertificationsSection as CertificationsSectionComponent } from "@/components/certifications-section"
 import { SummarySection } from "@/components/summary-section"
 import { CustomFieldsSection } from "@/components/custom-fields-section"
 import { ReviewSection } from "@/components/review-section"
@@ -48,7 +49,6 @@ import { SHOW_ERROR, SHOW_SUCCESS } from "@/utils/toast"
 const initialData: ResumeData = devopsResumeData4 //sampleResumeData
 
 const CreateResumeContent: FC = () => {
-  console.log("Rendering CreateResumeContent")
   const { loading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -108,9 +108,7 @@ const CreateResumeContent: FC = () => {
   useEffect(() => {
     const resumeId = searchParams.get('id')
     if (resumeId && !loading) {
-      console.log('Loading cloud resume with ID:', resumeId)
       loadResumeData(resumeId).then((result) => {
-        console.log('Cloud resume load result:', result)
         if (result.success && result.data) {
           setResumeData(result.data)
           setCurrentResumeId(resumeId)
@@ -382,6 +380,9 @@ const CreateResumeContent: FC = () => {
     
     const skillsSection = updatedData.sections.find(s => s.type === SECTION_TYPES.SKILLS) as SkillsSection | undefined;
     if (skillsSection?.items && skillsSection.items.length > 0) newCompletedSteps.add(4);
+
+    const certsSection = updatedData.sections.find(s => s.type === SECTION_TYPES.CERTIFICATIONS) as any;
+    if (certsSection?.items && certsSection.items.length > 0) newCompletedSteps.add(5);
     
     setCompletedSteps(newCompletedSteps);
     
@@ -401,10 +402,12 @@ const CreateResumeContent: FC = () => {
       case 4:
         return <SkillsSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
       case 5:
-        return <CustomFieldsSection data={resumeData} onUpdate={handleResumeDataUpdate} onSave={saveToLocal} isDirty={false} />
+        return <CertificationsSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
       case 6:
-        return <CustomSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
+        return <CustomFieldsSection data={resumeData} onUpdate={handleResumeDataUpdate} onSave={saveToLocal} isDirty={false} />
       case 7:
+        return <CustomSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
+      case 8:
         return <ReviewSection data={resumeData} template={selectedTemplate} />
       default:
         return null

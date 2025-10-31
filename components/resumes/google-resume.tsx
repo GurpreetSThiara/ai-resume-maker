@@ -307,20 +307,17 @@ export const GoogleResume: React.FC<ResumeProps> = ({
             
             {/* Sections */}
             {sortSectionsByOrder(resumeData.sections).map((section) => {
+              if (section.hidden) return null
               // Check if section has content based on section type
-              let hasContent = false;
-              
-              if (section.type === SECTION_TYPES.EDUCATION || section.type === SECTION_TYPES.EXPERIENCE) {
-                hasContent = section.items && section.items.length > 0;
-              } else if (section.type === SECTION_TYPES.SKILLS || section.type === SECTION_TYPES.LANGUAGES || section.type === SECTION_TYPES.CERTIFICATIONS) {
-                hasContent = section.items && section.items.length > 0;
-              } else if (section.type === SECTION_TYPES.CUSTOM) {
-                hasContent = section.content && section.content.length > 0 && section.content.some(item => item.trim() !== '');
-              } else {
-                // Fallback to original check for other types
-                hasContent = Object.entries(section?.content ?? {}).some(([key, bullets]) => {
-                  return key && bullets && bullets.length > 0 && bullets.some((bullet) => bullet.trim() !== '')
-                })
+              let hasContent = false
+              if ('items' in section && Array.isArray((section as any).items)) {
+                if (section.type === SECTION_TYPES.EDUCATION || section.type === SECTION_TYPES.EXPERIENCE) {
+                  hasContent = (section as any).items.length > 0
+                } else if (section.type === SECTION_TYPES.SKILLS || section.type === SECTION_TYPES.LANGUAGES || section.type === SECTION_TYPES.CERTIFICATIONS) {
+                  hasContent = (section as any).items.filter((s: string) => s && s.trim()).length > 0
+                }
+              } else if ('content' in section && Array.isArray((section as any).content)) {
+                hasContent = (section as any).content.some((item: string) => item && item.trim() !== '')
               }
               
               if (!hasContent) return null

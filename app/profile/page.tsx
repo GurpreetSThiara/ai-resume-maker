@@ -118,13 +118,11 @@ export default function ProfilePage() {
 
 
   useEffect(() => {
-    console.log("[ProfilePage] useEffect - loading:", loading, "user:", user, "hasLoadedResumes:", hasLoadedResumes)
     if (loading) return
     // Always load local resumes when page becomes interactive
     setLocalResumes(getLocalResumes())
     // Load cloud resumes once per mount when user present
     if (user && !hasLoadedResumes) {
-      console.log("[ProfilePage] Calling loadUserResumes (imported from '@/services/resumeService')")
       loadUserResumes({loadingResumes,setResumes,setHasLoadedResumes,setLoadingResumes})
     }
   }, [loading, user, hasLoadedResumes])

@@ -50,7 +50,6 @@ const DownloadDropDown = ({data}) => {
             onClick={() => handleDownload(async () => {
               await generateResumePDF({...data, filename:`${data.filename}.pdf`});
               try {
-                console.log("[PropellerAd] About to load interstitial ad after PDF...");
                 setTimeout(() => {
                   loadInterstitialAd('10097033');
                 }, 100);
@@ -72,7 +71,6 @@ const DownloadDropDown = ({data}) => {
                 handleDownload(async () => {
                   await generateResumeDOCX({ ...data, filename: `${data.filename}.docx` });
                   try {
-                    console.log("[PropellerAd] About to load interstitial ad after DOCX...");
                     setTimeout(() => {
                       loadInterstitialAd('10097033');
                     }, 100);
