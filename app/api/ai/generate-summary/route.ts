@@ -3,7 +3,7 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 
 export async function POST(request: Request) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createRouteHandlerClient({ cookies: cookies() })
   const { data: { session } } = await supabase.auth.getSession()
   
   if (!session?.user?.id) {

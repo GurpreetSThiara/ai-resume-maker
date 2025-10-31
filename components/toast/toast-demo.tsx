@@ -167,7 +167,7 @@ export function ToastDemo() {
                         position: selectedPosition,
                         action: {
                           label: "Undo",
-                          onClick: () => console.log("Action clicked!"),
+                          onClick: () => {},
                         },
                       })
                     }

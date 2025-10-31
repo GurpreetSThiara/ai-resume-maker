@@ -5,7 +5,7 @@ import { CoverLetter, CreateCoverLetterInput } from '@/types/cover-letter';
 
 export async function GET() {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = createRouteHandlerClient({ cookies: cookies() });
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
@@ -35,7 +35,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = createRouteHandlerClient({ cookies: cookies() });
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {

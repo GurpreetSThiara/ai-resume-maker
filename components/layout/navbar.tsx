@@ -18,7 +18,6 @@ export function Navbar() {
   const { user, signOut } = useAuth();
   const [drawerOpen, setDrawerOpen] = React.useState(false);
 
-  console.log(user)
   // Navigation links for reuse
   const navLinks = (
     <>

@@ -95,9 +95,10 @@ export const CREATE_RESUME_STEPS =  [
     { id: 2, title: "Education", icon: "🎓", description: "Your academic journey" },
     { id: 3, title: "Experience", icon: "💼", description: "Professional background" },
     { id: 4, title: "Skills & More", icon: "🚀", description: "Showcase your abilities" },
-    { id: 5, title: "Custom Fields", icon: "⚡", description: "Add personal details" },
-    { id: 6, title: "Custom Sections", icon: "🎨", description: "Add additional sections" },
-    { id: 7, title: "Review", icon: "✨", description: "Final review" },
+    { id: 5, title: "Certifications", icon: "🏆", description: "Add your certifications" },
+    { id: 6, title: "Custom Fields", icon: "⚡", description: "Add personal details" },
+    { id: 7, title: "Custom Sections", icon: "🎨", description: "Add additional sections" },
+    { id: 8, title: "Review", icon: "✨", description: "Final review" },
   ]  
 
 

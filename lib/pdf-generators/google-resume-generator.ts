@@ -81,7 +81,7 @@ export async function generateResumePDF({ resumeData, filename = "resume.pdf" }:
   }
 
   // Extract custom entries from resume data
-  const customEntries = Object.entries(resumeData.custom || {});
+  const customEntries = Object.entries(resumeData.custom || {}).filter(([_, item]: any) => !item?.hidden);
 
   if (customEntries.length > 0) {
     // Calculate item dimensions for flex-wrap layout
@@ -207,6 +207,19 @@ export async function generateResumePDF({ resumeData, filename = "resume.pdf" }:
 
   // Sections - Only render sections with actual content
   for (const section of resumeData.sections) {
+    // Guard: skip hidden or empty sections (defensive, also pre-filtered at caller)
+    if ((section as any).hidden) continue
+    let hasContent = false
+    if ('items' in (section as any) && Array.isArray((section as any).items)) {
+      if ([SECTION_TYPES.EDUCATION, SECTION_TYPES.EXPERIENCE].includes(section.type as any)) {
+        hasContent = (section as any).items.length > 0
+      } else if ([SECTION_TYPES.SKILLS, SECTION_TYPES.LANGUAGES, SECTION_TYPES.CERTIFICATIONS].includes(section.type as any)) {
+        hasContent = (section as any).items.filter((s: string) => s && s.trim()).length > 0
+      }
+    } else if ('content' in (section as any) && Array.isArray((section as any).content)) {
+      hasContent = (section as any).content.some((t: string) => t && t.trim() !== '')
+    }
+    if (!hasContent) continue
     ensureSpace(30)
 
     // Section Title

@@ -4,13 +4,97 @@ import Link from "next/link"
 import Image from "next/image"
 import { RESUME_TEMPLATES } from "../../constants/resumeConstants"
 import { CREATE_RESUME } from "@/config/urls"
+import { ResumeFileUpload } from "@/components/appUI/Buttons/ResumeFileUpload"
+import { PdfUploadModal } from "@/components/appUI/modals/resumeUplaodModal"
+import { useState } from "react"
+import { parseResume } from "@/services/aiService"
+import { validateResumeData } from "@/utils/validateResume"
+import { setLocalStorageJSON, LS_KEYS } from "@/utils/localstorage"
+import { useRouter } from "next/navigation"
+import { SHOW_ERROR } from "@/utils/toast"
 
 export  function Templates() {
+  const [extractedText, setExtractedText] = useState<string>("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [fileName, setFileName] = useState<string>("")
+  const [error, setError] = useState<string>("")
+  const [status, setStatus] = useState<string>("")
+  const router = useRouter()
+
+  const handleFileUpload = async (file: File) => {
+    setIsLoading(true)
+    setError("")
+    setFileName(file.name)
+    setStatus("Preparing your resume...")
+
+    try {
+      const { extractText, getDocumentProxy } = await import("unpdf")
+
+      const arrayBuffer = await file.arrayBuffer()
+      const uint8Array = new Uint8Array(arrayBuffer)
+      const pdf = await getDocumentProxy(uint8Array)
+
+      const { text } = await extractText(pdf, { mergePages: true })
+      setExtractedText(text)
+
+      // Retry AI parse up to 3 attempts (initial + 2 retries)
+      const maxAttempts = 3
+      let attempt = 0
+      let lastValidationErrors: string[] = []
+      while (attempt < maxAttempts) {
+        setStatus("Parsing your resume...")
+        const parsed = await parseResume(text)
+        if (!parsed) {
+          attempt++
+          continue
+        }
+        setStatus("Validating data...")
+        const validation = validateResumeData(parsed)
+        if (validation.ok) {
+          setStatus("Finalizing...")
+          setLocalStorageJSON(LS_KEYS.resumeData, parsed)
+          // Force start at first step (Personal Info)
+          try {
+            const { setLocalStorageItem } = await import("@/utils/localstorage")
+            setLocalStorageItem(LS_KEYS.currentStep, "0")
+            setLocalStorageJSON(LS_KEYS.completedSteps, [])
+          } catch {}
+          setStatus("Opening editor...")
+          router.push(`${CREATE_RESUME}/create?source=ai`)
+          return
+        } else {
+          lastValidationErrors = validation.errors
+          attempt++
+          continue
+        }
+      }
+
+      // If we reach here, validation failed after retries
+      const msg = "We couldn't parse your resume reliably. Please try again later."
+      setError(msg)
+      SHOW_ERROR({ title: "Parsing failed", description: msg })
+
+    } catch (err) {
+      console.error("[v0] PDF extraction error:", err)
+      setError(err instanceof Error ? err.message : "Failed to extract text from PDF")
+      setExtractedText("")
+    } finally {
+      setIsLoading(false)
+      setStatus("")
+    }
+  }
+
   return (
     <main className="max-w-7xl mx-auto px-4 py-10">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold">Choose a resume template</h1>
+      {isLoading && (
+        <div className="fixed inset-0 z-[100] cursor-wait" style={{ pointerEvents: 'auto' }} aria-busy="true" aria-live="polite" />
+      )}
+      <header className="mb-8 flex justify-between">
+       <div className="">
+         <h1 className="text-3xl font-bold">Choose a resume template</h1>
         <p className="mt-2 text-muted-foreground">Pick a template to start building your resume. You can preview, customize, and export to PDF.</p>
+       </div>
+       <PdfUploadModal isLoading={isLoading} status={status} onFileUpload={handleFileUpload} />
       </header>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

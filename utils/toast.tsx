@@ -10,10 +10,8 @@ export function registerToastDispatcher(dispatcher: (options: ToastOptions) => s
 // Utility functions for easy access
 export function SHOW_SUCCESS(options: Omit<ToastOptions, "variant">) {
   if (!toastDispatcher) {
-    console.log("[Toast] Toast system not initialized. Make sure ToastProvider is in your layout.")
     return ""
   }
-  console.log("SHOW_SUCCESS called with options:", options)
   return toastDispatcher({ ...options, variant: "success", position:"top-right" })
 }
 
