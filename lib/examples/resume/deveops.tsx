@@ -1,6 +1,6 @@
 import { ResumeData } from "@/types/resume";
 
-export const deveopsResumeData1: ResumeData = {
+export const devopsResumeData1 : ResumeData = {
   basics: {
     name: "Gurpreet Singh",
     email: "gurpreet.singh@example.com",
