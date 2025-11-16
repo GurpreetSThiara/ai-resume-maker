@@ -3,6 +3,7 @@
 import type React from "react"
 import { useRef, useEffect, useState } from "react"
 import type { ResumeData } from "@/types/resume"
+import ProjectSection from '../resume-components/project-section'
 import { SECTION_TYPES } from "@/types/resume"
 
 
@@ -136,6 +137,32 @@ export const ATS_GREEN_HEADERS: React.FC<> = ({
     })
   }
 
+  const handleProjectFieldChange = (sectionId: string | undefined, projectIndex: number, field: string, value: string) => {
+    if (!sectionId || !setResumeData) return
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const section = updated.sections.find((s) => s.id === sectionId)
+      if (!section || section.type !== SECTION_TYPES.PROJECTS) return prev
+      if (!section.items) section.items = [] as any
+      ;(section.items[projectIndex] as any)[field] = value
+      return updated
+    })
+  }
+
+  const handleProjectDescriptionChange = (sectionId: string | undefined, projectIndex: number, descIndex: number, value: string) => {
+    if (!sectionId || !setResumeData) return
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const section = updated.sections.find((s) => s.id === sectionId)
+      if (!section || section.type !== SECTION_TYPES.PROJECTS) return prev
+      const proj = (section.items[projectIndex] as any)
+      if (!proj) return prev
+      if (!Array.isArray(proj.description)) proj.description = []
+      proj.description[descIndex] = value
+      return updated
+    })
+  }
+
   return (
     <div
       className={`w-full h-full flex justify-center items-start overflow-auto ${className}`}
@@ -249,6 +276,8 @@ export const ATS_GREEN_HEADERS: React.FC<> = ({
                 section.type === SECTION_TYPES.CERTIFICATIONS
               ) {
                 hasContent = section.items && section.items.length > 0
+              } else if (section.type === SECTION_TYPES.PROJECTS) {
+                hasContent = Array.isArray((section as any).items) && (section as any).items.length > 0
               } else if (section.type === SECTION_TYPES.CUSTOM) {
                 hasContent =
                   section.content && section.content.length > 0 && section.content.some((item) => item.trim() !== "")
@@ -485,25 +514,19 @@ export const ATS_GREEN_HEADERS: React.FC<> = ({
                       </div>
                     )}
 
-                    {/* Custom Section (Projects) */}
-                    {section.type === SECTION_TYPES.CUSTOM && section.content?.length > 0 && (
-                      <div className="space-y-2">
-                        {section.content.map((project, projectIdx) => (
-                          <div key={projectIdx}>
-                            <p
-                              className="text-sm leading-tight"
-                              style={{ color: "#000000", fontSize: "12px" }}
-                              contentEditable={!!setResumeData}
-                              suppressContentEditableWarning
-                              onBlur={(e) =>
-                                handleCustomContentChange(section.id, projectIdx, e.currentTarget.textContent || "")
-                              }
-                            >
-                              {project}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
+                    {/* Projects Section */}
+                    {section.type === SECTION_TYPES.PROJECTS && (section as any).items?.length > 0 && (
+                      <ProjectSection
+                        sectionId={section.id}
+                        projects={(section as any).items}
+                        textColor={'#000000'}
+                        linkColor={'#000000'}
+                        contentEditable={true}
+                        onProjectFieldChange={handleProjectFieldChange}
+                        onProjectDescriptionChange={handleProjectDescriptionChange}
+                        titleClassName={'font-bold text-sm leading-tight mb-1'}
+                        descriptionClassName={'text-sm leading-tight'}
+                      />
                     )}
                   </div>
                 </div>

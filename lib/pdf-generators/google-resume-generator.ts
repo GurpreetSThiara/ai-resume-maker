@@ -2,8 +2,10 @@ import { PDFDocument, StandardFonts, rgb, PDFName, PDFArray } from "pdf-lib"
 import type { PDFGenerationOptions } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { sanitizeTextForPdf } from '@/lib/utils'
+import { drawProjectsSection } from '@/lib/pdf/sections/projects'
 
 export async function generateResumePDF({ resumeData, filename = "resume.pdf" }: PDFGenerationOptions) {
+  console.log("resumedata",resumeData)
   const pdfDoc = await PDFDocument.create()
   let currentPage = pdfDoc.addPage([595.276, 841.89]) // A4
 
@@ -211,7 +213,7 @@ export async function generateResumePDF({ resumeData, filename = "resume.pdf" }:
     if ((section as any).hidden) continue
     let hasContent = false
     if ('items' in (section as any) && Array.isArray((section as any).items)) {
-      if ([SECTION_TYPES.EDUCATION, SECTION_TYPES.EXPERIENCE].includes(section.type as any)) {
+      if ([SECTION_TYPES.EDUCATION, SECTION_TYPES.EXPERIENCE, SECTION_TYPES.PROJECTS].includes(section.type as any)) {
         hasContent = (section as any).items.length > 0
       } else if ([SECTION_TYPES.SKILLS, SECTION_TYPES.LANGUAGES, SECTION_TYPES.CERTIFICATIONS].includes(section.type as any)) {
         hasContent = (section as any).items.filter((s: string) => s && s.trim()).length > 0
@@ -310,6 +312,39 @@ export async function generateResumePDF({ resumeData, filename = "resume.pdf" }:
             draw(line, margin, 10, regularFont, textColor)
             yOffset -= 12
           }
+        }
+        break;
+
+      case SECTION_TYPES.PROJECTS:
+        if ((section as any).items?.length) {
+          const ctx = {
+            page: currentPage,
+            fonts: { regular: regularFont, bold: boldFont },
+            margin,
+            pageInnerWidth: pageWidth,
+            y: yOffset,
+            ensureSpace: (spaceNeeded: number) => {
+              if (yOffset - spaceNeeded < margin) {
+                currentPage = pdfDoc.addPage([595.276, 841.89])
+                ctx.page = currentPage
+                yOffset = 800
+                ctx.y = yOffset
+              }
+            },
+          }
+          const style = {
+            titleSize: 12,
+            titleColor: textColor,
+            linkSize: 8,
+            linkColor,
+            descSize: 10,
+            descColor: secondaryColor,
+            bulletIndent: 12,
+            itemSpacing: 16,
+          }
+          ctx.y = yOffset
+          const { y } = drawProjectsSection(ctx as any, section as any, style as any, { linkDisplay: 'short', withHeader: false })
+          yOffset = y
         }
         break;
 

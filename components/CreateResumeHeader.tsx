@@ -45,58 +45,63 @@ export function CreateResumeHeader({
   effectiveAiEnabled,
   setModalOpen,
 }: CreateResumeHeaderProps) {
-  const renderControls = () => (
-    <>
-      <SectionManagement
-        sections={sectionsWithOrder}
-        onReorder={handleSectionReorder}
-      />
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setShowPreview(!showPreview)}
-        className="flex items-center gap-2"
-      >
-        <Eye className="w-4 h-4" />
-        {showPreview ? "Hide Preview" : "Show Preview"}
-      </Button>
-      <DownloadDropDown
-        data={{
-          resumeData,
-          template: selectedTemplate,
-          filename: `${resumeData.basics.name || "resume"}.pdf`,
-        }}
-      />
-      <Select
-        value={selectedTemplate.id}
-        onValueChange={(value) => {
-          const t = availableTemplates.find((t) => t.id === value)
-          if (t) setSelectedTemplate(t)
-        }}
-      >
-        <SelectTrigger className="text-sm w-full md:w-auto">
-          <SelectValue placeholder="Select Template" />
-        </SelectTrigger>
-        <SelectContent>
-          {availableTemplates.map((t) => (
-            <SelectItem key={t.id} value={t.id}>
-              {t.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <div title="Coming soon" className="inline-block w-full border">
-        <Button
-          onClick={effectiveAiEnabled ? () => setModalOpen(true) : undefined}
-          disabled
-          className="flex items-center gap-2 w-full"
-        >
-          <Star className="w-4 h-4" />
-          Create with AI
-        </Button>
-      </div>
-    </>
-  )
+const renderControls = () => (
+  <div className="w-full flex flex-wrap items-center gap-3">
+
+    <SectionManagement
+      sections={sectionsWithOrder}
+      onReorder={handleSectionReorder}
+      className="h-10 px-4 rounded-md text-sm flex items-center"
+    />
+
+    <Button
+      variant="outline"
+      onClick={() => setShowPreview(!showPreview)}
+      className="h-10 px-4 rounded-md text-sm flex items-center gap-2"
+    >
+      <Eye className="w-4 h-4" />
+      {showPreview ? "Hide Preview" : "Show Preview"}
+    </Button>
+
+    <DownloadDropDown
+      data={{
+        resumeData,
+        template: selectedTemplate,
+        filename: `${resumeData.basics.name || "resume"}.pdf`,
+      }}
+      className="h-10 px-4 rounded-md text-sm flex items-center"
+    />
+
+    <Select
+      value={selectedTemplate.id}
+      onValueChange={(value) => {
+        const t = availableTemplates.find((t) => t.id === value)
+        if (t) setSelectedTemplate(t)
+      }}
+    >
+      <SelectTrigger className="h-10 px-4 rounded-md text-sm w-48 flex items-center">
+        <SelectValue placeholder="Select Template" />
+      </SelectTrigger>
+      <SelectContent>
+        {availableTemplates.map((t) => (
+          <SelectItem key={t.id} value={t.id}>
+            {t.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+
+    <Button
+      disabled
+      title="Coming soon"
+      className="h-10 px-4 rounded-md text-sm flex items-center gap-2"
+    >
+      <Star className="w-4 h-4" />
+      Create with AI
+    </Button>
+  </div>
+)
+
 
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">

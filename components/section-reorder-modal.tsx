@@ -105,7 +105,7 @@ export const SectionReorderModal: React.FC<SectionReorderModalProps> = ({
         </div>
       </DialogTrigger>
       
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="w-5 h-5" />
@@ -114,7 +114,7 @@ export const SectionReorderModal: React.FC<SectionReorderModalProps> = ({
         </DialogHeader>
         
         <div className="flex-1 overflow-y-auto">
-          <div className="space-y-2 pr-2">
+          <div className="space-y-2 pr-2 overflow-auto">
             {localSections.map((section, index) => (
               <div
                 key={section.id}
@@ -125,7 +125,7 @@ export const SectionReorderModal: React.FC<SectionReorderModalProps> = ({
                 onDrop={(e) => handleDrop(e, index)}
                 onDragEnd={handleDragEnd}
                 className={`
-                  flex items-center gap-3 p-4 border rounded-lg transition-all duration-200
+                  flex items-center gap-3 p-4 border rounded-lg transition-all duration-200 
                   ${draggedIndex === index ? 'opacity-50 scale-95' : ''}
                   ${dragOverIndex === index && draggedIndex !== index ? 'border-blue-500 bg-blue-50' : ''}
                   ${draggedIndex !== null && draggedIndex !== index ? 'hover:border-gray-300' : ''}
@@ -212,14 +212,14 @@ export const SectionReorderModal: React.FC<SectionReorderModalProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-3 pt-4 border-t">
+        {/* <div className="flex justify-end gap-3 pt-4 border-t fixed-bottom bg-white mt-4">
           <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
           <Button onClick={handleSave}>
             Save Order
           </Button>
-        </div>
+        </div> */}
       </DialogContent>
     </Dialog>
   )

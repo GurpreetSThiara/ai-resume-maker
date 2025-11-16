@@ -1,5 +1,7 @@
 import { ResumeData, SECTION_TYPES } from '@/types/resume';
+import { formatProject } from '@/lib/renderers/projects'
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { drawProjectsSection } from '@/lib/pdf/sections/projects'
 
 interface GenerateResumeProps {
   resumeData: ResumeData;
@@ -289,7 +291,7 @@ export async function generateTimelineResumePDF({
   resumeData.sections.forEach((section, sectionIdx) => {
     // Check if section has content
     let hasContent = false;
-    if (section.type === SECTION_TYPES.EDUCATION || section.type === SECTION_TYPES.EXPERIENCE) {
+    if (section.type === SECTION_TYPES.EDUCATION || section.type === SECTION_TYPES.EXPERIENCE || section.type === SECTION_TYPES.PROJECTS) {
       hasContent = section.items && section.items.length > 0;
     } else if (
       section.type === SECTION_TYPES.SKILLS ||
@@ -523,6 +525,39 @@ export async function generateTimelineResumePDF({
         yPosition -= 14;
       }
       yPosition -= 10;
+    }
+
+    // Projects Section (use shared renderer styled like timeline preview)
+    if (section.type === SECTION_TYPES.PROJECTS && Array.isArray((section as any).items) && (section as any).items.length) {
+      const ctx = {
+        page,
+        fonts: { regular: regularFont, bold: boldFont },
+        margin: margins.left + 20, // align with contentX (after timeline line)
+        pageInnerWidth: width - (margins.left + 20) - margins.right,
+        y: yPosition,
+        ensureSpace: (spaceNeeded: number) => {
+          if (yPosition - spaceNeeded < margins.bottom) {
+            page = pdfDoc.addPage([595, 842])
+            ctx.page = page
+            yPosition = 842 - margins.top
+            ctx.y = yPosition
+          }
+        },
+      }
+      const style = {
+        titleSize: fontSizes.content,
+        titleColor: colors.text,
+        linkSize: fontSizes.small,
+        linkColor: colors.lightGray,
+        descSize: fontSizes.content,
+        descColor: colors.secondary,
+        bulletIndent: 15,
+        itemSpacing: 10,
+      }
+      const { y } = drawProjectsSection(ctx as any, section as any, style as any, { linkDisplay: 'short', withHeader: false })
+      // Draw timeline dots/lines for the block roughly: place a dot at section start (optional)
+      // For simplicity we keep linear flow without connectors here since content wraps variably.
+      yPosition = y - 10
     }
 
     // Custom Section

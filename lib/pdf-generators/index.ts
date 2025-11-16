@@ -23,6 +23,8 @@ function hasSectionContent(section: any): boolean {
     case SECTION_TYPES.LANGUAGES:
     case SECTION_TYPES.CERTIFICATIONS:
       return Array.isArray(section.items) && section.items.filter((s: string) => s && s.trim()).length > 0
+    case SECTION_TYPES.PROJECTS:
+      return Array.isArray(section.items) && section.items.length > 0
     case SECTION_TYPES.CUSTOM:
       return Array.isArray(section.content) && section.content.filter((s: string) => s && s.trim()).length > 0
     default:
@@ -32,14 +34,20 @@ function hasSectionContent(section: any): boolean {
 
 export async function generateResumePDF(options: PDFGenerationOptions) {
   const { template } = options
+  console.log("resumedownload",options.resumeData)
 
   const filteredOptions: PDFGenerationOptions = {
     ...options,
     resumeData: {
       ...options.resumeData,
+      // Keep sections intact (including projects). Individual generators
+      // will decide how to render each section. Previously projects were
+      // flattened into `custom` which caused mismatch between preview and PDF.
       sections: (options.resumeData.sections || []).filter((s: any) => hasSectionContent(s)),
     },
   }
+
+  console.log("filteredOptions",filteredOptions)
 
   let result
   switch (template.id) {

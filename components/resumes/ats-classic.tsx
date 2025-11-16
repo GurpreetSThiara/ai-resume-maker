@@ -4,6 +4,8 @@ import type React from "react"
 import { useRef, useEffect, useState } from "react"
 import type { ResumeData } from "@/types/resume"
 import { sortSectionsByOrder } from "@/utils/sectionOrdering"
+import ProjectSection from '../resume-components/project-section'
+import { SECTION_TYPES } from '@/types/resume'
 
 interface ResumeProps {
   pdfRef: React.RefObject<HTMLDivElement>
@@ -169,6 +171,32 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
       return updated;
     });
 
+  const handleProjectFieldChange = (sectionId: string | undefined, projectIndex: number, field: string, value: string) => {
+    if (!sectionId) return
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const section = updated.sections.find((s) => s.id === sectionId)
+      if (!section || section.type !== SECTION_TYPES.PROJECTS) return prev
+      if (!section.items) section.items = [] as any
+      ;(section.items[projectIndex] as any)[field] = value
+      return updated
+    })
+  }
+
+  const handleProjectDescriptionChange = (sectionId: string | undefined, projectIndex: number, descIndex: number, value: string) => {
+    if (!sectionId) return
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const section = updated.sections.find((s) => s.id === sectionId)
+      if (!section || section.type !== SECTION_TYPES.PROJECTS) return prev
+      const proj = (section.items[projectIndex] as any)
+      if (!proj) return prev
+      if (!Array.isArray(proj.description)) proj.description = []
+      proj.description[descIndex] = value
+      return updated
+    })
+  }
+
   return (
     <div className="border w-full h-full flex justify-center items-start overflow-auto bg-gray-50" style={{ minHeight: 0, minWidth: 0 }}>
       <div
@@ -286,6 +314,8 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
                   hasContent = section.items && section.items.length > 0;
                 } else if (section.type === 'skills' || section.type === 'languages' || section.type === 'certifications') {
                   hasContent = section.items && section.items.length > 0;
+                } else if (section.type === 'projects') {
+                  hasContent = Array.isArray((section as any).items) && (section as any).items.length > 0
                 } else if (section.type === 'custom') {
                   hasContent = section.content && section.content.length > 0 && section.content.some(item => item.trim() !== '');
                 }
@@ -470,6 +500,21 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
                           {section.items.join(', ')}
                         </p>
                       </div>
+                    )}
+
+                    {/* Projects Section */}
+                    {section.type === 'projects' && Array.isArray((section as any).items) && (
+                      <ProjectSection
+                        sectionId={section.id}
+                        projects={(section as any).items}
+                        textColor={'#111827'}
+                        linkColor={'#2563eb'}
+                        contentEditable={true}
+                        onProjectFieldChange={handleProjectFieldChange}
+                        onProjectDescriptionChange={handleProjectDescriptionChange}
+                        titleClassName={'text-base font-semibold text-gray-900'}
+                        descriptionClassName={'text-sm text-gray-600 '}
+                      />
                     )}
 
                     {/* Custom Section */}

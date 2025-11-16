@@ -1,32 +1,36 @@
-import { ResumeData, SECTION_TYPES } from "@/types/resume";
+import { ResumeData } from "@/types/resume";
 
-
-
-export const sampleResumeData: ResumeData = {
+export const sampleResume: ResumeData = {
   basics: {
-    name: "Arjun Mehta",
-    email: "arjun.mehta.dev@gmail.com",
-    phone: "+91-9876543210",
-    location: "Bengaluru, India",
-    linkedin: "https://linkedin.com/in/arjunmehta",
+    name: "Gurpreet Singh",
+    email: "gurpreet.singh@example.com",
+    phone: "+91 9876543210",
+    location: "Ludhiana, Punjab, India",
+    linkedin: "https://linkedin.com/in/gurpreet-singh",
     summary:
-      "Full-stack developer with 4+ years of experience building scalable web applications using React, Node.js, and cloud-native technologies. Passionate about solving real-world problems with clean code and intuitive user experiences."
+      "MERN Stack Developer with 3+ years of experience in building scalable web applications using Next.js, React, Node.js, and MongoDB. Passionate about performance optimization and creating intuitive user interfaces."
   },
 
   custom: {
     dob: {
       title: "Date of Birth",
-      content: "1995-03-12",
+      content: "1998-07-12",
       hidden: false,
-      id: "dob-1",
+      id: "dob",
       link: false
     },
-
+    gender: {
+      title: "Gender",
+      content: "Male",
+      hidden: false,
+      id: "gender",
+      link: false
+    },
     portfolio: {
       title: "Portfolio",
-      content: "https://arjun.dev",
+      content: "https://gurpreet.dev",
       hidden: false,
-      id: "portfolio-1",
+      id: "portfolio",
       link: true
     }
   },
@@ -35,17 +39,18 @@ export const sampleResumeData: ResumeData = {
     {
       id: "edu-1",
       title: "Education",
-      type: SECTION_TYPES.EDUCATION,
+      type: "education",
+      order: 1,
       items: [
         {
-          institution: "Indian Institute of Technology, Delhi",
+          institution: "Punjab Technical University",
           degree: "B.Tech in Computer Science",
-          startDate: "2013-08",
-          endDate: "2017-05",
-          location: "New Delhi, India",
+          startDate: "2016",
+          endDate: "2020",
+          location: "Jalandhar, Punjab",
           highlights: [
             "Graduated with First Class Honors",
-            "Member of Programming & AI Club"
+            "Completed final-year project on AI-based Chatbot using Python"
           ]
         }
       ]
@@ -53,18 +58,30 @@ export const sampleResumeData: ResumeData = {
     {
       id: "exp-1",
       title: "Experience",
-      type: SECTION_TYPES.EXPERIENCE,
+      type: "experience",
+      order: 2,
       items: [
         {
-          company: "TechNova Solutions",
-          role: "Senior Software Engineer",
-          startDate: "2021-04",
+          company: "Logiceil Solutions",
+          role: "Associate Software Engineer",
+          startDate: "2024-02",
           endDate: "Present",
-          location: "Bengaluru, India",
+          location: "Ludhiana, Punjab",
           achievements: [
-            "Led a team of 5 engineers to develop a SaaS product used by 50,000+ users.",
-            "Reduced API response times by 40% through performance optimizations.",
-            "Implemented CI/CD pipelines, cutting deployment time by 60%."
+            "Developed a fully custom calendar component in Next.js",
+            "Implemented secure authentication using JWT and bcrypt",
+            "Optimized React rendering using memo and custom hooks"
+          ]
+        },
+        {
+          company: "TechNova Labs",
+          role: "Frontend Developer Intern",
+          startDate: "2023-06",
+          endDate: "2023-12",
+          location: "Remote",
+          achievements: [
+            "Built reusable UI components using React and Tailwind CSS",
+            "Collaborated on API integration and testing using Postman"
           ]
         }
       ]
@@ -72,39 +89,71 @@ export const sampleResumeData: ResumeData = {
     {
       id: "skills-1",
       title: "Skills",
-      type: SECTION_TYPES.SKILLS,
+      type: "skills",
+      order: 3,
       items: [
-        "JavaScript / TypeScript",
-        "React.js / Next.js",
-        "Node.js / Express",
-        "MongoDB / PostgreSQL",
-        "AWS (Lambda, S3, EC2)",
-        "Docker & Kubernetes",
-        "CI/CD (GitHub Actions, Jenkins)"
+        "Next.js",
+        "React",
+        "TypeScript",
+        "Node.js",
+        "MongoDB",
+        "Tailwind CSS",
+        "Cypress",
+        "Git"
       ]
     },
     {
       id: "lang-1",
       title: "Languages",
-      type: SECTION_TYPES.LANGUAGES,
-      items: ["English (Fluent)", "Hindi (Native)", "Kannada (Intermediate)"]
+      type: "languages",
+      order: 4,
+      items: ["English", "Punjabi", "Hindi"]
     },
     {
-      id: "certs-1",
+      id: "cert-1",
       title: "Certifications",
-      type: SECTION_TYPES.CERTIFICATIONS,
+      type: "certifications",
+      order: 5,
       items: [
-        "AWS Certified Solutions Architect – Associate (2022)",
-        "Certified Kubernetes Administrator (CKA, 2021)"
+        "JavaScript Algorithms and Data Structures (freeCodeCamp)",
+        "Full Stack Web Development (Coursera)"
       ]
     },
     {
-      id: "projects-1",
+      id: "proj-1",
       title: "Projects",
+      type: "projects",
+      order: 6,
+      items: [
+        {
+          name: "Resume Builder 22333",
+          link: "https://resumeai.in",
+          repo: "https://github.com/gurpreet/resume-builder",
+          description: [
+            "Created a customizable resume builder using Next.js and pdf-lib",
+            "Implemented data encryption for local resume storage",
+            "Added real-time preview with auto-save and PDF download"
+          ]
+        },
+        {
+          name: "Friendship Score Tester",
+          link: "https://friendshipquiz.fun",
+          description: [
+            "Developed a fun personality quiz app with unique shareable links",
+            "Integrated Google Analytics and Propeller Ads for monetization"
+          ]
+        }
+      ]
+    },
+    {
+      id: "custom-1",
+      title: "Hobbies",
       type: "custom",
+      order: 7,
       content: [
-        "🚀 **TaskFlow Pro** – A productivity web app with real-time collaboration, built using Next.js, GraphQL, and WebSockets.",
-        "📊 **FinTrack** – A personal finance tracker with data visualization, deployed on AWS with serverless architecture."
+        "Playing chess in free time",
+        "Writing Punjabi poetry",
+        "Learning AI and transformers"
       ]
     }
   ]

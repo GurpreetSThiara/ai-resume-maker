@@ -1,6 +1,7 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib"
 import type { PDFGenerationOptions } from "@/types/resume"
 import { sanitizeTextForPdf } from "@/lib/utils"
+import { drawProjectsSection } from '@/lib/pdf/sections/projects'
 
 export async function generateClassic2ResumePDF({ resumeData, filename = "resume.pdf" }: PDFGenerationOptions) {
   const pdfDoc = await PDFDocument.create()
@@ -242,6 +243,40 @@ export async function generateClassic2ResumePDF({ resumeData, filename = "resume
           yOffset -= 16
         }
         break
+
+      case "projects":
+        if ((section as any).items && (section as any).items.length) {
+          const ctx = {
+            page: currentPage,
+            fonts: { regular: regularFont, bold: boldFont },
+            margin,
+            pageInnerWidth: pageWidth,
+            y: yOffset,
+            ensureSpace: (spaceNeeded: number) => {
+              if (yOffset - spaceNeeded < margin) {
+                currentPage = pdfDoc.addPage([595.276, 841.89])
+                ctx.page = currentPage
+                yOffset = 800
+                ctx.y = yOffset
+              }
+            },
+          }
+          const style = {
+            titleSize: 13,
+            titleColor: textColor,
+            linkSize: 9,
+            linkColor: rgb(0,0,0.66),
+            descSize: 10,
+            descColor: secondaryColor,
+            bulletIndent: 16,
+            itemSpacing: 16,
+          }
+          ctx.y = yOffset
+          const { y } = drawProjectsSection(ctx as any, section as any, style as any, { linkDisplay: 'short', withHeader: false })
+          yOffset = y
+        }
+        break
+;
     }
   }
 

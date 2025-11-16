@@ -11,6 +11,7 @@ import { EducationSection as EducationSectionComponent } from "@/components/educ
 import { ExperienceSection as ExperienceSectionComponent } from "@/components/experience-section"
 import { SkillsSection as SkillsSectionComponent } from "@/components/skills-section"
 import { CertificationsSection as CertificationsSectionComponent } from "@/components/certifications-section"
+import { ProjectsSection as ProjectsSectionComponent } from "@/components/projects-section"
 import { SummarySection } from "@/components/summary-section"
 import { CustomFieldsSection } from "@/components/custom-fields-section"
 import { ReviewSection } from "@/components/review-section"
@@ -45,8 +46,9 @@ import { generateResumePDF } from "@/lib/pdf-generators"
 import { sanitizeResumeData } from "@/utils/createResume"
 import { createLocalResume, updateLocalResume, getLocalResumeById } from "@/lib/local-storage"
 import { SHOW_ERROR, SHOW_SUCCESS } from "@/utils/toast"
+import { sampleResume } from "@/lib/examples/resume-example"
 
-const initialData: ResumeData = devopsResumeData4 //sampleResumeData
+const initialData: ResumeData = sampleResume //sampleResumeData
 
 const CreateResumeContent: FC = () => {
   const { loading } = useAuth()
@@ -58,6 +60,7 @@ const CreateResumeContent: FC = () => {
   const [currentStep, setCurrentStep] = useState(0)
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set())
   const [resumeData, setResumeData] = useState<ResumeData>(initialData)
+  console.log("ini    ", initialData)
   const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplate>(googleTemplate)
   const template = useTemplateSelector(availableTemplates)
 
@@ -69,6 +72,8 @@ const CreateResumeContent: FC = () => {
   const [limitModalBusy, setLimitModalBusy] = useState(false)
   const [saveModalOpen, setSaveModalOpen] = useState(false)
   const steps = CREATE_RESUME_STEPS
+
+  console.log("resumeData",resumeData)
 
   // Load data from localStorage on component mount (only if no cloud resume ID)
   useEffect(() => {
@@ -378,11 +383,14 @@ const CreateResumeContent: FC = () => {
     const experienceSection = updatedData.sections.find(s => s.type === SECTION_TYPES.EXPERIENCE) as ExperienceSection | undefined;
     if (experienceSection?.items && experienceSection.items.length > 0) newCompletedSteps.add(3);
     
+    const projectsSection = updatedData.sections.find(s => s.type === SECTION_TYPES.PROJECTS) as any;
+    if (projectsSection?.items && projectsSection.items.length > 0) newCompletedSteps.add(4);
+
     const skillsSection = updatedData.sections.find(s => s.type === SECTION_TYPES.SKILLS) as SkillsSection | undefined;
-    if (skillsSection?.items && skillsSection.items.length > 0) newCompletedSteps.add(4);
+    if (skillsSection?.items && skillsSection.items.length > 0) newCompletedSteps.add(5);
 
     const certsSection = updatedData.sections.find(s => s.type === SECTION_TYPES.CERTIFICATIONS) as any;
-    if (certsSection?.items && certsSection.items.length > 0) newCompletedSteps.add(5);
+    if (certsSection?.items && certsSection.items.length > 0) newCompletedSteps.add(6);
     
     setCompletedSteps(newCompletedSteps);
     
@@ -400,14 +408,16 @@ const CreateResumeContent: FC = () => {
       case 3:
         return <ExperienceSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
       case 4:
-        return <SkillsSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
+        return <ProjectsSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
       case 5:
-        return <CertificationsSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
+        return <SkillsSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
       case 6:
-        return <CustomFieldsSection data={resumeData} onUpdate={handleResumeDataUpdate} onSave={saveToLocal} isDirty={false} />
+        return <CertificationsSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
       case 7:
-        return <CustomSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
+        return <CustomFieldsSection data={resumeData} onUpdate={handleResumeDataUpdate} onSave={saveToLocal} isDirty={false} />
       case 8:
+        return <CustomSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
+      case 9:
         return <ReviewSection data={resumeData} template={selectedTemplate} />
       default:
         return null
@@ -553,7 +563,7 @@ const CreateResumeContent: FC = () => {
                           </Button> */}
                         </DialogTitle>
                       </DialogHeader>
-                      <div className="flex-grow overflow-y-auto">
+                      <div className="grow overflow-y-auto">
                         <ResumePreview 
                           resumeData={resumeData} 
                           template={selectedTemplate} 
@@ -566,9 +576,9 @@ const CreateResumeContent: FC = () => {
                     </DialogContent>
                   </Dialog>
                 ) : (
-                  <Card className="sticky top-32">
+                  <Card className="sticky top-32 h-screen overflow-auto">
                     <CardHeader>
-                      <CardTitle className="text-lg">Preview</CardTitle>
+                      <CardTitle className="text-lg text-center">Preview (you can click/tap on any line and edit directly in preview)</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <ResumePreview 

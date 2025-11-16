@@ -42,6 +42,7 @@ export const SECTION_TYPES = {
   SKILLS: "skills",
   LANGUAGES: "languages",
   CERTIFICATIONS: "certifications",
+  PROJECTS: "projects",
   CUSTOM: "custom",
 } as const
 
@@ -72,6 +73,18 @@ export interface LanguagesSection extends BaseSection {
 export interface CertificationsSection extends BaseSection {
   type: typeof SECTION_TYPES.CERTIFICATIONS
   items: string[]
+}
+
+export interface Project {
+  name: string
+  link?: string
+  repo?: string
+  description?: string[]
+}
+
+export interface ProjectsSection extends BaseSection {
+  type: typeof SECTION_TYPES.PROJECTS
+  items: Project[]
 }
 
 export interface CustomSection extends BaseSection {
@@ -105,6 +118,7 @@ export type Section =
   | SkillsSection
   | LanguagesSection
   | CertificationsSection
+  | ProjectsSection
   | CustomSection
 
 export interface ResumeTemplate {
@@ -165,4 +179,5 @@ export interface PDFGenerationOptions {
   resumeData: ResumeData
   template: ResumeTemplate
   filename?: string
+  linkDisplay?: 'short' | 'full'
 }

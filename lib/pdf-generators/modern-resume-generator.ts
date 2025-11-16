@@ -231,6 +231,44 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
           })
         })
         break
+
+      case "projects":
+        const projSection = section as any;
+        if (projSection.items && projSection.items.length) {
+          for (const proj of projSection.items) {
+            // Project name
+            drawText(proj.name || "", margin, fontBold, 12)
+            y -= 15
+
+            // Links row (blue, small, piped)
+            let linksRow = ''
+            if (proj.link) linksRow += 'Link:'
+            if (proj.link) linksRow += ` ${proj.link}`
+            if (proj.link && proj.repo) linksRow += '  |  '
+            if (proj.repo) linksRow += 'GitHub:'
+            if (proj.repo) linksRow += ` ${proj.repo}`
+            if (linksRow) {
+              const linkLines = wrapText(linksRow, 80)
+              for (const line of linkLines) {
+                page.drawText(line, { x: margin, y, size: 9, font: fontRegular, color: rgb(0,0,0.7) })
+                y -= 12
+              }
+            }
+
+            // Descriptions (dashes, gray, indented)
+            if (Array.isArray(proj.description) && proj.description.length) {
+              for (const d of proj.description) {
+                const descLines = wrapText(`- ${d}`, 76)
+                for (const line of descLines) {
+                  page.drawText(line, { x: margin + 15, y, size: 9, font: fontRegular, color: lightGray })
+                  y -= 12
+                }
+              }
+            }
+            y -= 16; // space between projects
+          }
+        }
+        break;
     }
 
     y -= 8

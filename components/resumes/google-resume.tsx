@@ -4,6 +4,7 @@ import { ResumeData, SECTION_TYPES } from "@/types/resume"
 import type React from "react"
 import { useRef, useEffect, useState } from "react"
 import { sortSectionsByOrder } from "@/utils/sectionOrdering"
+import ProjectSection from "../resume-components/project-section"
 
 
 interface ResumeProps {
@@ -170,6 +171,32 @@ export const GoogleResume: React.FC<ResumeProps> = ({
       return updated;
     });
 
+  const handleProjectFieldChange = (sectionId: string | undefined, projectIndex: number, field: string, value: string) => {
+    if (!sectionId) return
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const section = updated.sections.find((s) => s.id === sectionId)
+      if (!section || section.type !== SECTION_TYPES.PROJECTS) return prev
+      if (!section.items) section.items = [] as any
+      ;(section.items[projectIndex] as any)[field] = value
+      return updated
+    })
+  }
+
+  const handleProjectDescriptionChange = (sectionId: string | undefined, projectIndex: number, descIndex: number, value: string) => {
+    if (!sectionId) return
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const section = updated.sections.find((s) => s.id === sectionId)
+      if (!section || section.type !== SECTION_TYPES.PROJECTS) return prev
+      const proj = (section.items[projectIndex] as any)
+      if (!proj) return prev
+      if (!Array.isArray(proj.description)) proj.description = []
+      proj.description[descIndex] = value
+      return updated
+    })
+  }
+
   // Colors matching the PDF generator
   const accentColor = "rgb(38, 102, 166)" // rgb(0.15, 0.4, 0.65)
   const textColor = "rgb(26, 26, 26)" // rgb(0.1, 0.1, 0.1)
@@ -311,7 +338,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
               // Check if section has content based on section type
               let hasContent = false
               if ('items' in section && Array.isArray((section as any).items)) {
-                if (section.type === SECTION_TYPES.EDUCATION || section.type === SECTION_TYPES.EXPERIENCE) {
+                if (section.type === SECTION_TYPES.EDUCATION || section.type === SECTION_TYPES.EXPERIENCE || section.type === SECTION_TYPES.PROJECTS) {
                   hasContent = (section as any).items.length > 0
                 } else if (section.type === SECTION_TYPES.SKILLS || section.type === SECTION_TYPES.LANGUAGES || section.type === SECTION_TYPES.CERTIFICATIONS) {
                   hasContent = (section as any).items.filter((s: string) => s && s.trim()).length > 0
@@ -406,7 +433,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
                           {edu.highlights?.map((highlight, highlightIdx) => (
                             <div key={highlightIdx} className="flex items-start">
                               <span
-                                className="text-xs leading-tight mr-2 flex-shrink-0"
+                                className="text-xs leading-tight mr-2 ml-4"
                                 style={{ color: textColor, fontSize: '10px' }}
                               >
                                 •
@@ -484,7 +511,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
                           {exp.achievements?.map((achievement, achievementIdx) => (
                             <div key={achievementIdx} className="flex items-start">
                               <span
-                                className="text-xs leading-tight mr-2 flex-shrink-0"
+                                className="text-xs leading-tight mr-2 ml-4"
                                 style={{ color: textColor, fontSize: '10px' }}
                               >
                                 •
@@ -517,6 +544,21 @@ export const GoogleResume: React.FC<ResumeProps> = ({
                           {section.items.join(' • ')}
                         </p>
                       </div>
+                    )}
+
+                    {/* Projects Section */}
+                    {section.type === SECTION_TYPES.PROJECTS && Array.isArray((section as any).items) && (
+                      <ProjectSection
+                        sectionId={section.id}
+                        projects={(section as any).items}
+                        textColor={textColor}
+                        linkColor={linkColor}
+                        contentEditable={true}
+                        onProjectFieldChange={handleProjectFieldChange}
+                        onProjectDescriptionChange={handleProjectDescriptionChange}
+                        titleClassName={'font-bold text-[13px]'}
+                        descriptionClassName={'text-[10px]'}
+                      />
                     )}
 
                     {/* Custom Section */}

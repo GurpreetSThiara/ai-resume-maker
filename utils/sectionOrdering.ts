@@ -69,6 +69,7 @@ export const getSectionTypeDisplayName = (type: string): string => {
     experience: 'Experience',
     skills: 'Skills',
     languages: 'Languages',
+    projects: 'Projects',
     certifications: 'Certifications',
     custom: 'Custom'
   }
@@ -84,6 +85,7 @@ export const getSectionTypeIcon = (type: string): string => {
     experience: '💼',
     skills: '🛠️',
     languages: '🌐',
+    projects: '📦',
     certifications: '🏆',
     custom: '📝'
   }
