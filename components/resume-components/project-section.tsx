@@ -1,0 +1,109 @@
+"use client"
+import React from 'react'
+
+type Project = {
+  name?: string
+  link?: string
+  repo?: string
+  description?: string[]
+}
+
+type Props = {
+  projects: Project[]
+  sectionId?: string
+  // styling
+  titleClassName?: string
+  titleStyle?: React.CSSProperties
+  descriptionClassName?: string
+  descriptionStyle?: React.CSSProperties
+  textColor?: string
+  linkColor?: string
+  // editing
+  contentEditable?: boolean
+  onProjectFieldChange?: (sectionId: string | undefined, projectIndex: number, field: string, value: string) => void
+  onProjectDescriptionChange?: (sectionId: string | undefined, projectIndex: number, descIndex: number, value: string) => void
+}
+
+export default function ProjectSection({
+  projects,
+  sectionId,
+  titleClassName = 'font-bold text-[13px]',
+  titleStyle,
+  descriptionClassName = '',
+  descriptionStyle,
+  textColor = '#111827',
+  linkColor = '#2563eb',
+  contentEditable = false,
+  onProjectFieldChange,
+  onProjectDescriptionChange,
+}: Props) {
+  if (!Array.isArray(projects) || projects.length === 0) return null
+
+  return (
+    <div className="space-y-2">
+      {projects.map((proj, pIdx) => (
+        <section key={pIdx}>
+          <header className="mb-1">
+            <span
+              className={titleClassName}
+              style={{ color: textColor, ...(titleStyle || {}) }}
+              contentEditable={contentEditable || !!onProjectFieldChange}
+              suppressContentEditableWarning
+              onBlur={(e) => onProjectFieldChange?.(sectionId, pIdx, 'name', e.currentTarget.textContent || '')}
+            >
+              {proj.name}
+            </span>
+
+            {(proj.link || proj.repo) && (
+              <span className="ml-2 text-[10px] font-medium align-middle">
+                {proj.link && (
+                  <a href={proj.link} target="_blank" rel="noreferrer" className="hover:underline" style={{ color: linkColor }}>
+                    Link
+                  </a>
+                )}
+                {proj.link && proj.repo && <span className="mx-1 text-gray-300">|</span>}
+                {proj.repo && (
+                  <a href={proj.repo} target="_blank" rel="noreferrer" className="hover:underline" style={{ color: linkColor }}>
+                    GitHub
+                  </a>
+                )}
+              </span>
+            )}
+          </header>
+
+   {Array.isArray(proj.description) && proj.description.length > 0 && (
+  <ul className="list-none space-y-1 text-sm text-gray-700 ml-4">
+    {proj.description.map((d, dIdx) => (
+      <li key={dIdx} className="flex items-start text-sm text-gray-700">
+        {/* Bullet */}
+        <span className={`mr-2 text-gray-500  h-auto p-0 ${descriptionClassName}`}>•</span>
+
+        {/* Text */}
+        <span
+          className={descriptionClassName}
+          style={{ color: textColor, ...(descriptionStyle || {}) }}
+          contentEditable={contentEditable || !!onProjectDescriptionChange}
+          suppressContentEditableWarning
+          onBlur={(e) =>
+            onProjectDescriptionChange?.(
+              sectionId,
+              pIdx,
+              dIdx,
+              e.currentTarget.textContent || ''
+            )
+          }
+        
+        >
+          {d}
+        </span>
+      </li>
+    ))}
+  </ul>
+)}
+
+
+        </section>
+      ))}
+    </div>
+  )
+}

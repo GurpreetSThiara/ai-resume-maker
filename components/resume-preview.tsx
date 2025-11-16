@@ -73,6 +73,8 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
         case SECTION_TYPES.EDUCATION:
         case SECTION_TYPES.EXPERIENCE:
           return Array.isArray(section.items) && section.items.length > 0
+        case SECTION_TYPES.PROJECTS:
+          return Array.isArray(section.items) && section.items.length > 0
         case SECTION_TYPES.SKILLS:
         case SECTION_TYPES.LANGUAGES:
         case SECTION_TYPES.CERTIFICATIONS:
@@ -86,7 +88,18 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
 
     const filteredResumeData: ResumeData = {
       ...resumeData,
-      sections: (resumeData.sections || []).filter((s: any) => hasSectionContent(s)) as any
+      sections: (resumeData.sections || [])
+        .filter((s: any) => hasSectionContent(s))
+        .map((s: any) => {
+          // Preserve original projects section so templates that render projects
+          // (like `ats-classic`) receive the proper `projects` type and items.
+          // Previously projects were flattened into a `custom` section which
+          // caused templates to see `type: 'custom'` instead of `type: 'projects'.
+          if (s.type === SECTION_TYPES.PROJECTS) {
+            return s
+          }
+          return s
+        }) as any
     }
 
     const handleNameChange = (e: React.FocusEvent<HTMLHeadingElement>) => {

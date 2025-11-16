@@ -97,6 +97,41 @@ export async function generateCreativeResumePDF({ resumeData, filename = "resume
         }
         break
 
+      case "projects":
+        if ((section as any).items && (section as any).items.length) {
+          for (const proj of (section as any).items) {
+            // Project name
+            draw(proj.name || "", margin, 12, bold, text)
+            y -= 16
+            // Links row
+            let linksRow = ''
+            if (proj.link) linksRow += 'Link:'
+            if (proj.link) linksRow += ` ${proj.link}`
+            if (proj.link && proj.repo) linksRow += '  |  '
+            if (proj.repo) linksRow += 'GitHub:'
+            if (proj.repo) linksRow += ` ${proj.repo}`
+            if (linksRow) {
+              const linkLines = wrapText(linksRow, 95)
+              for (const line of linkLines) {
+                draw(line, margin, 9, regular, accent)
+                y -= 11
+              }
+            }
+            // Descriptions
+            if (Array.isArray(proj.description) && proj.description.length) {
+              for (const d of proj.description) {
+                const descLines = wrapText(`- ${d}`, 85)
+                for (const line of descLines) {
+                  draw(line, margin + 14, 9, regular, secondary)
+                  y -= 12
+                }
+              }
+            }
+            y -= 16
+          }
+        }
+        break;
+
       case "custom":
         section.content.forEach((item) => {
           const lines = wrapText(`• ${item}`, 86)

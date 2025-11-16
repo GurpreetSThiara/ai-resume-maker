@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import ProjectSection from '../resume-components/project-section'
 import { useRef, useEffect, useState } from "react"
 import type { ResumeData } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
@@ -163,6 +164,32 @@ export const ATS_TIMELINE: React.FC<ResumeProps> = ({
       return updated
     })
 
+  const handleProjectFieldChange = (sectionId: string | undefined, projectIndex: number, field: string, value: string) => {
+    if (!sectionId) return
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const section = updated.sections.find((s) => s.id === sectionId)
+      if (!section || section.type !== SECTION_TYPES.PROJECTS) return prev
+      if (!section.items) section.items = [] as any
+      ;(section.items[projectIndex] as any)[field] = value
+      return updated
+    })
+  }
+
+  const handleProjectDescriptionChange = (sectionId: string | undefined, projectIndex: number, descIndex: number, value: string) => {
+    if (!sectionId) return
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const section = updated.sections.find((s) => s.id === sectionId)
+      if (!section || section.type !== SECTION_TYPES.PROJECTS) return prev
+      const proj = (section.items[projectIndex] as any)
+      if (!proj) return prev
+      if (!Array.isArray(proj.description)) proj.description = []
+      proj.description[descIndex] = value
+      return updated
+    })
+  }
+
   return (
     <div ref={containerRef} style={{ width: "100%", display: "flex", justifyContent: "center" }}>
       <div
@@ -307,6 +334,8 @@ export const ATS_TIMELINE: React.FC<ResumeProps> = ({
               section.type === SECTION_TYPES.CERTIFICATIONS
             ) {
               hasContent = section.items && section.items.length > 0
+            } else if (section.type === SECTION_TYPES.PROJECTS) {
+              hasContent = Array.isArray((section as any).items) && (section as any).items.length > 0
             } else if (section.type === SECTION_TYPES.CUSTOM) {
               hasContent =
                 section.content && section.content.length > 0 && section.content.some((item) => item.trim() !== "")
@@ -621,6 +650,22 @@ export const ATS_TIMELINE: React.FC<ResumeProps> = ({
                           </p>
                         </div>
                       ))}
+                    </div>
+                  )}
+                  {/* Projects Section */}
+                  {section.type === SECTION_TYPES.PROJECTS && (section as any).items?.length > 0 && (
+                    <div className="pl-2">
+                      <ProjectSection
+                        sectionId={section.id}
+                        projects={(section as any).items}
+                        textColor={'#2d3748'}
+                        linkColor={'#4299e1'}
+                        contentEditable={true}
+                        onProjectFieldChange={handleProjectFieldChange}
+                        onProjectDescriptionChange={handleProjectDescriptionChange}
+                        titleClassName={'font-bold text-sm leading-tight'}
+                        descriptionClassName={'text-sm leading-tight'}
+                      />
                     </div>
                   )}
                 </div>

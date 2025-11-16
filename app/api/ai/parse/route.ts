@@ -96,6 +96,19 @@ Parse the given resume text and output an object of type \`ResumeData\` as defin
       ]
     },
     {
+      "id": "projects-section",
+      "title": "Projects",
+      "type": "projects",
+      "items": [
+        {
+          "name": "string",
+          "link": "string (optional)",
+          "repo": "string (optional)",
+          "description": ["string"]
+        }
+      ]
+    },
+    {
       "id": "skills-section",
       "title": "Skills",
       "type": "skills",
@@ -138,6 +151,7 @@ Parse the given resume text and output an object of type \`ResumeData\` as defin
 Allowed \`SectionType\` values:
 - "education"
 - "experience"
+- "projects"
 - "skills"
 - "languages"
 - "certifications"
@@ -169,6 +183,13 @@ Experience = {
   "endDate": "YYYY-MM or 'Present'",
   "location"?: "string",
   "achievements"?: ["string"]
+}
+
+Project = {
+  "name": "string",
+  "link"?: "string",
+  "repo"?: "string",
+  "description"?: ["string"]
 }
 
 ---

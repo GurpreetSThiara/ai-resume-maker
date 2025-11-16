@@ -75,6 +75,20 @@ function validateSection(section: unknown, errors: string[], index: number): sec
       if (!isStringArray(items)) { errors.push(`sections[${index}].items must be string[]`); ok = false }
       break
     }
+    case SECTION_TYPES.PROJECTS: {
+      const items = (section as any).items
+      if (!Array.isArray(items)) { errors.push(`sections[${index}].items must be an array`); ok = false; break }
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i]
+        if (!isRecord(it)) { errors.push(`projects[${i}] must be an object`); ok = false; continue }
+        if (!isString(it.name)) { errors.push(`projects[${i}].name must be a string`); ok = false }
+        if (it.link != null && !isString(it.link)) { errors.push(`projects[${i}].link must be a string`); ok = false }
+        if (it.repo != null && !isString(it.repo)) { errors.push(`projects[${i}].repo must be a string`); ok = false }
+        if (it.description != null && !isStringArray(it.description)) { errors.push(`projects[${i}].description must be string[]`); ok = false }
+      }
+      break
+    }
+    
     case SECTION_TYPES.CUSTOM: {
       const content = (section as any).content
       if (!isStringArray(content)) { errors.push(`sections[${index}].content must be string[]`); ok = false }

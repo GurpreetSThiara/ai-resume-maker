@@ -76,19 +76,56 @@ export async function generateElegantResumePDF({ resumeData, filename = "resume.
         }
         y -= 12
       }
-      for (const b of bullets) {
-        // Skip empty bullets
-        if (!b || b.trim() === '') {
-          continue
-        }
+      switch (section.title.toLowerCase()) {
+        case "projects":
+          if ((section as any).items && (section as any).items.length) {
+            for (const proj of (section as any).items) {
+              draw(proj.name || "", margin, 12, bold, accent)
+              y -= 14
+              // Links row
+              let linksRow = ''
+              if (proj.link) linksRow += 'Link:'
+              if (proj.link) linksRow += ` ${proj.link}`
+              if (proj.link && proj.repo) linksRow += '  |  '
+              if (proj.repo) linksRow += 'GitHub:'
+              if (proj.repo) linksRow += ` ${proj.repo}`
+              if (linksRow) {
+                const linkLines = wrapText(linksRow, 84)
+                for (const line of linkLines) {
+                  draw(line, margin, 9, regular, rgb(0.22,0.3,0.75))
+                  y -= 10
+                }
+              }
+              // Descriptions
+              if (Array.isArray(proj.description) && proj.description.length) {
+                for (const d of proj.description) {
+                  const descLines = wrapText(`- ${d}`, 78)
+                  for (const line of descLines) {
+                    draw(line, margin + 14, 9, regular, secondary)
+                    y -= 12
+                  }
+                }
+              }
+              y -= 16
+            }
+          }
+          break;
+        default:
+          for (const b of bullets) {
+            // Skip empty bullets
+            if (!b || b.trim() === '') {
+              continue
+            }
 
-        const lines = wrapText(`• ${b}`, 84)
-        for (const line of lines) {
-          draw(line, margin + 10, 9)
-          y -= 12
-        }
+            const lines = wrapText(`• ${b}`, 84)
+            for (const line of lines) {
+              draw(line, margin + 10, 9)
+              y -= 12
+            }
+          }
+          y -= 6
+          break;
       }
-      y -= 6
     }
     y -= 8
   }
