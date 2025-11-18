@@ -554,7 +554,7 @@ export async function generateTimelineResumePDF({
         bulletIndent: 15,
         itemSpacing: 10,
       }
-      const { y } = drawProjectsSection(ctx as any, section as any, style as any, { linkDisplay: 'short', withHeader: false })
+      const { y } = drawProjectsSection(ctx as any, section as any, style as any, { linkDisplay: 'short', withHeader: false, showTimeline: true })
       // Draw timeline dots/lines for the block roughly: place a dot at section start (optional)
       // For simplicity we keep linear flow without connectors here since content wraps variably.
       yPosition = y - 10

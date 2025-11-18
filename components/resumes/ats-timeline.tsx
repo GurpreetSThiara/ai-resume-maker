@@ -661,6 +661,7 @@ export const ATS_TIMELINE: React.FC<ResumeProps> = ({
                         textColor={'#2d3748'}
                         linkColor={'#4299e1'}
                         contentEditable={true}
+                        showTimelineDates={true}
                         onProjectFieldChange={handleProjectFieldChange}
                         onProjectDescriptionChange={handleProjectDescriptionChange}
                         titleClassName={'font-bold text-sm leading-tight'}

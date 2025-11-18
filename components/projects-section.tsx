@@ -36,9 +36,9 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
   }
 
   const [isAddingNew, setIsAddingNew] = useState(false)
-  const [newProject, setNewProject] = useState<Project>({ name: "", link: "", repo: "", description: [] })
+  const [newProject, setNewProject] = useState<Project>({ name: "", link: "", repo: "", description: [], startDate: "", endDate: "" })
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
-  const [editValue, setEditValue] = useState<Project>({ name: "", link: "", repo: "", description: [] })
+  const [editValue, setEditValue] = useState<Project>({ name: "", link: "", repo: "", description: [], startDate: "", endDate: "" })
 
   const updateSection = (items: Project[]) => {
     if (sectionIndex === -1) {
@@ -56,10 +56,12 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
       name,
       link: newProject.link?.trim() || undefined,
       repo: newProject.repo?.trim() || undefined,
-      description: (newProject.description || []).map(d => (d || "").trim()).filter(Boolean)
+      description: (newProject.description || []).map(d => (d || "").trim()).filter(Boolean),
+      startDate: newProject.startDate?.trim() || undefined,
+      endDate: newProject.endDate?.trim() || undefined,
     }
     updateSection([...(projectsSection.items || []), sanitized])
-    setNewProject({ name: "", link: "", repo: "", description: [] })
+    setNewProject({ name: "", link: "", repo: "", description: [], startDate: "", endDate: "" })
     setIsAddingNew(false)
   }
 
@@ -105,7 +107,9 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
       name,
       link: editValue.link?.trim() || undefined,
       repo: editValue.repo?.trim() || undefined,
-      description: (editValue.description || []).map(d => (d || "").trim()).filter(Boolean)
+      description: (editValue.description || []).map(d => (d || "").trim()).filter(Boolean),
+      startDate: editValue.startDate?.trim() || undefined,
+      endDate: editValue.endDate?.trim() || undefined,
     }
     const next = [...projectsSection.items]
     next[editingIndex] = sanitized
@@ -124,10 +128,18 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
         <CardContent className="space-y-4">
           {isAddingNew ? (
             <div className="space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">Project name</div>
                   <Input value={newProject.name} onChange={(e) => setNewProject(p => ({ ...p, name: e.target.value }))} placeholder="e.g., Resume Builder" disabled={isHidden} />
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Start Date</div>
+                  <Input value={newProject.startDate || ""} onChange={(e) => setNewProject(p => ({ ...p, startDate: e.target.value }))} placeholder="2023-01" disabled={isHidden} />
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">End Date</div>
+                  <Input value={newProject.endDate || ""} onChange={(e) => setNewProject(p => ({ ...p, endDate: e.target.value }))} placeholder="2023-12 or Present" disabled={isHidden} />
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">Project link</div>
@@ -156,10 +168,18 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
               <div key={idx} className="rounded-md border p-3">
                 {editingIndex === idx ? (
                   <div className="space-y-3">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                       <div>
                         <div className="text-xs text-muted-foreground mb-1">Project name</div>
                         <Input value={editValue.name} onChange={(e) => setEditValue(p => ({ ...p, name: e.target.value }))} disabled={isHidden} />
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Start Date</div>
+                        <Input value={editValue.startDate || ""} onChange={(e) => setEditValue(p => ({ ...p, startDate: e.target.value }))} disabled={isHidden} />
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">End Date</div>
+                        <Input value={editValue.endDate || ""} onChange={(e) => setEditValue(p => ({ ...p, endDate: e.target.value }))} disabled={isHidden} />
                       </div>
                       <div>
                         <div className="text-xs text-muted-foreground mb-1">Project link</div>
