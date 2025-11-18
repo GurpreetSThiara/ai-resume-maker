@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, GraduationCap, Edit2, Save } from "lucide-react"
+import { SectionVisibilityToggle } from "@/components/section-visibility-toggle"
+import { SectionHiddenBanner } from "@/components/section-hidden-banner"
 import type { ResumeData, Education, EducationSection as EducationSectionType } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { DEFAULT_EDUCATION } from "@/constants/resumeConstants"
@@ -23,8 +25,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
   const [isAddingNew, setIsAddingNew] = useState(false)
 
   const educationSection = data.sections.find((s) => s.type === SECTION_TYPES.EDUCATION)
-
-
+  const isHidden = educationSection?.hidden || false
 
   const addEducation = () => {
     if (newEducation.institution && newEducation.degree) {
@@ -101,14 +102,29 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
     }
   }
 
+  const toggleVisibility = () => {
+    const updatedSections = data.sections.map((section) => 
+      section.type === SECTION_TYPES.EDUCATION 
+        ? { ...section, hidden: !isHidden }
+        : section
+    )
+    onUpdate({ sections: updatedSections })
+  }
+
   
   return (
     <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold mb-2">Your Academic Journey 🎓</h2>
-        <p className="text-muted-foreground">Share your educational background and achievements</p>
-  
+      {/* Header with visibility toggle */}
+      <div className="flex items-center justify-between gap-4 mb-8">
+        <div>
+          <h2 className="text-2xl font-bold mb-2">Your Academic Journey 🎓</h2>
+          <p className="text-muted-foreground text-sm">Share your educational background and achievements</p>
+        </div>
+        <SectionVisibilityToggle isHidden={isHidden} onToggle={toggleVisibility} />
       </div>
+
+      {/* Disabled overlay when hidden */}
+      {isHidden && <SectionHiddenBanner />}
 
       {/* Existing Education Entries */}
       <div className="space-y-4">
@@ -124,6 +140,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                       value={editData.institution}
                       onChange={(e) => setEditData((prev) => ({ ...prev, institution: e.target.value }))}
                       className="mt-1"
+                      disabled={isHidden}
                     />
                   </div>
 
@@ -134,6 +151,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                       value={editData.degree}
                       onChange={(e) => setEditData((prev) => ({ ...prev, degree: e.target.value }))}
                       className="mt-1"
+                      disabled={isHidden}
                     />
                   </div>
 
@@ -146,6 +164,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                         onChange={(e) => setEditData((prev) => ({ ...prev, startDate: e.target.value }))}
                         placeholder="MM/YYYY"
                         className="mt-1"
+                        disabled={isHidden}
                       />
                     </div>
                     <div>
@@ -156,6 +175,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                         onChange={(e) => setEditData((prev) => ({ ...prev, endDate: e.target.value }))}
                         placeholder="MM/YYYY or Present"
                         className="mt-1"
+                        disabled={isHidden}
                       />
                     </div>
                   </div>
@@ -167,6 +187,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                       value={editData.location}
                       onChange={(e) => setEditData((prev) => ({ ...prev, location: e.target.value }))}
                       className="mt-1"
+                      disabled={isHidden}
                     />
                   </div>
                 </div>
@@ -183,6 +204,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                           setEditData(prev => ({ ...prev, highlights: newHighlights }));
                         }}
                         placeholder="Achievement or highlight"
+                        disabled={isHidden}
                       />
                       {(editData.highlights?.length || 0) > 1 && (
                         <Button
@@ -193,6 +215,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                             setEditData(prev => ({ ...prev, highlights: newHighlights }));
                           }}
                           className="text-red-500"
+                          disabled={isHidden}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -210,6 +233,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                       }));
                     }}
                     className="w-full bg-transparent"
+                    disabled={isHidden}
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Highlight
@@ -217,7 +241,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button onClick={saveEdit} className="flex-1">
+                  <Button onClick={saveEdit} className="flex-1" disabled={isHidden}>
                     Save Changes
                   </Button>
                   <Button variant="outline" onClick={() => {
@@ -230,7 +254,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                       location: "",
                       highlights: []
                     });
-                  }} className="flex-1 bg-transparent">
+                  }} className="flex-1 bg-transparent" disabled={isHidden}>
                     Cancel
                   </Button>
                 </div>
@@ -249,6 +273,8 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                         size="sm"
                         onClick={() => startEditing(education, index)}
                         className="text-blue-500 hover:text-blue-700 cursor-pointer"
+                        disabled={isHidden}
+                        title={isHidden ? 'Enable section to edit' : 'Edit education'}
                       >
                         <Edit2 className="w-4 h-4" />
                       </Button>
@@ -257,6 +283,8 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                         size="sm"
                         onClick={() => removeEducation(index)}
                         className="text-red-500 hover:text-red-700 cursor-pointer"
+                        disabled={isHidden}
+                        title={isHidden ? 'Enable section to delete' : 'Delete education'}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -274,7 +302,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                       <div className="mt-2 space-y-1">
                         {education.highlights.map((highlight, i) => (
                           <div key={i} className="flex items-center gap-2 text-sm">
-                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0 mt-1"></span>
+                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full shrink-0 mt-1"></span>
                             <span>{highlight}</span>
                           </div>
                         ))}
@@ -289,7 +317,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
       </div>
 
       {/* Add New Education */}
-      <Card className={`border-dashed border-2 border-gray-300 ${isAddingNew ? "block" : "hidden"}`}>
+      <Card className={`border-dashed border-2 ${isAddingNew ? 'border-blue-500 bg-blue-50' : 'border-gray-300'} ${isHidden ? 'opacity-50' : ''}`}>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Plus className="w-5 h-5" />
@@ -306,6 +334,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                 value={newEducation.institution}
                 onChange={(e) => setNewEducation((prev) => ({ ...prev, institution: e.target.value }))}
                 className="mt-1"
+                disabled={isHidden}
               />
             </div>
 
@@ -317,6 +346,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                 value={newEducation.degree}
                 onChange={(e) => setNewEducation((prev) => ({ ...prev, degree: e.target.value }))}
                 className="mt-1"
+                disabled={isHidden}
               />
             </div>
 
@@ -329,6 +359,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                   value={newEducation.startDate}
                   onChange={(e) => setNewEducation((prev) => ({ ...prev, startDate: e.target.value }))}
                   className="mt-1"
+                  disabled={isHidden}
                 />
               </div>
               <div>
@@ -339,6 +370,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                   value={newEducation.endDate}
                   onChange={(e) => setNewEducation((prev) => ({ ...prev, endDate: e.target.value }))}
                   className="mt-1"
+                  disabled={isHidden}
                 />
               </div>
             </div>
@@ -351,6 +383,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                 value={newEducation.location}
                 onChange={(e) => setNewEducation((prev) => ({ ...prev, location: e.target.value }))}
                 className="mt-1"
+                disabled={isHidden}
               />
             </div>
           </div>
@@ -367,6 +400,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                     newHighlights[index] = e.target.value;
                     setNewEducation(prev => ({ ...prev, highlights: newHighlights }));
                   }}
+                  disabled={isHidden}
                 />
                 {(newEducation.highlights?.length || 0) > 1 && (
                   <Button
@@ -377,6 +411,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                       setNewEducation(prev => ({ ...prev, highlights: newHighlights }));
                     }}
                     className="text-red-500"
+                    disabled={isHidden}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -394,13 +429,14 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                 }));
               }}
               className="w-full bg-transparent"
+              disabled={isHidden}
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Highlight
             </Button>
           </div>
 
-          <Button onClick={addEducation} className="w-full">
+          <Button onClick={addEducation} className="w-full" disabled={isHidden} title={isHidden ? 'Enable section to add education' : ''}>
             Save Education
           </Button>
         </CardContent>

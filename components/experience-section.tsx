@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, Briefcase, Edit2, Save } from "lucide-react"
+import { SectionVisibilityToggle } from "@/components/section-visibility-toggle"
+import { SectionHiddenBanner } from "@/components/section-hidden-banner"
 import type { ResumeData, Experience, ExperienceSection as ExperienceSectionType } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 
@@ -40,6 +42,21 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
     title: "Professional Experience",
     type: SECTION_TYPES.EXPERIENCE,
     items: []
+  }
+
+  const isHidden = experienceSection?.hidden || false
+
+  const toggleVisibility = () => {
+    const updatedSections = data.sections.map((section) => {
+      if (section.type === SECTION_TYPES.EXPERIENCE) {
+        return {
+          ...section,
+          hidden: !section.hidden,
+        }
+      }
+      return section
+    })
+    onUpdate({ sections: updatedSections })
   }
 
   useEffect(() => {
@@ -165,12 +182,17 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
           <h2 className="text-2xl font-bold mb-2 inline-flex items-center">Professional Experience 💼</h2>
           <p className="text-muted-foreground">Showcase your career achievements and impact</p>
         </div>
-        {isSectionDirty && (
-          <Button variant="outline" size="sm" onClick={handleSectionSave}>
-            <Save className="w-4 h-4 mr-2" />
-            Save Section
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {isSectionDirty && (
+            <Button variant="outline" size="sm" onClick={handleSectionSave}>
+              <Save className="w-4 h-4 mr-2" />
+              Save Section
+            </Button>
+          )}
+          <SectionVisibilityToggle isHidden={isHidden} onToggle={toggleVisibility} />
+        </div>
+
+        {isHidden && <SectionHiddenBanner />}
       </div>
 
       {/* Existing Experience Entries */}
@@ -186,6 +208,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                     value={editData.company}
                     onChange={(e) => setEditData((prev) => ({ ...prev, company: e.target.value }))}
                     className="mt-1"
+                                      disabled={isHidden}
                   />
                 </div>
                 <div>
@@ -194,6 +217,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                     id="edit-role"
                     value={editData.role}
                     onChange={(e) => setEditData((prev) => ({ ...prev, role: e.target.value }))}
+                                        disabled={isHidden}
                     className="mt-1"
                   />
                 </div>
@@ -204,6 +228,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                       id="edit-start"
                       value={editData.startDate}
                       onChange={(e) => setEditData((prev) => ({ ...prev, startDate: e.target.value }))}
+                                            disabled={isHidden}
                       className="mt-1"
                     />
                   </div>
@@ -213,6 +238,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                       id="edit-end"
                       value={editData.endDate}
                       onChange={(e) => setEditData((prev) => ({ ...prev, endDate: e.target.value }))}
+                                            disabled={isHidden}
                       className="mt-1"
                     />
                   </div>
@@ -223,6 +249,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                     id="edit-location"
                     value={editData.location}
                     onChange={(e) => setEditData((prev) => ({ ...prev, location: e.target.value }))}
+                                        disabled={isHidden}
                     className="mt-1"
                   />
                 </div>
@@ -234,6 +261,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                         value={ach}
                         onChange={(e) => updateEditAchievement(i, e.target.value)}
                         placeholder="Achievement or responsibility"
+                                              disabled={isHidden}
                       />
                       {editData.achievements.length > 1 && (
                         <Button
@@ -241,13 +269,14 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                           size="sm"
                           onClick={() => removeEditAchievement(i)}
                           className="text-red-500"
+                                                  disabled={isHidden}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       )}
                     </div>
                   ))}
-                  <Button variant="outline" size="sm" onClick={addEditAchievementField} className="w-full bg-transparent">
+                  <Button variant="outline" size="sm" onClick={addEditAchievementField} className="w-full bg-transparent" disabled={isHidden}>
                     <Plus className="w-4 h-4 mr-2" />
                     Add Achievement
                   </Button>
@@ -275,6 +304,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                         size="sm"
                         onClick={() => startEditing(index, exp)}
                         className="text-blue-500 hover:text-blue-700"
+                        disabled={isHidden}
                       >
                         <Edit2 className="w-4 h-4" />
                       </Button>
@@ -283,6 +313,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                         size="sm"
                         onClick={() => removeExperience(index)}
                         className="text-red-500 hover:text-red-700"
+                        disabled={isHidden}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -311,7 +342,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
 
       {/* Add New Experience */}
       {!isAddingNew ? (
-        <Button variant="outline" onClick={() => setIsAddingNew(true)} className="w-full">
+        <Button variant="outline" onClick={() => setIsAddingNew(true)} className="w-full" disabled={isHidden}>
           <Plus className="w-4 h-4 mr-2" />
           Add Experience Entry
         </Button>
@@ -331,6 +362,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                 placeholder="e.g., Google Inc."
                 value={newExperience.company}
                 onChange={(e) => setNewExperience((prev) => ({ ...prev, company: e.target.value }))}
+                                disabled={isHidden}
                 className="mt-1"
               />
             </div>
@@ -341,6 +373,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                 placeholder="e.g., Senior Software Engineer"
                 value={newExperience.role}
                 onChange={(e) => setNewExperience((prev) => ({ ...prev, role: e.target.value }))}
+                                disabled={isHidden}
                 className="mt-1"
               />
             </div>
@@ -352,6 +385,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                   placeholder="e.g., Jan 2020"
                   value={newExperience.startDate}
                   onChange={(e) => setNewExperience((prev) => ({ ...prev, startDate: e.target.value }))}
+                                    disabled={isHidden}
                   className="mt-1"
                 />
               </div>
@@ -362,6 +396,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                   placeholder="e.g., Present"
                   value={newExperience.endDate}
                   onChange={(e) => setNewExperience((prev) => ({ ...prev, endDate: e.target.value }))}
+                                    disabled={isHidden}
                   className="mt-1"
                 />
               </div>
@@ -373,6 +408,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                 placeholder="e.g., San Francisco, CA"
                 value={newExperience.location}
                 onChange={(e) => setNewExperience((prev) => ({ ...prev, location: e.target.value }))}
+                                disabled={isHidden}
                 className="mt-1"
               />
             </div>
@@ -384,20 +420,21 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                     placeholder="Achievement or responsibility"
                     value={ach}
                     onChange={(e) => updateAchievement(i, e.target.value)}
+                                      disabled={isHidden}
                   />
                   {newExperience.achievements.length > 1 && (
-                    <Button variant="ghost" size="sm" onClick={() => removeAchievement(i)} className="text-red-500">
+                    <Button variant="ghost" size="sm" onClick={() => removeAchievement(i)} className="text-red-500" disabled={isHidden}>
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   )}
                 </div>
               ))}
-              <Button variant="outline" size="sm" onClick={addAchievementField} className="w-full bg-transparent">
+              <Button variant="outline" size="sm" onClick={addAchievementField} className="w-full bg-transparent" disabled={isHidden}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add Achievement
               </Button>
             </div>
-            <Button onClick={addExperience} className="w-full">
+            <Button onClick={addExperience} className="w-full" disabled={isHidden}>
               Save Experience Entry
             </Button>
           </CardContent>

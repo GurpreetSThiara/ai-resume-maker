@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, Award, Edit2, Save } from "lucide-react"
+import { SectionVisibilityToggle } from "@/components/section-visibility-toggle"
+import { SectionHiddenBanner } from "@/components/section-hidden-banner"
 import type { ResumeData, CertificationsSection as ICertsSection } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 
@@ -27,6 +29,16 @@ export function CertificationsSection({ data, onUpdate }: CertificationsSectionP
     type: SECTION_TYPES.CERTIFICATIONS,
     items: [] as string[]
   }) as ICertsSection
+
+  const isHidden = certsSection?.hidden || false
+
+  const toggleVisibility = () => {
+    const updated = data.sections.map((s) => {
+      if (s.type === SECTION_TYPES.CERTIFICATIONS) return { ...s, hidden: !s.hidden }
+      return s
+    })
+    onUpdate({ sections: updated })
+  }
 
   const updateSection = (items: string[]) => {
     if (sectionIndex === -1) {
@@ -69,26 +81,29 @@ export function CertificationsSection({ data, onUpdate }: CertificationsSectionP
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader>
+        <CardHeader className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Award className="w-5 h-5" />
             Certifications
           </CardTitle>
+          <SectionVisibilityToggle isHidden={isHidden} onToggle={toggleVisibility} />
         </CardHeader>
+        {isHidden && <SectionHiddenBanner />}
         <CardContent className="space-y-4">
           {/* Add new */}
-          {isAddingNew ? (
+            {isAddingNew ? (
             <div className="flex gap-2">
               <Input
                 value={newCert}
                 onChange={(e) => setNewCert(e.target.value)}
                 placeholder="e.g., AWS Certified Solutions Architect (2024)"
+                disabled={isHidden}
               />
-              <Button onClick={addCert}>Add</Button>
-              <Button variant="outline" onClick={() => { setIsAddingNew(false); setNewCert("") }}>Cancel</Button>
+              <Button onClick={addCert} disabled={isHidden}>Add</Button>
+              <Button variant="outline" onClick={() => { setIsAddingNew(false); setNewCert("") }} disabled={isHidden}>Cancel</Button>
             </div>
           ) : (
-            <Button onClick={() => setIsAddingNew(true)} className="flex items-center gap-2">
+            <Button onClick={() => setIsAddingNew(true)} className="flex items-center gap-2" disabled={isHidden}>
               <Plus className="w-4 h-4" /> Add Certification
             </Button>
           )}
@@ -99,15 +114,15 @@ export function CertificationsSection({ data, onUpdate }: CertificationsSectionP
               <div key={idx} className="flex items-center gap-2">
                 {editingIndex === idx ? (
                   <>
-                    <Input value={editValue} onChange={(e) => setEditValue(e.target.value)} />
-                    <Button size="sm" onClick={saveEdit} className="flex items-center gap-1"><Save className="w-4 h-4" />Save</Button>
-                    <Button size="sm" variant="outline" onClick={() => { setEditingIndex(null); setEditValue("") }}>Cancel</Button>
+                    <Input value={editValue} onChange={(e) => setEditValue(e.target.value)} disabled={isHidden} />
+                    <Button size="sm" onClick={saveEdit} className="flex items-center gap-1" disabled={isHidden}><Save className="w-4 h-4" />Save</Button>
+                    <Button size="sm" variant="outline" onClick={() => { setEditingIndex(null); setEditValue("") }} disabled={isHidden}>Cancel</Button>
                   </>
                 ) : (
                   <>
                     <div className="flex-1 text-sm">{cert}</div>
-                    <Button size="sm" variant="ghost" onClick={() => startEdit(idx)}><Edit2 className="w-4 h-4" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => removeCert(idx)}><Trash2 className="w-4 h-4" /></Button>
+                    <Button size="sm" variant="ghost" onClick={() => startEdit(idx)} disabled={isHidden}><Edit2 className="w-4 h-4" /></Button>
+                    <Button size="sm" variant="ghost" onClick={() => removeCert(idx)} disabled={isHidden}><Trash2 className="w-4 h-4" /></Button>
                   </>
                 )}
               </div>
