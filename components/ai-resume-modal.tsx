@@ -199,7 +199,15 @@ Parse the user's information and return ONLY the JSON object, no additional text
 
       // Try to parse the JSON response
       try {
-        const parsed = JSON.parse(aiContent);
+        let parsed = JSON.parse(aiContent);
+        // Handle case where AI returns stringified JSON (double-quoted)
+        if (typeof parsed === 'string') {
+          try {
+            parsed = JSON.parse(parsed);
+          } catch (innerError) {
+            // If still can't parse, use the original parsed version
+          }
+        }
         setParsedData(parsed);
       } catch (parseError) {
         setError('AI response could not be parsed. Please try again with more specific information.');
@@ -280,12 +288,12 @@ Parse the user's information and return ONLY the JSON object, no additional text
             />
           </div>
           
-          <div title="Coming soon">
+          <div title={!user ? 'Please login to use AI' : 'Coming soon'}>
             <Button
-              onClick={effectiveAiEnabled ? handleStart : undefined}
-              disabled
+              onClick={effectiveAiEnabled && user ? handleStart : undefined}
+              disabled={!user || !effectiveAiEnabled || loading}
             >
-              {loading ? 'Analyzing...' : 'Parse with AI'}
+              {!user ? 'Login Required' : loading ? 'Analyzing...' : 'Parse with AI'}
             </Button>
           </div>
           

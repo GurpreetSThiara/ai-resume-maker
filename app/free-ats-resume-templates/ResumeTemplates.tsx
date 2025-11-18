@@ -92,7 +92,7 @@ export  function Templates() {
       <header className="mb-8 flex justify-between">
        <div className="">
          <h1 className="text-3xl font-bold">Choose a resume template</h1>
-        <p className="mt-2 text-muted-foreground">Pick a template to start building your resume. You can preview, customize, and export to PDF.</p>
+        <p className="mt-2 text-muted-foreground">Pick a template or upload your resume to start building your resume. You can preview, customize, and export to PDF.</p>
        </div>
        <PdfUploadModal isLoading={isLoading} status={status} onFileUpload={handleFileUpload} />
       </header>
@@ -161,7 +161,7 @@ export  function Templates() {
       </section>
 
       <footer className="mt-10 text-sm text-muted-foreground">
-        Can't find the style you're after? Try creating a custom layout in the editor or contact support.
+        {/* Can't find the style you're after? Try creating a custom layout in the editor or contact support. */}
       </footer>
     </main>
   )
