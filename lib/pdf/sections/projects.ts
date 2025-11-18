@@ -25,6 +25,7 @@ export interface ProjectsStyle {
 export interface ProjectsOptions {
   linkDisplay?: LinkDisplay
   withHeader?: boolean
+  showTimeline?: boolean
 }
 
 export const drawProjectsSection = (
@@ -60,25 +61,57 @@ export const drawProjectsSection = (
 
   // Project Items
   for (const proj of section.items || []) {
+    const isLast = section.items?.indexOf(proj) === (section.items?.length || 0) - 1
     // ───────────────────────────────────────────────
-    // ⭐ TITLE + LINKS ON SAME ROW (WITH CLICKABLE ANNOTATIONS)
+    // ⭐ TITLE + LINKS + DATES ON SAME ROW (WITH CLICKABLE ANNOTATIONS)
     // ───────────────────────────────────────────────
-    ctx.ensureSpace(style.titleSize + 10)
+    // Reserve some extra space when drawing timeline markers
+    ctx.ensureSpace(style.titleSize + 10 + (options.showTimeline ? 6 : 0))
 
+    const itemStartY = ctx.y
+    const timelineX = margin - 10
+
+    // Draw timeline dot if requested
+    if (options.showTimeline) {
+      // outer circle
+      try {
+        ctx.page.drawCircle({ x: timelineX, y: itemStartY, size: 6, color: rgb(0.259, 0.6, 0.882), borderColor: rgb(0.259, 0.6, 0.882), borderWidth: 2 })
+        // inner white
+        ctx.page.drawCircle({ x: timelineX, y: itemStartY, size: 3, color: rgb(1, 1, 1) })
+      } catch (e) {
+        // ignore if drawCircle not supported in this environment
+      }
+    }
+
+
+    // Draw project title
     const title = proj.name || ''
-    const titleWidth = measureText(title, fonts.bold, style.titleSize)
-
-    const titleY = ctx.y
-    const titleX = margin
-
-    // Draw Title
+    let cursorX = margin
     ctx.page.drawText(title, {
-      x: titleX,
-      y: titleY,
+      x: cursorX,
+      y: itemStartY,
       size: style.titleSize,
       font: fonts.bold,
       color: style.titleColor,
     })
+    const titleWidth = measureText(title, fonts.bold, style.titleSize)
+    cursorX += titleWidth + 8
+
+    // Draw date range if timeline and dates exist
+    if (options.showTimeline && (proj.startDate || proj.endDate)) {
+      const dateText = `${proj.startDate || ''} - ${proj.endDate || ''}`
+      ctx.page.drawText(dateText, {
+        x: cursorX,
+        y: itemStartY,
+        size: style.linkSize,
+        font: fonts.regular,
+        color: rgb(0.447, 0.314, 0.588), // #718096
+      })
+      cursorX += measureText(dateText, fonts.regular, style.linkSize) + 10
+    }
+
+    const titleY = ctx.y
+    const titleX = margin
 
     // Build link list
     const parts: Array<{ label: string; url?: string }> = []
@@ -87,9 +120,7 @@ export const drawProjectsSection = (
 
     if (parts.length) {
       const gap = '  |  '
-      let cursorX = margin + titleWidth + 12
-      const linkY = titleY
-
+      const linkY = itemStartY
       for (let i = 0; i < parts.length; i++) {
         const p = parts[i]
         const text =
@@ -185,6 +216,17 @@ export const drawProjectsSection = (
     }
 
     ctx.y -= style.itemSpacing
+
+    // Draw timeline connector line from this item to next
+    if (options.showTimeline && !isLast) {
+      try {
+        const lineStartY = itemStartY - 10
+        const lineEndY = ctx.y + style.itemSpacing + 10
+        ctx.page.drawLine({ start: { x: timelineX, y: lineStartY }, end: { x: timelineX, y: lineEndY }, thickness: 2, color: rgb(0.796, 0.835, 0.878) })
+      } catch (e) {
+        // ignore
+      }
+    }
   }
 
   // Section spacing

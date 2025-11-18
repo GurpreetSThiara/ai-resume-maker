@@ -109,7 +109,7 @@ export const SectionReorderModal: React.FC<SectionReorderModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="w-5 h-5" />
-            Reorder Resume Sections
+            Reorder Sections (Drag and drop)
           </DialogTitle>
         </DialogHeader>
         

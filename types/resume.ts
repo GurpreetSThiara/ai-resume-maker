@@ -80,6 +80,8 @@ export interface Project {
   link?: string
   repo?: string
   description?: string[]
+  startDate?: string
+  endDate?: string
 }
 
 export interface ProjectsSection extends BaseSection {
