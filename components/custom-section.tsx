@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, Edit2, Save } from "lucide-react"
+import { SectionVisibilityToggle } from "@/components/section-visibility-toggle"
+import { SectionHiddenBanner } from "@/components/section-hidden-banner"
 import { Textarea } from "@/components/ui/textarea"
 import type { ResumeData, CustomSection } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
@@ -32,6 +34,14 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
   })
 
   const customSections = data.sections.filter((s): s is CustomSection => s.type === SECTION_TYPES.CUSTOM)
+
+  const toggleCustomVisibility = (id: string) => {
+    const updated = data.sections.map((s) => {
+      if (s.id === id) return { ...s, hidden: !s.hidden }
+      return s
+    })
+    onUpdate({ sections: updated })
+  }
 
   const addSection = () => {
     if (newSection.title && newSection.content.length > 0) {
@@ -135,6 +145,7 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
                           setEditData(prev => ({ ...prev, content: newContent }))
                         }}
                         rows={2}
+                        disabled={section.hidden}
                       />
                       <Button
                         variant="ghost"
@@ -144,6 +155,7 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
                           setEditData(prev => ({ ...prev, content: newContent }))
                         }}
                         className="text-red-500"
+                        disabled={section.hidden}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -160,6 +172,7 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
                       }))
                     }}
                     className="w-full bg-transparent"
+                    disabled={section.hidden}
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Content
@@ -167,7 +180,7 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button onClick={saveEdit} className="flex-1">
+                  <Button onClick={saveEdit} className="flex-1" disabled={section.hidden}>
                     Save Changes
                   </Button>
                   <Button
@@ -182,6 +195,7 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
                       })
                     }}
                     className="flex-1 bg-transparent"
+                    disabled={section.hidden}
                   >
                     Cancel
                   </Button>
@@ -192,26 +206,32 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{section.title}</CardTitle>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => startEditing(section)}
-                        className="text-blue-500 hover:text-blue-700"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeSection(section.id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                    <div className="flex gap-2 items-center">
+                      <SectionVisibilityToggle isHidden={section.hidden || false} onToggle={() => toggleCustomVisibility(section.id)} />
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => startEditing(section)}
+                          className="text-blue-500 hover:text-blue-700"
+                          disabled={section.hidden}
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeSection(section.id)}
+                          className="text-red-500 hover:text-red-700"
+                          disabled={section.hidden}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
+                {section.hidden && <SectionHiddenBanner />}
                 <CardContent>
                   <div className="space-y-2">
                     {section.content.map((text, index) => (

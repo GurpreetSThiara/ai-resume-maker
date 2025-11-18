@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, Edit2, Save, Link as LinkIcon, Github, ArrowUp, ArrowDown, X } from "lucide-react"
+import { SectionVisibilityToggle } from "@/components/section-visibility-toggle"
+import { SectionHiddenBanner } from "@/components/section-hidden-banner"
 import type { ResumeData, ProjectsSection as IProjectsSection, Project } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 
@@ -22,6 +24,16 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
     type: SECTION_TYPES.PROJECTS,
     items: [] as Project[]
   }) as IProjectsSection
+
+  const isHidden = projectsSection?.hidden || false
+
+  const toggleVisibility = () => {
+    const updated = data.sections.map((s) => {
+      if (s.type === SECTION_TYPES.PROJECTS) return { ...s, hidden: !s.hidden }
+      return s
+    })
+    onUpdate({ sections: updated })
+  }
 
   const [isAddingNew, setIsAddingNew] = useState(false)
   const [newProject, setNewProject] = useState<Project>({ name: "", link: "", repo: "", description: [] })
@@ -104,37 +116,39 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
   return (
     <div className="space-y-5">
       <Card>
-        <CardHeader>
+        <CardHeader className="flex items-center justify-between">
           <CardTitle className="text-base">Projects</CardTitle>
+          <SectionVisibilityToggle isHidden={isHidden} onToggle={toggleVisibility} />
         </CardHeader>
+        {isHidden && <SectionHiddenBanner />}
         <CardContent className="space-y-4">
           {isAddingNew ? (
             <div className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">Project name</div>
-                  <Input value={newProject.name} onChange={(e) => setNewProject(p => ({ ...p, name: e.target.value }))} placeholder="e.g., Resume Builder" />
+                  <Input value={newProject.name} onChange={(e) => setNewProject(p => ({ ...p, name: e.target.value }))} placeholder="e.g., Resume Builder" disabled={isHidden} />
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">Project link</div>
-                  <Input value={newProject.link || ""} onChange={(e) => setNewProject(p => ({ ...p, link: e.target.value }))} placeholder="https://example.com" />
+                  <Input value={newProject.link || ""} onChange={(e) => setNewProject(p => ({ ...p, link: e.target.value }))} placeholder="https://example.com" disabled={isHidden} />
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">GitHub repo</div>
-                  <Input value={newProject.repo || ""} onChange={(e) => setNewProject(p => ({ ...p, repo: e.target.value }))} placeholder="https://github.com/user/repo" />
+                  <Input value={newProject.repo || ""} onChange={(e) => setNewProject(p => ({ ...p, repo: e.target.value }))} placeholder="https://github.com/user/repo" disabled={isHidden} />
                 </div>
               </div>
               <div>
                 <div className="text-xs text-muted-foreground mb-1">Description (one bullet per line)</div>
-                <Textarea value={(newProject.description || []).join("\n")} onChange={(e) => setNewProject(p => ({ ...p, description: e.target.value.split("\n") }))} rows={4} />
+                <Textarea value={(newProject.description || []).join("\n")} onChange={(e) => setNewProject(p => ({ ...p, description: e.target.value.split("\n") }))} rows={4} disabled={isHidden} />
               </div>
-              <div className="flex gap-2">
-                <Button onClick={addProject} className="gap-1"><Plus className="w-4 h-4" />Add Project</Button>
-                <Button variant="outline" onClick={() => { setIsAddingNew(false); setNewProject({ name: "", link: "", repo: "", description: [] }) }}>Cancel</Button>
+                <div className="flex gap-2">
+                <Button onClick={addProject} className="gap-1" disabled={isHidden}><Plus className="w-4 h-4" />Add Project</Button>
+                <Button variant="outline" onClick={() => { setIsAddingNew(false); setNewProject({ name: "", link: "", repo: "", description: [] }) }} disabled={isHidden}>Cancel</Button>
               </div>
             </div>
           ) : (
-            <Button onClick={() => setIsAddingNew(true)} className="gap-1"><Plus className="w-4 h-4" />New Project</Button>
+            <Button onClick={() => setIsAddingNew(true)} className="gap-1" disabled={isHidden}><Plus className="w-4 h-4" />New Project</Button>
           )}
 
           <div className="space-y-3">
@@ -145,15 +159,15 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div>
                         <div className="text-xs text-muted-foreground mb-1">Project name</div>
-                        <Input value={editValue.name} onChange={(e) => setEditValue(p => ({ ...p, name: e.target.value }))} />
+                        <Input value={editValue.name} onChange={(e) => setEditValue(p => ({ ...p, name: e.target.value }))} disabled={isHidden} />
                       </div>
                       <div>
                         <div className="text-xs text-muted-foreground mb-1">Project link</div>
-                        <Input value={editValue.link || ""} onChange={(e) => setEditValue(p => ({ ...p, link: e.target.value }))} />
+                        <Input value={editValue.link || ""} onChange={(e) => setEditValue(p => ({ ...p, link: e.target.value }))} disabled={isHidden} />
                       </div>
                       <div>
                         <div className="text-xs text-muted-foreground mb-1">GitHub repo</div>
-                        <Input value={editValue.repo || ""} onChange={(e) => setEditValue(p => ({ ...p, repo: e.target.value }))} />
+                        <Input value={editValue.repo || ""} onChange={(e) => setEditValue(p => ({ ...p, repo: e.target.value }))} disabled={isHidden} />
                       </div>
                     </div>
                     <div>
@@ -169,29 +183,30 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
                                 next[dIdx] = e.target.value
                                 return { ...p, description: next }
                               })}
+                              disabled={isHidden}
                             />
-                            <Button size="icon" variant="ghost" onClick={() => setEditValue(p => ({ ...p, description: (p.description || []).filter((_, i) => i !== dIdx) }))}>
+                            <Button size="icon" variant="ghost" onClick={() => setEditValue(p => ({ ...p, description: (p.description || []).filter((_, i) => i !== dIdx) }))} disabled={isHidden}>
                               <X className="w-4 h-4" />
                             </Button>
                           </div>
                         ))}
-                        <Button size="sm" variant="outline" onClick={() => setEditValue(p => ({ ...p, description: [...(p.description || []), ""] }))}>Add bullet</Button>
+                        <Button size="sm" variant="outline" onClick={() => setEditValue(p => ({ ...p, description: [...(p.description || []), ""] }))} disabled={isHidden}>Add bullet</Button>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={saveEdit} className="gap-1"><Save className="w-4 h-4" />Save</Button>
-                      <Button size="sm" variant="outline" onClick={() => setEditingIndex(null)}>Cancel</Button>
+                      <Button size="sm" onClick={saveEdit} className="gap-1" disabled={isHidden}><Save className="w-4 h-4" />Save</Button>
+                      <Button size="sm" variant="outline" onClick={() => setEditingIndex(null)} disabled={isHidden}>Cancel</Button>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="font-medium text-sm">{proj.name}</div>
-                      <div className="flex items-center gap-2">
-                        <Button size="icon" variant="ghost" onClick={() => moveProject(idx, idx - 1)} disabled={idx === 0}><ArrowUp className="w-4 h-4" /></Button>
-                        <Button size="icon" variant="ghost" onClick={() => moveProject(idx, idx + 1)} disabled={idx === (projectsSection.items?.length || 0) - 1}><ArrowDown className="w-4 h-4" /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => startEdit(idx)}><Edit2 className="w-4 h-4" /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => removeProject(idx)}><Trash2 className="w-4 h-4" /></Button>
+                        <div className="flex items-center gap-2">
+                        <Button size="icon" variant="ghost" onClick={() => moveProject(idx, idx - 1)} disabled={idx === 0 || isHidden}><ArrowUp className="w-4 h-4" /></Button>
+                        <Button size="icon" variant="ghost" onClick={() => moveProject(idx, idx + 1)} disabled={idx === (projectsSection.items?.length || 0) - 1 || isHidden}><ArrowDown className="w-4 h-4" /></Button>
+                        <Button size="sm" variant="ghost" onClick={() => startEdit(idx)} disabled={isHidden}><Edit2 className="w-4 h-4" /></Button>
+                        <Button size="sm" variant="ghost" onClick={() => removeProject(idx)} disabled={isHidden}><Trash2 className="w-4 h-4" /></Button>
                       </div>
                     </div>
                     {(proj.link || proj.repo) && (
@@ -216,7 +231,7 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
                         <div className="text-xs text-muted-foreground">No bullets yet</div>
                       )}
                       <div>
-                        <Button size="sm" variant="outline" onClick={() => addBullet(idx)}>Add bullet</Button>
+                        <Button size="sm" variant="outline" onClick={() => addBullet(idx)} disabled={isHidden}>Add bullet</Button>
                       </div>
                     </div>
                   </div>
