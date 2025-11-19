@@ -1,7 +1,7 @@
 "use client"
 
 import type { ResumeData } from "@/types/resume"
-import { LS_KEYS, setLocalStorageJSON, getLocalStorageJSON } from "@/utils/localstorage"
+import { LS_KEYS, setLocalStorageJSON, getValidResumeFromLocalStorage } from "@/utils/localstorage"
 
 export interface SaveManager {
   saveSection: (sectionName: string, data: any) => Promise<void>
@@ -46,7 +46,7 @@ export const saveManager: SaveManager = {
 
   async loadData(userId?: string) {
     // Load from localStorage for now (centralized util)
-    const saved = getLocalStorageJSON<ResumeData>(LS_KEYS.resumeData, null)
+    const saved = getValidResumeFromLocalStorage()
     return saved
   },
 }
