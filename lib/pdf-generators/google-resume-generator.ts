@@ -290,7 +290,6 @@ export async function generateResumePDF({
   resumeData,
   filename = "resume.pdf"
 }: PDFGenerationOptions) {
-  console.log("resumedata", resumeData)
   
   const pdfDoc = await PDFDocument.create()
   let currentPage = pdfDoc.addPage([595.276, 841.89]) // A4

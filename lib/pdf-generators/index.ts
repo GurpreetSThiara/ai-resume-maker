@@ -34,7 +34,6 @@ function hasSectionContent(section: any): boolean {
 
 export async function generateResumePDF(options: PDFGenerationOptions) {
   const { template } = options
-  console.log("resumedownload",options.resumeData)
 
   const filteredOptions: PDFGenerationOptions = {
     ...options,
@@ -47,7 +46,6 @@ export async function generateResumePDF(options: PDFGenerationOptions) {
     },
   }
 
-  console.log("filteredOptions",filteredOptions)
 
   let result
   switch (template.id) {
