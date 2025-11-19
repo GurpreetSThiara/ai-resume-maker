@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { CheckCircle2, X, ArrowRight, Sparkles } from "lucide-react"
+import { CheckCircle2, ArrowRight, Sparkles, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface PostDownloadReviewModalProps {
@@ -48,22 +48,22 @@ export function PostDownloadReviewModal({ open, onOpenChange, actionType = "down
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md mx-auto p-0 border-0 shadow-2xl overflow-hidden">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-blue-50 dark:from-emerald-950 dark:via-slate-900 dark:to-blue-950" />
+      <DialogContent showCloseButton={false} className="sm:max-w-md mx-auto p-0 border-0 shadow-2xl overflow-hidden">
+        {/* Background gradient (non-interactive layer) */}
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-blue-50 dark:from-emerald-950 dark:via-slate-900 dark:to-blue-950 pointer-events-none z-0" />
 
         {/* Content wrapper */}
         <div className="relative z-10 p-6 sm:p-8">
           {/* Close button */}
-          <div className="flex justify-end mb-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              className="h-8 w-8 p-0 rounded-full hover:bg-white/50 dark:hover:bg-slate-800/50 transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+          <div className="flex justify-end mb-2">
+            <DialogClose asChild>
+              <button
+                aria-label="Close"
+                className="h-8 w-8 p-0 inline-flex items-center justify-center rounded-full hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </DialogClose>
           </div>
 
           {/* Success icon with animation */}
