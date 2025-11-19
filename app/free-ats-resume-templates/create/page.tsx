@@ -135,7 +135,7 @@ const CreateResumeContent: FC = () => {
   // Auto-save functionality
   useEffect(() => {
     const autoSaveInterval = setInterval(() => {
-      if (resumeData && currentResumeId) {
+      if (resumeData) {
         saveToLocal()
       }
     }, 30000) // Auto-save every 30 seconds
