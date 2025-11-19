@@ -1,594 +1,722 @@
-import { ResumeData, SECTION_TYPES } from '@/types/resume';
-import { formatProject } from '@/lib/renderers/projects'
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { drawProjectsSection } from '@/lib/pdf/sections/projects'
+import type { ResumeData } from '@/types/resume';
 
-interface GenerateResumeProps {
+interface GeneratePDFOptions {
   resumeData: ResumeData;
   filename?: string;
 }
 
+// Color definitions (matching the template)
+const COLORS = {
+  primary: rgb(0.102, 0.125, 0.173), // #1a202c - Name color
+  text: rgb(0.176, 0.196, 0.220), // #2d3748 - Main text
+  secondary: rgb(0.290, 0.314, 0.345), // #4a5568 - Secondary text
+  gray: rgb(0.627, 0.627, 0.627), // #a0aec0 - Light gray
+  accent: rgb(0.259, 0.600, 0.882), // #4299e1 - Blue accent
+  lightGray: rgb(0.796, 0.835, 0.878), // #cbd5e0 - Timeline line
+  dateGray: rgb(0.445, 0.502, 0.588), // #718096 - Date color
+};
+
+// Font sizes - optimized for more content
+const SIZES = {
+  name: 24, // Reduced from 28
+  contact: 10, // Reduced from 12
+  summary: 10.5, // Reduced from 12
+  sectionHeader: 12, // Reduced from 14
+  institution: 11, // Reduced from 13
+  content: 10, // Reduced from 12
+  small: 9.5, // Reduced from 11
+  tiny: 8.5, // Reduced from 10
+};
+
+// Spacing - optimized for more content
+const SPACING = {
+  pageMargin: 40, // Reduced from 48
+  sectionGap: 16, // Reduced from 24
+  itemGap: 12, // Reduced from 16
+  lineHeight: 1.35, // Reduced from 1.5
+  timelineDotSize: 10, // Reduced from 12
+  timelineLeftMargin: 28, // Reduced from 32
+  timelineGapTop: 6, // Gap from top of dot
+  timelineGapBottom: 8, // Gap from bottom of dot
+};
+
 export async function generateTimelineResumePDF({
   resumeData,
-  filename = "resume.pdf",
-}: GenerateResumeProps) {
-  // Create a new PDF document
+  filename = 'resume.pdf'
+}: GeneratePDFOptions): Promise<Uint8Array> {
+  // Create PDF document
   const pdfDoc = await PDFDocument.create();
-  let page = pdfDoc.addPage([595, 842]); // A4 size in points
-  const { width, height } = page.getSize();
 
   // Load fonts
-  const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const italicFont = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
+  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const helveticaOblique = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
 
-  // Define colors matching the timeline template
-  const colors = {
-    primary: rgb(0.102, 0.125, 0.173), // #1a202c
-    text: rgb(0.176, 0.216, 0.282), // #2d3748
-    secondary: rgb(0.29, 0.333, 0.408), // #4a5568
-    lightGray: rgb(0.447, 0.314, 0.588), // #718096
-    accent: rgb(0.259, 0.6, 0.882), // #4299e1 - blue for timeline
-    border: rgb(0.796, 0.835, 0.878), // #cbd5e0
-    veryLight: rgb(0.627, 0.663, 0.753), // #a0aec0
-  };
-
-  // Define font sizes
-  const fontSizes = {
-    name: 28,
-    contact: 12,
-    summary: 12,
-    sectionHeader: 14,
-    content: 12,
-    small: 11,
-    tiny: 10,
-  };
-
-  // Define margins and spacing
-  const margins = {
-    left: 72,
-    right: 72,
-    top: 60,
-    bottom: 60,
-  };
-
-  let yPosition = height - margins.top;
-
-  // Helper to sanitize strings for font encoding
-  const sanitizeForFont = (text: string, font: any): string => {
-    if (!text) return text;
-    try {
-      font.encodeText(text);
-      return text;
-    } catch {
-      let out = '';
-      for (const ch of Array.from(text)) {
-        try {
-          font.encodeText(ch);
-          out += ch;
-        } catch {
-          // Skip unencodable character
-        }
-      }
-      return out;
-    }
-  };
+  // Add page
+  let page = pdfDoc.addPage([595, 842]); // A4 size
+  const { width, height } = page.getSize();
+  let yPosition = height - SPACING.pageMargin;
 
   // Helper function to check if we need a new page
-  const checkNewPage = (requiredSpace: number) => {
-    if (yPosition - requiredSpace < margins.bottom) {
+  const checkPageBreak = (requiredSpace: number) => {
+    if (yPosition - requiredSpace < SPACING.pageMargin) {
       page = pdfDoc.addPage([595, 842]);
-      yPosition = height - margins.top;
+      yPosition = height - SPACING.pageMargin;
       return true;
     }
     return false;
   };
 
-  // Helper function to draw text
-  const drawText = (
-    text: string,
-    x: number,
-    y: number,
-    options: {
-      font?: any;
-      size?: number;
-      color?: any;
-      maxWidth?: number;
-    } = {}
-  ) => {
-    const {
-      font = regularFont,
-      size = fontSizes.content,
-      color = colors.text,
-      maxWidth = width - margins.left - margins.right,
-    } = options;
-    const safeText = sanitizeForFont(text, font);
-
-    page.drawText(safeText, {
-      x,
-      y,
-      size,
-      font,
-      color,
-      maxWidth,
-    });
-  };
-
-  // Helper function to wrap text and return lines
-  const wrapText = (text: string, maxWidth: number, font: any, fontSize: number): string[] => {
-    const safeFullText = sanitizeForFont(text, font);
-    const words = safeFullText.split(' ');
+  // Helper function to wrap text
+  const wrapText = (text: string, maxWidth: number, font: any, size: number): string[] => {
+    const words = text.split(' ');
     const lines: string[] = [];
     let currentLine = '';
 
     for (const word of words) {
       const testLine = currentLine ? `${currentLine} ${word}` : word;
-      const textWidth = font.widthOfTextAtSize(testLine, fontSize);
+      const testWidth = font.widthOfTextAtSize(testLine, size);
 
-      if (textWidth <= maxWidth) {
-        currentLine = testLine;
+      if (testWidth > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
       } else {
-        if (currentLine) {
-          lines.push(currentLine);
-          currentLine = word;
-        } else {
-          lines.push(word);
-        }
+        currentLine = testLine;
       }
     }
 
-    if (currentLine) {
-      lines.push(currentLine);
-    }
-
+    if (currentLine) lines.push(currentLine);
     return lines;
   };
 
-  // Draw timeline dot
+  // Helper function to draw timeline dot (outer circle + inner filled circle)
   const drawTimelineDot = (x: number, y: number) => {
-    // Outer circle (shadow effect)
+    // Outer circle (border)
     page.drawCircle({
       x: x,
       y: y,
-      size: 6,
-      borderColor: colors.accent,
-      borderWidth: 2,
-      color: colors.accent,
+      size: 5,
+      borderColor: COLORS.accent,
+      borderWidth: 1.5,
     });
-    
-    // Inner white circle
+
+    // Inner filled circle
     page.drawCircle({
       x: x,
       y: y,
-      size: 3,
-      color: rgb(1, 1, 1),
+      size: 2.5,
+      color: COLORS.accent,
     });
   };
 
-  // Draw timeline line
-  const drawTimelineLine = (x: number, yStart: number, yEnd: number) => {
-    page.drawLine({
-      start: { x: x, y: yStart },
-      end: { x: x, y: yEnd },
-      thickness: 2,
-      color: colors.border,
-    });
-  };
-
-  // --- Start rendering content ---
-
-  // Name
-  checkNewPage(40);
-  drawText(resumeData.basics.name, margins.left, yPosition, {
-    font: boldFont,
-    size: fontSizes.name,
-    color: colors.primary,
+  // 1. Draw Name (NO underline)
+  const nameText = resumeData.basics.name;
+  page.drawText(nameText, {
+    x: SPACING.pageMargin,
+    y: yPosition,
+    size: SIZES.name,
+    font: helveticaBold,
+    color: COLORS.primary,
   });
-  yPosition -= 35;
+  yPosition -= SIZES.name * 1.3;
 
-  // Contact Info
-  const { email, phone, location, linkedin } = resumeData.basics;
-  const contactParts = [phone, email, location, linkedin].filter(Boolean);
-  const contactInfo = contactParts.join(' • ');
-  
-  checkNewPage(40);
-  const contactLines = wrapText(
-    contactInfo,
-    width - margins.left - margins.right,
-    regularFont,
-    fontSizes.contact
-  );
+  // 2. Draw Contact Info (with wrapping if needed)
+  const contactParts: string[] = [];
+  if (resumeData.basics.phone) contactParts.push(resumeData.basics.phone);
+  if (resumeData.basics.email) contactParts.push(resumeData.basics.email);
+  if (resumeData.basics.location) contactParts.push(resumeData.basics.location);
+  if (resumeData.basics.linkedin) contactParts.push(resumeData.basics.linkedin);
 
-  for (const line of contactLines) {
-    checkNewPage(15);
-    drawText(line, margins.left, yPosition, {
-      font: regularFont,
-      size: fontSizes.contact,
-      color: colors.secondary,
-    });
-    yPosition -= 15;
+  // Build contact line with wrapping support
+  const maxContactWidth = width - (SPACING.pageMargin * 2);
+  let contactLine: string[] = [];
+  const contactLineGroups: string[][] = [];
+
+  for (let i = 0; i < contactParts.length; i++) {
+    const part = contactParts[i];
+    const testLine = [...contactLine, part];
+    const testText = testLine.join(' • ');
+    const testWidth = helvetica.widthOfTextAtSize(testText, SIZES.contact);
+
+    if (testWidth > maxContactWidth && contactLine.length > 0) {
+      contactLineGroups.push([...contactLine]);
+      contactLine = [part];
+    } else {
+      contactLine.push(part);
+    }
   }
-  yPosition -= 15;
+  if (contactLine.length > 0) contactLineGroups.push(contactLine);
 
-  // Summary
+  // Draw contact lines with justification for wrapped lines
+  for (let lineIdx = 0; lineIdx < contactLineGroups.length; lineIdx++) {
+    const parts = contactLineGroups[lineIdx];
+    const isFirstLine = lineIdx === 0;
+    const isWrapped = contactLineGroups.length > 1;
+
+    if (isFirstLine && isWrapped && parts.length > 1) {
+      // First line with wrapping: justify between
+      const totalPartsWidth = parts.reduce((sum, part) => 
+        sum + helvetica.widthOfTextAtSize(part, SIZES.contact), 0
+      );
+      const availableSpace = maxContactWidth - totalPartsWidth;
+      const gapBetween = availableSpace / (parts.length - 1);
+
+      let currentX = SPACING.pageMargin;
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        page.drawText(part, {
+          x: currentX,
+          y: yPosition,
+          size: SIZES.contact,
+          font: helvetica,
+          color: COLORS.secondary,
+        });
+        currentX += helvetica.widthOfTextAtSize(part, SIZES.contact) + gapBetween;
+      }
+    } else {
+      // Regular line or single item: normal spacing with bullets
+      const lineText = parts.join(' • ');
+      page.drawText(lineText, {
+        x: SPACING.pageMargin,
+        y: yPosition,
+        size: SIZES.contact,
+        font: helvetica,
+        color: COLORS.secondary,
+      });
+    }
+    
+    yPosition -= SIZES.contact * 1.4;
+  }
+  yPosition -= 4;
+
+  // 3. Draw Summary
   if (resumeData.basics.summary) {
-    checkNewPage(60);
     const summaryLines = wrapText(
       resumeData.basics.summary,
-      width - margins.left - margins.right,
-      regularFont,
-      fontSizes.summary
+      width - (SPACING.pageMargin * 2),
+      helvetica,
+      SIZES.summary
     );
-    
+
     for (const line of summaryLines) {
-      checkNewPage(15);
-      drawText(line, margins.left, yPosition, {
-        font: regularFont,
-        size: fontSizes.summary,
-        color: colors.text,
+      page.drawText(line, {
+        x: SPACING.pageMargin,
+        y: yPosition,
+        size: SIZES.summary,
+        font: helvetica,
+        color: COLORS.text,
       });
-      yPosition -= 15;
+      yPosition -= SIZES.summary * SPACING.lineHeight;
     }
-    yPosition -= 10;
+    yPosition -= 6;
   }
 
-  // Custom Fields (two column grid)
-  const customEntries = Object.entries(resumeData.custom).filter(([_, item]) => !item.hidden);
-  
-  if (customEntries.length > 0) {
-    checkNewPage(40);
-    const columnWidth = (width - margins.left - margins.right) / 2;
-    
-    for (let i = 0; i < customEntries.length; i += 2) {
-      checkNewPage(18);
-      
-      // Left column
-      if (customEntries[i]) {
-        const [_, item] = customEntries[i];
-        const labelText = sanitizeForFont(`${item.title}: `, boldFont);
-        const valueText = sanitizeForFont(item.content, regularFont);
-        
-        drawText(labelText, margins.left, yPosition, {
-          font: boldFont,
-          size: fontSizes.small,
-          color: colors.text,
-        });
-        
-        const labelWidth = boldFont.widthOfTextAtSize(labelText, fontSizes.small);
-        drawText(valueText, margins.left + labelWidth, yPosition, {
-          font: regularFont,
-          size: fontSizes.small,
-          color: colors.secondary,
-        });
+  // 4. Draw Custom Fields (Grid layout)
+  const visibleCustomFields = Object.entries(resumeData.custom).filter(([_, item]) => !item.hidden);
+  if (visibleCustomFields.length > 0) {
+    const colWidth = (width - SPACING.pageMargin * 2) / 2;
+    let col = 0;
+    let rowStartY = yPosition;
+
+    for (const [key, item] of visibleCustomFields) {
+      const xPos = SPACING.pageMargin + (col * colWidth);
+
+      // Draw title (bold)
+      page.drawText(`${item.title}:`, {
+        x: xPos,
+        y: rowStartY,
+        size: SIZES.small,
+        font: helveticaBold,
+        color: COLORS.text,
+      });
+
+      // Draw content
+      const titleWidth = helveticaBold.widthOfTextAtSize(`${item.title}: `, SIZES.small);
+      page.drawText(item.content, {
+        x: xPos + titleWidth,
+        y: rowStartY,
+        size: SIZES.small,
+        font: helvetica,
+        color: COLORS.secondary,
+      });
+
+      col++;
+      if (col >= 2) {
+        col = 0;
+        rowStartY -= SIZES.small * 1.6;
       }
-      
-      // Right column
-      if (customEntries[i + 1]) {
-        const [_, item] = customEntries[i + 1];
-        const labelText = sanitizeForFont(`${item.title}: `, boldFont);
-        const valueText = sanitizeForFont(item.content, regularFont);
-        
-        drawText(labelText, margins.left + columnWidth, yPosition, {
-          font: boldFont,
-          size: fontSizes.small,
-          color: colors.text,
-        });
-        
-        const labelWidth = boldFont.widthOfTextAtSize(labelText, fontSizes.small);
-        drawText(valueText, margins.left + columnWidth + labelWidth, yPosition, {
-          font: regularFont,
-          size: fontSizes.small,
-          color: colors.secondary,
-        });
-      }
-      
-      yPosition -= 15;
     }
-    yPosition -= 10;
+
+    if (col !== 0) rowStartY -= SIZES.small * 1.6;
+    yPosition = rowStartY - 8;
   }
 
-  // Process sections
-  resumeData.sections.forEach((section, sectionIdx) => {
+  // 5. Draw Sections
+  const sortedSections = [...resumeData.sections].sort((a, b) => (a.order || 0) - (b.order || 0));
+
+  for (const section of sortedSections) {
+    if (section.hidden) continue;
+
     // Check if section has content
     let hasContent = false;
-    if (section.type === SECTION_TYPES.EDUCATION || section.type === SECTION_TYPES.EXPERIENCE || section.type === SECTION_TYPES.PROJECTS) {
+    if (section.type === 'education' || section.type === 'experience' || section.type === 'projects') {
       hasContent = section.items && section.items.length > 0;
-    } else if (
-      section.type === SECTION_TYPES.SKILLS ||
-      section.type === SECTION_TYPES.LANGUAGES ||
-      section.type === SECTION_TYPES.CERTIFICATIONS
-    ) {
+    } else if (section.type === 'skills' || section.type === 'languages' || section.type === 'certifications') {
       hasContent = section.items && section.items.length > 0;
-    } else if (section.type === SECTION_TYPES.CUSTOM) {
-      hasContent = section.content && section.content.length > 0 && section.content.some((item) => item.trim() !== '');
+    } else if (section.type === 'custom') {
+      hasContent = section.content && section.content.some(c => c.trim() !== '');
     }
 
-    if (!hasContent) return;
+    if (!hasContent) continue;
 
-    // Section Header with underline
-    checkNewPage(35);
-    const sectionTitle = sanitizeForFont(section.title.toUpperCase(), boldFont);
-    drawText(sectionTitle, margins.left, yPosition, {
-      font: boldFont,
-      size: fontSizes.sectionHeader,
-      color: colors.text,
+    checkPageBreak(50);
+
+    // Draw Section Header with blue underline
+    page.drawText(section.title.toUpperCase(), {
+      x: SPACING.pageMargin,
+      y: yPosition,
+      size: SIZES.sectionHeader,
+      font: helveticaBold,
+      color: COLORS.text,
     });
-    
-    // Draw underline
+
+    // Draw blue underline
     page.drawLine({
-      start: { x: margins.left, y: yPosition - 5 },
-      end: { x: width - margins.right, y: yPosition - 5 },
-      thickness: 2,
-      color: colors.accent,
+      start: { x: SPACING.pageMargin, y: yPosition - 3 },
+      end: { x: width - SPACING.pageMargin, y: yPosition - 3 },
+      thickness: 1.5,
+      color: COLORS.accent,
     });
-    
-    yPosition -= 25;
 
-    // Education Section with Timeline
-    if (section.type === SECTION_TYPES.EDUCATION) {
-      section.items.forEach((edu, eduIdx) => {
-        const timelineX = margins.left + 10;
-        const contentX = timelineX + 20;
+    yPosition -= SIZES.sectionHeader * 1.8;
+
+    // Draw section content
+    if (section.type === 'education') {
+      for (let i = 0; i < section.items.length; i++) {
+        const edu = section.items[i];
+        const isLast = i === section.items.length - 1;
+
         const itemStartY = yPosition;
-        
-        checkNewPage(80);
-        
-        // Draw timeline dot
-        drawTimelineDot(timelineX, yPosition);
-        
-        // Institution and Date
-        const dateRange = [edu.startDate, edu.endDate].filter(Boolean).join(' - ');
-        const institutionText = sanitizeForFont(edu.institution, boldFont);
-        
-        drawText(institutionText, contentX, yPosition, {
-          font: boldFont,
-          size: fontSizes.content,
-          color: colors.text,
+        const pageBreakOccurred = checkPageBreak(80);
+
+        const dotX = SPACING.pageMargin + 5;
+        const dotY = yPosition - 2;
+        const contentX = SPACING.pageMargin + SPACING.timelineLeftMargin;
+
+        // Draw timeline dot with proper styling
+        drawTimelineDot(dotX, dotY);
+
+        // Draw institution and dates
+        const dateText = `${edu.startDate || ''} - ${edu.endDate || ''}`;
+        const dateWidth = helvetica.widthOfTextAtSize(dateText, SIZES.small);
+
+        page.drawText(edu.institution, {
+          x: contentX,
+          y: yPosition,
+          size: SIZES.institution,
+          font: helveticaBold,
+          color: COLORS.text,
         });
-        
-        if (dateRange) {
-          const instWidth = boldFont.widthOfTextAtSize(institutionText, fontSizes.content);
-          const dateText = sanitizeForFont(` | ${dateRange}`, regularFont);
-          drawText(dateText, contentX + instWidth + 5, yPosition, {
-            font: regularFont,
-            size: fontSizes.small,
-            color: colors.lightGray,
+
+        if (edu.startDate || edu.endDate) {
+          page.drawText(dateText, {
+            x: width - SPACING.pageMargin - dateWidth,
+            y: yPosition,
+            size: SIZES.small,
+            font: helvetica,
+            color: COLORS.dateGray,
           });
         }
-        
-        yPosition -= 15;
-        
-        // Degree
-        checkNewPage(15);
-        const degreeLines = wrapText(edu.degree, width - contentX - margins.right, regularFont, fontSizes.content);
-        for (const line of degreeLines) {
-          drawText(line, contentX, yPosition, {
-            font: regularFont,
-            size: fontSizes.content,
-            color: colors.secondary,
-          });
-          yPosition -= 14;
-        }
-        
-        // Location
+
+        yPosition -= SIZES.institution * 1.3;
+
+        // Draw degree
+        page.drawText(edu.degree, {
+          x: contentX,
+          y: yPosition,
+          size: SIZES.content,
+          font: helvetica,
+          color: COLORS.secondary,
+        });
+        yPosition -= SIZES.content * 1.3;
+
+        // Draw location
         if (edu.location) {
-          checkNewPage(15);
-          drawText(sanitizeForFont(edu.location, italicFont), contentX, yPosition, {
-            font: italicFont,
-            size: fontSizes.tiny,
-            color: colors.veryLight,
+          page.drawText(edu.location, {
+            x: contentX,
+            y: yPosition,
+            size: SIZES.small,
+            font: helvetica,
+            color: COLORS.gray,
           });
-          yPosition -= 14;
+          yPosition -= SIZES.small * 1.3;
         }
-        
-        // Highlights
+
+        // Draw highlights
         if (edu.highlights && edu.highlights.length > 0) {
-          yPosition -= 5;
-          edu.highlights.forEach((highlight) => {
-            checkNewPage(30);
-            const bulletX = contentX + 10;
-            drawText('•', bulletX, yPosition, {
-              font: regularFont,
-              size: fontSizes.content,
-              color: colors.accent,
+          yPosition -= 3;
+          for (const highlight of edu.highlights) {
+            checkPageBreak(25);
+
+            page.drawText('•', {
+              x: contentX,
+              y: yPosition,
+              size: SIZES.content,
+              font: helvetica,
+              color: COLORS.accent,
             });
-            
-            const highlightLines = wrapText(highlight, width - bulletX - 20 - margins.right, regularFont, fontSizes.content);
+
+            const highlightLines = wrapText(
+              highlight,
+              width - contentX - SPACING.pageMargin - 20,
+              helvetica,
+              SIZES.content
+            );
+
             for (const line of highlightLines) {
-              drawText(line, bulletX + 15, yPosition, {
-                font: regularFont,
-                size: fontSizes.content,
-                color: colors.secondary,
+              page.drawText(line, {
+                x: contentX + 12,
+                y: yPosition,
+                size: SIZES.content,
+                font: helvetica,
+                color: COLORS.secondary,
               });
-              yPosition -= 14;
+              yPosition -= SIZES.content * SPACING.lineHeight;
             }
-          });
-        }
-        
-        // Draw timeline line to next item
-        if (eduIdx < section.items.length - 1) {
-          const lineEndY = yPosition - 10;
-          drawTimelineLine(timelineX, itemStartY - 10, lineEndY);
-          yPosition -= 15;
-        } else {
-          yPosition -= 10;
-        }
-      });
-    }
-
-    // Experience Section with Timeline
-    if (section.type === SECTION_TYPES.EXPERIENCE) {
-      section.items.forEach((exp, expIdx) => {
-        const timelineX = margins.left + 10;
-        const contentX = timelineX + 20;
-        const itemStartY = yPosition;
-        
-        checkNewPage(80);
-        
-        // Draw timeline dot
-        drawTimelineDot(timelineX, yPosition);
-        
-        // Role and Date
-        const dateRange = [exp.startDate, exp.endDate].filter(Boolean).join(' - ');
-        const roleText = sanitizeForFont(exp.role, boldFont);
-        
-        drawText(roleText, contentX, yPosition, {
-          font: boldFont,
-          size: fontSizes.content,
-          color: colors.text,
-        });
-        
-        if (dateRange) {
-          const roleWidth = boldFont.widthOfTextAtSize(roleText, fontSizes.content);
-          const dateText = sanitizeForFont(` | ${dateRange}`, regularFont);
-          drawText(dateText, contentX + roleWidth + 5, yPosition, {
-            font: regularFont,
-            size: fontSizes.small,
-            color: colors.lightGray,
-          });
-        }
-        
-        yPosition -= 15;
-        
-        // Company
-        checkNewPage(15);
-        drawText(sanitizeForFont(exp.company, italicFont), contentX, yPosition, {
-          font: italicFont,
-          size: fontSizes.content,
-          color: colors.secondary,
-        });
-        yPosition -= 14;
-        
-        // Location
-        if (exp.location) {
-          checkNewPage(15);
-          drawText(sanitizeForFont(exp.location, regularFont), contentX, yPosition, {
-            font: regularFont,
-            size: fontSizes.tiny,
-            color: colors.veryLight,
-          });
-          yPosition -= 14;
-        }
-        
-        // Achievements
-        if (exp.achievements && exp.achievements.length > 0) {
-          yPosition -= 5;
-          exp.achievements.forEach((achievement) => {
-            checkNewPage(30);
-            const bulletX = contentX + 10;
-            drawText('•', bulletX, yPosition, {
-              font: regularFont,
-              size: fontSizes.content,
-              color: colors.accent,
-            });
-            
-            const achievementLines = wrapText(achievement, width - bulletX - 20 - margins.right, regularFont, fontSizes.content);
-            for (const line of achievementLines) {
-              drawText(line, bulletX + 15, yPosition, {
-                font: regularFont,
-                size: fontSizes.content,
-                color: colors.secondary,
-              });
-              yPosition -= 14;
-            }
-          });
-        }
-        
-        // Draw timeline line to next item
-        if (expIdx < section.items.length - 1) {
-          const lineEndY = yPosition - 10;
-          drawTimelineLine(timelineX, itemStartY - 10, lineEndY);
-          yPosition -= 15;
-        } else {
-          yPosition -= 10;
-        }
-      });
-    }
-
-    // Skills, Languages, Certifications
-    if (
-      section.type === SECTION_TYPES.SKILLS ||
-      section.type === SECTION_TYPES.LANGUAGES ||
-      section.type === SECTION_TYPES.CERTIFICATIONS
-    ) {
-      checkNewPage(30);
-      const skillsText = section.items.join(', ');
-      const skillsLines = wrapText(skillsText, width - margins.left - margins.right - 10, regularFont, fontSizes.content);
-      
-      for (const line of skillsLines) {
-        checkNewPage(15);
-        drawText(line, margins.left + 10, yPosition, {
-          font: regularFont,
-          size: fontSizes.content,
-          color: colors.secondary,
-        });
-        yPosition -= 14;
-      }
-      yPosition -= 10;
-    }
-
-    // Projects Section (use shared renderer styled like timeline preview)
-    if (section.type === SECTION_TYPES.PROJECTS && Array.isArray((section as any).items) && (section as any).items.length) {
-      const ctx = {
-        page,
-        fonts: { regular: regularFont, bold: boldFont },
-        margin: margins.left + 20, // align with contentX (after timeline line)
-        pageInnerWidth: width - (margins.left + 20) - margins.right,
-        y: yPosition,
-        ensureSpace: (spaceNeeded: number) => {
-          if (yPosition - spaceNeeded < margins.bottom) {
-            page = pdfDoc.addPage([595, 842])
-            ctx.page = page
-            yPosition = 842 - margins.top
-            ctx.y = yPosition
           }
-        },
-      }
-      const style = {
-        titleSize: fontSizes.content,
-        titleColor: colors.text,
-        linkSize: fontSizes.small,
-        linkColor: colors.lightGray,
-        descSize: fontSizes.content,
-        descColor: colors.secondary,
-        bulletIndent: 15,
-        itemSpacing: 10,
-      }
-      const { y } = drawProjectsSection(ctx as any, section as any, style as any, { linkDisplay: 'short', withHeader: false, showTimeline: true })
-      // Draw timeline dots/lines for the block roughly: place a dot at section start (optional)
-      // For simplicity we keep linear flow without connectors here since content wraps variably.
-      yPosition = y - 10
-    }
-
-    // Custom Section
-    if (section.type === SECTION_TYPES.CUSTOM) {
-      section.content.forEach((item) => {
-        checkNewPage(30);
-        drawText('•', margins.left + 15, yPosition, {
-          font: regularFont,
-          size: fontSizes.content,
-          color: colors.accent,
-        });
-        
-        const contentLines = wrapText(item, width - margins.left - margins.right - 40, regularFont, fontSizes.content);
-        for (const line of contentLines) {
-          drawText(line, margins.left + 30, yPosition, {
-            font: regularFont,
-            size: fontSizes.content,
-            color: colors.secondary,
-          });
-          yPosition -= 14;
         }
-      });
-      yPosition -= 10;
-    }
-  });
 
-  // Save PDF and trigger download
-  const pdfBytes = await pdfDoc.save()
-  const blob = new Blob([pdfBytes as unknown as ArrayBuffer], { type: "application/pdf" })
-  const link = document.createElement("a")
-  link.href = URL.createObjectURL(blob)
-  link.download = filename
-  link.click()
+        // Draw timeline line with proper gaps
+        if (!isLast) {
+          const itemEndY = yPosition;
+          const lineStartY = dotY - SPACING.timelineGapBottom;
+          
+          // Only draw line if we're on the same page (no page break happened)
+          if (itemEndY > SPACING.pageMargin + 20) {
+            page.drawLine({
+              start: { x: dotX, y: lineStartY },
+              end: { x: dotX, y: itemEndY - SPACING.itemGap + SPACING.timelineGapTop },
+              thickness: 1.5,
+              color: COLORS.lightGray,
+            });
+          }
+        }
+
+        yPosition -= SPACING.itemGap;
+      }
+    } else if (section.type === 'experience') {
+      for (let i = 0; i < section.items.length; i++) {
+        const exp = section.items[i];
+        const isLast = i === section.items.length - 1;
+
+        const itemStartY = yPosition;
+        const pageBreakOccurred = checkPageBreak(80);
+
+        const dotX = SPACING.pageMargin + 5;
+        const dotY = yPosition - 2;
+        const contentX = SPACING.pageMargin + SPACING.timelineLeftMargin;
+
+        // Draw timeline dot
+        drawTimelineDot(dotX, dotY);
+
+        // Draw role and dates
+        const dateText = `${exp.startDate || ''} - ${exp.endDate || ''}`;
+        const dateWidth = helvetica.widthOfTextAtSize(dateText, SIZES.small);
+
+        page.drawText(exp.role, {
+          x: contentX,
+          y: yPosition,
+          size: SIZES.institution,
+          font: helveticaBold,
+          color: COLORS.text,
+        });
+
+        page.drawText(dateText, {
+          x: width - SPACING.pageMargin - dateWidth,
+          y: yPosition,
+          size: SIZES.small,
+          font: helvetica,
+          color: COLORS.dateGray,
+        });
+
+        yPosition -= SIZES.institution * 1.3;
+
+        // Draw company
+        page.drawText(exp.company, {
+          x: contentX,
+          y: yPosition,
+          size: SIZES.content,
+          font: helveticaOblique,
+          color: COLORS.secondary,
+        });
+        yPosition -= SIZES.content * 1.3;
+
+        // Draw location
+        if (exp.location) {
+          page.drawText(exp.location, {
+            x: contentX,
+            y: yPosition,
+            size: SIZES.small,
+            font: helvetica,
+            color: COLORS.gray,
+          });
+          yPosition -= SIZES.small * 1.3;
+        }
+
+        // Draw achievements
+        if (exp.achievements && exp.achievements.length > 0) {
+          yPosition -= 3;
+          for (const achievement of exp.achievements) {
+            checkPageBreak(25);
+
+            page.drawText('•', {
+              x: contentX,
+              y: yPosition,
+              size: SIZES.content,
+              font: helvetica,
+              color: COLORS.accent,
+            });
+
+            const achievementLines = wrapText(
+              achievement,
+              width - contentX - SPACING.pageMargin - 20,
+              helvetica,
+              SIZES.content
+            );
+
+            for (const line of achievementLines) {
+              page.drawText(line, {
+                x: contentX + 12,
+                y: yPosition,
+                size: SIZES.content,
+                font: helvetica,
+                color: COLORS.secondary,
+              });
+              yPosition -= SIZES.content * SPACING.lineHeight;
+            }
+          }
+        }
+
+        // Draw timeline line with proper gaps
+        if (!isLast) {
+          const itemEndY = yPosition;
+          const lineStartY = dotY - SPACING.timelineGapBottom;
+          
+          // Only draw line if we're on the same page (no page break happened)
+          if (itemEndY > SPACING.pageMargin + 20) {
+            page.drawLine({
+              start: { x: dotX, y: lineStartY },
+              end: { x: dotX, y: itemEndY - SPACING.itemGap + SPACING.timelineGapTop },
+              thickness: 1.5,
+              color: COLORS.lightGray,
+            });
+          }
+        }
+
+        yPosition -= SPACING.itemGap;
+      }
+    } else if (section.type === 'projects') {
+      for (let i = 0; i < section.items.length; i++) {
+        const proj = section.items[i];
+        const isLast = i === section.items.length - 1;
+
+        const itemStartY = yPosition;
+        const pageBreakOccurred = checkPageBreak(80);
+
+        const dotX = SPACING.pageMargin + 5;
+        const dotY = yPosition - 2;
+        const contentX = SPACING.pageMargin + SPACING.timelineLeftMargin;
+
+        // Draw timeline dot
+        drawTimelineDot(dotX, dotY);
+
+        // Draw project name
+        page.drawText(proj.name, {
+          x: contentX,
+          y: yPosition,
+          size: SIZES.institution,
+          font: helveticaBold,
+          color: COLORS.text,
+        });
+
+        // Draw links
+        let linkX = contentX + helveticaBold.widthOfTextAtSize(proj.name, SIZES.institution) + 6;
+
+        if (proj.link) {
+          page.drawText('Link', {
+            x: linkX,
+            y: yPosition,
+            size: SIZES.tiny,
+            font: helvetica,
+            color: COLORS.accent,
+          });
+          const linkWidth = helvetica.widthOfTextAtSize('Link', SIZES.tiny);
+          page.drawLine({
+            start: { x: linkX, y: yPosition - 1 },
+            end: { x: linkX + linkWidth, y: yPosition - 1 },
+            thickness: 0.5,
+            color: COLORS.accent,
+          });
+          linkX += linkWidth + 4;
+        }
+
+        if (proj.link && proj.repo) {
+          page.drawText('|', {
+            x: linkX,
+            y: yPosition,
+            size: SIZES.tiny,
+            font: helvetica,
+            color: COLORS.lightGray,
+          });
+          linkX += 6;
+        }
+
+        if (proj.repo) {
+          page.drawText('GitHub', {
+            x: linkX,
+            y: yPosition,
+            size: SIZES.tiny,
+            font: helvetica,
+            color: COLORS.accent,
+          });
+          const repoWidth = helvetica.widthOfTextAtSize('GitHub', SIZES.tiny);
+          page.drawLine({
+            start: { x: linkX, y: yPosition - 1 },
+            end: { x: linkX + repoWidth, y: yPosition - 1 },
+            thickness: 0.5,
+            color: COLORS.accent,
+          });
+        }
+
+        yPosition -= SIZES.institution * 1.5;
+
+        // Draw descriptions
+        if (proj.description && proj.description.length > 0) {
+          for (const desc of proj.description) {
+            checkPageBreak(25);
+
+            page.drawText('•', {
+              x: contentX + 12,
+              y: yPosition,
+              size: SIZES.content,
+              font: helvetica,
+              color: COLORS.secondary,
+            });
+
+            const descLines = wrapText(
+              desc,
+              width - contentX - SPACING.pageMargin - 35,
+              helvetica,
+              SIZES.content
+            );
+
+            for (const line of descLines) {
+              page.drawText(line, {
+                x: contentX + 24,
+                y: yPosition,
+                size: SIZES.content,
+                font: helvetica,
+                color: COLORS.secondary,
+              });
+              yPosition -= SIZES.content * SPACING.lineHeight;
+            }
+          }
+        }
+
+        // Draw timeline line with proper gaps
+        if (!isLast) {
+          const itemEndY = yPosition;
+          const lineStartY = dotY - SPACING.timelineGapBottom;
+          
+          // Only draw line if we're on the same page (no page break happened)
+          if (itemEndY > SPACING.pageMargin + 20) {
+            page.drawLine({
+              start: { x: dotX, y: lineStartY },
+              end: { x: dotX, y: itemEndY - SPACING.itemGap + SPACING.timelineGapTop },
+              thickness: 1.5,
+              color: COLORS.lightGray,
+            });
+          }
+        }
+
+        yPosition -= SPACING.itemGap;
+      }
+    } else if (section.type === 'skills' || section.type === 'languages' || section.type === 'certifications') {
+      const contentX = SPACING.pageMargin + 6;
+      const itemsText = section.items.join(', ');
+      const lines = wrapText(
+        itemsText,
+        width - contentX - SPACING.pageMargin,
+        helvetica,
+        SIZES.content
+      );
+
+      for (const line of lines) {
+        checkPageBreak(18);
+        page.drawText(line, {
+          x: contentX,
+          y: yPosition,
+          size: SIZES.content,
+          font: helvetica,
+          color: COLORS.secondary,
+        });
+        yPosition -= SIZES.content * SPACING.lineHeight;
+      }
+
+      yPosition -= SPACING.itemGap;
+    } else if (section.type === 'custom') {
+      const contentX = SPACING.pageMargin + 6;
+
+      for (const item of section.content) {
+        if (!item.trim()) continue;
+
+        checkPageBreak(25);
+
+        page.drawText('•', {
+          x: contentX,
+          y: yPosition,
+          size: SIZES.content,
+          font: helvetica,
+          color: COLORS.accent,
+        });
+
+        const itemLines = wrapText(
+          item,
+          width - contentX - SPACING.pageMargin - 20,
+          helvetica,
+          SIZES.content
+        );
+
+        for (const line of itemLines) {
+          page.drawText(line, {
+            x: contentX + 12,
+            y: yPosition,
+            size: SIZES.content,
+            font: helvetica,
+            color: COLORS.secondary,
+          });
+          yPosition -= SIZES.content * SPACING.lineHeight;
+        }
+      }
+
+      yPosition -= SPACING.itemGap;
+    }
+  }
+
+  // Save PDF
+  const pdfBytes = await pdfDoc.save();
+  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+
+  return pdfBytes;
+}
+
+// Usage function to download the PDF
+export async function downloadATSTimelinePDF(options: GeneratePDFOptions) {
+  await generateTimelineResumePDF(options);
 }

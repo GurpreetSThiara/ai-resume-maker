@@ -373,6 +373,7 @@ export async function generateATSGreenResume({
     }
     if (currentRow.length > 0) rows.push(currentRow);
 
+
     for (const row of rows) {
       const rowHeight = Math.max(...row.map(item => item.height));
       checkNewPage(rowHeight + 10);
@@ -380,18 +381,19 @@ export async function generateATSGreenResume({
       const totalItemsWidth = row.reduce((sum, item) => sum + item.width, 0);
       const extraGap = row.length > 1 ? (pageWidth - totalItemsWidth) / (row.length - 1) : 0;
       let currentX = margins.left;
+      const startY = yPosition; // Store starting Y position for this row
 
       for (const item of row) {
         const keyText = `${item.item.title}:`;
-        drawText(keyText, currentX, yPosition, { font: boldFont, size: fontSizes.content });
+        drawText(keyText, currentX, startY, { font: boldFont, size: fontSizes.content });
         item.wrappedLines.forEach((line: string, lineIndex: number) => {
-          drawText(line, currentX + item.keyWidth + 5, yPosition - (lineIndex * spacing.lineHeight), {
+          drawText(line, currentX + item.keyWidth + 5, startY - (lineIndex * spacing.lineHeight), {
             size: fontSizes.content
           });
         });
         currentX += item.width + extraGap;
       }
-      yPosition -= rowHeight + 8;
+      yPosition -= rowHeight + spacing.lineHeight; // Use lineHeight instead of 8 for consistency
     }
     yPosition -= spacing.paragraphGap;
   }
