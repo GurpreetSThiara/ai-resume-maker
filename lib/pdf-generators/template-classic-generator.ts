@@ -245,37 +245,67 @@ export async function generateClassic2ResumePDF({ resumeData, filename = "resume
         break
 
       case "projects":
-        if ((section as any).items && (section as any).items.length) {
-          const ctx = {
-            page: currentPage,
-            fonts: { regular: regularFont, bold: boldFont },
-            margin,
-            pageInnerWidth: pageWidth,
+        case "projects":
+  if (section.items && section.items.length) {
+    for (const proj of section.items) {
+      ensureSpace(40);
+
+      // Project title
+      const title = proj.name || "";
+      currentPage.drawText(title, {
+        x: margin,
+        y: yOffset,
+        size: 13,
+        font: boldFont,
+        color: textColor,
+      });
+      let cursorX = margin + boldFont.widthOfTextAtSize(title, 13) + 8;
+
+      // Links (if present)
+      if (proj.link || proj.repo) {
+        const parts = [];
+        if (proj.link) parts.push("Link");
+        if (proj.repo) parts.push("GitHub");
+        if (parts.length) {
+          const linksText = parts.join("  |  ");
+          currentPage.drawText(linksText, {
+            x: cursorX,
             y: yOffset,
-            ensureSpace: (spaceNeeded: number) => {
-              if (yOffset - spaceNeeded < margin) {
-                currentPage = pdfDoc.addPage([595.276, 841.89])
-                ctx.page = currentPage
-                yOffset = 800
-                ctx.y = yOffset
-              }
-            },
-          }
-          const style = {
-            titleSize: 13,
-            titleColor: textColor,
-            linkSize: 9,
-            linkColor: rgb(0,0,0.66),
-            descSize: 10,
-            descColor: secondaryColor,
-            bulletIndent: 16,
-            itemSpacing: 16,
-          }
-          ctx.y = yOffset
-          const { y } = drawProjectsSection(ctx as any, section as any, style as any, { linkDisplay: 'short', withHeader: false })
-          yOffset = y
+            size: 9,
+            font: regularFont,
+            color: rgb(0,0,0.66),
+          });
         }
-        break
+      }
+
+      yOffset -= 19; // Space below title + links
+
+      // Description bullets (if any)
+      if (Array.isArray(proj.description) && proj.description.length) {
+        for (const d of proj.description) {
+          const bullet = "• ";
+          const indentX = margin + 16;
+          const maxWidth = pageWidth - 26;
+          const lines = wrapText(`${bullet}${d}`, maxWidth, regularFont, 10);
+          for (const line of lines) {
+            ensureSpace(12);
+            currentPage.drawText(line, {
+              x: indentX,
+              y: yOffset,
+              size: 10,
+              font: regularFont,
+              color: secondaryColor,
+            });
+            yOffset -= 12;
+          }
+        }
+      }
+
+      yOffset -= 14; // Space after each project
+    }
+  }
+  break;
+
 ;
     }
   }
