@@ -59,7 +59,6 @@ const CreateResumeContent: FC = () => {
   const [currentStep, setCurrentStep] = useState(0)
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set())
   const [resumeData, setResumeData] = useState<ResumeData>(initialData)
-  console.log("ini    ", initialData)
   const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplate>(googleTemplate)
   const template = useTemplateSelector(availableTemplates)
 
@@ -72,7 +71,6 @@ const CreateResumeContent: FC = () => {
   const [saveModalOpen, setSaveModalOpen] = useState(false)
   const steps = CREATE_RESUME_STEPS
 
-  console.log("resumeData",resumeData)
 
   // Load data from localStorage on component mount (only if no cloud resume ID)
   useEffect(() => {
