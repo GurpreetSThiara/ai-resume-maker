@@ -1,4 +1,6 @@
 // Centralized localStorage utilities with SSR guards and JSON helpers
+import type { ResumeData } from "@/types/resume"
+import { validateResumeData } from "@/utils/validateResume"
 
 export const LS_KEYS = {
   resumeData: "resumeData",
@@ -64,5 +66,23 @@ export function removeLocalStorageItems(...keys: string[]): void {
   for (const key of keys) {
     removeLocalStorageItem(key)
   }
+}
+
+
+// Safely load resume data from localStorage with schema validation
+// If incompatible, clean up related keys to avoid crashes and return null
+export function getValidResumeFromLocalStorage(): ResumeData | null {
+  const data = getLocalStorageJSON<unknown>(LS_KEYS.resumeData, null)
+  if (data == null) return null
+  const result = validateResumeData(data)
+  if (result.ok) return data as ResumeData
+  // Incompatible data detected; remove keys to recover gracefully
+  removeLocalStorageItems(
+    LS_KEYS.resumeData,
+    LS_KEYS.currentStep,
+    LS_KEYS.completedSteps,
+    LS_KEYS.currentResumeId,
+  )
+  return null
 }
 

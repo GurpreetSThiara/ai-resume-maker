@@ -37,9 +37,8 @@ import type { FC } from 'react'
 import { CustomSection as CustomSectionComponent } from "@/components/custom-section"
 import { useAuth } from "@/contexts/auth-context"
 import {  CREATE_RESUME_STEPS } from "@/app/constants/global"
-import { LS_KEYS, setLocalStorageJSON, setLocalStorageItem, removeLocalStorageItems, getLocalStorageJSON, getLocalStorageItem } from "@/utils/localstorage"
+import { LS_KEYS, setLocalStorageJSON, setLocalStorageItem, removeLocalStorageItems, getLocalStorageJSON, getLocalStorageItem, getValidResumeFromLocalStorage } from "@/utils/localstorage"
 import { initializeSectionOrder } from "@/utils/sectionOrdering"
-import { devopsResumeData4 } from "@/lib/examples/resume/deveops"
 import { CreateResumeHeader } from "@/components/CreateResumeHeader"
 import { useTemplateSelector } from "@/hooks/use-template-selector"
 import { generateResumePDF } from "@/lib/pdf-generators"
@@ -81,7 +80,7 @@ const CreateResumeContent: FC = () => {
     
     // Only load localStorage data if we're not editing a cloud resume
     if (!resumeId) {
-      const savedResumeData = getLocalStorageJSON<ResumeData>(LS_KEYS.resumeData, null)
+      const savedResumeData = getValidResumeFromLocalStorage()
       const savedCurrentStep = getLocalStorageItem(LS_KEYS.currentStep)
       const savedCompletedSteps = getLocalStorageJSON<number[]>(LS_KEYS.completedSteps, [])
       const savedResumeId = getLocalStorageItem(LS_KEYS.currentResumeId)
