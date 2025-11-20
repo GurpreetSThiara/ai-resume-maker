@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChevronLeft, ChevronRight, Trophy, Star, Zap, Target, Eye, Download, Save, X } from "lucide-react"
+import { HotkeysInfo } from "@/components/hotkeys-info"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { PersonalInfoSection } from "@/components/personal-info-section"
 import { EducationSection as EducationSectionComponent } from "@/components/education-section"
@@ -40,7 +41,8 @@ import {  CREATE_RESUME_STEPS } from "@/app/constants/global"
 import { LS_KEYS, setLocalStorageJSON, setLocalStorageItem, removeLocalStorageItems, getLocalStorageJSON, getLocalStorageItem, getValidResumeFromLocalStorage } from "@/utils/localstorage"
 import { initializeSectionOrder } from "@/utils/sectionOrdering"
 import { CreateResumeHeader } from "@/components/CreateResumeHeader"
-import { useTemplateSelector } from "@/hooks/use-template-selector"
+import { useTemplateSelector } from "@/hooks/use-template-selector";
+import { useHotkeys } from "@/hooks/use-hotkeys";
 import { generateResumePDF } from "@/lib/pdf-generators"
 import { sanitizeResumeData } from "@/utils/createResume"
 import { createLocalResume, updateLocalResume, getLocalResumeById } from "@/lib/local-storage"
@@ -69,7 +71,33 @@ const CreateResumeContent: FC = () => {
   const [limitModalOpen, setLimitModalOpen] = useState(false)
   const [limitModalBusy, setLimitModalBusy] = useState(false)
   const [saveModalOpen, setSaveModalOpen] = useState(false)
-  const steps = CREATE_RESUME_STEPS
+  const steps = CREATE_RESUME_STEPS;
+
+  useHotkeys([
+    {
+      keys: ['Control', 's'],
+      callback: () => {
+        saveToLocal();
+        SHOW_SUCCESS({ title: 'Resume saved locally!' });
+      },
+    },
+    {
+      keys: ['Control', 'ArrowRight'],
+      callback: () => {
+        if (currentStep < steps.length - 1) {
+          setCurrentStep(currentStep + 1);
+        }
+      },
+    },
+    {
+      keys: ['Control', 'ArrowLeft'],
+      callback: () => {
+        if (currentStep > 0) {
+          setCurrentStep(currentStep - 1);
+        }
+      },
+    },
+  ]);
 
 
   // Load data from localStorage on component mount (only if no cloud resume ID)
@@ -465,7 +493,11 @@ const CreateResumeContent: FC = () => {
               <div className="hidden lg:block">
                 <Card className="sticky top-32">
                   <CardHeader>
-                    <CardTitle className="text-lg">Step {currentStep + 1} of {steps.length}</CardTitle>
+                    <div className="flex items-center justify-between w-full">
+                      <CardTitle className="text-lg">Step {currentStep + 1} of {steps.length}</CardTitle>
+
+                      {/* <HotkeysInfo /> */}
+                    </div>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {steps.map((step, index) => (
