@@ -21,7 +21,17 @@ export async function POST(request: NextRequest) {
       undefined
 
     // Track the download
-    await trackResumeDownload(format, resumeId, template, userAgent, ipAddress)
+    // Only persist download counts to MongoDB when running on createfreecv.com
+    const hostHeader = (request.headers.get('host') || '').toLowerCase()
+    const hostname = hostHeader.split(':')[0]
+    const isCreateFreeCvHost = hostname === 'createfreecv.com' || hostname === 'www.createfreecv.com'
+
+    if (isCreateFreeCvHost) {
+      await trackResumeDownload(format, resumeId, template, userAgent, ipAddress)
+    } else {
+      // Skip persisting to the DB in non-production / other-host environments
+    //  console.log(`Skipping download tracking for host: ${hostHeader}`)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
