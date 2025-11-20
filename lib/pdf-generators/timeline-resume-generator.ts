@@ -19,26 +19,27 @@ const COLORS = {
 
 // Font sizes - optimized for more content
 const SIZES = {
-  name: 24, // Reduced from 28
-  contact: 10, // Reduced from 12
-  summary: 10.5, // Reduced from 12
-  sectionHeader: 12, // Reduced from 14
-  institution: 11, // Reduced from 13
-  content: 10, // Reduced from 12
-  small: 9.5, // Reduced from 11
-  tiny: 8.5, // Reduced from 10
+  name: 24,
+  contact: 10,
+  summary: 10.5,
+  sectionHeader: 12,
+  institution: 11,
+  content: 10,
+  small: 9.5,
+  tiny: 8.5,
 };
 
 // Spacing - optimized for more content
 const SPACING = {
-  pageMargin: 40, // Reduced from 48
-  sectionGap: 16, // Reduced from 24
-  itemGap: 12, // Reduced from 16
-  lineHeight: 1.35, // Reduced from 1.5
-  timelineDotSize: 10, // Reduced from 12
-  timelineLeftMargin: 28, // Reduced from 32
-  timelineGapTop: 6, // Gap from top of dot
-  timelineGapBottom: 8, // Gap from bottom of dot
+  pageMargin: 40,
+  bottomMargin: 35, // Reduced bottom margin for more content
+  sectionGap: 16,
+  itemGap: 12,
+  lineHeight: 1.35,
+  timelineDotSize: 10,
+  timelineLeftMargin: 28,
+  timelineGapTop: 6,
+  timelineGapBottom: 8,
 };
 
 export async function generateTimelineResumePDF({
@@ -57,12 +58,34 @@ export async function generateTimelineResumePDF({
   let page = pdfDoc.addPage([595, 842]); // A4 size
   const { width, height } = page.getSize();
   let yPosition = height - SPACING.pageMargin;
+  
+  // Track timeline state across pages
+  let currentTimelinePage = page;
+  let timelineStartY: number | null = null;
 
   // Helper function to check if we need a new page
   const checkPageBreak = (requiredSpace: number) => {
-    if (yPosition - requiredSpace < SPACING.pageMargin) {
+    if (yPosition - requiredSpace < SPACING.bottomMargin) {
+      // Draw timeline line to bottom of current page if timeline is active
+      if (timelineStartY !== null) {
+        const dotX = SPACING.pageMargin + 5;
+        currentTimelinePage.drawLine({
+          start: { x: dotX, y: timelineStartY },
+          end: { x: dotX, y: SPACING.bottomMargin },
+          thickness: 1.5,
+          color: COLORS.lightGray,
+        });
+      }
+      
       page = pdfDoc.addPage([595, 842]);
       yPosition = height - SPACING.pageMargin;
+      
+      // Continue timeline from top of new page if it was active
+      if (timelineStartY !== null) {
+        currentTimelinePage = page;
+        timelineStartY = yPosition;
+      }
+      
       return true;
     }
     return false;
@@ -270,6 +293,9 @@ export async function generateTimelineResumePDF({
 
     if (!hasContent) continue;
 
+    // Reset timeline state for each section
+    timelineStartY = null;
+
     checkPageBreak(50);
 
     // Draw Section Header with blue underline
@@ -297,23 +323,21 @@ export async function generateTimelineResumePDF({
         const edu = section.items[i];
         const isLast = i === section.items.length - 1;
 
-        const itemStartY = yPosition;
-        const pageBreakOccurred = checkPageBreak(80);
+        checkPageBreak(80);
 
         const dotX = SPACING.pageMargin + 5;
-        const dotY = yPosition - 2;
         const contentX = SPACING.pageMargin + SPACING.timelineLeftMargin;
 
-        // Draw timeline dot with proper styling
-        drawTimelineDot(dotX, dotY);
-
-        // Draw institution and dates
+        // Draw institution and dates first to get the proper Y position
+        const institutionY = yPosition;
+        // Draw institution and dates first to get the proper Y position
+     //   const institutionY = yPosition;
         const dateText = `${edu.startDate || ''} - ${edu.endDate || ''}`;
         const dateWidth = helvetica.widthOfTextAtSize(dateText, SIZES.small);
 
         page.drawText(edu.institution, {
           x: contentX,
-          y: yPosition,
+          y: institutionY,
           size: SIZES.institution,
           font: helveticaBold,
           color: COLORS.text,
@@ -322,12 +346,32 @@ export async function generateTimelineResumePDF({
         if (edu.startDate || edu.endDate) {
           page.drawText(dateText, {
             x: width - SPACING.pageMargin - dateWidth,
-            y: yPosition,
+            y: institutionY,
             size: SIZES.small,
             font: helvetica,
             color: COLORS.dateGray,
           });
         }
+
+        // Now calculate dot position aligned with institution text (at text baseline)
+        const dotY = institutionY;
+
+        // Draw timeline line from previous item to this dot
+        if (timelineStartY !== null) {
+          currentTimelinePage.drawLine({
+            start: { x: dotX, y: timelineStartY },
+            end: { x: dotX, y: dotY + SPACING.timelineGapTop },
+            thickness: 1.5,
+            color: COLORS.lightGray,
+          });
+        }
+
+        // Draw timeline dot
+        drawTimelineDot(dotX, dotY);
+
+        // Update timeline tracking
+        currentTimelinePage = page;
+        timelineStartY = isLast ? null : (dotY - SPACING.timelineGapBottom);
 
         yPosition -= SIZES.institution * 1.3;
 
@@ -387,22 +431,6 @@ export async function generateTimelineResumePDF({
           }
         }
 
-        // Draw timeline line with proper gaps
-        if (!isLast) {
-          const itemEndY = yPosition;
-          const lineStartY = dotY - SPACING.timelineGapBottom;
-          
-          // Only draw line if we're on the same page (no page break happened)
-          if (itemEndY > SPACING.pageMargin + 20) {
-            page.drawLine({
-              start: { x: dotX, y: lineStartY },
-              end: { x: dotX, y: itemEndY - SPACING.itemGap + SPACING.timelineGapTop },
-              thickness: 1.5,
-              color: COLORS.lightGray,
-            });
-          }
-        }
-
         yPosition -= SPACING.itemGap;
       }
     } else if (section.type === 'experience') {
@@ -410,23 +438,21 @@ export async function generateTimelineResumePDF({
         const exp = section.items[i];
         const isLast = i === section.items.length - 1;
 
-        const itemStartY = yPosition;
-        const pageBreakOccurred = checkPageBreak(80);
+        checkPageBreak(80);
 
         const dotX = SPACING.pageMargin + 5;
-        const dotY = yPosition - 2;
         const contentX = SPACING.pageMargin + SPACING.timelineLeftMargin;
 
-        // Draw timeline dot
-        drawTimelineDot(dotX, dotY);
-
-        // Draw role and dates
+        // Draw role and dates first to get the proper Y position
+      //  const roleY = yPosition;
+        // Draw role and dates first to get the proper Y position
+        const roleY = yPosition;
         const dateText = `${exp.startDate || ''} - ${exp.endDate || ''}`;
         const dateWidth = helvetica.widthOfTextAtSize(dateText, SIZES.small);
 
         page.drawText(exp.role, {
           x: contentX,
-          y: yPosition,
+          y: roleY,
           size: SIZES.institution,
           font: helveticaBold,
           color: COLORS.text,
@@ -434,11 +460,31 @@ export async function generateTimelineResumePDF({
 
         page.drawText(dateText, {
           x: width - SPACING.pageMargin - dateWidth,
-          y: yPosition,
+          y: roleY,
           size: SIZES.small,
           font: helvetica,
           color: COLORS.dateGray,
         });
+
+        // Now calculate dot position aligned with role text (at text baseline)
+        const dotY = roleY;
+
+        // Draw timeline line from previous item to this dot
+        if (timelineStartY !== null) {
+          currentTimelinePage.drawLine({
+            start: { x: dotX, y: timelineStartY },
+            end: { x: dotX, y: dotY + SPACING.timelineGapTop },
+            thickness: 1.5,
+            color: COLORS.lightGray,
+          });
+        }
+
+        // Draw timeline dot
+        drawTimelineDot(dotX, dotY);
+
+        // Update timeline tracking
+        currentTimelinePage = page;
+        timelineStartY = isLast ? null : (dotY - SPACING.timelineGapBottom);
 
         yPosition -= SIZES.institution * 1.3;
 
@@ -498,22 +544,6 @@ export async function generateTimelineResumePDF({
           }
         }
 
-        // Draw timeline line with proper gaps
-        if (!isLast) {
-          const itemEndY = yPosition;
-          const lineStartY = dotY - SPACING.timelineGapBottom;
-          
-          // Only draw line if we're on the same page (no page break happened)
-          if (itemEndY > SPACING.pageMargin + 20) {
-            page.drawLine({
-              start: { x: dotX, y: lineStartY },
-              end: { x: dotX, y: itemEndY - SPACING.itemGap + SPACING.timelineGapTop },
-              thickness: 1.5,
-              color: COLORS.lightGray,
-            });
-          }
-        }
-
         yPosition -= SPACING.itemGap;
       }
     } else if (section.type === 'projects') {
@@ -521,40 +551,45 @@ export async function generateTimelineResumePDF({
         const proj = section.items[i];
         const isLast = i === section.items.length - 1;
 
-        const itemStartY = yPosition;
-        const pageBreakOccurred = checkPageBreak(80);
+        checkPageBreak(80);
 
         const dotX = SPACING.pageMargin + 5;
-        const dotY = yPosition - 2;
         const contentX = SPACING.pageMargin + SPACING.timelineLeftMargin;
 
-        // Draw timeline dot
-        drawTimelineDot(dotX, dotY);
+        // Draw project name first to get the proper Y position
+        const projectY = yPosition;
 
-        // Draw project name
         page.drawText(proj.name, {
           x: contentX,
-          y: yPosition,
+          y: projectY,
           size: SIZES.institution,
           font: helveticaBold,
           color: COLORS.text,
         });
 
-        // Draw links
+        page.drawText(proj.name, {
+          x: contentX,
+          y: projectY,
+          size: SIZES.institution,
+          font: helveticaBold,
+          color: COLORS.text,
+        });
+
+        // Draw links on the same line
         let linkX = contentX + helveticaBold.widthOfTextAtSize(proj.name, SIZES.institution) + 6;
 
         if (proj.link) {
           page.drawText('Link', {
             x: linkX,
-            y: yPosition,
+            y: projectY,
             size: SIZES.tiny,
             font: helvetica,
             color: COLORS.accent,
           });
           const linkWidth = helvetica.widthOfTextAtSize('Link', SIZES.tiny);
           page.drawLine({
-            start: { x: linkX, y: yPosition - 1 },
-            end: { x: linkX + linkWidth, y: yPosition - 1 },
+            start: { x: linkX, y: projectY - 1 },
+            end: { x: linkX + linkWidth, y: projectY - 1 },
             thickness: 0.5,
             color: COLORS.accent,
           });
@@ -564,7 +599,7 @@ export async function generateTimelineResumePDF({
         if (proj.link && proj.repo) {
           page.drawText('|', {
             x: linkX,
-            y: yPosition,
+            y: projectY,
             size: SIZES.tiny,
             font: helvetica,
             color: COLORS.lightGray,
@@ -575,19 +610,39 @@ export async function generateTimelineResumePDF({
         if (proj.repo) {
           page.drawText('GitHub', {
             x: linkX,
-            y: yPosition,
+            y: projectY,
             size: SIZES.tiny,
             font: helvetica,
             color: COLORS.accent,
           });
           const repoWidth = helvetica.widthOfTextAtSize('GitHub', SIZES.tiny);
           page.drawLine({
-            start: { x: linkX, y: yPosition - 1 },
-            end: { x: linkX + repoWidth, y: yPosition - 1 },
+            start: { x: linkX, y: projectY - 1 },
+            end: { x: linkX + repoWidth, y: projectY - 1 },
             thickness: 0.5,
             color: COLORS.accent,
           });
         }
+
+        // Now calculate dot position aligned with project name text (at text baseline)
+        const dotY = projectY;
+
+        // Draw timeline line from previous item to this dot
+        if (timelineStartY !== null) {
+          currentTimelinePage.drawLine({
+            start: { x: dotX, y: timelineStartY },
+            end: { x: dotX, y: dotY + SPACING.timelineGapTop },
+            thickness: 1.5,
+            color: COLORS.lightGray,
+          });
+        }
+
+        // Draw timeline dot
+        drawTimelineDot(dotX, dotY);
+
+        // Update timeline tracking
+        currentTimelinePage = page;
+        timelineStartY = isLast ? null : (dotY - SPACING.timelineGapBottom);
 
         yPosition -= SIZES.institution * 1.5;
 
@@ -621,22 +676,6 @@ export async function generateTimelineResumePDF({
               });
               yPosition -= SIZES.content * SPACING.lineHeight;
             }
-          }
-        }
-
-        // Draw timeline line with proper gaps
-        if (!isLast) {
-          const itemEndY = yPosition;
-          const lineStartY = dotY - SPACING.timelineGapBottom;
-          
-          // Only draw line if we're on the same page (no page break happened)
-          if (itemEndY > SPACING.pageMargin + 20) {
-            page.drawLine({
-              start: { x: dotX, y: lineStartY },
-              end: { x: dotX, y: itemEndY - SPACING.itemGap + SPACING.timelineGapTop },
-              thickness: 1.5,
-              color: COLORS.lightGray,
-            });
           }
         }
 
