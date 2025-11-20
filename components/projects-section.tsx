@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -39,6 +39,75 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
   const [newProject, setNewProject] = useState<Project>({ name: "", link: "", repo: "", description: [], startDate: "", endDate: "" })
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [editValue, setEditValue] = useState<Project>({ name: "", link: "", repo: "", description: [], startDate: "", endDate: "" })
+  const newDescRefs = useRef<HTMLInputElement[]>([])
+  const newNameRef = useRef<HTMLInputElement | null>(null)
+  const newStartRef = useRef<HTMLInputElement | null>(null)
+  const newEndRef = useRef<HTMLInputElement | null>(null)
+  const newLinkRef = useRef<HTMLInputElement | null>(null)
+  const newRepoRef = useRef<HTMLInputElement | null>(null)
+  const editDescRefs = useRef<HTMLInputElement[]>([])
+  const editNameRef = useRef<HTMLInputElement | null>(null)
+  const editStartRef = useRef<HTMLInputElement | null>(null)
+  const editEndRef = useRef<HTMLInputElement | null>(null)
+  const editLinkRef = useRef<HTMLInputElement | null>(null)
+  const editRepoRef = useRef<HTMLInputElement | null>(null)
+
+  const addNewDescriptionPoint = () => {
+    setNewProject(p => ({ ...p, description: [...(p.description || []), ""] }))
+    // focus the newly added input after render
+    setTimeout(() => {
+      const el = newDescRefs.current[newDescRefs.current.length - 1]
+      if (el) el.focus()
+    }, 0)
+  }
+
+  const addEditDescriptionPoint = () => {
+    setEditValue(p => ({ ...p, description: [...(p.description || []), ""] }))
+    setTimeout(() => {
+      const el = editDescRefs.current[editDescRefs.current.length - 1]
+      if (el) el.focus()
+    }, 0)
+  }
+
+  // Helper functions for new project form
+  const updateNewProjectField = (field: keyof Project, value: string) => {
+    setNewProject(p => ({ ...p, [field]: value }))
+  }
+
+  const updateNewProjectDescription = (dIdx: number, value: string) => {
+    setNewProject(p => {
+      const next = [...(p.description || [])]
+      next[dIdx] = value
+      return { ...p, description: next }
+    })
+  }
+
+  const removeNewProjectDescription = (dIdx: number) => {
+    setNewProject(p => ({
+      ...p,
+      description: (p.description || []).filter((_, i) => i !== dIdx)
+    }))
+  }
+
+  // Helper functions for edit project form
+  const updateEditProjectField = (field: keyof Project, value: string) => {
+    setEditValue(p => ({ ...p, [field]: value }))
+  }
+
+  const updateEditProjectDescription = (dIdx: number, value: string) => {
+    setEditValue(p => {
+      const next = [...(p.description || [])]
+      next[dIdx] = value
+      return { ...p, description: next }
+    })
+  }
+
+  const removeEditProjectDescription = (dIdx: number) => {
+    setEditValue(p => ({
+      ...p,
+      description: (p.description || []).filter((_, i) => i !== dIdx)
+    }))
+  }
 
   const updateSection = (items: Project[]) => {
     if (sectionIndex === -1) {
@@ -63,6 +132,8 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
     updateSection([...(projectsSection.items || []), sanitized])
     setNewProject({ name: "", link: "", repo: "", description: [], startDate: "", endDate: "" })
     setIsAddingNew(false)
+    newDescRefs.current = []
+    newNameRef.current = null
   }
 
   const removeProject = (idx: number) => {
@@ -95,6 +166,7 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
   }
 
   const startEdit = (idx: number) => {
+    editDescRefs.current = []
     setEditingIndex(idx)
     setEditValue(projectsSection.items[idx])
   }
@@ -115,6 +187,7 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
     next[editingIndex] = sanitized
     updateSection(next)
     setEditingIndex(null)
+    editDescRefs.current = []
   }
 
   return (
@@ -127,40 +200,103 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
         {isHidden && <SectionHiddenBanner />}
         <CardContent className="space-y-4">
           {isAddingNew ? (
-            <div className="space-y-3">
+            <div className="space-y-3 rounded-md border p-3">
               <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">Project name</div>
-                  <Input value={newProject.name} onChange={(e) => setNewProject(p => ({ ...p, name: e.target.value }))} placeholder="e.g., Resume Builder" disabled={isHidden} />
+                  <Input
+                    ref={(el: any) => (newNameRef.current = el)}
+                    value={newProject.name}
+                    onChange={(e) => updateNewProjectField('name', e.target.value)}
+                    onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); newStartRef.current?.focus() } }}
+                    placeholder="e.g., Resume Builder"
+                    className="placeholder:text-muted-foreground"
+                    disabled={isHidden}
+                  />
                 </div>
                 <div>
-                  <div className="text-xs text-muted-foreground mb-1">Start Date</div>
-                  <Input value={newProject.startDate || ""} onChange={(e) => setNewProject(p => ({ ...p, startDate: e.target.value }))} placeholder="2023-01" disabled={isHidden} />
+                  <div className="text-xs text-muted-foreground mb-1">Start Date (if any)</div>
+                  <Input
+                    ref={(el: any) => (newStartRef.current = el)}
+                    value={newProject.startDate || ""}
+                    onChange={(e) => updateNewProjectField('startDate', e.target.value)}
+                    onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); newEndRef.current?.focus() } }}
+                    placeholder="2023-01"
+                    className="placeholder:text-muted-foreground"
+                    disabled={isHidden}
+                  />
                 </div>
                 <div>
-                  <div className="text-xs text-muted-foreground mb-1">End Date</div>
-                  <Input value={newProject.endDate || ""} onChange={(e) => setNewProject(p => ({ ...p, endDate: e.target.value }))} placeholder="2023-12 or Present" disabled={isHidden} />
+                  <div className="text-xs text-muted-foreground mb-1">End Date (if any)</div>
+                  <Input
+                    ref={(el: any) => (newEndRef.current = el)}
+                    value={newProject.endDate || ""}
+                    onChange={(e) => updateNewProjectField('endDate', e.target.value)}
+                    onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); newLinkRef.current?.focus() } }}
+                    placeholder="2023-12 or Present"
+                    className="placeholder:text-muted-foreground"
+                    disabled={isHidden}
+                  />
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">Project link</div>
-                  <Input value={newProject.link || ""} onChange={(e) => setNewProject(p => ({ ...p, link: e.target.value }))} placeholder="https://example.com" disabled={isHidden} />
+                  <Input
+                    ref={(el: any) => (newLinkRef.current = el)}
+                    value={newProject.link || ""}
+                    onChange={(e) => updateNewProjectField('link', e.target.value)}
+                    onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); newRepoRef.current?.focus() } }}
+                    placeholder="https://example.com"
+                    className="placeholder:text-muted-foreground"
+                    disabled={isHidden}
+                  />
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">GitHub repo</div>
-                  <Input value={newProject.repo || ""} onChange={(e) => setNewProject(p => ({ ...p, repo: e.target.value }))} placeholder="https://github.com/user/repo" disabled={isHidden} />
+                  <Input
+                    ref={(el: any) => (newRepoRef.current = el)}
+                    value={newProject.repo || ""}
+                    onChange={(e) => updateNewProjectField('repo', e.target.value)}
+                    onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); /* move to first description input if present */ if (newDescRefs.current[0]) { newDescRefs.current[0].focus() } }} }
+                    placeholder="https://github.com/user/repo"
+                    className="placeholder:text-muted-foreground"
+                    disabled={isHidden}
+                  />
                 </div>
               </div>
               <div>
-                <div className="text-xs text-muted-foreground mb-1">Description (one bullet per line)</div>
-                <Textarea value={(newProject.description || []).join("\n")} onChange={(e) => setNewProject(p => ({ ...p, description: e.target.value.split("\n") }))} rows={4} disabled={isHidden} />
+                <div className="text-xs text-muted-foreground mb-1">Description points</div>
+                <div className="space-y-2">
+                  {(newProject.description || []).map((d, dIdx) => (
+                    <div key={dIdx} className="flex items-start gap-2">
+                      <span className="text-sm pt-2">•</span>
+                        <Input
+                          value={d}
+                          onChange={(e) => updateNewProjectDescription(dIdx, e.target.value)}
+                          ref={(el: any) => (newDescRefs.current[dIdx] = el)}
+                          className="placeholder:text-muted-foreground"
+                          onKeyDown={(e: any) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              addNewDescriptionPoint()
+                            }
+                          }}
+                          disabled={isHidden}
+                        />
+                      <Button size="icon" variant="ghost" onClick={() => removeNewProjectDescription(dIdx)} disabled={isHidden}>
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                        <Button size="sm" variant="outline" onClick={addNewDescriptionPoint} disabled={isHidden}>Add description point</Button>
+                </div>
               </div>
-                <div className="flex gap-2">
+              <div className="flex gap-2">
                 <Button onClick={addProject} className="gap-1" disabled={isHidden}><Plus className="w-4 h-4" />Add Project</Button>
-                <Button variant="outline" onClick={() => { setIsAddingNew(false); setNewProject({ name: "", link: "", repo: "", description: [] }) }} disabled={isHidden}>Cancel</Button>
+                <Button variant="outline" onClick={() => { newDescRefs.current = []; newNameRef.current = null; setIsAddingNew(false); setNewProject({ name: "", link: "", repo: "", description: [] }) }} disabled={isHidden}>Cancel</Button>
               </div>
             </div>
           ) : (
-            <Button onClick={() => setIsAddingNew(true)} className="gap-1" disabled={isHidden}><Plus className="w-4 h-4" />New Project</Button>
+            <Button onClick={() => { newDescRefs.current = []; setIsAddingNew(true); setTimeout(() => { newNameRef.current?.focus() }, 0) }} className="gap-1" disabled={isHidden}><Plus className="w-4 h-4" />New Project</Button>
           )}
 
           <div className="space-y-3">
@@ -171,51 +307,90 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                       <div>
                         <div className="text-xs text-muted-foreground mb-1">Project name</div>
-                        <Input value={editValue.name} onChange={(e) => setEditValue(p => ({ ...p, name: e.target.value }))} disabled={isHidden} />
+                        <Input
+                          ref={(el: any) => (editNameRef.current = el)}
+                          value={editValue.name}
+                          onChange={(e) => updateEditProjectField('name', e.target.value)}
+                          onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); editStartRef.current?.focus() } }}
+                          className="placeholder:text-muted-foreground"
+                          disabled={isHidden}
+                        />
                       </div>
                       <div>
-                        <div className="text-xs text-muted-foreground mb-1">Start Date</div>
-                        <Input value={editValue.startDate || ""} onChange={(e) => setEditValue(p => ({ ...p, startDate: e.target.value }))} disabled={isHidden} />
+                        <div className="text-xs text-muted-foreground mb-1">Start Date (if any)</div>
+                        <Input
+                          ref={(el: any) => (editStartRef.current = el)}
+                          value={editValue.startDate || ""}
+                          onChange={(e) => updateEditProjectField('startDate', e.target.value)}
+                          onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); editEndRef.current?.focus() } }}
+                          className="placeholder:text-muted-foreground"
+                          disabled={isHidden}
+                        />
                       </div>
                       <div>
-                        <div className="text-xs text-muted-foreground mb-1">End Date</div>
-                        <Input value={editValue.endDate || ""} onChange={(e) => setEditValue(p => ({ ...p, endDate: e.target.value }))} disabled={isHidden} />
+                        <div className="text-xs text-muted-foreground mb-1">End Date (if any)</div>
+                        <Input
+                          ref={(el: any) => (editEndRef.current = el)}
+                          value={editValue.endDate || ""}
+                          onChange={(e) => updateEditProjectField('endDate', e.target.value)}
+                          onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); editLinkRef.current?.focus() } }}
+                          className="placeholder:text-muted-foreground"
+                          disabled={isHidden}
+                        />
                       </div>
                       <div>
                         <div className="text-xs text-muted-foreground mb-1">Project link</div>
-                        <Input value={editValue.link || ""} onChange={(e) => setEditValue(p => ({ ...p, link: e.target.value }))} disabled={isHidden} />
+                        <Input
+                          ref={(el: any) => (editLinkRef.current = el)}
+                          value={editValue.link || ""}
+                          onChange={(e) => updateEditProjectField('link', e.target.value)}
+                          onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); editRepoRef.current?.focus() } }}
+                          className="placeholder:text-muted-foreground"
+                          disabled={isHidden}
+                        />
                       </div>
                       <div>
                         <div className="text-xs text-muted-foreground mb-1">GitHub repo</div>
-                        <Input value={editValue.repo || ""} onChange={(e) => setEditValue(p => ({ ...p, repo: e.target.value }))} disabled={isHidden} />
+                        <Input
+                          ref={(el: any) => (editRepoRef.current = el)}
+                          value={editValue.repo || ""}
+                          onChange={(e) => updateEditProjectField('repo', e.target.value)}
+                          onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); if (editDescRefs.current[0]) { editDescRefs.current[0].focus() } } }}
+                          className="placeholder:text-muted-foreground"
+                          disabled={isHidden}
+                        />
                       </div>
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground mb-1">Description bullets</div>
+                      <div className="text-xs text-muted-foreground mb-1">Description points</div>
                       <div className="space-y-2">
                         {(editValue.description || []).map((d, dIdx) => (
                           <div key={dIdx} className="flex items-start gap-2">
                             <span className="text-sm pt-2">•</span>
-                            <Input
-                              value={d}
-                              onChange={(e) => setEditValue(p => {
-                                const next = [...(p.description || [])]
-                                next[dIdx] = e.target.value
-                                return { ...p, description: next }
-                              })}
-                              disabled={isHidden}
-                            />
-                            <Button size="icon" variant="ghost" onClick={() => setEditValue(p => ({ ...p, description: (p.description || []).filter((_, i) => i !== dIdx) }))} disabled={isHidden}>
+                                <Input
+                                  value={d}
+                                  onChange={(e) => updateEditProjectDescription(dIdx, e.target.value)}
+                                  ref={(el: any) => (editDescRefs.current[dIdx] = el)}
+                                  className="placeholder:text-muted-foreground"
+                                  onKeyDown={(e: any) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault()
+                                      addEditDescriptionPoint()
+                                    }
+                                  }}
+                                  disabled={isHidden}
+                                />
+                            <Button size="icon" variant="ghost" onClick={() => removeEditProjectDescription(dIdx)} disabled={isHidden}>
                               <X className="w-4 h-4" />
                             </Button>
                           </div>
                         ))}
-                        <Button size="sm" variant="outline" onClick={() => setEditValue(p => ({ ...p, description: [...(p.description || []), ""] }))} disabled={isHidden}>Add bullet</Button>
+                        <Button size="sm" variant="outline" onClick={addEditDescriptionPoint} disabled={isHidden}>Add description point</Button>
                       </div>
                     </div>
                     <div className="flex gap-2">
                       <Button size="sm" onClick={saveEdit} className="gap-1" disabled={isHidden}><Save className="w-4 h-4" />Save</Button>
-                      <Button size="sm" variant="outline" onClick={() => setEditingIndex(null)} disabled={isHidden}>Cancel</Button>
+                      <Button size="sm" variant="outline" onClick={() => { editDescRefs.current = []; setEditingIndex(null) }} disabled={isHidden}>Cancel</Button>
                     </div>
                   </div>
                 ) : (
@@ -248,11 +423,8 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
                         <div key={i} className="text-sm leading-tight">• {d}</div>
                       ))}
                       {(proj.description || []).length === 0 && (
-                        <div className="text-xs text-muted-foreground">No bullets yet</div>
+                        <div className="text-xs text-muted-foreground">No description yet</div>
                       )}
-                      <div>
-                        <Button size="sm" variant="outline" onClick={() => addBullet(idx)} disabled={isHidden}>Add bullet</Button>
-                      </div>
                     </div>
                   </div>
                 )}
