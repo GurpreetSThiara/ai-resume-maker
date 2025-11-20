@@ -37,6 +37,16 @@ export function PdfUploadModal({ onFileUpload, isLoading, status }: PdfUploadMod
     }
   }
 
+  const validateFileSize = (file: File): boolean => {
+    const maxSizeMB = 1
+    const maxSizeBytes = maxSizeMB * 1024 * 1024
+    if (file.size > maxSizeBytes) {
+      alert(`File size exceeds ${maxSizeMB}MB limit. Current size: ${(file.size / 1024 / 1024).toFixed(2)}MB`)
+      return false
+    }
+    return true
+  }
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -46,7 +56,9 @@ export function PdfUploadModal({ onFileUpload, isLoading, status }: PdfUploadMod
     if (files && files[0]) {
       const file = files[0]
       if (file.type === "application/pdf") {
-        onFileUpload(file)
+        if (validateFileSize(file)) {
+          onFileUpload(file)
+        }
       } else {
         alert("Please drop a PDF file")
       }
@@ -56,7 +68,9 @@ export function PdfUploadModal({ onFileUpload, isLoading, status }: PdfUploadMod
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (files && files[0]) {
-      onFileUpload(files[0])
+      if (validateFileSize(files[0])) {
+        onFileUpload(files[0])
+      }
     }
   }
 
@@ -158,7 +172,7 @@ export function PdfUploadModal({ onFileUpload, isLoading, status }: PdfUploadMod
           </div>
 
           {/* Info Text */}
-          <p className="text-xs text-slate-500 text-center">Supported format: PDF • Max size: 50MB</p>
+          <p className="text-xs text-slate-500 text-center">Supported format: PDF • Max size: 1MB</p>
 
           {/* Loading State */}
           {isLoading && (
