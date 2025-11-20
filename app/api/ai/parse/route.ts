@@ -28,6 +28,19 @@ export async function POST(request: Request) {
       return new Response("Missing rawText", { status: 400 })
     }
 
+    // Enforce 1MB limit on input text (1MB = 1048576 bytes)
+    const MAX_FILE_SIZE_MB = 1
+    const MAX_TEXT_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
+    const textBytes = new TextEncoder().encode(text).length
+    if (textBytes > MAX_TEXT_BYTES) {
+      return new Response(
+        JSON.stringify({ 
+          error: `Resume file exceeds ${MAX_FILE_SIZE_MB}MB limit. Current size: ${(textBytes / 1024 / 1024).toFixed(2)}MB` 
+        }),
+        { status: 413 }
+      )
+    }
+
 const systemPrompt = `
 You are a professional resume parser and structured data extractor.
 
