@@ -42,7 +42,7 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
       const widthScale = parentWidth / 595
       const heightScale = parentHeight / 842
       // Use the smaller scale to fit both width and height
-      let newScale = Math.min(widthScale, 1)
+      let newScale = Math.min(widthScale, heightScale, 1)
       // On md+ screens, make it a bit smaller for aesthetics
       if (window.innerWidth >= 768 && newScale > 0.9) newScale = 0.9
       setScale(newScale)
@@ -208,17 +208,16 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
           className={`border border-pink-950 relative ${font.className}`}
           style={{
             minWidth: 595,
-           // minHeight: 842,
+            // minHeight: 842,
             maxWidth: '100%',
-           // scale:0.5,
-            // transform: `scale(${scale})`,
-            // transformOrigin: 'top center',
-            // transition: 'transform 0.2s',
-            // background: 'white',
-            // boxShadow: '0 2px 16px rgba(0,0,0,0.08)',
-            // borderRadius: 8,
-            // overflow: 'hidden',
-            // margin: '0 auto',
+            transform: `scale(${scale})`,
+            transformOrigin: 'top center',
+            transition: 'transform 0.2s',
+            background: 'white',
+            boxShadow: '0 2px 16px rgba(0,0,0,0.08)',
+            borderRadius: 8,
+            overflow: 'hidden',
+            margin: '0 auto',
             fontFamily: font?.name || 'Arial, sans-serif',
           }}
         >

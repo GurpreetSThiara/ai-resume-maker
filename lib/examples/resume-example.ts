@@ -2,19 +2,19 @@ import { ResumeData } from "@/types/resume";
 
 export const sampleResume: ResumeData = {
   basics: {
-    name: "Gurpreet Singh",
-    email: "gurpreet.singh@example.com",
-    phone: "+91 9876543210",
-    location: "Ludhiana, Punjab, India",
-    linkedin: "https://linkedin.com/in/gurpreet-singh",
+    name: "John Doe",
+    email: "john.doe@example.com",
+    phone: "+1 555-123-4567",
+    location: "San Francisco, CA, USA",
+    linkedin: "https://linkedin.com/in/johndoe",
     summary:
-      "MERN Stack Developer with 3+ years of experience in building scalable web applications using Next.js, React, Node.js, and MongoDB. Passionate about performance optimization and creating intuitive user interfaces."
+      "Full-stack JavaScript developer with 4+ years of experience building scalable, user-centric applications. Strong expertise in React, Node.js, and cloud-native deployments. Passionate about performance optimization and clean architecture."
   },
 
   custom: {
     dob: {
       title: "Date of Birth",
-      content: "1998-07-12",
+      content: "1995-03-22",
       hidden: false,
       id: "dob",
       link: false
@@ -28,7 +28,7 @@ export const sampleResume: ResumeData = {
     },
     portfolio: {
       title: "Portfolio",
-      content: "https://gurpreet.dev",
+      content: "https://johndoe.dev",
       hidden: false,
       id: "portfolio",
       link: true
@@ -43,14 +43,14 @@ export const sampleResume: ResumeData = {
       order: 1,
       items: [
         {
-          institution: "Punjab Technical University",
-          degree: "B.Tech in Computer Science",
-          startDate: "2016",
-          endDate: "2020",
-          location: "Jalandhar, Punjab",
+          institution: "University of California, Berkeley",
+          degree: "B.Sc. in Computer Science",
+          startDate: "2013",
+          endDate: "2017",
+          location: "Berkeley, CA",
           highlights: [
-            "Graduated with First Class Honors",
-            "Completed final-year project on AI-based Chatbot using Python"
+            "Graduated with Distinction",
+            "Completed senior project on real-time data visualization using WebSockets"
           ]
         }
       ]
@@ -62,26 +62,27 @@ export const sampleResume: ResumeData = {
       order: 2,
       items: [
         {
-          company: "Logiceil Solutions",
-          role: "Associate Software Engineer",
-          startDate: "2024-02",
+          company: "BlueWave Technologies",
+          role: "Full-Stack Developer",
+          startDate: "2022-01",
           endDate: "Present",
-          location: "Ludhiana, Punjab",
+          location: "San Francisco, CA",
           achievements: [
-            "Developed a fully custom calendar component in Next.js",
-            "Implemented secure authentication using JWT and bcrypt",
-            "Optimized React rendering using memo and custom hooks"
+            "Developed internal dashboards using React and TypeScript",
+            "Improved backend performance by 30% using Node.js and Redis caching",
+            "Worked on microservices architecture with Docker and Kubernetes"
           ]
         },
         {
-          company: "TechNova Labs",
-          role: "Frontend Developer Intern",
-          startDate: "2023-06",
-          endDate: "2023-12",
+          company: "Innovate Labs",
+          role: "Frontend Developer",
+          startDate: "2020-03",
+          endDate: "2021-12",
           location: "Remote",
           achievements: [
-            "Built reusable UI components using React and Tailwind CSS",
-            "Collaborated on API integration and testing using Postman"
+            "Built modular UI components using React and Tailwind CSS",
+            "Implemented form validation and API integrations",
+            "Optimized page load times through code-splitting and lazy loading"
           ]
         }
       ]
@@ -92,13 +93,14 @@ export const sampleResume: ResumeData = {
       type: "skills",
       order: 3,
       items: [
-        "Next.js",
         "React",
+        "Next.js",
         "TypeScript",
         "Node.js",
+        "Express",
         "MongoDB",
-        "Tailwind CSS",
-        "Cypress",
+        "PostgreSQL",
+        "Docker",
         "Git"
       ]
     },
@@ -107,7 +109,7 @@ export const sampleResume: ResumeData = {
       title: "Languages",
       type: "languages",
       order: 4,
-      items: ["English", "Punjabi", "Hindi"]
+      items: ["English", "Spanish"]
     },
     {
       id: "cert-1",
@@ -115,8 +117,8 @@ export const sampleResume: ResumeData = {
       type: "certifications",
       order: 5,
       items: [
-        "JavaScript Algorithms and Data Structures (freeCodeCamp)",
-        "Full Stack Web Development (Coursera)"
+        "AWS Certified Developer – Associate",
+        "JavaScript Algorithms and Data Structures (freeCodeCamp)"
       ]
     },
     {
@@ -126,21 +128,22 @@ export const sampleResume: ResumeData = {
       order: 6,
       items: [
         {
-          name: "Resume Builder 22333",
-          link: "https://resumeai.in",
-          repo: "https://github.com/gurpreet/resume-builder",
+          name: "Smart Resume Builder",
+          link: "https://resume-demo.app",
+          repo: "https://github.com/johndoe/smart-resume-builder",
           description: [
-            "Created a customizable resume builder using Next.js and pdf-lib",
-            "Implemented data encryption for local resume storage",
-            "Added real-time preview with auto-save and PDF download"
+            "Built a customizable resume builder using React and pdf-lib",
+            "Implemented drag-and-drop blocks and autosave functionality",
+            "Added export options with ATS-optimized formatting"
           ]
         },
         {
-          name: "Friendship Score Tester",
-          link: "https://friendshipquiz.fun",
+          name: "Travel Explorer",
+          link: "https://travelexplorer.app",
           description: [
-            "Developed a fun personality quiz app with unique shareable links",
-            "Integrated Google Analytics and Propeller Ads for monetization"
+            "Created a location-based travel recommendation platform",
+            "Integrated Google Maps API with custom search filters",
+            "Implemented responsive UI with Tailwind CSS"
           ]
         }
       ]
@@ -151,10 +154,11 @@ export const sampleResume: ResumeData = {
       type: "custom",
       order: 7,
       content: [
-        "Playing chess in free time",
-        "Writing Punjabi poetry",
-        "Learning AI and transformers"
+        "Playing chess",
+        "Photography",
+        "Travel blogging",
+        "Exploring new JavaScript frameworks"
       ]
     }
   ]
-}
+};
