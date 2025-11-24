@@ -2,7 +2,7 @@ import { PDFDocument, StandardFonts, rgb, PDFName, PDFString } from "pdf-lib"
 import type { PDFPage, PDFFont } from "pdf-lib"
 import type { PDFGenerationOptions, ProjectsSection } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
-import { sanitizeTextForPdf } from '@/lib/utils'
+import { sanitizeTextForPdf, sanitizeTextForPdfWithFont } from '@/lib/utils'
 
 // ============================================================================
 // Projects Section Types & Utilities
@@ -50,7 +50,8 @@ const defaultWrapText = (
   font: PDFFont,
   size: number
 ): string[] => {
-  const words = (text || '').split(' ')
+  const words = sanitizeTextForPdf(text || '').split(' ')
+
   const lines: string[] = []
   let currentLine = ''
 
@@ -68,6 +69,10 @@ const defaultWrapText = (
   
   if (currentLine) lines.push(currentLine)
   return lines
+}
+
+const sanitizeForFont = (text: string, font: PDFFont): string => {
+  return sanitizeTextForPdfWithFont(text || '', font)
 }
 
 // ============================================================================
@@ -89,7 +94,9 @@ const drawProjectsSection = (
     const headerColor = (style as any).sectionTitleColor
     if (headerSize && headerColor) {
       ctx.ensureSpace(headerSize + 10)
-      ctx.page.drawText(section.title, {
+      const safe = sanitizeForFont(section.title, fonts.bold)
+      if (!safe) return { y: ctx.y }
+      ctx.page.drawText(safe, {
         x: margin,
         y: ctx.y,
         size: headerSize,
@@ -135,7 +142,9 @@ const drawProjectsSection = (
     // Draw project title
     const title = proj.name || ''
     let cursorX = margin
-    ctx.page.drawText(title, {
+    const safe = sanitizeForFont(title, fonts.bold)
+    if (!safe) return { y: ctx.y }
+    ctx.page.drawText(safe, {
       x: cursorX,
       y: itemStartY,
       size: style.titleSize,
@@ -148,7 +157,9 @@ const drawProjectsSection = (
     // Draw date range if timeline and dates exist
     if (options.showTimeline && (proj.startDate || proj.endDate)) {
       const dateText = `${proj.startDate || ''} - ${proj.endDate || ''}`
-      ctx.page.drawText(dateText, {
+      const safe = sanitizeForFont(dateText, fonts.regular)
+      if (!safe) return { y: ctx.y }
+      ctx.page.drawText(safe, {
         x: cursorX,
         y: itemStartY,
         size: style.linkSize,
@@ -170,10 +181,12 @@ const drawProjectsSection = (
       for (let i = 0; i < parts.length; i++) {
         const p = parts[i]
         const text = linkDisplay === 'full' && p.url ? `${p.label}: ${p.url}` : p.label
+        const safe = sanitizeForFont(text, fonts.regular)
+        if (!safe) return { y: ctx.y }
         const w = measureText(text, fonts.regular, style.linkSize)
 
         // Draw link text
-        ctx.page.drawText(text, {
+        ctx.page.drawText(safe, {
           x: cursorX,
           y: linkY,
           size: style.linkSize,
@@ -218,7 +231,9 @@ const drawProjectsSection = (
         // Gap between links
         if (i < parts.length - 1) {
           const gw = measureText(gap, fonts.regular, style.linkSize)
-          ctx.page.drawText(gap, {
+          const safe = sanitizeForFont(gap, fonts.regular)
+          if (!safe) return { y: ctx.y }
+          ctx.page.drawText(safe, {
             x: cursorX,
             y: linkY,
             size: style.linkSize,
@@ -242,7 +257,9 @@ const drawProjectsSection = (
 
         for (const line of lines) {
           ctx.ensureSpace(style.descSize + 4)
-          ctx.page.drawText(line, {
+          const safe = sanitizeForFont(line, fonts.regular)
+          if (!safe) return { y: ctx.y }
+          ctx.page.drawText(safe, {
             x: indentX,
             y: ctx.y,
             size: style.descSize,
@@ -316,6 +333,7 @@ export async function generateResumePDF({
 
   const wrapText = (text: string, maxWidth: number, font = regularFont, size = 10): string[] => {
     const words = sanitizeTextForPdf(text).split(" ")
+
     const lines: string[] = []
     let currentLine = ""
 
@@ -324,6 +342,7 @@ export async function generateResumePDF({
         sanitizeTextForPdf(currentLine + " " + word),
         size
       )
+      
       if (width < maxWidth) {
         currentLine += (currentLine ? " " : "") + word
       } else {
@@ -336,7 +355,9 @@ export async function generateResumePDF({
   }
 
   const draw = (t: string, x: number, size: number, font = regularFont, color = textColor) => {
-    currentPage.drawText(sanitizeTextForPdf(t || ""), { x, y: yOffset, size, font, color })
+    const safe = sanitizeForFont(t || "", font)
+    if (!safe) return
+    currentPage.drawText(safe, { x, y: yOffset, size, font, color })
   }
 
   // Name
@@ -346,39 +367,56 @@ export async function generateResumePDF({
   // Contact Info
   const { email, phone, location, linkedin } = resumeData.basics
   const contactItems = [email, phone, location, linkedin].filter(Boolean)
-const maxWidth = pageWidth
 
-let cursorX = margin
-let lineHeight = 12
-let lineY = yOffset
+  const maxWidth = pageWidth
 
-for (const item of contactItems) {
-  const text = item
-  const textWidth = regularFont.widthOfTextAtSize(text, 10)
-  // Check if item fits in remaining width on this line
-  if (cursorX + textWidth > margin + maxWidth) {
-    // Move to next line
-    lineY -= lineHeight
-    cursorX = margin
+  let cursorX = margin
+  const lineHeight = 12
+  let lineY = yOffset
+
+  for (const item of contactItems) {
+    const text = sanitizeForFont(String(item), regularFont)
+    if (!text) continue
+
+    const textWidth = regularFont.widthOfTextAtSize(text, 10)
+
+    // Wrap to next line if this item doesn't fit
+    if (cursorX + textWidth > margin + maxWidth) {
+      lineY -= lineHeight
+      cursorX = margin
+    }
+
+    // Draw text item
+    currentPage.drawText(text, {
+      x: cursorX,
+      y: lineY,
+      size: 10,
+      font: regularFont,
+      color: secondaryColor,
+    })
+
+    cursorX += textWidth
+
+    // Draw separator if not last visible item
+    if (item !== contactItems[contactItems.length - 1]) {
+      const rawSeparator = " | "
+      const separator = sanitizeForFont(rawSeparator, regularFont)
+      if (separator) {
+        const sepWidth = regularFont.widthOfTextAtSize(separator, 10)
+        currentPage.drawText(separator, {
+          x: cursorX,
+          y: lineY,
+          size: 10,
+          font: regularFont,
+          color: secondaryColor,
+        })
+        cursorX += sepWidth
+      }
+    }
   }
-  
-  // Draw text item
-  currentPage.drawText(text, { x: cursorX, y: lineY, size: 10, font: regularFont, color: secondaryColor })
-  
-  // Update cursor with padding for the separator if not last item
-  cursorX += textWidth
-  if (item !== contactItems[contactItems.length -1]) {
-    const separator = " | "
-    const sepWidth = regularFont.widthOfTextAtSize(separator, 10)
-    currentPage.drawText(separator, { x: cursorX, y: lineY, size: 10, font: regularFont, color: secondaryColor })
-    cursorX += sepWidth
-  }
-}
 
-// Update yOffset for next section to below drawn lines
-yOffset = lineY - 15
-
-//  yOffset -= 25
+  // Update yOffset for next section to below drawn lines
+  yOffset = lineY - 15
 
   // Summary
   if (resumeData.basics.summary) {
@@ -478,7 +516,7 @@ yOffset = lineY - 15
         
         const contentX = currentX + item.keyWidth + 5
         item.wrappedLines.forEach((line, lineIndex) => {
-          currentPage.drawText(line, {
+          currentPage.drawText(sanitizeForFont(line, regularFont), {
             x: contentX,
             y: rowStartY - (lineIndex * 12),
             size: 10,

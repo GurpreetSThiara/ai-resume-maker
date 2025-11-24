@@ -1,5 +1,6 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import type { ResumeData } from '@/types/resume';
+import { sanitizeTextForPdf, sanitizeTextForPdfWithFont } from '@/lib/utils';
 
 interface GeneratePDFOptions {
   resumeData: ResumeData;
@@ -93,7 +94,7 @@ export async function generateTimelineResumePDF({
 
   // Helper function to wrap text
   const wrapText = (text: string, maxWidth: number, font: any, size: number): string[] => {
-    const words = text.split(' ');
+    const words = sanitizeTextForPdf(text || '').split(' ');
     const lines: string[] = [];
     let currentLine = '';
 
@@ -111,6 +112,10 @@ export async function generateTimelineResumePDF({
 
     if (currentLine) lines.push(currentLine);
     return lines;
+  };
+
+  const sanitizeForFont = (text: string, font: any): string => {
+    return sanitizeTextForPdfWithFont(text || '', font);
   };
 
   // Helper function to draw timeline dot (outer circle + inner filled circle)
@@ -134,7 +139,7 @@ export async function generateTimelineResumePDF({
   };
 
   // 1. Draw Name (NO underline)
-  const nameText = resumeData.basics.name;
+  const nameText = sanitizeForFont(resumeData.basics.name, helveticaBold);
   page.drawText(nameText, {
     x: SPACING.pageMargin,
     y: yPosition,
@@ -146,10 +151,10 @@ export async function generateTimelineResumePDF({
 
   // 2. Draw Contact Info (with wrapping if needed)
   const contactParts: string[] = [];
-  if (resumeData.basics.phone) contactParts.push(resumeData.basics.phone);
-  if (resumeData.basics.email) contactParts.push(resumeData.basics.email);
-  if (resumeData.basics.location) contactParts.push(resumeData.basics.location);
-  if (resumeData.basics.linkedin) contactParts.push(resumeData.basics.linkedin);
+  if (resumeData.basics.phone) contactParts.push(sanitizeForFont(resumeData.basics.phone, helvetica));
+  if (resumeData.basics.email) contactParts.push(sanitizeForFont(resumeData.basics.email, helvetica));
+  if (resumeData.basics.location) contactParts.push(sanitizeForFont(resumeData.basics.location, helvetica));
+  if (resumeData.basics.linkedin) contactParts.push(sanitizeForFont(resumeData.basics.linkedin, helvetica));
 
   // Build contact line with wrapping support
   const maxContactWidth = width - (SPACING.pageMargin * 2);
@@ -200,7 +205,7 @@ export async function generateTimelineResumePDF({
     } else {
       // Regular line or single item: normal spacing with bullets
       const lineText = parts.join(' • ');
-      page.drawText(lineText, {
+      page.drawText(sanitizeForFont(lineText, helvetica), {
         x: SPACING.pageMargin,
         y: yPosition,
         size: SIZES.contact,
@@ -223,7 +228,8 @@ export async function generateTimelineResumePDF({
     );
 
     for (const line of summaryLines) {
-      page.drawText(line, {
+      const safeLine = sanitizeForFont(line, helvetica);
+      page.drawText(safeLine, {
         x: SPACING.pageMargin,
         y: yPosition,
         size: SIZES.summary,
@@ -237,6 +243,7 @@ export async function generateTimelineResumePDF({
 
   // 4. Draw Custom Fields (Grid layout)
   const visibleCustomFields = Object.entries(resumeData.custom).filter(([_, item]) => !item.hidden);
+
   if (visibleCustomFields.length > 0) {
     const colWidth = (width - SPACING.pageMargin * 2) / 2;
     let col = 0;
@@ -246,7 +253,9 @@ export async function generateTimelineResumePDF({
       const xPos = SPACING.pageMargin + (col * colWidth);
 
       // Draw title (bold)
-      page.drawText(`${item.title}:`, {
+      const titleText = sanitizeForFont(`${item.title}:`, helveticaBold);
+      const contentText = sanitizeForFont(item.content, helvetica);
+      page.drawText(titleText, {
         x: xPos,
         y: rowStartY,
         size: SIZES.small,
@@ -256,7 +265,7 @@ export async function generateTimelineResumePDF({
 
       // Draw content
       const titleWidth = helveticaBold.widthOfTextAtSize(`${item.title}: `, SIZES.small);
-      page.drawText(item.content, {
+      page.drawText(contentText, {
         x: xPos + titleWidth,
         y: rowStartY,
         size: SIZES.small,
@@ -299,7 +308,7 @@ export async function generateTimelineResumePDF({
     checkPageBreak(50);
 
     // Draw Section Header with blue underline
-    page.drawText(section.title.toUpperCase(), {
+    page.drawText(sanitizeForFont(section.title.toUpperCase(), helveticaBold), {
       x: SPACING.pageMargin,
       y: yPosition,
       size: SIZES.sectionHeader,
@@ -335,7 +344,7 @@ export async function generateTimelineResumePDF({
         const dateText = `${edu.startDate || ''} - ${edu.endDate || ''}`;
         const dateWidth = helvetica.widthOfTextAtSize(dateText, SIZES.small);
 
-        page.drawText(edu.institution, {
+        page.drawText(sanitizeForFont(edu.institution, helveticaBold), {
           x: contentX,
           y: institutionY,
           size: SIZES.institution,
@@ -344,7 +353,7 @@ export async function generateTimelineResumePDF({
         });
 
         if (edu.startDate || edu.endDate) {
-          page.drawText(dateText, {
+          page.drawText(sanitizeForFont(dateText, helvetica), {
             x: width - SPACING.pageMargin - dateWidth,
             y: institutionY,
             size: SIZES.small,
@@ -376,7 +385,7 @@ export async function generateTimelineResumePDF({
         yPosition -= SIZES.institution * 1.3;
 
         // Draw degree
-        page.drawText(edu.degree, {
+        page.drawText(sanitizeForFont(edu.degree, helvetica), {
           x: contentX,
           y: yPosition,
           size: SIZES.content,
@@ -387,7 +396,7 @@ export async function generateTimelineResumePDF({
 
         // Draw location
         if (edu.location) {
-          page.drawText(edu.location, {
+          page.drawText(sanitizeForFont(edu.location, helvetica), {
             x: contentX,
             y: yPosition,
             size: SIZES.small,
@@ -403,7 +412,7 @@ export async function generateTimelineResumePDF({
           for (const highlight of edu.highlights) {
             checkPageBreak(25);
 
-            page.drawText('•', {
+            page.drawText(sanitizeForFont('•', helvetica), {
               x: contentX,
               y: yPosition,
               size: SIZES.content,
@@ -419,7 +428,7 @@ export async function generateTimelineResumePDF({
             );
 
             for (const line of highlightLines) {
-              page.drawText(line, {
+              page.drawText(sanitizeForFont(line, helvetica), {
                 x: contentX + 12,
                 y: yPosition,
                 size: SIZES.content,
@@ -450,7 +459,7 @@ export async function generateTimelineResumePDF({
         const dateText = `${exp.startDate || ''} - ${exp.endDate || ''}`;
         const dateWidth = helvetica.widthOfTextAtSize(dateText, SIZES.small);
 
-        page.drawText(exp.role, {
+        page.drawText(sanitizeForFont(exp.role, helveticaBold), {
           x: contentX,
           y: roleY,
           size: SIZES.institution,
@@ -458,7 +467,7 @@ export async function generateTimelineResumePDF({
           color: COLORS.text,
         });
 
-        page.drawText(dateText, {
+        page.drawText(sanitizeForFont(dateText, helvetica), {
           x: width - SPACING.pageMargin - dateWidth,
           y: roleY,
           size: SIZES.small,
@@ -489,7 +498,7 @@ export async function generateTimelineResumePDF({
         yPosition -= SIZES.institution * 1.3;
 
         // Draw company
-        page.drawText(exp.company, {
+        page.drawText(sanitizeForFont(exp.company, helveticaBold), {
           x: contentX,
           y: yPosition,
           size: SIZES.content,
@@ -500,7 +509,7 @@ export async function generateTimelineResumePDF({
 
         // Draw location
         if (exp.location) {
-          page.drawText(exp.location, {
+          page.drawText(sanitizeForFont(exp.location, helvetica), {
             x: contentX,
             y: yPosition,
             size: SIZES.small,
@@ -516,7 +525,7 @@ export async function generateTimelineResumePDF({
           for (const achievement of exp.achievements) {
             checkPageBreak(25);
 
-            page.drawText('•', {
+            page.drawText(sanitizeForFont('•', helvetica), {
               x: contentX,
               y: yPosition,
               size: SIZES.content,
@@ -532,7 +541,7 @@ export async function generateTimelineResumePDF({
             );
 
             for (const line of achievementLines) {
-              page.drawText(line, {
+              page.drawText(sanitizeForFont(line, helvetica), {
                 x: contentX + 12,
                 y: yPosition,
                 size: SIZES.content,
@@ -559,7 +568,7 @@ export async function generateTimelineResumePDF({
         // Draw project name first to get the proper Y position
         const projectY = yPosition;
 
-        page.drawText(proj.name, {
+        page.drawText(sanitizeForFont(proj.name || '', helveticaBold), {
           x: contentX,
           y: projectY,
           size: SIZES.institution,
@@ -567,7 +576,7 @@ export async function generateTimelineResumePDF({
           color: COLORS.text,
         });
 
-        page.drawText(proj.name, {
+        page.drawText(sanitizeForFont(proj.name || '', helveticaBold), {
           x: contentX,
           y: projectY,
           size: SIZES.institution,
@@ -579,7 +588,7 @@ export async function generateTimelineResumePDF({
         let linkX = contentX + helveticaBold.widthOfTextAtSize(proj.name, SIZES.institution) + 6;
 
         if (proj.link) {
-          page.drawText('Link', {
+          page.drawText(sanitizeForFont('Link', helvetica), {
             x: linkX,
             y: projectY,
             size: SIZES.tiny,
@@ -597,7 +606,7 @@ export async function generateTimelineResumePDF({
         }
 
         if (proj.link && proj.repo) {
-          page.drawText('|', {
+          page.drawText(sanitizeForFont('|', helvetica), {
             x: linkX,
             y: projectY,
             size: SIZES.tiny,
@@ -608,7 +617,7 @@ export async function generateTimelineResumePDF({
         }
 
         if (proj.repo) {
-          page.drawText('GitHub', {
+          page.drawText(sanitizeForFont('GitHub', helvetica), {
             x: linkX,
             y: projectY,
             size: SIZES.tiny,
@@ -651,7 +660,7 @@ export async function generateTimelineResumePDF({
           for (const desc of proj.description) {
             checkPageBreak(25);
 
-            page.drawText('•', {
+            page.drawText(sanitizeForFont('•', helvetica), {
               x: contentX + 12,
               y: yPosition,
               size: SIZES.content,
@@ -667,7 +676,7 @@ export async function generateTimelineResumePDF({
             );
 
             for (const line of descLines) {
-              page.drawText(line, {
+              page.drawText(sanitizeForFont(line, helvetica), {
                 x: contentX + 24,
                 y: yPosition,
                 size: SIZES.content,
@@ -693,7 +702,7 @@ export async function generateTimelineResumePDF({
 
       for (const line of lines) {
         checkPageBreak(18);
-        page.drawText(line, {
+        page.drawText(sanitizeForFont(line, helvetica), {
           x: contentX,
           y: yPosition,
           size: SIZES.content,
@@ -712,7 +721,7 @@ export async function generateTimelineResumePDF({
 
         checkPageBreak(25);
 
-        page.drawText('•', {
+        page.drawText(sanitizeForFont('•', helvetica), {
           x: contentX,
           y: yPosition,
           size: SIZES.content,
@@ -728,7 +737,7 @@ export async function generateTimelineResumePDF({
         );
 
         for (const line of itemLines) {
-          page.drawText(line, {
+          page.drawText(sanitizeForFont(line, helvetica), {
             x: contentX + 12,
             y: yPosition,
             size: SIZES.content,
@@ -745,7 +754,7 @@ export async function generateTimelineResumePDF({
 
   // Save PDF
   const pdfBytes = await pdfDoc.save();
-  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+  const blob = new Blob([pdfBytes.buffer as ArrayBuffer], { type: 'application/pdf' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
   link.download = filename;

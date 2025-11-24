@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib"
 import type { PDFGenerationOptions } from "@/types/resume"
-import { sanitizeTextForPdf } from "@/lib/utils"
+import { sanitizeTextForPdf, sanitizeTextForPdfWithFont } from "@/lib/utils"
 import { drawProjectsSection } from '@/lib/pdf/sections/projects'
 
 export async function generateClassic2ResumePDF({ resumeData, filename = "resume.pdf" }: PDFGenerationOptions) {
@@ -19,6 +19,10 @@ export async function generateClassic2ResumePDF({ resumeData, filename = "resume
   const textColor = rgb(0, 0, 0) // Pure black for ATS
   const secondaryColor = rgb(0.3, 0.3, 0.3) // Dark gray for metadata
 
+  const sanitizeForFont = (text: string, font = regularFont): string => {
+    return sanitizeTextForPdfWithFont(text || "", font)
+  }
+
   // Utility: Page break when space runs out
   const ensureSpace = (spaceNeeded: number) => {
     if (yOffset - spaceNeeded < margin) {
@@ -34,21 +38,31 @@ export async function generateClassic2ResumePDF({ resumeData, filename = "resume
     let currentLine = ""
 
     words.forEach((word) => {
-      const width = font.widthOfTextAtSize(sanitizeTextForPdf(currentLine + " " + word), size)
+      const testText = currentLine + " " + word
+      const safeTestText = sanitizeForFont(testText, font)
+      const width = font.widthOfTextAtSize(safeTestText, size)
       if (width < maxWidth) {
         currentLine += (currentLine ? " " : "") + word
       } else {
-        lines.push(currentLine)
+        if (currentLine) {
+          lines.push(sanitizeForFont(currentLine, font))
+        }
         currentLine = word
       }
     })
-    if (currentLine) lines.push(currentLine)
+    if (currentLine) {
+      lines.push(sanitizeForFont(currentLine, font))
+    }
     return lines
   }
 
   // Utility: Draw text
   const draw = (t: string, x: number, size: number, font = regularFont, color = textColor) => {
-    currentPage.drawText(sanitizeTextForPdf(t || ""), { x, y: yOffset, size, font, color })
+    if (!t) return
+    // Text is already sanitized if coming from wrapText, but sanitize anyway for safety
+    const safe = sanitizeForFont(t, font)
+    if (!safe) return
+    currentPage.drawText(safe, { x, y: yOffset, size, font, color })
   }
 
   // === HEADER ===
@@ -129,7 +143,9 @@ export async function generateClassic2ResumePDF({ resumeData, filename = "resume
         const keyText = `${item.item.title}:`;
         draw(keyText, currentX, 11, boldFont, textColor);
         item.wrappedLines.forEach((line: string, lineIndex: number) => {
-          currentPage.drawText(sanitizeTextForPdf(line), { x: currentX + item.keyWidth + 5, y: yOffset - (lineIndex * 14), size: 11, font: regularFont, color: textColor });
+          const safeLine = sanitizeForFont(line, regularFont)
+          if (!safeLine) return
+          currentPage.drawText(safeLine, { x: currentX + item.keyWidth + 5, y: yOffset - (lineIndex * 14), size: 11, font: regularFont, color: textColor });
         });
         currentX += item.width + extraGap;
       }
@@ -252,7 +268,7 @@ export async function generateClassic2ResumePDF({ resumeData, filename = "resume
 
       // Project title
       const title = proj.name || "";
-      currentPage.drawText(title, {
+      currentPage.drawText(sanitizeForFont(title, boldFont), {
         x: margin,
         y: yOffset,
         size: 13,
@@ -268,7 +284,7 @@ export async function generateClassic2ResumePDF({ resumeData, filename = "resume
         if (proj.repo) parts.push("GitHub");
         if (parts.length) {
           const linksText = parts.join("  |  ");
-          currentPage.drawText(linksText, {
+          currentPage.drawText(sanitizeForFont(linksText, regularFont), {
             x: cursorX,
             y: yOffset,
             size: 9,
@@ -289,7 +305,7 @@ export async function generateClassic2ResumePDF({ resumeData, filename = "resume
           const lines = wrapText(`${bullet}${d}`, maxWidth, regularFont, 10);
           for (const line of lines) {
             ensureSpace(12);
-            currentPage.drawText(line, {
+            currentPage.drawText(sanitizeForFont(line, regularFont), {
               x: indentX,
               y: yOffset,
               size: 10,

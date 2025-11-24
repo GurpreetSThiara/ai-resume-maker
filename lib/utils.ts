@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import type { PDFFont } from "pdf-lib"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -30,4 +31,25 @@ export function sanitizeTextForPdf(text: string): string {
     .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // control characters
     .replace(/[\uFFFD]/g, '?') // replacement character
     .trim()
+}
+
+export function sanitizeTextForPdfWithFont(text: string, font: PDFFont): string {
+  const base = sanitizeTextForPdf(text)
+  if (!base) return ''
+
+  try {
+    font.encodeText(base)
+    return base
+  } catch {
+    let out = ''
+    for (const ch of Array.from(base)) {
+      try {
+        font.encodeText(ch)
+        out += ch
+      } catch {
+        // skip unencodable character
+      }
+    }
+    return out
+  }
 }
