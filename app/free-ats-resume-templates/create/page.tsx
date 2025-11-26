@@ -11,6 +11,7 @@ import { PersonalInfoSection } from "@/components/personal-info-section"
 import { EducationSection as EducationSectionComponent } from "@/components/education-section"
 import { ExperienceSection as ExperienceSectionComponent } from "@/components/experience-section"
 import { SkillsSection as SkillsSectionComponent } from "@/components/skills-section"
+import { LanguagesSection as LanguagesSectionComponent } from "@/components/languages-section"
 import { CertificationsSection as CertificationsSectionComponent } from "@/components/certifications-section"
 import { ProjectsSection as ProjectsSectionComponent } from "@/components/projects-section"
 import { SummarySection } from "@/components/summary-section"
@@ -415,7 +416,10 @@ const CreateResumeContent: FC = () => {
     if (skillsSection?.items && skillsSection.items.length > 0) newCompletedSteps.add(5);
 
     const certsSection = updatedData.sections.find(s => s.type === SECTION_TYPES.CERTIFICATIONS) as any;
-    if (certsSection?.items && certsSection.items.length > 0) newCompletedSteps.add(6);
+    if (certsSection?.items && certsSection.items.length > 0) newCompletedSteps.add(7);
+    
+    const languagesSection = updatedData.sections.find(s => s.type === SECTION_TYPES.LANGUAGES) as any;
+    if (languagesSection?.items && languagesSection.items.length > 0) newCompletedSteps.add(6);
     
     setCompletedSteps(newCompletedSteps);
     
@@ -437,12 +441,14 @@ const CreateResumeContent: FC = () => {
       case 5:
         return <SkillsSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
       case 6:
-        return <CertificationsSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
+        return <LanguagesSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
       case 7:
-        return <CustomFieldsSection data={resumeData} onUpdate={handleResumeDataUpdate} onSave={saveToLocal} isDirty={false} />
+        return <CertificationsSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
       case 8:
-        return <CustomSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
+        return <CustomFieldsSection data={resumeData} onUpdate={handleResumeDataUpdate} onSave={saveToLocal} isDirty={false} />
       case 9:
+        return <CustomSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
+      case 10:
         return <ReviewSection data={resumeData} template={selectedTemplate} />
       default:
         return null
