@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib"
+import { PDFDocument, StandardFonts, rgb, PDFName, PDFString } from "pdf-lib"
 import type { PDFGenerationOptions } from "@/types/resume"
 import { sanitizeTextForPdf, sanitizeTextForPdfWithFont } from "@/lib/utils"
 import { drawProjectsSection } from '@/lib/pdf/sections/projects'
@@ -277,20 +277,68 @@ export async function generateClassic2ResumePDF({ resumeData, filename = "resume
       });
       let cursorX = margin + boldFont.widthOfTextAtSize(title, 13) + 8;
 
-      // Links (if present)
+
+      // Links (if present, with clickable annotations)
       if (proj.link || proj.repo) {
         const parts = [];
-        if (proj.link) parts.push("Link");
-        if (proj.repo) parts.push("GitHub");
+        if (proj.link) parts.push({ label: "Link", url: proj.link });
+        if (proj.repo) parts.push({ label: "GitHub", url: proj.repo });
         if (parts.length) {
-          const linksText = parts.join("  |  ");
-          currentPage.drawText(sanitizeForFont(linksText, regularFont), {
-            x: cursorX,
-            y: yOffset,
-            size: 9,
-            font: regularFont,
-            color: rgb(0,0,0.66),
-          });
+          const gap = "  |  ";
+          for (let i = 0; i < parts.length; i++) {
+            const p = parts[i];
+            const text = p.label;
+            const safe = sanitizeForFont(text, regularFont);
+            const w = regularFont.widthOfTextAtSize(safe, 9);
+            // Draw link text
+            currentPage.drawText(safe, {
+              x: cursorX,
+              y: yOffset,
+              size: 9,
+              font: regularFont,
+              color: rgb(0,0,0.66),
+            });
+            // Add clickable annotation if url exists
+            if (p.url) {
+              const linkHeight = 9 * 1.2;
+              const annotY = yOffset - (9 * 0.2);
+              const pdfDocCtx = currentPage.doc;
+              const context = pdfDocCtx.context;
+              const linkAnnotation = context.obj({
+                Type: PDFName.of('Annot'),
+                Subtype: PDFName.of('Link'),
+                Rect: [cursorX, annotY, cursorX + w, annotY + linkHeight],
+                Border: [0, 0, 0],
+                C: [0, 0, 1],
+                A: {
+                  Type: PDFName.of('Action'),
+                  S: PDFName.of('URI'),
+                  URI: PDFString.of(p.url),
+                  NewWindow: true
+                }
+              });
+              const linkAnnotationRef = context.register(linkAnnotation);
+              const annots = currentPage.node.lookup(PDFName.of('Annots'));
+              if (annots) {
+                annots.push(linkAnnotationRef);
+              } else {
+                currentPage.node.set(PDFName.of('Annots'), context.obj([linkAnnotationRef]));
+              }
+            }
+            cursorX += w;
+            // Gap between links
+            if (i < parts.length - 1) {
+              const gw = regularFont.widthOfTextAtSize(gap, 9);
+              currentPage.drawText(gap, {
+                x: cursorX,
+                y: yOffset,
+                size: 9,
+                font: regularFont,
+                color: rgb(0,0,0.66),
+              });
+              cursorX += gw;
+            }
+          }
         }
       }
 

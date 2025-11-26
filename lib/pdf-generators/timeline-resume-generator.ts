@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts, PDFName, PDFString } from 'pdf-lib';
 import type { ResumeData } from '@/types/resume';
 import { sanitizeTextForPdf, sanitizeTextForPdfWithFont } from '@/lib/utils';
 
@@ -587,6 +587,7 @@ export async function generateTimelineResumePDF({
         // Draw links on the same line
         let linkX = contentX + helveticaBold.widthOfTextAtSize(proj.name, SIZES.institution) + 6;
 
+
         if (proj.link) {
           page.drawText(sanitizeForFont('Link', helvetica), {
             x: linkX,
@@ -602,6 +603,33 @@ export async function generateTimelineResumePDF({
             thickness: 0.5,
             color: COLORS.accent,
           });
+          // Add clickable annotation for Link
+          if (proj.link) {
+            const linkHeight = SIZES.tiny * 1.2;
+            const annotY = projectY - (SIZES.tiny * 0.2);
+            const pdfDocCtx = page.doc;
+            const context = pdfDocCtx.context;
+            const linkAnnotation = context.obj({
+              Type: PDFName.of('Annot'),
+              Subtype: PDFName.of('Link'),
+              Rect: [linkX, annotY, linkX + linkWidth, annotY + linkHeight],
+              Border: [0, 0, 0],
+              C: [0, 0, 1],
+              A: {
+                Type: PDFName.of('Action'),
+                S: PDFName.of('URI'),
+                URI: PDFString.of(proj.link),
+                NewWindow: true
+              }
+            });
+            const linkAnnotationRef = context.register(linkAnnotation);
+            const annots = page.node.lookup(PDFName.of('Annots'));
+            if (annots) {
+              annots.push(linkAnnotationRef);
+            } else {
+              page.node.set(PDFName.of('Annots'), context.obj([linkAnnotationRef]));
+            }
+          }
           linkX += linkWidth + 4;
         }
 
@@ -615,6 +643,7 @@ export async function generateTimelineResumePDF({
           });
           linkX += 6;
         }
+
 
         if (proj.repo) {
           page.drawText(sanitizeForFont('GitHub', helvetica), {
@@ -631,6 +660,33 @@ export async function generateTimelineResumePDF({
             thickness: 0.5,
             color: COLORS.accent,
           });
+          // Add clickable annotation for GitHub
+          if (proj.repo) {
+            const linkHeight = SIZES.tiny * 1.2;
+            const annotY = projectY - (SIZES.tiny * 0.2);
+            const pdfDocCtx = page.doc;
+            const context = pdfDocCtx.context;
+            const linkAnnotation = context.obj({
+              Type: PDFName.of('Annot'),
+              Subtype: PDFName.of('Link'),
+              Rect: [linkX, annotY, linkX + repoWidth, annotY + linkHeight],
+              Border: [0, 0, 0],
+              C: [0, 0, 1],
+              A: {
+                Type: PDFName.of('Action'),
+                S: PDFName.of('URI'),
+                URI: PDFString.of(proj.repo),
+                NewWindow: true
+              }
+            });
+            const linkAnnotationRef = context.register(linkAnnotation);
+            const annots = page.node.lookup(PDFName.of('Annots'));
+            if (annots) {
+              annots.push(linkAnnotationRef);
+            } else {
+              page.node.set(PDFName.of('Annots'), context.obj([linkAnnotationRef]));
+            }
+          }
         }
 
         // Now calculate dot position aligned with project name text (at text baseline)
