@@ -12,6 +12,7 @@ import { validateResumeData } from "@/utils/validateResume"
 import { setLocalStorageJSON, LS_KEYS } from "@/utils/localstorage"
 import { useRouter } from "next/navigation"
 import { SHOW_ERROR } from "@/utils/toast"
+import AdComponent from "@/conf/ban/AdComponent"
 
 export  function Templates() {
   const [extractedText, setExtractedText] = useState<string>("")
@@ -130,6 +131,7 @@ export  function Templates() {
           </article>
         ))}
       </section>
+       <AdComponent/>
 
       <section className="mt-12 py-10 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
         <div className="max-w-4xl mx-auto px-4 text-center">
@@ -159,8 +161,10 @@ export  function Templates() {
           </div>
         </div>
       </section>
+           <AdComponent/>
 
       <footer className="mt-10 text-sm text-muted-foreground">
+   
         {/* Can't find the style you're after? Try creating a custom layout in the editor or contact support. */}
       </footer>
     </main>

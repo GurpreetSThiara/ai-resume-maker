@@ -49,6 +49,7 @@ import { sanitizeResumeData } from "@/utils/createResume"
 import { createLocalResume, updateLocalResume, getLocalResumeById } from "@/lib/local-storage"
 import { SHOW_ERROR, SHOW_SUCCESS } from "@/utils/toast"
 import { sampleResume } from "@/lib/examples/resume-example"
+import AdComponent from "@/conf/ban/AdComponent"
 
 const initialData: ResumeData = sampleResume //sampleResumeData
 
@@ -575,6 +576,7 @@ const CreateResumeContent: FC = () => {
                   {currentStep === steps.length - 1 ? <Save className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                 </Button>
               </div>
+                   <AdComponent/>
             </div>
 
             {/* Preview Panel */}
