@@ -14,6 +14,7 @@ import { HowItWorks } from "@/components/appUI/home/HowItWorks"
 import { Values } from "@/components/appUI/home/ValueProps"
 import { ReviewsSection } from "@/components/reviews-section"
 import Script from "next/script"
+import AdComponent from '@/conf/ban/AdComponent'
 
 export const metadata: Metadata = {
   title: 'Free ATS Resume Builder - No Sign Up | Optional AI with Free Account',
@@ -181,6 +182,7 @@ export default function HomePage() {
       </section> */}
 
       {/* CTA Section */}
+      <AdComponent/>
 
     <FaqSection/>
     <CTA/>
