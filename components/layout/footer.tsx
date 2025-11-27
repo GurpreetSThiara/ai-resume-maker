@@ -12,7 +12,7 @@ export function Footer() {
         <div className="space-y-5">
           <div className="flex items-center gap-2">
             <FileText className="w-7 h-7 text-primary" />
-            <h2 className="text-2xl font-extrabold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <h2 className="text-2xl font-extrabold bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
               CreateFreeCV
             </h2>
           </div>
@@ -45,14 +45,7 @@ export function Footer() {
                 Cover Letters
               </Link>
             </li>
-            <li>
-              <Link
-                href="#"
-                className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
-              >
-                Templates
-              </Link>
-            </li>
+         
           </ul>
         </div>
 
@@ -63,7 +56,7 @@ export function Footer() {
             <span className="absolute left-0 -bottom-1 w-10 h-0.5 bg-primary rounded-full" />
           </h3>
           <ul className="space-y-3">
-            <li>
+            {/* <li>
               <Link
                 href="#"
                 className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
@@ -78,7 +71,7 @@ export function Footer() {
               >
                 Career Tips
               </Link>
-            </li>
+            </li> */}
             <li>
               <Link
                 href="/blog"
@@ -119,6 +112,22 @@ export function Footer() {
                 className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
               >
                 Privacy Policy
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/terms-of-service"
+                className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
+              >
+                Terms of Service
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/cookie-policy"
+                className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
+              >
+                Cookie Policy
               </Link>
             </li>
           </ul>
