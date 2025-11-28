@@ -97,6 +97,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
+        <meta name="clckd" content="00dd4cecdd1f49eb435533f606ecfa5a" />
         {/* Google Tag Manager and Google Analytics scripts (render unconditionally) */}
         <>
           <Script id="google-tag-manager" strategy="afterInteractive">
