@@ -3,6 +3,7 @@ import { CREATE_RESUME } from "@/config/urls"
 import { ArrowRight, Badge, Play, Sparkles, Zap, Shield, Download } from "lucide-react"
 import Link from "next/link"
 import Stats from "./stats"
+import { Logo } from "@/components/ui/logo"
 
 export const Hero = () => {
     return (

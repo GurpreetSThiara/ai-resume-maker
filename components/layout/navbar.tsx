@@ -11,6 +11,7 @@ import React from "react"
 import { CREATE_RESUME } from "@/config/urls"
 import { useAuth } from "@/contexts/auth-context"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { Brand } from "@/components/ui/brand"
 
 
 export function Navbar() {
@@ -68,12 +69,7 @@ export function Navbar() {
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            {/* <FileText className="w-8 h-8 text-blue-600" aria-hidden="true" /> */}
-            <div className="text-2xl font-bold bg-gradient-to-r text-primary ">
-              Resume Builder
-            </div>
-          </Link>
+          <Brand logoSize={32} asLink={true} />
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6">

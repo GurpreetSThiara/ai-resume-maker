@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { FileText, Facebook, Twitter, Linkedin, Instagram } from "lucide-react"
 import { CREATE_RESUME } from "@/config/urls"
+import { Brand } from "@/components/ui/brand"
 export function Footer() {
   const currentYear = new Date().getFullYear()
   
@@ -10,12 +11,12 @@ export function Footer() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
         {/* Brand */}
         <div className="space-y-5">
-          <div className="flex items-center gap-2">
-            <FileText className="w-7 h-7 text-primary" />
-            <h2 className="text-2xl font-extrabold bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
-              CreateFreeCV
-            </h2>
-          </div>
+          <Brand 
+            logoSize={28} 
+            textSize="text-2xl" 
+            asLink={false}
+            textClassName="bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent"
+          />
           <p className="text-muted-foreground text-sm leading-relaxed">
             Create professional resumes and cover letters that get you hired.
             Fast, easy, and completely free.
