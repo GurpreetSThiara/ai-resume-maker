@@ -102,6 +102,12 @@ export default function HomePage() {
   strategy="afterInteractive"
 />
 
+<script
+  dangerouslySetInnerHTML={{
+    __html: `(function(s){s.dataset.zone='10098063',s.src='https://groleegni.net/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))`
+  }}
+/>
+
     
 
       {/* Hero Section */}
