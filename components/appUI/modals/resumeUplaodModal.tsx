@@ -12,8 +12,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { useAuth } from "@/hooks/use-auth"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface PdfUploadModalProps {
   onFileUpload: (file: File) => void
@@ -25,7 +23,6 @@ export function PdfUploadModal({ onFileUpload, isLoading, status }: PdfUploadMod
   const [isDragActive, setIsDragActive] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const {user , loading} = useAuth()
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
@@ -86,40 +83,13 @@ export function PdfUploadModal({ onFileUpload, isLoading, status }: PdfUploadMod
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-       <Tooltip>
-    <TooltipTrigger asChild>
-      {isLoading || loading || !user ? (
-        // ❌ Disabled state → Tooltip enabled, modal blocked
-        <div className="inline-flex">
-          <Button
-            disabled
-            className="hover:bg-primary-400 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-colors "
-          >
-            <Upload className="w-5 h-5" />
-            Choose PDF File
-          </Button>
-        </div>
-      ) : (
-        // ✅ Enabled state → this button becomes dialog trigger
-        <DialogTrigger asChild>
-          <Button
-            className="hover:bg-primary-400 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
-          >
-            <Upload className="w-5 h-5" />
-            Choose PDF File
-          </Button>
-        </DialogTrigger>
-      )}
-    </TooltipTrigger>
-
-    <TooltipContent>
-      {!user
-        ? "Please login first"
-        : isLoading || loading
-        ? "Please wait..."
-        : ""}
-    </TooltipContent>
-  </Tooltip>
+        <Button
+          className="hover:bg-primary-400 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
+          disabled={isLoading}
+        >
+          <Upload className="w-5 h-5" />
+          Choose PDF File
+        </Button>
       </DialogTrigger>
 
       <DialogContent className="max-w-md">

@@ -1,26 +1,7 @@
 import { openRouter } from "@/lib/openrouter"
-import { createServerComponentClient } from "@/lib/supabase/server"
-import { cookies } from "next/headers"
 export const dynamic = "force-dynamic"
 
 export async function POST(request: Request) {
-      const supabase = await createServerComponentClient()
-  let { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    const authHeader = request.headers.get("authorization") || request.headers.get("Authorization")
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined
-    if (token) {
-      const { data: userFromToken } = await supabase.auth.getUser(token)
-      user = userFromToken.user
-    }
-  }
-  try {
-    const names = (await cookies()).getAll().map(c => c.name)
-  } catch {}
-
-  if (!user?.id) {
-    return new Response("Unauthorized", { status: 401 })
-  }
 
   try {
     const { text } = await request.json()
@@ -226,7 +207,7 @@ Now, based on the raw resume text provided by the user, generate the ResumeData 
 `
 
     const response = await openRouter.chat.completions.create({
-      model: "deepseek/deepseek-chat-v3.1:fre",
+      model: "openai/gpt-oss-20b:free",
       temperature: 0.3,
       messages: [
         { role: "system", content: systemPrompt },
