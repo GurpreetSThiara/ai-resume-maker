@@ -98,6 +98,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="clckd" content="00dd4cecdd1f49eb435533f606ecfa5a" />
+        <Script id="aclib" src="//acscdn.com/script/aclib.js" strategy="beforeInteractive" />
         {/* Google Tag Manager and Google Analytics scripts (render unconditionally) */}
         <>
           <Script id="google-tag-manager" strategy="afterInteractive">

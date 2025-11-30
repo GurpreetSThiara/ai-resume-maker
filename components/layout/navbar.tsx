@@ -41,7 +41,7 @@ export function Navbar() {
         <Plus className="w-4 h-4" aria-hidden="true" />
         Create Resume
       </Link>
-      <Link
+      {/* <Link
         href="/cover-letter"
         className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
           pathname?.startsWith("/cover-letter") ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:text-gray-900"
@@ -60,7 +60,7 @@ export function Navbar() {
       >
         <Star className="w-4 h-4" aria-hidden="true" />
         Reviews
-      </Link>
+      </Link> */}
     </>
   );
 
