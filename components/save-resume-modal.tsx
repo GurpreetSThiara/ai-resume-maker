@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getUserResumes } from "@/lib/supabase-functions"
+import { BuyMeCoffee } from "@/components/ui/buy-me-coffee"
 
 type CloudResume = { id: string; title: string; updated_at: string }
 
@@ -64,7 +65,7 @@ export function SaveResumeModal({
             </CardHeader>
             <CardContent className="space-y-3 pt-0">
               <Button onClick={onChooseCloudCreate} disabled={busy} className="w-full text-sm sm:text-base">
-                {busy ? 'Saving...' : 'Create New (counts toward 3)'}
+                {busy ? 'Saving...' : 'Create New'}
               </Button>
               <div className="text-xs text-gray-600">Or update one of your cloud resumes:</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-auto">
@@ -110,6 +111,13 @@ export function SaveResumeModal({
               </Button>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Support CTA (Buy Me a Coffee) */}
+        <div className="mt-6 flex justify-center">
+          <div className="w-full max-w-md">
+            <BuyMeCoffee />
+          </div>
         </div>
 
         <DialogFooter>

@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, ArrowRight, Sparkles, X } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { BuyMeCoffee } from "@/components/ui/buy-me-coffee"
 
 interface PostDownloadReviewModalProps {
   open: boolean
@@ -109,10 +110,12 @@ export function PostDownloadReviewModal({ open, onOpenChange, actionType = "down
             </Button>
           </div>
 
-          {/* Footer message */}
-          <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+          <div className="mt-4 space-y-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+            <div className="flex justify-center">
+              <BuyMeCoffee />
+            </div>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 text-center">
-              ✨ Your feedback helps our community grow and makes this app better for everyone
+              ✨ Your feedback and support help this free tool stay online and improve over time.
             </p>
           </div>
         </div>

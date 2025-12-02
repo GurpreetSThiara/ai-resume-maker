@@ -2,6 +2,7 @@ import Link from "next/link"
 import { FileText, Facebook, Twitter, Linkedin, Instagram } from "lucide-react"
 import { CREATE_RESUME } from "@/config/urls"
 import { Brand } from "@/components/ui/brand"
+import { BuyMeCoffee } from "@/components/ui/buy-me-coffee"
 export function Footer() {
   const currentYear = new Date().getFullYear()
   
@@ -21,6 +22,7 @@ export function Footer() {
             Create professional resumes and cover letters that get you hired.
             Fast, easy, and completely free.
           </p>
+          <BuyMeCoffee />
         </div>
 
         {/* Product */}
@@ -51,7 +53,7 @@ export function Footer() {
         </div>
 
         {/* Resources */}
-        <div>
+        {/* <div>
           <h3 className="font-semibold mb-4 text-foreground relative inline-block">
             Resources
             <span className="absolute left-0 -bottom-1 w-10 h-0.5 bg-primary rounded-full" />
@@ -73,16 +75,16 @@ export function Footer() {
                 Career Tips
               </Link>
             </li> */}
-            <li>
+            {/* <li>
               <Link
                 href="/blog"
                 className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
               >
                 Blog
               </Link>
-            </li>
-          </ul>
-        </div>
+            </li> */}
+          {/* </ul> */}
+        {/* </div> */}
 
         {/* Company */}
         <div>
