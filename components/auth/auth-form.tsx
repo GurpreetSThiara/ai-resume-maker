@@ -307,7 +307,7 @@ function AuthFormContent({ onSuccess }: AuthFormProps) {
                     id="signup-accept-policy"
                     checked={acceptedPolicy}
                     onCheckedChange={(checked) => setAcceptedPolicy(!!checked)}
-                    className="mt-1"
+                    className="border border-gray-500"
                   />
                   <Label
                     htmlFor="signup-accept-policy"
@@ -350,7 +350,7 @@ function AuthFormContent({ onSuccess }: AuthFormProps) {
             </TabsContent>
           </Tabs>
 
-          <div className="mt-8">
+          {/* <div className="mt-8">
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
@@ -375,7 +375,7 @@ function AuthFormContent({ onSuccess }: AuthFormProps) {
                 locale="en"
               />
             </div>
-          </div>
+          </div> */}
         </CardContent>
       </Card>
 
