@@ -214,7 +214,7 @@ export default function ProfilePage() {
 
   const handleSignOut = async () => {
     await signOut()
-    router.push("/auth")
+    router.push("/")
   }
 
   const formatDate = (dateString: string) => {
@@ -288,7 +288,7 @@ export default function ProfilePage() {
   }
 
   if (!user) {
-    router.push("/auth")
+    // While redirecting, render nothing to avoid updating Router during render
     return null
   }
 

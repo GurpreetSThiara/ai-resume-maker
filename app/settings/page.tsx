@@ -22,15 +22,13 @@ import {
   EyeOff
 } from "lucide-react"
 import { useAi } from "@/hooks/use-ai"
-import { useRouter } from "next/navigation"
-import { useToast } from "@/hooks/use-toast"
+import Link from "next/link"
 import { supabase } from "@/lib/supabase/client"
 import { useAuth } from "@/contexts/auth-context"
 
 export default function SettingsPage() {
   const { user, loading, signOut } = useAuth()
   const { aiEnabled, setAiEnabled, usage, refreshUsage } = useAi()
-  const router = useRouter()
   
   const [profileData, setProfileData] = useState({
     full_name: user?.user_metadata?.full_name || "",
@@ -51,6 +49,14 @@ export default function SettingsPage() {
     newPassword: "",
     confirmPassword: "",
   })
+
+  // Redirect unauthenticated users to home once auth state is known
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    if (!loading && !user) {
+      window.location.href = "/"
+    }
+  }, [loading, user])
 
   useEffect(() => {
     if (user) {
@@ -130,7 +136,7 @@ export default function SettingsPage() {
       const { error: deleteError } = await supabase
         .from("resumes")
         .delete()
-        .eq("user_id", user?.id)
+        .eq("user_id", user?.id || "")
 
       if (deleteError) throw deleteError
 
@@ -139,7 +145,9 @@ export default function SettingsPage() {
 
       if (error) throw error
 
-      router.push("/auth")
+      if (typeof window !== "undefined") {
+        window.location.href = "/"
+      }
     } catch (error) {
       console.error("Error deleting account:", error)
  
@@ -149,8 +157,18 @@ export default function SettingsPage() {
   }
 
   const handleSignOut = async () => {
-    await signOut()
-    router.push("/auth")
+    try {
+      await signOut()
+      if (typeof window !== "undefined") {
+        window.location.href = "/"
+      }
+    } catch (error) {
+      console.error("Error signing out:", error)
+      // Still redirect even if sign out fails
+      if (typeof window !== "undefined") {
+        window.location.href = "/"
+      }
+    }
   }
 
   if (loading) {
@@ -162,7 +180,7 @@ export default function SettingsPage() {
   }
 
   if (!user) {
-    router.push("/auth")
+    // While redirecting, render nothing to avoid updating Router during render
     return null
   }
 
@@ -171,9 +189,11 @@ export default function SettingsPage() {
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" onClick={() => router.push("/profile")}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Profile
+          <Button variant="ghost" asChild>
+            <Link href="/profile">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Profile
+            </Link>
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
@@ -289,7 +309,7 @@ export default function SettingsPage() {
           </Card>
 
           {/* Preferences */}
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Palette className="w-5 h-5" />
@@ -368,7 +388,7 @@ export default function SettingsPage() {
                 />
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Account Actions */}
           <Card>
@@ -382,10 +402,10 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button variant="outline" className="w-full justify-start">
+              {/* <Button variant="outline" className="w-full justify-start">
                 <Download className="w-4 h-4 mr-2" />
                 Export My Data
-              </Button>
+              </Button> */}
 
               <Button variant="outline" onClick={handleSignOut} className="w-full justify-start">
                 <ArrowLeft className="w-4 h-4 mr-2" />

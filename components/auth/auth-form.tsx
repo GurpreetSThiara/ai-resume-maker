@@ -9,6 +9,9 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Checkbox } from "@/components/ui/checkbox"
+import { TermsModal } from "@/components/auth/terms-modal"
+import { PrivacyModal } from "@/components/auth/privacy-modal"
 import { supabase } from "@/lib/supabase/client"
 import { Eye, EyeOff, Mail, Lock, User, Loader2 } from "lucide-react"
 import { CREATE_RESUME } from "@/config/urls"
@@ -35,6 +38,9 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
     confirmPassword: "",
     fullName: "",
   })
+  const [acceptedPolicy, setAcceptedPolicy] = useState(false)
+  const [isTermsOpen, setIsTermsOpen] = useState(false)
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false)
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,6 +72,13 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
     setIsLoading(true)
     setError(null)
     setSuccess(null)
+
+    if (!acceptedPolicy) {
+      SHOW_ERROR({ title: "Accept policies", description: "You must accept our terms and privacy policy to create an account" })
+      setError("You must accept our terms and privacy policy to create an account")
+      setIsLoading(false)
+      return
+    }
 
     if (signUpData.password !== signUpData.confirmPassword) {
       SHOW_ERROR({ title: "Password mismatch", description: "Passwords do not match" })
@@ -135,14 +148,14 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
 
   return (
     <div className="w-full max-w-md">
-      <Card className="w-full">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+      <Card className="w-full shadow-none border-0 ">
+        <CardHeader className="text-center ">
+          {/* <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
             Resume Builder
-          </CardTitle>
-          <CardDescription>Create your professional resume with our easy-to-use builder</CardDescription>
+          </CardTitle> */}
+          {/* <CardDescription>Create your professional resume with our easy-to-use builder</CardDescription> */}
         </CardHeader>
-        <CardContent>
+        <CardContent className="shadow-none">
           {error && (
             <Alert className="mb-4 border-red-200 bg-red-50">
               <AlertDescription className="text-red-700">{error}</AlertDescription>
@@ -288,6 +301,40 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
                   </div>
                 </div>
 
+                <div className="flex items-start gap-2 text-sm">
+                  <Checkbox
+                    id="signup-accept-policy"
+                    checked={acceptedPolicy}
+                    onCheckedChange={(checked) => setAcceptedPolicy(!!checked)}
+                    className="mt-1"
+                  />
+                  <Label
+                    htmlFor="signup-accept-policy"
+                    className="font-normal text-xs text-gray-600 leading-relaxed cursor-pointer"
+                  >
+                    I agree to the
+                    {" "}
+                    <button
+                      type="button"
+                      onClick={() => setIsTermsOpen(true)}
+                      className="text-blue-600 hover:text-blue-700 underline-offset-2 hover:underline font-medium"
+                    >
+                      Terms of Use
+                    </button>
+                    {" "}
+                    and
+                    {" "}
+                    <button
+                      type="button"
+                      onClick={() => setIsPrivacyOpen(true)}
+                      className="text-blue-600 hover:text-blue-700 underline-offset-2 hover:underline font-medium"
+                    >
+                      Privacy Policy
+                    </button>
+                    .
+                  </Label>
+                </div>
+
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? (
                     <>
@@ -303,20 +350,20 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
           </Tabs>
 
           <div className="mt-6">
-            {/* <div className="relative">
+            <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
               </div>
-            </div> */}
+            </div>
 
-            {/* <Button
+            <Button
               variant="outline"
               onClick={handleGoogleSignIn}
               disabled={isLoading}
-              className="w-full mt-4 bg-transparent"
+              className="w-full mt-4 bg-white"
             >
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                 <path
@@ -337,10 +384,13 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
                 />
               </svg>
               Continue with Google
-            </Button> */}
+            </Button>
           </div>
         </CardContent>
       </Card>
+
+      <TermsModal open={isTermsOpen} onOpenChange={setIsTermsOpen} />
+      <PrivacyModal open={isPrivacyOpen} onOpenChange={setIsPrivacyOpen} />
     </div>
   )
 }

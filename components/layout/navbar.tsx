@@ -12,12 +12,14 @@ import { CREATE_RESUME } from "@/config/urls"
 import { useAuth } from "@/contexts/auth-context"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Brand } from "@/components/ui/brand"
+import { useAuthModal } from "@/contexts/auth-modal-context"
 
 
 export function Navbar() {
   const pathname = usePathname();
   const { user, signOut } = useAuth();
   const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const { open } = useAuthModal();
 
   // Navigation links for reuse
   const navLinks = (
@@ -104,12 +106,14 @@ export function Navbar() {
               </DropdownMenu>
             ) : (
               <>
-              
-                {pathname !== "/auth" && (
-                  <Button asChild variant="outline" size="sm" className="hidden md:inline-flex">
-                    <Link href="/auth">Sign In</Link>
-                  </Button>
-                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hidden md:inline-flex"
+                  onClick={open}
+                >
+                  Sign In
+                </Button>
                 {pathname !== `${CREATE_RESUME}` && (
                   <Button asChild className="hidden md:inline-flex">
                     <Link href={CREATE_RESUME}>Create Free Resume</Link>
@@ -147,11 +151,16 @@ export function Navbar() {
           {/* Auth buttons for mobile only */}
           {!user && (
             <div className="flex flex-col gap-2 md:hidden">
-              {pathname !== "/auth" && (
-                <Button asChild variant="outline" size="sm" onClick={() => setDrawerOpen(false)}>
-                  <Link href="/auth">Sign In</Link>
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setDrawerOpen(false)
+                  open()
+                }}
+              >
+                Sign In
+              </Button>
               {pathname !== `${CREATE_RESUME}` && (
                 <Button asChild onClick={() => setDrawerOpen(false)}>
                   <Link href={CREATE_RESUME}>Create Free Resume</Link>

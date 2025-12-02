@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Star, ThumbsUp, Flag, Loader2, LogIn } from "lucide-react"
 import { SHOW_SUCCESS, SHOW_ERROR } from "@/utils/toast"
 import { useAuth } from "@/contexts/auth-context"
-import { useRouter } from "next/navigation"
+import { useAuthModal } from "@/contexts/auth-modal-context"
 
 interface Review {
   _id?: string
@@ -41,7 +41,7 @@ export function ReviewComponent({
   onReportReview 
 }: ReviewComponentProps) {
   const { user } = useAuth()
-  const router = useRouter()
+  const { open } = useAuthModal()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
@@ -301,7 +301,7 @@ export function ReviewComponent({
           ) : (
             <div className="space-y-3">
               <Button 
-                onClick={() => router.push('/auth')} 
+                onClick={open}
                 className="w-full bg-blue-600 hover:bg-blue-700"
               >
                 <LogIn className="w-4 h-4 mr-2" />
