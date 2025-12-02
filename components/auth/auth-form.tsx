@@ -133,7 +133,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
         options: {
           // Persist session cookie; Supabase sets long-lived refresh token cookies by default.
           // We provide a redirect so the browser writes cookies in our domain and route.
-          redirectTo: `${window.location.origin}${CREATE_RESUME}`,
+          redirectTo: `https://createfreecv.com/${CREATE_RESUME}`,
         },
       })
 
