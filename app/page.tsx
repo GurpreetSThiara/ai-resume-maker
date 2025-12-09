@@ -14,6 +14,7 @@ import { HowItWorks } from "@/components/appUI/home/HowItWorks"
 import { Values } from "@/components/appUI/home/ValueProps"
 import { ReviewsSection } from "@/components/reviews-section"
 import Script from "next/script"
+import ExternalScriptLoader from "@/components/ads/ExternalScriptLoader"
 export const metadata: Metadata = {
   title: 'Free ATS Resume Builder - No Sign Up | Optional AI with Free Account',
   description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download. Create a free account for AI-powered content generation.',
@@ -111,7 +112,11 @@ export default function HomePage() {
     
 
       {/* Hero Section */}
-     <Hero/>    
+     <Hero/>     
+     
+     {/* Adcash Banner Ad */}
+     <ExternalScriptLoader />
+     
       {/* Value Props */}
      <Values/>
 
