@@ -9,6 +9,7 @@ export default function CoverLetterPage() {
       <FeaturesSection />
       <TemplatesSection />
       <BenefitsSection />
+      <ComboSection />
       <FaqSection />
       <CtaSection />
     </div>
