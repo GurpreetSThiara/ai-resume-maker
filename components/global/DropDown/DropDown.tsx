@@ -14,10 +14,9 @@ import { generateResumePDF } from "@/lib/pdf-generators"
 import { generateResumeDOCX } from "@/lib/docx-generators";
 import { SHOW_ERROR, SHOW_SUCCESS } from "@/utils/toast";
 import { usePostDownloadReview } from "@/hooks/use-post-download-review";
-import { loadInterstitialAd } from "@/components/ads/InterstitialAd";
 
 
-const DownloadDropDown = ({data}) => {
+const DownloadDropDown = ({data}: any) => {
   const { triggerReviewModal, ReviewModalComponent } = usePostDownloadReview();
 
   const handleDownload = async (downloadFunction: () => Promise<void>) => {
@@ -49,13 +48,6 @@ const DownloadDropDown = ({data}) => {
             className="capitalize cursor-pointer" 
             onClick={() => handleDownload(async () => {
               await generateResumePDF({...data, filename:`${data.filename}.pdf`});
-              try {
-                setTimeout(() => {
-                  loadInterstitialAd('10097033');
-                }, 100);
-              } catch(e) {
-                console.error("[PropellerAd] Failed to load ad after PDF", e);
-              }
             })}
           >
             PDF
@@ -70,13 +62,6 @@ const DownloadDropDown = ({data}) => {
               if (['ats-classic', 'google-docs'].includes(data.template.name)) {
                 handleDownload(async () => {
                   await generateResumeDOCX({ ...data, filename: `${data.filename}.docx` });
-                  try {
-                    setTimeout(() => {
-                      loadInterstitialAd('10097033');
-                    }, 100);
-                  } catch(e) {
-                    console.error("[PropellerAd] Failed to load ad after DOCX", e);
-                  }
                 });
               }
             }}

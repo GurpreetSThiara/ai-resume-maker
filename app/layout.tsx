@@ -106,8 +106,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#15803d" />
         <meta name="msapplication-TileColor" content="#15803d" />
         <meta name="clckd" content="00dd4cecdd1f49eb435533f606ecfa5a" />
-        <Script id="aclib" src="https://acscdn.com/script/aclib.js" strategy="beforeInteractive" />
-        {/* Google Tag Manager and Google Analytics scripts (render unconditionally) */}
+                {/* Google Tag Manager and Google Analytics scripts (render unconditionally) */}
         <>
           <Script id="google-tag-manager" strategy="afterInteractive">
             {`

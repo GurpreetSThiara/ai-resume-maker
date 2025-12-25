@@ -14,7 +14,6 @@ import { HowItWorks } from "@/components/appUI/home/HowItWorks"
 import { Values } from "@/components/appUI/home/ValueProps"
 import { ReviewsSection } from "@/components/reviews-section"
 import Script from "next/script"
-import ExternalScriptLoader from "@/components/ads/ExternalScriptLoader"
 export const metadata: Metadata = {
   title: 'Free ATS Resume Builder - No Sign Up | Optional AI with Free Account',
   description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download. Create a free account for AI-powered content generation.',
@@ -82,13 +81,13 @@ const jsonLd = {
 
 export default function HomePage() {
   return (
-        <div className="min-h-screen bg-linear-to-br from-white via-green-50/30 via-blue-50/20 to-indigo-50/40 relative overflow-hidden">
+        <div className="min-h-screen bg-linear-to-br from-white via-green-50/30 to-indigo-50/40 relative overflow-hidden">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-transparent via-green-50/20 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-transparent via-green-50/20 to-transparent pointer-events-none" />
       
       <div className="absolute top-0 left-0 w-96 h-96 bg-linear-to-r from-green-200/20 to-emerald-200/20 rounded-full blur-3xl animate-pulse-slow" />
       <div className="absolute top-1/4 right-0 w-80 h-80 bg-linear-to-r from-blue-200/20 to-indigo-200/20 rounded-full blur-3xl animate-pulse-slow delay-500" />
@@ -96,27 +95,14 @@ export default function HomePage() {
 
       
 
-<Script
-  async
-  data-cfasync="false"
-  src={`https://go.pub2srv.com/ads.js?z=10097033`}
-  strategy="afterInteractive"
-/>
 
-<script
-  dangerouslySetInnerHTML={{
-    __html: `(function(s){s.dataset.zone='10098063',s.src='https://groleegni.net/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))`
-  }}
-/>
 
     
 
       {/* Hero Section */}
      <Hero/>     
      
-     {/* Adcash Banner Ad */}
-     <ExternalScriptLoader />
-     
+          
       {/* Value Props */}
      <Values/>
 
