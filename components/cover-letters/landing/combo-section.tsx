@@ -81,7 +81,7 @@ export function ComboSection() {
                     <div className="text-sm text-slate-600">Download</div>
                   </div>
                   <div className="bg-white rounded-lg p-4">
-                    <div className="text-2xl font-bold text-purple-600">0</div>
+                    <div className="text-2xl font-bold text-purple-600">No</div>
                     <div className="text-sm text-slate-600">Sign Up</div>
                   </div>
                 </div>
