@@ -32,7 +32,7 @@ const getDefaultCoverLetter = (): CoverLetter => ({
     contactInfo: {
       email: '',
       phone: '',
-      address: { street: '', city: '', state: '', zipCode: '' },
+      address: '',
     },
     summary: '',
   },
@@ -48,7 +48,7 @@ const getDefaultCoverLetter = (): CoverLetter => ({
     name: 'Hiring Manager',
     title: '',
     company: '',
-    address: { street: '', city: '', state: '', zipCode: '' },
+    address: '',
   },
 
   content: {
@@ -56,7 +56,7 @@ const getDefaultCoverLetter = (): CoverLetter => ({
     salutation: 'Dear Hiring Manager,',
     openingParagraph: { text: '', positionMentioned: false, companyMentioned: false },
     bodyParagraphs: [
-      { id: 'p1', text: '', focus: 'experience', keywords: [] },
+      { id: 'p1', text: '', keywords: [] },
     ],
     closingParagraph: { text: 'Sincerely,', callToAction: '', availability: '' },
     complimentaryClose: 'Sincerely',
@@ -104,17 +104,55 @@ const getDefaultCoverLetter = (): CoverLetter => ({
     lineHeight: 1.5,
     margins: { top: 1440, bottom: 1440, left: 1440, right: 1440 },
     colorScheme: { primary: '#000000', text: '#111111', background: '#FFFFFF' },
-    layout: 'traditional',
+    layout: 'classic',
   },
 
-  attachments: { resume: false, portfolio: false, references: false, coverLetter: true, other: [] },
+  attachments: { resume: false, references: false, coverLetter: true, other: [] },
 
   tracking: { status: 'draft', applicationDate: undefined, responseReceived: false },
 });
 
+const migrateAddressFormat = (coverLetter: any): CoverLetter => {
+  // Helper function to convert old address object to string
+  const convertAddressToString = (address: any): string => {
+    if (typeof address === 'string') {
+      return address;
+    }
+    
+    if (address && typeof address === 'object') {
+      const parts = [
+        address.street,
+        address.city && address.state && address.zipCode 
+          ? `${address.city}, ${address.state} ${address.zipCode}`
+          : null,
+        address.country
+      ].filter(Boolean);
+      
+      return parts.join(', ');
+    }
+    
+    return '';
+  };
+
+  return {
+    ...coverLetter,
+    applicant: {
+      ...coverLetter.applicant,
+      contactInfo: {
+        ...coverLetter.applicant?.contactInfo,
+        address: convertAddressToString(coverLetter.applicant?.contactInfo?.address),
+      },
+    },
+    recipient: {
+      ...coverLetter.recipient,
+      address: convertAddressToString(coverLetter.recipient?.address),
+    },
+  };
+};
+
 const getInitialState = (initialCoverLetter?: CoverLetter): CoverLetterState => {
   const defaultState = {
-    coverLetter: initialCoverLetter || getDefaultCoverLetter(),
+    coverLetter: initialCoverLetter ? migrateAddressFormat(initialCoverLetter) : getDefaultCoverLetter(),
     isSaving: false,
     error: null,
     isLoading: false,
@@ -128,10 +166,10 @@ const getInitialState = (initialCoverLetter?: CoverLetter): CoverLetterState => 
     const id = initialCoverLetter?.id || 'new';
     const savedData = getLocalStorageItem(LS_KEYS.coverLetter(id));
     if (savedData) {
-      const savedCoverLetter = JSON.parse(savedData) as CoverLetter;
+      const savedCoverLetter = migrateAddressFormat(JSON.parse(savedData));
       // Merge with initialCoverLetter to respect fetched data over stale local data if timestamps differ
       if (initialCoverLetter && new Date(initialCoverLetter.lastModified) > new Date(savedCoverLetter.lastModified)) {
-        return { ...defaultState, coverLetter: initialCoverLetter };
+        return { ...defaultState, coverLetter: migrateAddressFormat(initialCoverLetter) };
       }
       return { ...defaultState, coverLetter: savedCoverLetter };
     }
@@ -146,7 +184,7 @@ const getInitialState = (initialCoverLetter?: CoverLetter): CoverLetterState => 
 const reducer = (state: CoverLetterState, action: CoverLetterAction): CoverLetterState => {
   switch (action.type) {
     case 'SET_COVER_LETTER':
-      return { ...state, coverLetter: action.payload };
+      return { ...state, coverLetter: migrateAddressFormat(action.payload) };
     case 'UPDATE_CONTENT':
       if (!state.coverLetter) return state;
       return {
@@ -208,56 +246,9 @@ export const CoverLetterProvider: React.FC<CoverLetterProviderProps> = ({
   }, []);
 
   const syncCoverLetter = useCallback(async () => {
-    if (!state.coverLetter) return;
-    
-    dispatch({ type: 'SET_SAVING', payload: true });
-    dispatch({ type: 'SET_ERROR', payload: null });
-
-    try {
-      const isNew = state.coverLetter.id === 'new';
-      const url = isNew 
-        ? '/api/cover-letters'
-        : `/api/cover-letters/${state.coverLetter.id}`;
-      
-      const method = isNew ? 'POST' : 'PUT';
-      const payload = state.coverLetter;
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        if (response.status === 403) {
-          throw new Error(errorData.error || 'Save limit reached');
-        }
-        throw new Error(errorData.error || 'Failed to save cover letter');
-      }
-
-      const data = await response.json();
-      
-      // If this was a new cover letter, update the URL with the new ID
-      if (isNew && typeof window !== 'undefined') {
-        window.history.replaceState({}, '', `/cover-letter/editor/${data.id}`);
-      }
-      
-      dispatch({ type: 'SET_COVER_LETTER', payload: data });
-      return data;
-    } catch (error) {
-      console.error('Error saving cover letter:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to save cover letter';
-      dispatch({
-        type: 'SET_ERROR',
-        payload: errorMessage,
-      });
-      throw error;
-    } finally {
-      dispatch({ type: 'SET_SAVING', payload: false });
-    }
+    // Supabase integration disabled - cover letters are saved locally only
+    console.log('Supabase sync disabled - cover letter saved locally only');
+    return state.coverLetter;
   }, [state.coverLetter]);
 
   const updateCoverLetter = useCallback((updates: Partial<CoverLetter>) => {

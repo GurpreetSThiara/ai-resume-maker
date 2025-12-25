@@ -3,25 +3,22 @@
 import { useState } from 'react';
 import { useCoverLetter } from '@/contexts/CoverLetterContext';
 import { CoverLetter } from '@/types/cover-letter';
-import { AlertCircle, Eye } from 'lucide-react';
+import { AlertCircle, User, Calendar, Building } from 'lucide-react';
 import DownloadDropDown from './download-dropdown';
-import { CoverLetterTemplateSwitch } from '@/components/cover-letters/cover-letter-template-switch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { coverLetterExample } from '@/lib/examples/cover-letter';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Divider } from '@/components/ui/divider';
 
 interface CoverLetterEditorProps {
-  onPreviewToggle?: (show: boolean) => void;
+  activeStep?: number;
 }
 
-export function CoverLetterEditor({ onPreviewToggle }: CoverLetterEditorProps) {
+export function CoverLetterEditor({ activeStep = 0 }: CoverLetterEditorProps) {
   const { state, updateCoverLetter, updateContent, syncCoverLetter } = useCoverLetter();
   const { coverLetter, isSaving, error } = state;
-  const [activeTab, setActiveTab] = useState<'details' | 'content' | 'formatting' >('details');
-  const [showPreview, setShowPreview] = useState(false);
 
   // Derived helpers
   const title: string | undefined = (coverLetter as any)?.title ?? "sample";
@@ -39,16 +36,6 @@ export function CoverLetterEditor({ onPreviewToggle }: CoverLetterEditorProps) {
       },
     });
 
-  const setApplicantAddress = (updates: Partial<CoverLetter['applicant']['contactInfo']['address']>) =>
-    updateCoverLetter({
-      applicant: {
-        ...coverLetter.applicant,
-        contactInfo: {
-          ...coverLetter.applicant.contactInfo,
-          address: { ...coverLetter.applicant.contactInfo.address, ...updates },
-        },
-      },
-    });
 
   const setPosition = (updates: Partial<CoverLetter['position']>) =>
     updateCoverLetter({ position: { ...coverLetter.position, ...updates } });
@@ -56,10 +43,6 @@ export function CoverLetterEditor({ onPreviewToggle }: CoverLetterEditorProps) {
   const setRecipient = (updates: Partial<CoverLetter['recipient']>) =>
     updateCoverLetter({ recipient: { ...coverLetter.recipient, ...updates } });
 
-  const setRecipientAddress = (updates: Partial<CoverLetter['recipient']['address']>) =>
-    updateCoverLetter({
-      recipient: { ...coverLetter.recipient, address: { ...coverLetter.recipient.address, ...updates } },
-    });
 
   const setContentField = (payload: Partial<CoverLetter['content']>) => updateContent(payload);
 
@@ -67,7 +50,7 @@ export function CoverLetterEditor({ onPreviewToggle }: CoverLetterEditorProps) {
     const newId = `p${coverLetter.content.bodyParagraphs.length + 1}`;
     const updated = [
       ...coverLetter.content.bodyParagraphs,
-      { id: newId, text: '', focus: 'experience' as const, keywords: [] },
+      { id: newId, text: '', keywords: [] },
     ];
     setContentField({ bodyParagraphs: updated });
   };
@@ -83,312 +66,298 @@ export function CoverLetterEditor({ onPreviewToggle }: CoverLetterEditorProps) {
   };
 
   const handleSave = async () => {
-    await syncCoverLetter().catch(() => {});
+    // Supabase save disabled - cover letters are saved locally only
+    console.log('Save button clicked - using local storage only');
   };
 
+  const renderDetailsStep = () => (
+    <div className="space-y-4 sm:space-y-6">
+      <Card className="border-0 shadow-none w-full">
+        <CardHeader className=" p-0">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg ">
+            <User className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="truncate">Applicant Information</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 sm:space-y-6 px-0 md:px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div>
+              <Label htmlFor="firstName" className="text-sm">First name</Label>
+              <Input
+                id="firstName"
+                value={coverLetter.applicant.firstName}
+                onChange={(e) => setApplicant({ firstName: e.target.value })}
+                className="mobile-input"
+              />
+            </div>
+            <div>
+              <Label htmlFor="lastName" className="text-sm">Last name</Label>
+              <Input
+                id="lastName"
+                value={coverLetter.applicant.lastName}
+                onChange={(e) => setApplicant({ lastName: e.target.value })}
+                className="mobile-input"
+              />
+            </div>
+            <div className="sm:col-span-2 lg:col-span-1">
+              <Label htmlFor="title" className="text-sm">Professional title</Label>
+              <Input
+                id="title"
+                value={coverLetter.applicant.professionalTitle}
+                onChange={(e) => setApplicant({ professionalTitle: e.target.value })}
+                className="mobile-input"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div>
+              <Label htmlFor="email" className="text-sm">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={coverLetter.applicant.contactInfo.email}
+                onChange={(e) => setApplicantContact({ email: e.target.value })}
+                className="mobile-input"
+              />
+            </div>
+            <div>
+              <Label htmlFor="phone" className="text-sm">Phone</Label>
+              <Input
+                id="phone"
+                value={coverLetter.applicant.contactInfo.phone}
+                onChange={(e) => setApplicantContact({ phone: e.target.value })}
+                className="mobile-input"
+              />
+            </div>
+            <div className="sm:col-span-2 lg:col-span-1">
+              <Label htmlFor="linkedin" className="text-sm">LinkedIn (optional)</Label>
+              <Input
+                id="linkedin"
+                value={coverLetter.applicant.contactInfo.linkedin ?? ''}
+                onChange={(e) => setApplicantContact({ linkedin: e.target.value })}
+                className="mobile-input"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:gap-4">
+            <div>
+              <Label htmlFor="address" className="text-sm">Address</Label>
+              <Textarea
+                id="address"
+                value={coverLetter.applicant.contactInfo.address}
+                onChange={(e) => setApplicantContact({ address: e.target.value })}
+                placeholder="Enter your complete address (street, city, state, zip, country)"
+                rows={3}
+                className="mobile-input"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Divider />
+
+      <Card className="border-0 shadow-none">
+        <CardHeader className="mobile-header p-0">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="truncate">Date</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className=" px-0 md:px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div>
+              <Label htmlFor="date" className="text-sm">Letter date</Label>
+              <Input
+                id="date"
+                type="date"
+                value={new Date(coverLetter.content.date).toISOString().slice(0, 10)}
+                onChange={(e) => setContentField({ date: new Date(e.target.value) })}
+                className="mobile-input"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Divider />
+
+      <Card className="border-0 shadow-none">
+        <CardHeader className="mobile-header p-0 ">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Building className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="truncate">Recipient Information</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 sm:space-y-6  px-0 md:px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div>
+              <Label htmlFor="recipientName" className="text-sm">Name</Label>
+              <Input
+                id="recipientName"
+                value={coverLetter.recipient.name}
+                onChange={(e) => setRecipient({ name: e.target.value })}
+                className="mobile-input"
+              />
+            </div>
+            <div>
+              <Label htmlFor="recipientTitle" className="text-sm">Title</Label>
+              <Input
+                id="recipientTitle"
+                value={coverLetter.recipient.title}
+                onChange={(e) => setRecipient({ title: e.target.value })}
+                className="mobile-input"
+              />
+            </div>
+            <div className="sm:col-span-2 lg:col-span-1">
+              <Label htmlFor="recipientCompany" className="text-sm">Company</Label>
+              <Input
+                id="recipientCompany"
+                value={coverLetter.recipient.company}
+                onChange={(e) => setRecipient({ company: e.target.value })}
+                className="mobile-input"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:gap-4">
+            <div>
+              <Label htmlFor="recipientAddress" className="text-sm">Recipient Address</Label>
+              <Textarea
+                id="recipientAddress"
+                value={coverLetter.recipient.address}
+                onChange={(e) => setRecipient({ address: e.target.value })}
+                placeholder="Enter recipient's complete address (street, city, state, zip)"
+                rows={3}
+                className="mobile-input"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderContentStep = () => (
+    <div className="space-y-6 sm:space-y-8 mobile-space-y-4">
+      <section className="mobile-card">
+        <div className="p-4 sm:p-0">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4">
+            <div>
+              <Label htmlFor="salutation" className="text-sm">Salutation</Label>
+              <Input
+                id="salutation"
+                value={coverLetter.content.salutation}
+                onChange={(e) => setContentField({ salutation: e.target.value })}
+                className="mobile-input"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mobile-card">
+        <div className="p-4 sm:p-0">
+          <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Opening paragraph</h3>
+          <Textarea
+            rows={5}
+            value={coverLetter.content.openingParagraph.text}
+            onChange={(e) =>
+              setContentField({
+                openingParagraph: { ...coverLetter.content.openingParagraph, text: e.target.value },
+              })
+            }
+            className="mobile-input"
+          />
+        </div>
+      </section>
+
+      <section className="mobile-card">
+        <div className="p-4 sm:p-0">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <h3 className="text-base sm:text-lg font-semibold">Body paragraphs</h3>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={addBodyParagraph}
+              className="mobile-button btn-mobile"
+              size="sm"
+            >
+              + Add paragraph
+            </Button>
+          </div>
+          <div className="space-y-3 sm:space-y-4">
+            {coverLetter.content.bodyParagraphs.map((p, idx) => (
+              <div key={p.id} className="rounded-md border p-3 sm:p-4 mobile-card">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm text-muted-foreground">Paragraph {idx + 1}</div>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => removeBodyParagraph(idx)}
+                      className="mobile-button"
+                    >
+                      <span className="hidden sm:inline">Remove</span>
+                      <span className="sm:hidden">×</span>
+                    </Button>
+                  </div>
+                </div>
+                <Textarea
+                  rows={5}
+                  value={p.text}
+                  onChange={(e) => updateBodyParagraph(idx, { text: e.target.value })}
+                  className="mobile-input"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mobile-card">
+        <div className="p-4 sm:p-0">
+          <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Closing paragraph</h3>
+          <Textarea
+            rows={4}
+            value={coverLetter.content.closingParagraph.text}
+            onChange={(e) =>
+              setContentField({
+                closingParagraph: { ...coverLetter.content.closingParagraph, text: e.target.value },
+              })
+            }
+            className="mobile-input"
+          />
+        </div>
+      </section>
+    </div>
+  );
 
 
-
-
-
+  const renderStep = () => {
+    switch (activeStep) {
+      case 0:
+        return renderDetailsStep();
+      case 1:
+        return renderContentStep();
+      default:
+        return renderDetailsStep();
+    } 
+  };
 
   return (
-  <div className="max-w-5xl mx-auto px-4 py-6">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-2 self-end mb-4">
-         <div className="">
-           <CoverLetterTemplateSwitch />
-         </div>
-   
-      </div>
-
-            <div className="flex items-center gap-2">
-           <Button
-             variant="outline"
-             size="sm"
-             onClick={() => {
-               const newValue = !showPreview;
-               setShowPreview(newValue);
-               onPreviewToggle?.(newValue);
-             }}
-             className="flex items-center gap-2 lg:hidden"
-           >
-             <Eye className="w-4 h-4" />
-             {showPreview ? "Hide Preview" : "Show Preview"}
-           </Button>
-           <DownloadDropDown coverLetter={coverLetter} disabled={!canExport} />
-         </div>
-
+    <div className="max-w-5xl mx-auto px-0 sm:px-0 md:px-4 py-0 md:py-6 ">
       {error && (
-        <div className="flex items-start gap-2 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4" role="alert">
-          <AlertCircle className="mt-0.5 h-4 w-4" />
-          <div>{error}</div>
+        <div
+          className="flex items-start gap-2 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4 mobile-card"
+          role="alert"
+        >
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div className="flex-1 min-w-0">{error}</div>
         </div>
       )}
 
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-        <TabsList>
-          <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="content">Content</TabsTrigger>
-          <TabsTrigger value="formatting">Formatting</TabsTrigger>
-        </TabsList>
-
-        {/* Details Tab */}
-        <TabsContent value="details" className="mt-4 space-y-8">
-          {/* Applicant */}
-          <section>
-            <h3 className="text-lg font-semibold mb-3">Applicant</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="firstName">First name</Label>
-                <Input id="firstName" value={coverLetter.applicant.firstName}
-                  onChange={(e) => setApplicant({ firstName: e.target.value })} />
-              </div>
-              <div>
-                <Label htmlFor="lastName">Last name</Label>
-                <Input id="lastName" value={coverLetter.applicant.lastName}
-                  onChange={(e) => setApplicant({ lastName: e.target.value })} />
-              </div>
-              <div>
-                <Label htmlFor="title">Professional title</Label>
-                <Input id="title" value={coverLetter.applicant.professionalTitle}
-                  onChange={(e) => setApplicant({ professionalTitle: e.target.value })} />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={coverLetter.applicant.contactInfo.email}
-                  onChange={(e) => setApplicantContact({ email: e.target.value })} />
-              </div>
-              <div>
-                <Label htmlFor="phone">Phone</Label>
-                <Input id="phone" value={coverLetter.applicant.contactInfo.phone}
-                  onChange={(e) => setApplicantContact({ phone: e.target.value })} />
-              </div>
-              <div>
-                <Label htmlFor="linkedin">LinkedIn (optional)</Label>
-                <Input id="linkedin" value={coverLetter.applicant.contactInfo.linkedin ?? ''}
-                  onChange={(e) => setApplicantContact({ linkedin: e.target.value })} />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-4">
-              <div className="md:col-span-2">
-                <Label htmlFor="street">Street</Label>
-                <Input id="street" value={coverLetter.applicant.contactInfo.address.street ?? ''}
-                  onChange={(e) => setApplicantAddress({ street: e.target.value })} />
-              </div>
-              <div>
-                <Label htmlFor="city">City</Label>
-                <Input id="city" value={coverLetter.applicant.contactInfo.address.city}
-                  onChange={(e) => setApplicantAddress({ city: e.target.value })} />
-              </div>
-              <div>
-                <Label htmlFor="state">State</Label>
-                <Input id="state" value={coverLetter.applicant.contactInfo.address.state}
-                  onChange={(e) => setApplicantAddress({ state: e.target.value })} />
-              </div>
-              <div>
-                <Label htmlFor="zip">ZIP</Label>
-                <Input id="zip" value={coverLetter.applicant.contactInfo.address.zipCode}
-                  onChange={(e) => setApplicantAddress({ zipCode: e.target.value })} />
-              </div>
-            </div>
-          </section>
-
-          {/* Position */}
-          <section>
-            <h3 className="text-lg font-semibold mb-3">Position</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="jobTitle">Job title</Label>
-                <Input id="jobTitle" value={coverLetter.position.jobTitle}
-                  onChange={(e) => setPosition({ jobTitle: e.target.value })} />
-              </div>
-              <div>
-                <Label htmlFor="company">Company</Label>
-                <Input id="company" value={coverLetter.position.company}
-                  onChange={(e) => setPosition({ company: e.target.value })} />
-              </div>
-              <div>
-                <Label htmlFor="department">Department</Label>
-                <Input id="department" value={coverLetter.position.department ?? ''}
-                  onChange={(e) => setPosition({ department: e.target.value })} />
-              </div>
-            </div>
-          </section>
-
-          {/* Recipient */}
-          <section>
-            <h3 className="text-lg font-semibold mb-3">Recipient</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="recipientName">Name</Label>
-                <Input id="recipientName" value={coverLetter.recipient.name}
-                  onChange={(e) => setRecipient({ name: e.target.value })} />
-              </div>
-              <div>
-                <Label htmlFor="recipientTitle">Title</Label>
-                <Input id="recipientTitle" value={coverLetter.recipient.title}
-                  onChange={(e) => setRecipient({ title: e.target.value })} />
-              </div>
-              <div>
-                <Label htmlFor="recipientCompany">Company</Label>
-                <Input id="recipientCompany" value={coverLetter.recipient.company}
-                  onChange={(e) => setRecipient({ company: e.target.value })} />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-              <div className="md:col-span-2">
-                <Label htmlFor="recipientStreet">Street</Label>
-                <Input id="recipientStreet" value={coverLetter.recipient.address.street}
-                  onChange={(e) => setRecipientAddress({ street: e.target.value })} />
-              </div>
-              <div>
-                <Label htmlFor="recipientCity">City</Label>
-                <Input id="recipientCity" value={coverLetter.recipient.address.city}
-                  onChange={(e) => setRecipientAddress({ city: e.target.value })} />
-              </div>
-              <div>
-                <Label htmlFor="recipientState">State</Label>
-                <Input id="recipientState" value={coverLetter.recipient.address.state}
-                  onChange={(e) => setRecipientAddress({ state: e.target.value })} />
-              </div>
-              <div>
-                <Label htmlFor="recipientZip">ZIP</Label>
-                <Input id="recipientZip" value={coverLetter.recipient.address.zipCode}
-                  onChange={(e) => setRecipientAddress({ zipCode: e.target.value })} />
-              </div>
-            </div>
-          </section>
-        </TabsContent>
-
-        {/* Content Tab */}
-        <TabsContent value="content" className="mt-4 space-y-8">
-          <section>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="salutation">Salutation</Label>
-                <Input id="salutation" value={coverLetter.content.salutation}
-                  onChange={(e) => setContentField({ salutation: e.target.value })} />
-              </div>
-              <div>
-                <Label htmlFor="date">Date</Label>
-                <Input id="date" type="date" value={new Date(coverLetter.content.date).toISOString().slice(0, 10)}
-                  onChange={(e) => setContentField({ date: new Date(e.target.value) })} />
-              </div>
-            </div>
-          </section>
-
-          <section>
-            <h3 className="text-lg font-semibold mb-2">Opening paragraph</h3>
-            <Textarea rows={5}
-              value={coverLetter.content.openingParagraph.text}
-              onChange={(e) => setContentField({
-                openingParagraph: { ...coverLetter.content.openingParagraph, text: e.target.value },
-              })}
-            />
-          </section>
-
-          <section>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-semibold">Body paragraphs</h3>
-              <Button type="button" variant="outline" onClick={addBodyParagraph}>+ Add paragraph</Button>
-            </div>
-            <div className="space-y-4">
-              {coverLetter.content.bodyParagraphs.map((p, idx) => (
-                <div key={p.id} className="rounded-md border p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm text-muted-foreground">Paragraph {idx + 1}</div>
-                    <div className="flex items-center gap-2">
-                      <label className="text-xs text-muted-foreground">
-                        Focus
-                        <select
-                          className="ml-2 border rounded px-2 py-1 text-xs"
-                          value={p.focus}
-                          onChange={(e) => updateBodyParagraph(idx, { focus: e.target.value as any })}
-                        >
-                          <option value="experience">Experience</option>
-                          <option value="skills">Skills</option>
-                          <option value="achievements">Achievements</option>
-                          <option value="company_research">Company research</option>
-                          <option value="education">Education</option>
-                        </select>
-                      </label>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => removeBodyParagraph(idx)}>
-                        Remove
-                      </Button>
-                    </div>
-                  </div>
-                  <Textarea rows={5} value={p.text} onChange={(e) => updateBodyParagraph(idx, { text: e.target.value })} />
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section>
-            <h3 className="text-lg font-semibold mb-2">Closing paragraph</h3>
-            <Textarea rows={4}
-              value={coverLetter.content.closingParagraph.text}
-              onChange={(e) => setContentField({
-                closingParagraph: { ...coverLetter.content.closingParagraph, text: e.target.value },
-              })}
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-              <div>
-                <Label htmlFor="cta">Call to action</Label>
-                <Input id="cta" value={coverLetter.content.closingParagraph.callToAction}
-                  onChange={(e) => setContentField({
-                    closingParagraph: { ...coverLetter.content.closingParagraph, callToAction: e.target.value },
-                  })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="availability">Availability</Label>
-                <Input id="availability" value={coverLetter.content.closingParagraph.availability}
-                  onChange={(e) => setContentField({
-                    closingParagraph: { ...coverLetter.content.closingParagraph, availability: e.target.value },
-                  })}
-                />
-              </div>
-            </div>
-          </section>
-
-          <section>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="complimentaryClose">Complimentary close</Label>
-                <Input id="complimentaryClose" value={coverLetter.content.complimentaryClose}
-                  onChange={(e) => setContentField({ complimentaryClose: e.target.value })} />
-              </div>
-            </div>
-          </section>
-        </TabsContent>
-
-        {/* Formatting Tab (basic controls for now) */}
-        <TabsContent value="formatting" className="mt-4 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="fontFamily">Font family</Label>
-              <Input id="fontFamily" value={coverLetter.formatting.fontFamily}
-                onChange={(e) => updateCoverLetter({ formatting: { ...coverLetter.formatting, fontFamily: e.target.value } })} />
-            </div>
-            <div>
-              <Label htmlFor="fontSize">Font size</Label>
-              <Input id="fontSize" type="number" value={coverLetter.formatting.fontSize}
-                onChange={(e) => updateCoverLetter({ formatting: { ...coverLetter.formatting, fontSize: Number(e.target.value || 0) } })} />
-            </div>
-            <div>
-              <Label htmlFor="lineHeight">Line height</Label>
-              <Input id="lineHeight" type="number" step="0.05" value={coverLetter.formatting.lineHeight}
-                onChange={(e) => updateCoverLetter({ formatting: { ...coverLetter.formatting, lineHeight: Number(e.target.value || 0) } })} />
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* Export Tab */}
-    
-      </Tabs>
+      <div className="mt-2 sm:mt-4">{renderStep()}</div>
     </div>
   );
 }

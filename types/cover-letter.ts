@@ -1,16 +1,12 @@
+import { TemplateLayout } from '@/lib/config/cover-letter-templates';
+
 // Core interfaces for cover letter structure
 export interface ContactInfo {
   email: string;
   phone: string;
-  address: {
-    street?: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country?: string;
-  };
+  address: string;
   linkedin?: string;
-  portfolio?: string;
+  // portfolio?: string;
   website?: string;
   github?: string;
 }
@@ -19,12 +15,7 @@ export interface RecipientInfo {
   name: string;
   title: string;
   company: string;
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-  };
+  address: string;
   department?: string;
 }
 
@@ -124,7 +115,6 @@ export interface CoverLetter {
     bodyParagraphs: {
       id: string;
       text: string;
-      focus: 'experience' | 'skills' | 'achievements' | 'company_research' | 'education';
       keywords: string[];
     }[];
     
@@ -199,13 +189,13 @@ export interface CoverLetter {
       text: string;
       background: string;
     };
-    layout: 'traditional' | 'modern' | 'creative' | 'minimalist';
+    layout: TemplateLayout;
   };
 
   // Attachments and additional documents
   attachments?: {
     resume: boolean;
-    portfolio: boolean;
+    // portfolio: boolean;
     references: boolean;
     coverLetter: boolean;
     other?: string[];

@@ -10,21 +10,14 @@ export function CreativeTemplate({ coverLetter }: TemplateProps) {
   const yourName = `${applicant.firstName} ${applicant.lastName}`.trim();
   const yourEmail = applicant.contactInfo.email;
   const yourPhone = applicant.contactInfo.phone;
-  const yourAddress = [
-    applicant.contactInfo.address.street,
-    `${applicant.contactInfo.address.city}, ${applicant.contactInfo.address.state} ${applicant.contactInfo.address.zipCode}`,
-    applicant.contactInfo.address.country,
-  ].filter(Boolean).join(' | ');
+  const yourAddress = applicant.contactInfo.address;
   const opening = content.openingParagraph.text;
   const body = content.bodyParagraphs.map(p => p.text).join('\n\n');
   const closing = content.closingParagraph.text;
-  const recipientAddress = [
-    recipient.address.street,
-    `${recipient.address.city}, ${recipient.address.state} ${recipient.address.zipCode}`,
-  ].filter(Boolean).join('\n');
+  const recipientAddress = recipient.address;
 
   return (
-    <div className="bg-white text-gray-800 font-sans p-10 relative overflow-hidden">
+    <div className="bg-white text-gray-800 font-helvetica p-10 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-1/3 h-full bg-gray-100 z-0"></div>
       <div className="relative z-10 grid grid-cols-3 gap-8">
         <div className="col-span-1 pr-8">
@@ -49,12 +42,14 @@ export function CreativeTemplate({ coverLetter }: TemplateProps) {
           <div className="text-right mb-12">
             <p className="font-bold text-lg">{format(new Date(content.date), 'yyyy-MM-dd')}</p>
           </div>
-          <div className="mb-8">
-            <p className="font-bold text-xl">{recipient.name}</p>
-            <p>{recipient.title}</p>
-            <p>{recipient.company}</p>
-            <p className="whitespace-pre-line">{recipientAddress}</p>
-          </div>
+          {(recipient.name || recipient.title || recipient.company || recipient.address) && (
+            <div className="mb-8">
+              {recipient.name && <p className="font-bold text-xl">{recipient.name}</p>}
+              {recipient.title && <p>{recipient.title}</p>}
+              {recipient.company && <p>{recipient.company}</p>}
+              {recipient.address && <p className="whitespace-pre-line">{recipient.address}</p>}
+            </div>
+          )}
 
           <div className="mb-8">
             <p className="font-bold text-2xl mb-4">{opening}</p>

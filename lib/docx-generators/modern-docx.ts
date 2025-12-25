@@ -7,17 +7,11 @@ export async function generateModernDOCX(coverLetter: CoverLetter): Promise<Buff
   const yourName = `${applicant.firstName} ${applicant.lastName}`.trim();
   const yourEmail = applicant.contactInfo.email;
   const yourPhone = applicant.contactInfo.phone;
-  const yourAddress = [
-    applicant.contactInfo.address.street,
-    `${applicant.contactInfo.address.city}, ${applicant.contactInfo.address.state} ${applicant.contactInfo.address.zipCode}`,
-  ].filter(Boolean).join(' • ');
+  const yourAddress = applicant.contactInfo.address
   const opening = content.openingParagraph.text;
   const body = content.bodyParagraphs.map((p) => p.text).join('\n\n');
   const closing = content.closingParagraph.text;
-  const recipientAddress = [
-    recipient.address.street,
-    `${recipient.address.city}, ${recipient.address.state} ${recipient.address.zipCode}`,
-  ].filter(Boolean).join(', ');
+  const recipientAddress = recipient.address
   
   const doc = new Document({
     sections: [{

@@ -44,7 +44,7 @@ export function Navbar() {
         <Plus className="w-4 h-4" aria-hidden="true" />
         Create Resume
       </Link>
-      {/* <Link
+      <Link
         href="/cover-letter"
         className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
           pathname?.startsWith("/cover-letter") ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:text-gray-900"
@@ -54,7 +54,7 @@ export function Navbar() {
         <Plus className="w-4 h-4" aria-hidden="true" />
         Cover Letter
       </Link>
-      <Link
+      {/* <Link
         href="/reviews"
         className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
           pathname === "/reviews" ? "bg-yellow-100 text-yellow-700" : "text-gray-600 hover:text-gray-900"

@@ -1,34 +1,34 @@
 'use client';
 
 import { useCoverLetter } from '@/contexts/CoverLetterContext';
-import { FileText, Download } from 'lucide-react';
+import { FileText, Download, Edit3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { downloadCoverLetterPDF, downloadCoverLetterDOCX } from '@/lib/export/cover-letter';
 import {
   ClassicTemplate,
-  ModernMinimalTemplate,
-  ElegantTemplate,
-  CreativeTemplate,
-  MinimalistTemplate,
 } from '@/components/cover-letters/templates';
 import { CoverLetter } from '@/types/cover-letter';
 import { coverLetterExample } from '@/lib/examples/cover-letter';
 import { CoverLetterTemplateSwitch } from '@/components/cover-letters/cover-letter-template-switch';
-import { ProfessionalStandardTemplate } from '../templates/professional-standard';
+import SplitHeaderTemplate from '../templates/split-header-template';
+import { useState } from 'react';
+import { A4Page } from '@/components/ui/a4-page';
 
-type Layout = 'traditional' | 'modern' | 'creative' | 'minimalist' |'professional';
+import { TemplateLayout } from '@/lib/config/cover-letter-templates';
 
-const templateMap: Record<Layout, React.ComponentType<{ coverLetter: CoverLetter }>> = {
-  traditional: ClassicTemplate,
-  modern: ModernMinimalTemplate,
-  creative: CreativeTemplate,
-  minimalist: MinimalistTemplate,
-  professional:ProfessionalStandardTemplate
+type Layout = TemplateLayout;
+
+const templateMap: Record<Layout, React.ComponentType<{ coverLetter: CoverLetter; editable?: boolean }>> = {
+  classic: ClassicTemplate,
+  'split-header': SplitHeaderTemplate
 };
 
-export function CoverLetterPreview() {
+import { getDefaultTemplate } from '@/lib/config/cover-letter-templates';
+
+export function CoverLetterPreview({ editable = false }: { editable?: boolean }) {
   const { state } = useCoverLetter();
   const { coverLetter } = state;
+  const [isEditing, setIsEditing] = useState(false);
 
   // Derived helpers
   const title: string | undefined = (coverLetter as any)?.title ?? "sample";
@@ -43,14 +43,15 @@ export function CoverLetterPreview() {
     );
   }
 
-  const layout = coverLetter.formatting?.layout ?? 'traditional';
+  const layout = coverLetter.formatting?.layout ?? getDefaultTemplate().value;
   const SelectedTemplate = templateMap[layout] || ClassicTemplate;
 
   return (
     <div className="flex flex-col gap-4">
-     
-
-      <SelectedTemplate coverLetter={coverLetter} />
+    
+      <A4Page withOuterWrapper>
+        <SelectedTemplate coverLetter={coverLetter} editable={isEditing} />
+      </A4Page>
     </div>
   );
 }
