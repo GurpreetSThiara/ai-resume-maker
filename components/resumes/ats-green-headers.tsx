@@ -9,7 +9,7 @@ import { SECTION_TYPES } from "@/types/resume"
 
 
 
-export const ATS_GREEN_HEADERS: React.FC<> = ({
+export const ATS_GREEN_HEADERS: any = ({
   resumeData ,
   setResumeData,
   className = "",
