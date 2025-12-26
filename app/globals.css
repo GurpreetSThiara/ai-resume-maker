@@ -21,6 +21,8 @@
   --accent-foreground: oklch(1 0 0); /* #ffffff */
   --destructive: oklch(0.55 0.2 25); /* #e3342f */
   --destructive-foreground: oklch(1 0 0); /* #ffffff */
+  --success: oklch(0.65 0.15 142); /* #22c55e */
+  --success-foreground: oklch(1 0 0); /* #ffffff */
   --border: oklch(0.9 0 0); /* #e5e7eb */
   --input: oklch(0.98 0 0); /* #f9fafb */
   --ring: oklch(0.6 0.15 180 / 0.5); /* rgba(20, 184, 166, 0.5) */
@@ -78,6 +80,7 @@
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-helvetica: "Helvetica", "Arial", sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

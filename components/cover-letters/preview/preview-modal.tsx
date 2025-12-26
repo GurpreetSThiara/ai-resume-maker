@@ -28,10 +28,8 @@ export function CoverLetterPreviewModal({ open, onOpenChange }: CoverLetterPrevi
             </Button>
           </DialogTitle>
         </DialogHeader>
-        <div className="flex-grow overflow-y-auto">
-          <div className="scale-90 transform origin-top">
-            <CoverLetterPreview />
-          </div>
+        <div className="flex-grow overflow-y-auto flex justify-center items-start">
+          <CoverLetterPreview />
         </div>
       </DialogContent>
     </Dialog>

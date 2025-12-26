@@ -104,6 +104,12 @@ export const CREATE_RESUME_STEPS =  [
   ]  
 
 
+export const CREATE_COVER_LETTER_STEPS = [
+  { id: 0, title: "Details", icon: "👤", description: "Applicant, position, and recipient info" },
+  { id: 1, title: "Content", icon: "📝", description: "Opening, body, and closing paragraphs" },
+  { id: 2, title: "Review", icon: "✨", description: "Final review before download" },
+];
+
 export const CREATE_RESUME_ACHIEVEMENTS = [
     { id: "first_step", title: "Getting Started", icon: <Star className="w-4 h-4" />, unlocked: false },
     { id: "half_way", title: "Halfway Hero", icon: <Zap className="w-4 h-4" />, unlocked: false },

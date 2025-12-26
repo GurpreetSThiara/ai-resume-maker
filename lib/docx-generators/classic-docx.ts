@@ -19,8 +19,20 @@ import { CoverLetter } from '@/types/cover-letter';
 import { format } from 'date-fns';
 
 export async function generateClassicDOCX(coverLetter: CoverLetter): Promise<Buffer> {
-  const { content } = coverLetter;
-  const { yourName, yourEmail, yourPhone, yourAddress, recipient, opening, body, closing } = content;
+  const { applicant, content } = coverLetter;
+  const { recipient } = coverLetter;
+  const yourName = `${applicant.firstName} ${applicant.lastName}`.trim();
+  const yourTitle = applicant.professionalTitle || '';
+  const yourEmail = applicant.contactInfo.email;
+  const yourPhone = applicant.contactInfo.phone;
+  const yourAddress = applicant.contactInfo.address;
+  const yourLinkedin = applicant.contactInfo.linkedin;
+  const yourPortfolio = applicant.contactInfo.portfolio;
+  const yourGithub = applicant.contactInfo.github;
+
+  const opening = content.openingParagraph.text;
+  const body = content.bodyParagraphs.map((p) => p.text).join("\n\n");
+  const closing = content.closingParagraph.text;
 
   const doc = new Document({
     sections: [
@@ -39,7 +51,7 @@ export async function generateClassicDOCX(coverLetter: CoverLetter): Promise<Buf
           // Header with contact info (right-aligned)
           new Paragraph({
             alignment: AlignmentType.RIGHT,
-            spacing: { after: 200 },
+            spacing: { after: 100 },
             children: [
               new TextRun({
                 text: yourName,
@@ -49,6 +61,19 @@ export async function generateClassicDOCX(coverLetter: CoverLetter): Promise<Buf
               }),
             ],
           }),
+          ...(yourTitle && yourTitle.trim() ? [
+            new Paragraph({
+              alignment: AlignmentType.RIGHT,
+              spacing: { after: 100 },
+              children: [
+                new TextRun({
+                  text: yourTitle,
+                  size: 22,
+                  font: 'Times New Roman',
+                }),
+              ],
+            })
+          ] : []),
           new Paragraph({
             alignment: AlignmentType.RIGHT,
             spacing: { after: 100 },
@@ -83,6 +108,27 @@ export async function generateClassicDOCX(coverLetter: CoverLetter): Promise<Buf
             ],
           }),
 
+          // Social links if any exist
+          ...(yourLinkedin || yourPortfolio || yourGithub ? [
+            new Paragraph({
+              alignment: AlignmentType.RIGHT,
+              spacing: { after: 400 },
+              children: [
+                ...[
+                  yourLinkedin ? `LinkedIn: ${yourLinkedin}` : null,
+                  yourPortfolio ? `Portfolio: ${yourPortfolio}` : null,
+                  yourGithub ? `GitHub: ${yourGithub}` : null
+                ].filter(Boolean).join(' | ').split(' | ').map((link, index, array) => 
+                  new TextRun({
+                    text: link + (index < array.length - 1 ? ' | ' : ''),
+                    size: 22,
+                    font: 'Times New Roman',
+                  })
+                )
+              ],
+            }),
+          ] : []),
+
           // Date
           new Paragraph({
             spacing: { after: 400 },
@@ -107,12 +153,12 @@ export async function generateClassicDOCX(coverLetter: CoverLetter): Promise<Buf
               }),
             ],
           }),
-          ...(recipient.position ? [
+          ...(recipient.title ? [
             new Paragraph({
               spacing: { after: 100 },
               children: [
                 new TextRun({
-                  text: recipient.position,
+                  text: recipient.title,
                   size: 22,
                   font: 'Times New Roman',
                 }),

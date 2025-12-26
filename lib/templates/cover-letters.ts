@@ -1,4 +1,5 @@
 import { CoverLetter } from '@/types/cover-letter';
+import { getDefaultTemplate as getConfigDefaultTemplate } from '@/lib/config/cover-letter-templates';
 
 // A default CoverLetter object aligned with the new schema
 export const DEFAULT_COVER_LETTER: CoverLetter = {
@@ -13,7 +14,7 @@ export const DEFAULT_COVER_LETTER: CoverLetter = {
     contactInfo: {
       email: '',
       phone: '',
-      address: { street: '', city: '', state: '', zipCode: '' },
+      address: '',
     },
     summary: '',
   },
@@ -26,7 +27,7 @@ export const DEFAULT_COVER_LETTER: CoverLetter = {
     name: 'Hiring Manager',
     title: '',
     company: '',
-    address: { street: '', city: '', state: '', zipCode: '' },
+    address: '',
   },
   content: {
     date: new Date(),
@@ -37,7 +38,7 @@ export const DEFAULT_COVER_LETTER: CoverLetter = {
       companyMentioned: false,
     },
     bodyParagraphs: [
-      { id: 'p1', text: '', focus: 'experience', keywords: [] },
+      { id: 'p1', text: '', keywords: [] },
     ],
     closingParagraph: { text: '', callToAction: '', availability: '' },
     complimentaryClose: 'Sincerely',
@@ -66,9 +67,9 @@ export const DEFAULT_COVER_LETTER: CoverLetter = {
     lineHeight: 1.5,
     margins: { top: 1440, bottom: 1440, left: 1440, right: 1440 },
     colorScheme: { primary: '#000000', text: '#111111', background: '#FFFFFF' },
-    layout: 'traditional',
+    layout: getConfigDefaultTemplate().value,
   },
-  attachments: { resume: false, portfolio: false, references: false, coverLetter: true, other: [] },
+  attachments: { resume: false, /* portfolio: false, */ references: false, coverLetter: true, other: [] },
   tracking: { status: 'draft' },
 };
 
@@ -99,7 +100,6 @@ export const COVER_LETTER_TEMPLATES: Array<{
             id: 'p1',
             text:
               'In my current role at [Current Company], I have successfully [specific achievement or responsibility].',
-            focus: 'achievements',
             keywords: [],
           },
         ],
@@ -171,4 +171,8 @@ export function getTemplateById(id: string) {
 
 export function getDefaultTemplate() {
   return COVER_LETTER_TEMPLATES[0];
+}
+
+export function getDefaultLayout() {
+  return getConfigDefaultTemplate().value;
 }

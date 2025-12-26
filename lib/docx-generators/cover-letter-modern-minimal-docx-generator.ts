@@ -7,23 +7,12 @@ export async function generateModernMinimalDOCX(coverLetter: CoverLetter): Promi
   const yourName = `${applicant.firstName} ${applicant.lastName}`.trim()
   const yourEmail = applicant.contactInfo.email
   const yourPhone = applicant.contactInfo.phone
-  const yourAddress = [
-    applicant.contactInfo.address.street,
-    `${applicant.contactInfo.address.city}, ${applicant.contactInfo.address.state} ${applicant.contactInfo.address.zipCode}`,
-    applicant.contactInfo.address.country,
-  ]
-    .filter(Boolean)
-    .join(" | ")
+  const yourAddress = applicant.contactInfo.address
 
   const opening = content.openingParagraph.text
   const body = content.bodyParagraphs.map((p) => p.text).join("\n\n")
   const closing = content.closingParagraph.text
-  const recipientAddress = [
-    recipient.address.street,
-    `${recipient.address.city}, ${recipient.address.state} ${recipient.address.zipCode}`,
-  ]
-    .filter(Boolean)
-    .join("\n")
+  const recipientAddress = recipient.address
 
   const doc = new Document({
     sections: [
@@ -47,6 +36,7 @@ export async function generateModernMinimalDOCX(coverLetter: CoverLetter): Promi
                 bold: true,
                 size: 36, // 18pt
                 color: "1a1a1a",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 120 },
@@ -59,6 +49,7 @@ export async function generateModernMinimalDOCX(coverLetter: CoverLetter): Promi
                 text: `${yourEmail} | ${yourPhone}`,
                 size: 20, // 10pt
                 color: "666666",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 60 },
@@ -70,6 +61,7 @@ export async function generateModernMinimalDOCX(coverLetter: CoverLetter): Promi
                 text: yourAddress,
                 size: 20, // 10pt
                 color: "666666",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 240 },
@@ -90,6 +82,7 @@ export async function generateModernMinimalDOCX(coverLetter: CoverLetter): Promi
                 text: format(new Date(content.date), "MMMM d, yyyy"),
                 size: 20, // 10pt
                 color: "666666",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 240 },
@@ -103,6 +96,7 @@ export async function generateModernMinimalDOCX(coverLetter: CoverLetter): Promi
                 bold: true,
                 size: 22, // 11pt
                 color: "1a1a1a",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 60 },
@@ -114,6 +108,7 @@ export async function generateModernMinimalDOCX(coverLetter: CoverLetter): Promi
                 text: recipient.title,
                 size: 22, // 11pt
                 color: "4d4d4d",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 60 },
@@ -125,6 +120,7 @@ export async function generateModernMinimalDOCX(coverLetter: CoverLetter): Promi
                 text: recipient.company,
                 size: 22, // 11pt
                 color: "4d4d4d",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 60 },
@@ -136,6 +132,7 @@ export async function generateModernMinimalDOCX(coverLetter: CoverLetter): Promi
                 text: recipientAddress,
                 size: 20, // 10pt
                 color: "666666",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 240 },
@@ -148,6 +145,7 @@ export async function generateModernMinimalDOCX(coverLetter: CoverLetter): Promi
                 text: opening,
                 size: 22, // 11pt
                 color: "1a1a1a",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 240, line: 360 }, // 1.5 line spacing
@@ -159,6 +157,7 @@ export async function generateModernMinimalDOCX(coverLetter: CoverLetter): Promi
                 text: body,
                 size: 22, // 11pt
                 color: "1a1a1a",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 240, line: 360 },
@@ -170,6 +169,7 @@ export async function generateModernMinimalDOCX(coverLetter: CoverLetter): Promi
                 text: closing,
                 size: 22, // 11pt
                 color: "1a1a1a",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 240, line: 360 },
@@ -183,6 +183,7 @@ export async function generateModernMinimalDOCX(coverLetter: CoverLetter): Promi
                 bold: true,
                 size: 22, // 11pt
                 color: "1a1a1a",
+                font: "Helvetica",
               }),
             ],
             spacing: { before: 240 },

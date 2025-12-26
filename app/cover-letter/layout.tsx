@@ -1,7 +1,8 @@
-'use client';
-
 import { ReactNode } from 'react';
 import { CoverLetterProvider } from '@/contexts/CoverLetterContext';
+import { metadata } from './metadata';
+
+export { metadata };
 
 export default function CoverLetterLayout({
   children,

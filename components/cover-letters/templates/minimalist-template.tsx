@@ -10,21 +10,14 @@ export function MinimalistTemplate({ coverLetter }: TemplateProps) {
   const yourName = `${applicant.firstName} ${applicant.lastName}`.trim();
   const yourEmail = applicant.contactInfo.email;
   const yourPhone = applicant.contactInfo.phone;
-  const yourAddress = [
-    applicant.contactInfo.address.street,
-    `${applicant.contactInfo.address.city}, ${applicant.contactInfo.address.state} ${applicant.contactInfo.address.zipCode}`,
-    applicant.contactInfo.address.country,
-  ].filter(Boolean).join(' | ');
+  const yourAddress = applicant.contactInfo.address;
   const opening = content.openingParagraph.text;
   const body = content.bodyParagraphs.map(p => p.text).join('\n\n');
   const closing = content.closingParagraph.text;
-  const recipientAddress = [
-    recipient.address.street,
-    `${recipient.address.city}, ${recipient.address.state} ${recipient.address.zipCode}`,
-  ].filter(Boolean).join('\n');
+  const recipientAddress = recipient.address;
 
   return (
-    <div className="bg-white text-gray-900 font-sans p-12">
+    <div className="bg-white text-gray-900 font-helvetica p-12">
       <div className="flex justify-between items-start mb-16">
         <div>
           <h1 className="text-2xl font-bold tracking-wider">{yourName}</h1>
@@ -36,13 +29,15 @@ export function MinimalistTemplate({ coverLetter }: TemplateProps) {
         </div>
       </div>
 
-      <div className="mb-12 text-sm">
-        <p className="font-bold">{recipient.name}</p>
-        <p>{recipient.title}</p>
-        <p>{recipient.company}</p>
-        <p className="whitespace-pre-line">{recipientAddress}</p>
-        <p className="mt-4">{format(new Date(content.date), 'dd MMMM yyyy')}</p>
-      </div>
+      {(recipient.name || recipient.title || recipient.company || recipient.address) && (
+        <div className="mb-12 text-sm">
+          {recipient.name && <p className="font-bold">{recipient.name}</p>}
+          {recipient.title && <p>{recipient.title}</p>}
+          {recipient.company && <p>{recipient.company}</p>}
+          {recipient.address && <p className="whitespace-pre-line">{recipient.address}</p>}
+          <p className="mt-4">{format(new Date(content.date), 'dd MMMM yyyy')}</p>
+        </div>
+      )}
 
       <div className="mb-8">
         <p className="font-bold text-base mb-4">{opening}</p>

@@ -10,24 +10,17 @@ export function ElegantTemplate({ coverLetter }: TemplateProps) {
   const yourName = `${applicant.firstName} ${applicant.lastName}`.trim();
   const yourEmail = applicant.contactInfo.email;
   const yourPhone = applicant.contactInfo.phone;
-  const yourAddress = [
-    applicant.contactInfo.address.street,
-    `${applicant.contactInfo.address.city}, ${applicant.contactInfo.address.state} ${applicant.contactInfo.address.zipCode}`,
-    applicant.contactInfo.address.country,
-  ].filter(Boolean).join(' | ');
+  const yourAddress = applicant.contactInfo.address;
   const opening = content.openingParagraph.text;
   const body = content.bodyParagraphs.map(p => p.text).join('\n\n');
   const closing = content.closingParagraph.text;
-  const recipientAddress = [
-    recipient.address.street,
-    `${recipient.address.city}, ${recipient.address.state} ${recipient.address.zipCode}`,
-  ].filter(Boolean).join('\n');
+  const recipientAddress = recipient.address;
 
   return (
-    <div className="bg-white text-gray-700 font-serif p-12 max-w-4xl mx-auto border-t-8 border-b-8 border-gray-800">
+    <div className="bg-white text-gray-700 font-helvetica p-12 max-w-4xl mx-auto border-t-8 border-b-8 border-gray-800">
       <div className="text-center mb-12">
         <h1 className="text-5xl font-extrabold tracking-widest uppercase mb-2">{yourName}</h1>
-        <p className="text-sm tracking-widest">{yourAddress} | {yourPhone} | {yourEmail}</p>
+        <p className="text-sm tracking-widest">{[yourAddress, yourPhone, yourEmail].filter(Boolean).join(' | ')}</p>
       </div>
 
       <div className="grid grid-cols-4 gap-8">
@@ -38,10 +31,14 @@ export function ElegantTemplate({ coverLetter }: TemplateProps) {
         <div className="col-span-3">
           <p>{format(new Date(content.date), 'MMMM d, yyyy')}</p>
           <div className="mt-4">
-            <p className="font-bold">{recipient.name}</p>
-            <p>{recipient.title}</p>
-            <p>{recipient.company}</p>
-            <p className="whitespace-pre-line">{recipientAddress}</p>
+            {(recipient.name || recipient.title || recipient.company || recipient.address) && (
+              <>
+                {recipient.name && <p className="font-bold">{recipient.name}</p>}
+                {recipient.title && <p>{recipient.title}</p>}
+                {recipient.company && <p>{recipient.company}</p>}
+                {recipient.address && <p className="whitespace-pre-line">{recipient.address}</p>}
+              </>
+            )}
           </div>
         </div>
       </div>

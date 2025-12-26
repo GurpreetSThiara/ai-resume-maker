@@ -2,7 +2,7 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
 import type { CoverLetter } from "@/types/cover-letter"
 import { format } from "date-fns"
 
-export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<Uint8Array> {
+export async function generateSplitHeaderPDF(coverLetter: CoverLetter): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create()
   let page = pdfDoc.addPage([612, 792])
 
@@ -22,6 +22,7 @@ export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<
   const opening = content.openingParagraph.text
   const body = content.bodyParagraphs.map((p) => p.text).join("\n\n")
   const closing = content.closingParagraph.text
+  const salutation = content.salutation
   const recipientAddress = recipient.address
 
   let yPosition = 720
@@ -37,32 +38,37 @@ export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<
     }
   }
 
-  // Simple block header
-  checkAndCreateNewPage(20)
+  // Split Header Layout
+  checkAndCreateNewPage(40)
+  
+  // Left Side - Name (bold at top left)
   page.drawText(yourName, {
     x: 72,
     y: yPosition,
-    size: 16,
+    size: 20,
     font: helveticaBold,
     color: rgb(0, 0, 0),
   })
-  yPosition -= 15
+  yPosition -= 25
 
   // Professional title if exists
   if (yourTitle) {
-    checkAndCreateNewPage(15)
+    checkAndCreateNewPage(20)
     page.drawText(yourTitle, {
       x: 72,
       y: yPosition,
-      size: 11,
+      size: 12,
       font: helvetica,
-      color: rgb(0, 0, 0),
+      color: rgb(0.4, 0.4, 0.4),
     })
-    yPosition -= 15
+    yPosition -= 18
   }
 
-  // Helper function to wrap text
-  const wrapText = (text: string, maxWidth: number) => {
+  // Right Side - Contact Info (top right)
+  let rightYPosition = 720
+  
+  // Helper function to wrap text for right side
+  const wrapTextForRightSide = (text: string, maxWidth: number) => {
     const words = text.split(' ')
     const lines = []
     let currentLine = ''
@@ -92,83 +98,66 @@ export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<
     return lines
   }
   
-  // Address with proper wrapping - only if address exists
-  if (yourAddress) {
-    const applicantAddressLines = wrapText(yourAddress, 468) // 468 points max width (612 - 72 - 72)
-    applicantAddressLines.forEach((line) => {
-      checkAndCreateNewPage(15)
-      page.drawText(line, {
-        x: 72,
-        y: yPosition,
-        size: 11,
-        font: helvetica,
-        color: rgb(0, 0, 0),
-      })
-      yPosition -= 15
-    })
-  }
-
-  // Contact info - phone and email with conditional separator
-  const contactInfoParts = []
-  if (yourPhone) contactInfoParts.push(yourPhone)
-  if (yourEmail) contactInfoParts.push(yourEmail)
-  
-  if (contactInfoParts.length > 0) {
+  // Address with proper wrapping
+  const applicantAddressLines = wrapTextForRightSide(yourAddress, 200) // 200 points max width
+  applicantAddressLines.forEach((line) => {
     checkAndCreateNewPage(15)
-    page.drawText(contactInfoParts.join(' | '), {
-      x: 72,
-      y: yPosition,
+    const textWidth = helvetica.widthOfTextAtSize(line, 11)
+    page.drawText(line, {
+      x: 540 - textWidth, // Right align: 540 (page width - right margin) - text width
+      y: rightYPosition,
       size: 11,
       font: helvetica,
-      color: rgb(0, 0, 0),
+      color: rgb(0.4, 0.4, 0.4),
     })
-    yPosition -= 15
-  }
+    rightYPosition -= 15
+  })
 
-  // Social links if any exist - with proper text wrapping keeping complete links together
+  checkAndCreateNewPage(15)
+  const phoneTextWidth = helvetica.widthOfTextAtSize(yourPhone, 11)
+  page.drawText(yourPhone, {
+    x: 540 - phoneTextWidth, // Right align
+    y: rightYPosition,
+    size: 11,
+    font: helvetica,
+    color: rgb(0.4, 0.4, 0.4),
+  })
+  rightYPosition -= 15
+
+  checkAndCreateNewPage(15)
+  const emailTextWidth = helvetica.widthOfTextAtSize(yourEmail, 11)
+  page.drawText(yourEmail, {
+    x: 540 - emailTextWidth, // Right align
+    y: rightYPosition,
+    size: 11,
+    font: helvetica,
+    color: rgb(0.4, 0.4, 0.4),
+  })
+  rightYPosition -= 15
+
+  // Social links if any exist
   const socialLinks = []
   if (yourLinkedin) socialLinks.push(yourLinkedin)
   // if (yourPortfolio) socialLinks.push(`Portfolio: ${yourPortfolio}`)
   // if (yourGithub) socialLinks.push(`GitHub: ${yourGithub}`)
   
   if (socialLinks.length > 0) {
-    let currentLine = ''
-    
-    socialLinks.forEach((socialLink, index) => {
-      const testLine = currentLine + (currentLine ? ' | ' : '') + socialLink
-      const textWidth = helvetica.widthOfTextAtSize(testLine, 11)
-      
-      if (textWidth > 468) {
-        if (currentLine) {
-          checkAndCreateNewPage(lineHeight)
-          page.drawText(currentLine, {
-            x: 72,
-            y: yPosition,
-            size: 11,
-            font: helvetica,
-            color: rgb(0, 0, 0),
-          })
-          yPosition -= lineHeight
-        }
-        currentLine = socialLink
-      } else {
-        currentLine = testLine
-      }
-    })
-    
-    if (currentLine) {
-      checkAndCreateNewPage(lineHeight)
-      page.drawText(currentLine, {
-        x: 72,
-        y: yPosition,
+    socialLinks.forEach((socialLink) => {
+      checkAndCreateNewPage(15)
+      const socialTextWidth = helvetica.widthOfTextAtSize(socialLink, 11)
+      page.drawText(socialLink, {
+        x: 540 - socialTextWidth, // Right align
+        y: rightYPosition,
         size: 11,
         font: helvetica,
-        color: rgb(0, 0, 0),
+        color: rgb(0.4, 0.4, 0.4),
       })
-      yPosition -= lineHeight
-    }
+      rightYPosition -= 15
+    })
   }
-  yPosition -= 20
+
+  // Reset yPosition to account for the right side content
+  yPosition = Math.min(yPosition, rightYPosition) - 30
 
   // Date
   checkAndCreateNewPage(25)
@@ -177,69 +166,59 @@ export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<
     y: yPosition,
     size: 11,
     font: helvetica,
-    color: rgb(0, 0, 0),
+    color: rgb(0.4, 0.4, 0.4),
   })
   yPosition -= 25
 
-  // Recipient block - only show if recipient fields exist
-  if (recipient.name || recipient.title || recipient.company || recipientAddress) {
-    if (recipient.name) {
-      checkAndCreateNewPage(15)
-      page.drawText(recipient.name, {
-        x: 72,
-        y: yPosition,
-        size: 11,
-        font: helvetica,
-        color: rgb(0, 0, 0),
-      })
-      yPosition -= 15
-    }
+  // Recipient Information
+  checkAndCreateNewPage(20)
+  page.drawText(recipient.name, {
+    x: 72,
+    y: yPosition,
+    size: 11,
+    font: helveticaBold,
+    color: rgb(0, 0, 0),
+  })
+  yPosition -= 15
 
-    if (recipient.title) {
-      checkAndCreateNewPage(15)
-      page.drawText(recipient.title, {
-        x: 72,
-        y: yPosition,
-        size: 11,
-        font: helvetica,
-        color: rgb(0, 0, 0),
-      })
-      yPosition -= 15
-    }
+  checkAndCreateNewPage(15)
+  page.drawText(recipient.title, {
+    x: 72,
+    y: yPosition,
+    size: 11,
+    font: helvetica,
+    color: rgb(0.4, 0.4, 0.4),
+  })
+  yPosition -= 15
 
-    if (recipient.company) {
-      checkAndCreateNewPage(15)
-      page.drawText(recipient.company, {
-        x: 72,
-        y: yPosition,
-        size: 11,
-        font: helvetica,
-        color: rgb(0, 0, 0),
-      })
-      yPosition -= 15
-    }
+  checkAndCreateNewPage(15)
+  page.drawText(recipient.company, {
+    x: 72,
+    y: yPosition,
+    size: 11,
+    font: helvetica,
+    color: rgb(0.4, 0.4, 0.4),
+  })
+  yPosition -= 15
 
-    if (recipientAddress) {
-      const recipientAddressLines = recipientAddress.split("\n")
-      recipientAddressLines.forEach((line) => {
-        checkAndCreateNewPage(15)
-        page.drawText(line, {
-          x: 72,
-          y: yPosition,
-          size: 11,
-          font: helvetica,
-          color: rgb(0, 0, 0),
-        })
-        yPosition -= 15
-      })
-    }
-    yPosition -= 20
-  }
+  const recipientAddressLines = recipientAddress.split("\n")
+  recipientAddressLines.forEach((line) => {
+    checkAndCreateNewPage(15)
+    page.drawText(line, {
+      x: 72,
+      y: yPosition,
+      size: 11,
+      font: helvetica,
+      color: rgb(0.4, 0.4, 0.4),
+    })
+    yPosition -= 15
+  })
+  yPosition -= 20
 
   // Salutation
-  if (content.salutation) {
+  if (salutation) {
     checkAndCreateNewPage(20)
-    page.drawText(content.salutation, {
+    page.drawText(salutation, {
       x: 72,
       y: yPosition,
       size: 11,

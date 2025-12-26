@@ -7,10 +7,7 @@ export async function generateElegantDOCX(coverLetter: CoverLetter): Promise<Buf
   const yourName = `${applicant.firstName} ${applicant.lastName}`.trim();
   const yourEmail = applicant.contactInfo.email;
   const yourPhone = applicant.contactInfo.phone;
-  const yourAddress = [
-    applicant.contactInfo.address.street,
-    `${applicant.contactInfo.address.city}, ${applicant.contactInfo.address.state} ${applicant.contactInfo.address.zipCode}`,
-  ].filter(Boolean).join(' ');
+  const yourAddress = applicant.contactInfo.address
   const opening = content.openingParagraph.text;
   const body = content.bodyParagraphs.map((p) => p.text).join('\n\n');
   const closing = content.closingParagraph.text;
@@ -129,7 +126,7 @@ export async function generateElegantDOCX(coverLetter: CoverLetter): Promise<Buf
             spacing: { after: 400 },
             children: [
               new TextRun({
-                text: `${recipient.address.street}, ${recipient.address.city}, ${recipient.address.state} ${recipient.address.zipCode}`,
+                text: recipient.address,
                 size: 18,
                 font: 'Georgia',
               }),

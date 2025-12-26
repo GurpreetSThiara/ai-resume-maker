@@ -1,6 +1,7 @@
 import { CoverLetter } from '@/types/cover-letter'
 import { generateCoverLetterPDF } from '@/lib/pdf-generators/cover-letter-generator'
 import { generateCoverLetterDOCX } from '@/lib/docx-generators/cover-letter-generator'
+import { getDefaultTemplate, COVER_LETTER_TEMPLATES } from '@/lib/config/cover-letter-templates'
 
 function triggerDownload(data: BlobPart, filename: string, mime: string) {
   const blob = new Blob([data], { type: mime })
@@ -14,20 +15,19 @@ function triggerDownload(data: BlobPart, filename: string, mime: string) {
   window.URL.revokeObjectURL(url)
 }
 
-export async function downloadCoverLetterPDF({coverLetter,templateName}: {coverLetter: CoverLetter, templateName: string}) {
+export async function downloadCoverLetterPDF({coverLetter, templateName}: {coverLetter: CoverLetter, templateName: string}) {
 
   let downloadFunction;
-  if (templateName === 'modern') {
-    downloadFunction = (await import('@/lib/pdf-generators/cover-letter-modern-minimal-generator')).generateModernMinimalPDF;
-  } else if (templateName === 'professional') {
-    downloadFunction = (await import('@/lib/pdf-generators/cover-letter-professional-standard-generator')).generateProfessionalStandardPDF;
+  if (templateName === COVER_LETTER_TEMPLATES['split-header'].value) {
+    downloadFunction = (await import('@/lib/pdf-generators/cover-letter-split-header-generator')).generateSplitHeaderPDF;
   } else {
+    // Default to classic template
     downloadFunction = generateCoverLetterPDF;
   }
 
   const bytes = await downloadFunction(coverLetter);
   
-  triggerDownload(bytes, `sample.pdf`, 'application/pdf');
+  triggerDownload(new Uint8Array(bytes), `sample.pdf`, 'application/pdf');
 
   //triggerDownload(bytes, `${coverLetter.title.replace(/\s/g, '_')}.pdf`, 'application/pdf')
 }
@@ -35,11 +35,10 @@ export async function downloadCoverLetterPDF({coverLetter,templateName}: {coverL
 
 export async function downloadCoverLetterDOCX({coverLetter, templateName}: {coverLetter: CoverLetter, templateName: string}) {
   let downloadFunction;
-  if (templateName === 'modern') {
-    downloadFunction = (await import('@/lib/docx-generators/cover-letter-modern-minimal-docx-generator')).generateModernMinimalDOCX;
-  } else if (templateName === 'professional') {
-    downloadFunction = (await import('@/lib/docx-generators/cover-letter-professional-docx')).generateProfessionalStandardDOCX;
+  if (templateName === COVER_LETTER_TEMPLATES['split-header'].value) {
+    downloadFunction = (await import('@/lib/docx-generators/cover-letter-split-header-docx')).generateSplitHeaderDOCX;
   } else {
+    // Default to classic template
     downloadFunction = generateCoverLetterDOCX;
   }
 

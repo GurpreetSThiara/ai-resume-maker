@@ -7,23 +7,12 @@ export async function generateProfessionalStandardDOCX(coverLetter: CoverLetter)
   const yourName = `${applicant.firstName} ${applicant.lastName}`.trim()
   const yourEmail = applicant.contactInfo.email
   const yourPhone = applicant.contactInfo.phone
-  const yourAddress = [
-    applicant.contactInfo.address.street,
-    `${applicant.contactInfo.address.city}, ${applicant.contactInfo.address.state} ${applicant.contactInfo.address.zipCode}`,
-    applicant.contactInfo.address.country,
-  ]
-    .filter(Boolean)
-    .join(", ")
+  const yourAddress = applicant.contactInfo.address
 
   const opening = content.openingParagraph.text
   const body = content.bodyParagraphs.map((p) => p.text).join("\n\n")
   const closing = content.closingParagraph.text
-  const recipientAddress = [
-    recipient.address.street,
-    `${recipient.address.city}, ${recipient.address.state} ${recipient.address.zipCode}`,
-  ]
-    .filter(Boolean)
-    .join("\n")
+  const recipientAddress = recipient.address
 
   const doc = new Document({
     sections: [
@@ -47,6 +36,7 @@ export async function generateProfessionalStandardDOCX(coverLetter: CoverLetter)
                 bold: true,
                 size: 28, // 14pt
                 color: "000000",
+                font: "Helvetica",
               }),
             ],
             alignment: AlignmentType.CENTER,
@@ -59,6 +49,7 @@ export async function generateProfessionalStandardDOCX(coverLetter: CoverLetter)
                 text: yourAddress,
                 size: 20, // 10pt
                 color: "000000",
+                font: "Helvetica",
               }),
             ],
             alignment: AlignmentType.CENTER,
@@ -71,6 +62,7 @@ export async function generateProfessionalStandardDOCX(coverLetter: CoverLetter)
                 text: `${yourPhone} • ${yourEmail}`,
                 size: 20, // 10pt
                 color: "000000",
+                font: "Helvetica",
               }),
             ],
             alignment: AlignmentType.CENTER,
@@ -84,6 +76,7 @@ export async function generateProfessionalStandardDOCX(coverLetter: CoverLetter)
                 text: format(new Date(content.date), "MMMM d, yyyy"),
                 size: 22, // 11pt
                 color: "000000",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 240 },
@@ -96,6 +89,7 @@ export async function generateProfessionalStandardDOCX(coverLetter: CoverLetter)
                 text: recipient.name,
                 size: 22, // 11pt
                 color: "000000",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 60 },
@@ -107,6 +101,7 @@ export async function generateProfessionalStandardDOCX(coverLetter: CoverLetter)
                 text: recipient.title,
                 size: 22, // 11pt
                 color: "000000",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 60 },
@@ -118,6 +113,7 @@ export async function generateProfessionalStandardDOCX(coverLetter: CoverLetter)
                 text: recipient.company,
                 size: 22, // 11pt
                 color: "000000",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 60 },
@@ -129,6 +125,7 @@ export async function generateProfessionalStandardDOCX(coverLetter: CoverLetter)
                 text: recipientAddress,
                 size: 22, // 11pt
                 color: "000000",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 240 },
@@ -142,6 +139,7 @@ export async function generateProfessionalStandardDOCX(coverLetter: CoverLetter)
                 bold: true,
                 size: 22, // 11pt
                 color: "000000",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 240 },
@@ -154,6 +152,7 @@ export async function generateProfessionalStandardDOCX(coverLetter: CoverLetter)
                 text: opening,
                 size: 22, // 11pt
                 color: "000000",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 160 },
@@ -165,6 +164,7 @@ export async function generateProfessionalStandardDOCX(coverLetter: CoverLetter)
                 text: body,
                 size: 22, // 11pt
                 color: "000000",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 160 },
@@ -176,6 +176,7 @@ export async function generateProfessionalStandardDOCX(coverLetter: CoverLetter)
                 text: closing,
                 size: 22, // 11pt
                 color: "000000",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 240 },
@@ -188,6 +189,7 @@ export async function generateProfessionalStandardDOCX(coverLetter: CoverLetter)
                 text: "Sincerely,",
                 size: 22, // 11pt
                 color: "000000",
+                font: "Helvetica",
               }),
             ],
             spacing: { after: 240 },
@@ -200,6 +202,7 @@ export async function generateProfessionalStandardDOCX(coverLetter: CoverLetter)
                 bold: true,
                 size: 22, // 11pt
                 color: "000000",
+                font: "Helvetica",
               }),
             ],
           }),
