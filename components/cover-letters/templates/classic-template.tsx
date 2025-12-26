@@ -73,32 +73,40 @@ export function ClassicTemplate() {
           {applicant.professionalTitle}
         </p>
         <div className="text-sm text-gray-600">
-          <p
-            contentEditable
-            suppressContentEditableWarning
-            onBlur={(e) => handleApplicantContactUpdate('address', e.currentTarget.textContent || '')}
-            className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
-          >
-            {applicant.contactInfo.address}
-          </p>
-          <div className="flex flex-wrap gap-x-3">
-            <span
+          {applicant.contactInfo.address && (
+            <p
               contentEditable
               suppressContentEditableWarning
-              onBlur={(e) => handleApplicantContactUpdate('phone', e.currentTarget.textContent || '')}
+              onBlur={(e) => handleApplicantContactUpdate('address', e.currentTarget.textContent || '')}
               className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
             >
-              {applicant.contactInfo.phone}
-            </span>
-            <span className="text-gray-400">•</span>
-            <span
-              contentEditable
-              suppressContentEditableWarning
-              onBlur={(e) => handleApplicantContactUpdate('email', e.currentTarget.textContent || '')}
-              className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
-            >
-              {applicant.contactInfo.email}
-            </span>
+              {applicant.contactInfo.address}
+            </p>
+          )}
+          <div className="text-sm space-y-1">
+            {applicant.contactInfo.phone && (
+              <span
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={(e) => handleApplicantContactUpdate('phone', e.currentTarget.textContent || '')}
+                className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
+              >
+                {applicant.contactInfo.phone}
+              </span>
+            )}
+            {applicant.contactInfo.phone && applicant.contactInfo.email && (
+              <span className="text-gray-400">|</span>
+            )}
+            {applicant.contactInfo.email && (
+              <span
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={(e) => handleApplicantContactUpdate('email', e.currentTarget.textContent || '')}
+                className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
+              >
+                {applicant.contactInfo.email}
+              </span>
+            )}
           </div>
           {(applicant.contactInfo.linkedin /* || applicant.contactInfo.portfolio || applicant.contactInfo.github */) && (
             <div className="flex flex-wrap gap-x-3 mt-1">
@@ -228,14 +236,16 @@ export function ClassicTemplate() {
 
       {/* Salutation */}
       <div className="mb-4">
-        <p
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={(e) => handleContentUpdate('salutation', e.currentTarget.textContent || '')}
-          className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
-        >
-          {content.salutation || "Dear Hiring Manager,"}
-        </p>
+        {content.salutation && (
+          <p
+            contentEditable
+            suppressContentEditableWarning
+            onBlur={(e) => handleContentUpdate('salutation', e.currentTarget.textContent || '')}
+            className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
+          >
+            {content.salutation}
+          </p>
+        )}
       </div>
 
       {/* Content Blocks */}

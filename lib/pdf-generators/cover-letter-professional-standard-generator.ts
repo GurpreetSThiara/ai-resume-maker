@@ -57,16 +57,22 @@ export async function generateProfessionalStandardPDF(coverLetter: CoverLetter):
   yPosition -= 15
 
   checkAndCreateNewPage(15)
-  const contactInfo = `${yourPhone} • ${yourEmail}`
-  const contactWidth = helvetica.widthOfTextAtSize(contactInfo, 10)
-  page.drawText(contactInfo, {
-    x: (612 - contactWidth) / 2,
-    y: yPosition,
-    size: 10,
-    font: helvetica,
-    color: rgb(0, 0, 0),
-  })
-  yPosition -= 50
+  const contactInfoParts = []
+  if (yourPhone) contactInfoParts.push(yourPhone)
+  if (yourEmail) contactInfoParts.push(yourEmail)
+  
+  if (contactInfoParts.length > 0) {
+    const contactInfo = contactInfoParts.join(' | ')
+    const contactWidth = helvetica.widthOfTextAtSize(contactInfo, 10)
+    page.drawText(contactInfo, {
+      x: (612 - contactWidth) / 2,
+      y: yPosition,
+      size: 10,
+      font: helvetica,
+      color: rgb(0, 0, 0),
+    })
+    yPosition -= 15
+  }
 
   // Date
   checkAndCreateNewPage(35)

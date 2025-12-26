@@ -45,14 +45,20 @@ export async function generateModernMinimalPDF(coverLetter: CoverLetter): Promis
   yPosition -= 25
 
   checkAndCreateNewPage(15)
-  page.drawText(`${yourEmail} | ${yourPhone}`, {
-    x: 64,
-    y: yPosition,
-    size: 10,
-    font: helvetica,
-    color: rgb(0.4, 0.4, 0.4),
-  })
-  yPosition -= 15
+  const contactInfoParts = []
+  if (yourEmail) contactInfoParts.push(yourEmail)
+  if (yourPhone) contactInfoParts.push(yourPhone)
+  
+  if (contactInfoParts.length > 0) {
+    page.drawText(contactInfoParts.join(' | '), {
+      x: 64,
+      y: yPosition,
+      size: 10,
+      font: helvetica,
+      color: rgb(0.4, 0.4, 0.4),
+    })
+    yPosition -= 15
+  }
 
   checkAndCreateNewPage(15)
   page.drawText(yourAddress, {

@@ -92,11 +92,30 @@ export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<
     return lines
   }
   
-  // Address with proper wrapping
-  const applicantAddressLines = wrapText(yourAddress, 468) // 468 points max width (612 - 72 - 72)
-  applicantAddressLines.forEach((line) => {
+  // Address with proper wrapping - only if address exists
+  if (yourAddress) {
+    const applicantAddressLines = wrapText(yourAddress, 468) // 468 points max width (612 - 72 - 72)
+    applicantAddressLines.forEach((line) => {
+      checkAndCreateNewPage(15)
+      page.drawText(line, {
+        x: 72,
+        y: yPosition,
+        size: 11,
+        font: helvetica,
+        color: rgb(0, 0, 0),
+      })
+      yPosition -= 15
+    })
+  }
+
+  // Contact info - phone and email with conditional separator
+  const contactInfoParts = []
+  if (yourPhone) contactInfoParts.push(yourPhone)
+  if (yourEmail) contactInfoParts.push(yourEmail)
+  
+  if (contactInfoParts.length > 0) {
     checkAndCreateNewPage(15)
-    page.drawText(line, {
+    page.drawText(contactInfoParts.join(' | '), {
       x: 72,
       y: yPosition,
       size: 11,
@@ -104,17 +123,7 @@ export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<
       color: rgb(0, 0, 0),
     })
     yPosition -= 15
-  })
-
-  checkAndCreateNewPage(15)
-  page.drawText(`${yourPhone} | ${yourEmail}`, {
-    x: 72,
-    y: yPosition,
-    size: 11,
-    font: helvetica,
-    color: rgb(0, 0, 0),
-  })
-  yPosition -= 15
+  }
 
   // Social links if any exist - with proper text wrapping keeping complete links together
   const socialLinks = []
@@ -172,61 +181,73 @@ export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<
   })
   yPosition -= 25
 
-  // Recipient block
-  checkAndCreateNewPage(15)
-  page.drawText(recipient.name, {
-    x: 72,
-    y: yPosition,
-    size: 11,
-    font: helvetica,
-    color: rgb(0, 0, 0),
-  })
-  yPosition -= 15
+  // Recipient block - only show if recipient fields exist
+  if (recipient.name || recipient.title || recipient.company || recipientAddress) {
+    if (recipient.name) {
+      checkAndCreateNewPage(15)
+      page.drawText(recipient.name, {
+        x: 72,
+        y: yPosition,
+        size: 11,
+        font: helvetica,
+        color: rgb(0, 0, 0),
+      })
+      yPosition -= 15
+    }
 
-  checkAndCreateNewPage(15)
-  page.drawText(recipient.title, {
-    x: 72,
-    y: yPosition,
-    size: 11,
-    font: helvetica,
-    color: rgb(0, 0, 0),
-  })
-  yPosition -= 15
+    if (recipient.title) {
+      checkAndCreateNewPage(15)
+      page.drawText(recipient.title, {
+        x: 72,
+        y: yPosition,
+        size: 11,
+        font: helvetica,
+        color: rgb(0, 0, 0),
+      })
+      yPosition -= 15
+    }
 
-  checkAndCreateNewPage(15)
-  page.drawText(recipient.company, {
-    x: 72,
-    y: yPosition,
-    size: 11,
-    font: helvetica,
-    color: rgb(0, 0, 0),
-  })
-  yPosition -= 15
+    if (recipient.company) {
+      checkAndCreateNewPage(15)
+      page.drawText(recipient.company, {
+        x: 72,
+        y: yPosition,
+        size: 11,
+        font: helvetica,
+        color: rgb(0, 0, 0),
+      })
+      yPosition -= 15
+    }
 
-  const recipientAddressLines = recipientAddress.split("\n")
-  recipientAddressLines.forEach((line) => {
-    checkAndCreateNewPage(15)
-    page.drawText(line, {
+    if (recipientAddress) {
+      const recipientAddressLines = recipientAddress.split("\n")
+      recipientAddressLines.forEach((line) => {
+        checkAndCreateNewPage(15)
+        page.drawText(line, {
+          x: 72,
+          y: yPosition,
+          size: 11,
+          font: helvetica,
+          color: rgb(0, 0, 0),
+        })
+        yPosition -= 15
+      })
+    }
+    yPosition -= 20
+  }
+
+  // Salutation
+  if (content.salutation) {
+    checkAndCreateNewPage(20)
+    page.drawText(content.salutation, {
       x: 72,
       y: yPosition,
       size: 11,
       font: helvetica,
       color: rgb(0, 0, 0),
     })
-    yPosition -= 15
-  })
-  yPosition -= 20
-
-  // Salutation
-  checkAndCreateNewPage(20)
-  page.drawText(`Dear ${recipient.name},`, {
-    x: 72,
-    y: yPosition,
-    size: 11,
-    font: helvetica,
-    color: rgb(0, 0, 0),
-  })
-  yPosition -= 20
+    yPosition -= 20
+  }
 
   // Content paragraphs
   const paragraphs = [opening, body, closing]

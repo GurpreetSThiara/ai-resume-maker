@@ -20,7 +20,7 @@ export function ElegantTemplate({ coverLetter }: TemplateProps) {
     <div className="bg-white text-gray-700 font-helvetica p-12 max-w-4xl mx-auto border-t-8 border-b-8 border-gray-800">
       <div className="text-center mb-12">
         <h1 className="text-5xl font-extrabold tracking-widest uppercase mb-2">{yourName}</h1>
-        <p className="text-sm tracking-widest">{yourAddress} | {yourPhone} | {yourEmail}</p>
+        <p className="text-sm tracking-widest">{[yourAddress, yourPhone, yourEmail].filter(Boolean).join(' | ')}</p>
       </div>
 
       <div className="grid grid-cols-4 gap-8">

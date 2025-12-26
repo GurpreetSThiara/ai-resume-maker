@@ -72,33 +72,41 @@ export function ModernMinimalTemplate() {
           {applicant.professionalTitle}
         </p>
         <div className="text-sm text-gray-500 space-y-1">
-          <div className="flex flex-wrap gap-x-3">
-            <span
+          {applicant.contactInfo.email && (
+            <div className="flex flex-wrap gap-x-3">
+              <span
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={(e) => handleApplicantContactUpdate('email', e.currentTarget.textContent || '')}
+                className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
+              >
+                {applicant.contactInfo.email}
+              </span>
+              {applicant.contactInfo.phone && (
+                <>
+                  <span className="text-gray-400">|</span>
+                  <span
+                    contentEditable
+                    suppressContentEditableWarning
+                    onBlur={(e) => handleApplicantContactUpdate('phone', e.currentTarget.textContent || '')}
+                    className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
+                  >
+                    {applicant.contactInfo.phone}
+                  </span>
+                </>
+              )}
+            </div>
+          )}
+          {applicant.contactInfo.address && (
+            <p
               contentEditable
               suppressContentEditableWarning
-              onBlur={(e) => handleApplicantContactUpdate('email', e.currentTarget.textContent || '')}
+              onBlur={(e) => handleApplicantContactUpdate('address', e.currentTarget.textContent || '')}
               className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
             >
-              {applicant.contactInfo.email}
-            </span>
-            <span className="text-gray-400">•</span>
-            <span
-              contentEditable
-              suppressContentEditableWarning
-              onBlur={(e) => handleApplicantContactUpdate('phone', e.currentTarget.textContent || '')}
-              className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
-            >
-              {applicant.contactInfo.phone}
-            </span>
-          </div>
-          <p
-            contentEditable
-            suppressContentEditableWarning
-            onBlur={(e) => handleApplicantContactUpdate('address', e.currentTarget.textContent || '')}
-            className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
-          >
-            {applicant.contactInfo.address}
-          </p>
+              {applicant.contactInfo.address}
+            </p>
+          )}
           {(applicant.contactInfo.linkedin /* || applicant.contactInfo.portfolio || applicant.contactInfo.github */) && (
             <div className="flex flex-wrap gap-x-3">
               {applicant.contactInfo.linkedin && (
@@ -227,14 +235,16 @@ export function ModernMinimalTemplate() {
 
       {/* Salutation */}
       <div className="mb-6">
-        <p
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={(e) => handleContentUpdate('salutation', e.currentTarget.textContent || '')}
-          className="text-gray-900 outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
-        >
-          {content.salutation || "Dear Hiring Manager,"}
-        </p>
+        {content.salutation && (
+          <p
+            contentEditable
+            suppressContentEditableWarning
+            onBlur={(e) => handleContentUpdate('salutation', e.currentTarget.textContent || '')}
+            className="text-gray-900 outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
+          >
+            {content.salutation}
+          </p>
+        )}
       </div>
 
       {/* Content */}

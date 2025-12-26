@@ -43,13 +43,9 @@ export default function SplitHeaderTemplate({ coverLetter }: SplitHeaderTemplate
     updateCoverLetter({ recipient: { ...recipient, [field]: value } })
   }
 
-  const handleContentChange = (field: string, value: string) => {
-    if (field === 'opening') {
-      updateContent({ openingParagraph: { ...content.openingParagraph, text: value } })
-    } else if (field === 'closing') {
-      updateContent({ closingParagraph: { ...content.closingParagraph, text: value } })
-    }
-  }
+  const handleContentUpdate = (field: keyof CoverLetter['content'], value: any) => {
+    updateContent({ [field]: value });
+  };
 
   const handleBodyUpdate = (index: number, value: string) => {
     const updated = [...content.bodyParagraphs]
@@ -97,30 +93,36 @@ export default function SplitHeaderTemplate({ coverLetter }: SplitHeaderTemplate
         {/* Right Side - Contact Info */}
         <div className="flex-1 text-right">
           <div className="text-sm text-gray-600 space-y-1">
-            <p
-              contentEditable
-              suppressContentEditableWarning
-              onBlur={(e) => handleApplicantChange('address', e.currentTarget.textContent || '')}
-              className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1 whitespace-pre-line"
-            >
-              {yourAddress}
-            </p>
-            <p
-              contentEditable
-              suppressContentEditableWarning
-              onBlur={(e) => handleApplicantChange('phone', e.currentTarget.textContent || '')}
-              className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
-            >
-              {yourPhone}
-            </p>
-            <p
-              contentEditable
-              suppressContentEditableWarning
-              onBlur={(e) => handleApplicantChange('email', e.currentTarget.textContent || '')}
-              className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
-            >
-              {yourEmail}
-            </p>
+            {yourAddress && (
+              <p
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={(e) => handleApplicantChange('address', e.currentTarget.textContent || '')}
+                className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1 whitespace-pre-line"
+              >
+                {yourAddress}
+              </p>
+            )}
+            {yourPhone && (
+              <p
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={(e) => handleApplicantChange('phone', e.currentTarget.textContent || '')}
+                className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
+              >
+                {yourPhone}
+              </p>
+            )}
+            {yourEmail && (
+              <p
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={(e) => handleApplicantChange('email', e.currentTarget.textContent || '')}
+                className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
+              >
+                {yourEmail}
+              </p>
+            )}
             {(yourLinkedin) && (
               <div className="pt-1 space-y-1">
                 <p
@@ -173,48 +175,71 @@ export default function SplitHeaderTemplate({ coverLetter }: SplitHeaderTemplate
       </div>
 
       {/* Recipient Information */}
-      <div className="mb-6">
-        <p
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={(e) => handleRecipientChange('name', e.currentTarget.textContent || '')}
-          className="text-sm font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
-        >
-          {recipient.name}
-        </p>
-        <p
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={(e) => handleRecipientChange('title', e.currentTarget.textContent || '')}
-          className="text-sm text-gray-600 outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
-        >
-          {recipient.title}
-        </p>
-        <p
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={(e) => handleRecipientChange('company', e.currentTarget.textContent || '')}
-          className="text-sm text-gray-600 outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
-        >
-          {recipient.company}
-        </p>
-        <p
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={(e) => handleRecipientChange('address', e.currentTarget.textContent || '')}
-          className="text-sm text-gray-600 outline-none focus:ring-2 focus:ring-blue-300 rounded px-1 whitespace-pre-line"
-        >
-          {recipientAddress}
-        </p>
-      </div>
+      {(recipient.name || recipient.title || recipient.company || recipientAddress) && (
+        <div className="mb-6">
+          {recipient.name && (
+            <p
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={(e) => handleRecipientChange('name', e.currentTarget.textContent || '')}
+              className="text-sm font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
+            >
+              {recipient.name}
+            </p>
+          )}
+          {recipient.title && (
+            <p
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={(e) => handleRecipientChange('title', e.currentTarget.textContent || '')}
+              className="text-sm text-gray-600 outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
+            >
+              {recipient.title}
+            </p>
+          )}
+          {recipient.company && (
+            <p
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={(e) => handleRecipientChange('company', e.currentTarget.textContent || '')}
+              className="text-sm text-gray-600 outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
+            >
+              {recipient.company}
+            </p>
+          )}
+          {recipientAddress && (
+            <p
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={(e) => handleRecipientChange('address', e.currentTarget.textContent || '')}
+              className="text-sm text-gray-600 outline-none focus:ring-2 focus:ring-blue-300 rounded px-1 whitespace-pre-line"
+            >
+              {recipientAddress}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Content */}
       <div className="space-y-4 mb-6">
+        {/* Salutation */}
+        <div className="text-sm leading-relaxed">
+          {content.salutation && (
+            <p
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={(e) => handleContentUpdate('salutation', e.currentTarget.textContent || '')}
+              className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1 whitespace-pre-wrap"
+            >
+              {content.salutation}
+            </p>
+          )}
+        </div>
         <div className="text-sm leading-relaxed">
           <p
             contentEditable
             suppressContentEditableWarning
-            onBlur={(e) => handleContentChange('opening', e.currentTarget.textContent || '')}
+            onBlur={(e) => handleContentUpdate('openingParagraph', { ...content.openingParagraph, text: e.currentTarget.textContent || '' })}
             className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1 whitespace-pre-wrap"
           >
             {opening}
@@ -237,7 +262,7 @@ export default function SplitHeaderTemplate({ coverLetter }: SplitHeaderTemplate
           <p
             contentEditable
             suppressContentEditableWarning
-            onBlur={(e) => handleContentChange('closing', e.currentTarget.textContent || '')}
+            onBlur={(e) => handleContentUpdate('closingParagraph', { ...content.closingParagraph, text: e.currentTarget.textContent || '' })}
             className="outline-none focus:ring-2 focus:ring-blue-300 rounded px-1 whitespace-pre-wrap"
           >
             {closing}

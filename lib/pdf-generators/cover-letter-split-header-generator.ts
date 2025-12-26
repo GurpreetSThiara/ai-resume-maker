@@ -22,6 +22,7 @@ export async function generateSplitHeaderPDF(coverLetter: CoverLetter): Promise<
   const opening = content.openingParagraph.text
   const body = content.bodyParagraphs.map((p) => p.text).join("\n\n")
   const closing = content.closingParagraph.text
+  const salutation = content.salutation
   const recipientAddress = recipient.address
 
   let yPosition = 720
@@ -214,16 +215,18 @@ export async function generateSplitHeaderPDF(coverLetter: CoverLetter): Promise<
   })
   yPosition -= 20
 
-  // Subject Line
-  checkAndCreateNewPage(20)
-  page.drawText("RE: Application for Position", {
-    x: 72,
-    y: yPosition,
-    size: 11,
-    font: helveticaBold,
-    color: rgb(0, 0, 0),
-  })
-  yPosition -= 25
+  // Salutation
+  if (salutation) {
+    checkAndCreateNewPage(20)
+    page.drawText(salutation, {
+      x: 72,
+      y: yPosition,
+      size: 11,
+      font: helvetica,
+      color: rgb(0, 0, 0),
+    })
+    yPosition -= 20
+  }
 
   // Content paragraphs
   const paragraphs = [opening, body, closing]

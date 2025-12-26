@@ -219,19 +219,20 @@ export async function generateSplitHeaderDOCX(coverLetter: CoverLetter): Promise
             })
           ),
 
-          // Subject Line
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: "RE: Application for Position",
-                bold: true,
-                size: 22, // 11pt
-                color: "000000",
-                font: "Helvetica",
-              }),
-            ],
-            spacing: { after: 240 },
-          }),
+          // Salutation
+          ...(content.salutation ? [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: content.salutation,
+                  size: 22, // 11pt
+                  color: "000000",
+                  font: "Helvetica",
+                }),
+              ],
+              spacing: { after: 200 },
+            }),
+          ] : []),
 
           // Content paragraphs
           new Paragraph({
