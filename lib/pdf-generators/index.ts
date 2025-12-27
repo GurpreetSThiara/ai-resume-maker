@@ -49,8 +49,14 @@ export async function generateResumePDF(options: PDFGenerationOptions) {
 
   let result
   switch (template.id) {
-    case "google":
+    case "classic-blue":
       result = await generateGooglePDF(filteredOptions)
+      break
+    case "ats-compact-lines":
+      result = await generateGooglePDF({
+        ...filteredOptions,
+        variant: "black_compact",
+      } as any)
       break
     case "modern":
       result = await generateModernResumePDF(filteredOptions)

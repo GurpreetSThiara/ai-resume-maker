@@ -19,6 +19,7 @@ import { Eye, Star, Menu } from "lucide-react"
 import { SectionManagement } from "@/components/section-management"
 import DownloadDropDown from "@/components/global/DropDown/DropDown"
 import type { ResumeData, ResumeTemplate, Section } from "@/types/resume"
+import { useRouter, useSearchParams } from "next/navigation"
 
 interface CreateResumeHeaderProps {
   sectionsWithOrder: Section[]
@@ -45,6 +46,9 @@ export function CreateResumeHeader({
   effectiveAiEnabled,
   setModalOpen,
 }: CreateResumeHeaderProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
 const renderControls = () => (
   <div className="w-full flex flex-wrap items-center gap-3">
 
@@ -76,7 +80,13 @@ const renderControls = () => (
       value={selectedTemplate.id}
       onValueChange={(value) => {
         const t = availableTemplates.find((t) => t.id === value)
-        if (t) setSelectedTemplate(t)
+        if (t) {
+          setSelectedTemplate(t)
+          // Update URL silently with new template
+          const params = new URLSearchParams(searchParams.toString())
+          params.set('template', t.id)
+          router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false })
+        }
       }}
     >
       <SelectTrigger className="h-10 px-4 rounded-md text-sm w-48 flex items-center">

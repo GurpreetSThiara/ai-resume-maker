@@ -6,6 +6,8 @@ type Project = {
   link?: string
   repo?: string
   description?: string[]
+  startDate?: string
+  endDate?: string
 }
 
 type Props = {
@@ -100,7 +102,7 @@ export default function ProjectSection({
                     Link
                   </a>
                 )}
-                {proj.link && proj.repo && <span className="mx-1 text-gray-300">|</span>}
+                {proj.link && proj.repo && <span className="mx-2"></span>}
                 {proj.repo && (
                   <a href={proj.repo} target="_blank" rel="noreferrer" className="hover:underline" style={{ color: linkColor }}>
                     GitHub

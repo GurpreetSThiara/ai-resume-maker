@@ -218,12 +218,33 @@ Now, based on the raw resume text provided by the user, generate the ResumeData 
     const result = response.choices?.[0]?.message?.content?.trim()
     if (!result) return new Response("No response from model", { status: 500 })
 
+    // Try to parse as JSON first
     try {
       const parsed = JSON.parse(result)
       return Response.json(parsed)
-    } catch {
-      // fallback if AI didn’t return valid JSON
-      return new Response(result, { status: 200 })
+    } catch (parseError) {
+      // If direct parsing fails, try to extract JSON from the response
+      try {
+        // Look for JSON object in the response
+        const jsonMatch = result.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const extractedJson = jsonMatch[0];
+          const parsed = JSON.parse(extractedJson);
+          return Response.json(parsed);
+        }
+      } catch (extractError) {
+        console.error("Failed to extract JSON from response:", extractError);
+      }
+      
+      // If all parsing attempts fail, return error to trigger retry
+      console.error("AI response is not valid JSON, will trigger retry");
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid JSON response from AI service",
+          rawResponse: result.substring(0, 500) // First 500 chars for debugging
+        }),
+        { status: 422 }
+      );
     }
 
   } catch (error) {
