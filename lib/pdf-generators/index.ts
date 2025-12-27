@@ -64,6 +64,12 @@ export async function generateResumePDF(options: PDFGenerationOptions) {
     case "ats-classic":
       result = await generateClassic2ResumePDF(filteredOptions)
       break
+    case "ats-classic-compact":
+      result = await generateClassic2ResumePDF({
+        ...filteredOptions,
+        variant: "compact",
+      } as any)
+      break
     case "ats-elegant":
       result = await generateElegantResumePDF(filteredOptions)
       break

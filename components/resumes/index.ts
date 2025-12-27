@@ -3,7 +3,7 @@ import { RESUME_NAMES } from '@/config/resumeConfig';
 import {  ATS_GREEN_HEADERS } from './ats-green-headers';
 import { ClassicATSResume } from './ats-classic';
 import { GoogleResume } from './google-resume';
-import { ATS_GREEN, ATS_YELLOW, ATS_TIMELINE, atsCompactLinesTemplate } from '@/lib/templates';
+import { ATS_GREEN, ATS_YELLOW, ATS_TIMELINE, atsCompactLinesTemplate, atsClassicCompactTemplate } from '@/lib/templates';
 import { ATS_YELLOW_HEADERS } from './ats-yellow-headers';
 import { ATS_TIMELINE as ATS_TIMELINE_COMPONENT } from './ats-timeline';
 
@@ -16,6 +16,9 @@ export async function getResumePreview(options: any) {
      return GoogleResume
 
     case 'ats-classic':
+      return ClassicATSResume
+
+    case 'ats-classic-compact':
       return ClassicATSResume
 
     case ATS_GREEN.id:

@@ -3,7 +3,11 @@ import type { PDFGenerationOptions } from "@/types/resume"
 import { sanitizeTextForPdf, sanitizeTextForPdfWithFont } from "@/lib/utils"
 import { drawProjectsSection } from '@/lib/pdf/sections/projects'
 
-export async function generateClassic2ResumePDF({ resumeData, filename = "resume.pdf" }: PDFGenerationOptions) {
+export async function generateClassic2ResumePDF({ 
+  resumeData, 
+  filename = "resume.pdf",
+  variant = "default"
+}: PDFGenerationOptions & { variant?: "default" | "compact" }) {
   const pdfDoc = await PDFDocument.create()
   let currentPage = pdfDoc.addPage([595.276, 841.89]) // A4
 
@@ -13,7 +17,8 @@ export async function generateClassic2ResumePDF({ resumeData, filename = "resume
 
   // Layout settings
   let yOffset = 800
-  const margin = 50
+  const isCompact = variant === "compact"
+  const margin = isCompact ? 35 : 50  // Even smaller margins for compact
   const pageWidth = 595.276 - 2 * margin
 
   const textColor = rgb(0, 0, 0) // Pure black for ATS
@@ -66,34 +71,34 @@ export async function generateClassic2ResumePDF({ resumeData, filename = "resume
   }
 
   // === HEADER ===
-  draw(resumeData.basics.name, margin, 22, boldFont, textColor)
-  yOffset -= 30
+  draw(resumeData.basics.name, margin, isCompact ? 18 : 22, boldFont, textColor)
+  yOffset -= isCompact ? 20 : 30
 
   if (resumeData.basics.email) {
-    draw(resumeData.basics.email, margin, 11, regularFont, textColor)
-    yOffset -= 14
+    draw(resumeData.basics.email, margin, isCompact ? 9 : 11, regularFont, textColor)
+    yOffset -= isCompact ? 10 : 14
   }
   if (resumeData.basics.phone) {
-    draw(resumeData.basics.phone, margin, 11, regularFont, textColor)
-    yOffset -= 14
+    draw(resumeData.basics.phone, margin, isCompact ? 9 : 11, regularFont, textColor)
+    yOffset -= isCompact ? 10 : 14
   }
   if (resumeData.basics.location) {
-    draw(resumeData.basics.location, margin, 11, regularFont, textColor)
-    yOffset -= 14
+    draw(resumeData.basics.location, margin, isCompact ? 9 : 11, regularFont, textColor)
+    yOffset -= isCompact ? 10 : 14
   }
   if (resumeData.basics.linkedin) {
-    draw(resumeData.basics.linkedin, margin, 11, regularFont, textColor)
-    yOffset -= 20
+    draw(resumeData.basics.linkedin, margin, isCompact ? 9 : 11, regularFont, textColor)
+    yOffset -= isCompact ? 12 : 20
   }
 
   // === SUMMARY ===
   if (resumeData.basics.summary) {
-    const lines = wrapText(resumeData.basics.summary, pageWidth, regularFont, 11)
+    const lines = wrapText(resumeData.basics.summary, pageWidth, regularFont, isCompact ? 9 : 11)
     for (const line of lines) {
-      draw(line, margin, 11, regularFont, textColor)
-      yOffset -= 14
+      draw(line, margin, isCompact ? 9 : 11, regularFont, textColor)
+      yOffset -= isCompact ? 10 : 14
     }
-    yOffset -= 10
+    yOffset -= isCompact ? 6 : 10
   }
 
   // === CUSTOM FIELDS (Flex Layout) ===
@@ -156,81 +161,81 @@ export async function generateClassic2ResumePDF({ resumeData, filename = "resume
 
   // === SECTIONS ===
   for (const section of resumeData.sections) {
-    ensureSpace(30)
+    ensureSpace(isCompact ? 20 : 30)
 
     // Section header
-    draw(section.title.toUpperCase(), margin, 13, boldFont, textColor)
-    yOffset -= 20
+    draw(section.title.toUpperCase(), margin, isCompact ? 11 : 13, boldFont, textColor)
+    yOffset -= isCompact ? 12 : 20
 
     switch (section.type) {
       case "experience":
         for (const exp of section.items) {
-          ensureSpace(50)
+          ensureSpace(isCompact ? 35 : 50)
 
           // Company + dates
-          draw(exp.company, margin, 12, boldFont, textColor)
+          draw(exp.company, margin, isCompact ? 10 : 12, boldFont, textColor)
           const dateText = `${exp.startDate} - ${exp.endDate}`
-          const dateWidth = regularFont.widthOfTextAtSize(dateText, 10)
-          draw(dateText, margin + pageWidth - dateWidth, 10, regularFont, secondaryColor)
-          yOffset -= 14
+          const dateWidth = regularFont.widthOfTextAtSize(dateText, isCompact ? 8 : 10)
+          draw(dateText, margin + pageWidth - dateWidth, isCompact ? 8 : 10, regularFont, secondaryColor)
+          yOffset -= isCompact ? 10 : 14
 
           // Role
           if (exp.role) {
-            draw(exp.role, margin, 11, regularFont, textColor)
-            yOffset -= 14
+            draw(exp.role, margin, isCompact ? 9 : 11, regularFont, textColor)
+            yOffset -= isCompact ? 10 : 14
           }
 
           // Location
           if (exp.location) {
-            draw(exp.location, margin, 10, regularFont, secondaryColor)
-            yOffset -= 14
+            draw(exp.location, margin, isCompact ? 8 : 10, regularFont, secondaryColor)
+            yOffset -= isCompact ? 10 : 14
           }
 
           // Achievements
           if (exp.achievements?.length) {
             for (const achievement of exp.achievements) {
-              ensureSpace(12)
-              const lines = wrapText(`- ${achievement}`, pageWidth - 20, regularFont, 10)
+              ensureSpace(isCompact ? 8 : 12)
+              const lines = wrapText(`- ${achievement}`, pageWidth - 20, regularFont, isCompact ? 8 : 10)
               for (const line of lines) {
-                draw(line, margin + 15, 10, regularFont, textColor)
-                yOffset -= 12
+                draw(line, margin + 15, isCompact ? 8 : 10, regularFont, textColor)
+                yOffset -= isCompact ? 8 : 12
               }
             }
           }
-          yOffset -= 16
+          yOffset -= isCompact ? 8 : 16
         }
         break
 
       case "education":
         for (const edu of section.items) {
-          ensureSpace(50)
+          ensureSpace(isCompact ? 35 : 50)
 
-          draw(edu.institution, margin, 12, boldFont, textColor)
+          draw(edu.institution, margin, isCompact ? 10 : 12, boldFont, textColor)
           const dateText = `${edu.startDate} - ${edu.endDate}`
-          const dateWidth = regularFont.widthOfTextAtSize(dateText, 10)
-          draw(dateText, margin + pageWidth - dateWidth, 10, regularFont, secondaryColor)
-          yOffset -= 14
+          const dateWidth = regularFont.widthOfTextAtSize(dateText, isCompact ? 8 : 10)
+          draw(dateText, margin + pageWidth - dateWidth, isCompact ? 8 : 10, regularFont, secondaryColor)
+          yOffset -= isCompact ? 10 : 14
 
           if (edu.degree) {
-            draw(edu.degree, margin, 11, regularFont, textColor)
-            yOffset -= 14
+            draw(edu.degree, margin, isCompact ? 9 : 11, regularFont, textColor)
+            yOffset -= isCompact ? 10 : 14
           }
           if (edu.location) {
-            draw(edu.location, margin, 10, regularFont, secondaryColor)
-            yOffset -= 14
+            draw(edu.location, margin, isCompact ? 8 : 10, regularFont, secondaryColor)
+            yOffset -= isCompact ? 10 : 14
           }
 
           if (edu.highlights?.length) {
             for (const highlight of edu.highlights) {
-              ensureSpace(12)
-              const lines = wrapText(`- ${highlight}`, pageWidth - 20, regularFont, 10)
+              ensureSpace(isCompact ? 8 : 12)
+              const lines = wrapText(`- ${highlight}`, pageWidth - 20, regularFont, isCompact ? 8 : 10)
               for (const line of lines) {
-                draw(line, margin + 15, 10, regularFont, textColor)
-                yOffset -= 12
+                draw(line, margin + 15, isCompact ? 8 : 10, regularFont, textColor)
+                yOffset -= isCompact ? 8 : 12
               }
             }
           }
-          yOffset -= 16
+          yOffset -= isCompact ? 8 : 16
         }
         break
 
@@ -238,12 +243,12 @@ export async function generateClassic2ResumePDF({ resumeData, filename = "resume
       case "languages":
       case "certifications":
         if (section.items?.length) {
-          const lines = wrapText(section.items.join(", "), pageWidth - 20, regularFont, 10)
+          const lines = wrapText(section.items.join(", "), pageWidth - 20, regularFont, isCompact ? 8 : 10)
           for (const line of lines) {
-            draw(line, margin + 15, 10, regularFont, textColor)
-            yOffset -= 12
+            draw(line, margin + 15, isCompact ? 8 : 10, regularFont, textColor)
+            yOffset -= isCompact ? 8 : 12
           }
-          yOffset -= 16
+          yOffset -= isCompact ? 12 : 16
         }
         break
 
@@ -261,116 +266,127 @@ export async function generateClassic2ResumePDF({ resumeData, filename = "resume
         break
 
       case "projects":
-        case "projects":
-  if (section.items && section.items.length) {
-    for (const proj of section.items) {
-      ensureSpace(40);
+        if (section.items && section.items.length) {
+          for (const proj of section.items) {
+            ensureSpace(isCompact ? 35 : 40);
 
-      // Project title
-      const title = proj.name || "";
-      currentPage.drawText(sanitizeForFont(title, boldFont), {
-        x: margin,
-        y: yOffset,
-        size: 13,
-        font: boldFont,
-        color: textColor,
-      });
-      let cursorX = margin + boldFont.widthOfTextAtSize(title, 13) + 8;
-
-
-      // Links (if present, with clickable annotations)
-      if (proj.link || proj.repo) {
-        const parts = [];
-        if (proj.link) parts.push({ label: "Link", url: proj.link });
-        if (proj.repo) parts.push({ label: "GitHub", url: proj.repo });
-        if (parts.length) {
-          const gap = "  |  ";
-          for (let i = 0; i < parts.length; i++) {
-            const p = parts[i];
-            const text = p.label;
-            const safe = sanitizeForFont(text, regularFont);
-            const w = regularFont.widthOfTextAtSize(safe, 9);
-            // Draw link text
-            currentPage.drawText(safe, {
-              x: cursorX,
+            // Project title
+            const title = proj.name || "";
+            currentPage.drawText(sanitizeForFont(title, boldFont), {
+              x: margin,
               y: yOffset,
-              size: 9,
-              font: regularFont,
-              color: rgb(0,0,0.66),
+              size: isCompact ? 11 : 13,
+              font: boldFont,
+              color: textColor,
             });
-            // Add clickable annotation if url exists
-            if (p.url) {
-              const linkHeight = 9 * 1.2;
-              const annotY = yOffset - (9 * 0.2);
-              const pdfDocCtx = currentPage.doc;
-              const context = pdfDocCtx.context;
-              const linkAnnotation = context.obj({
-                Type: PDFName.of('Annot'),
-                Subtype: PDFName.of('Link'),
-                Rect: [cursorX, annotY, cursorX + w, annotY + linkHeight],
-                Border: [0, 0, 0],
-                C: [0, 0, 1],
-                A: {
-                  Type: PDFName.of('Action'),
-                  S: PDFName.of('URI'),
-                  URI: PDFString.of(p.url),
-                  NewWindow: true
+
+            yOffset -= isCompact ? 14 : 19; // Space below title
+
+            // Links (if present, with clickable annotations) - Flex wrap strategy
+            if (proj.link || proj.repo) {
+              const links = [];
+              if (proj.link) links.push({ label: "Live demo:", url: proj.link });
+              if (proj.repo) links.push({ label: "Github:", url: proj.repo });
+              
+              if (links.length) {
+                let linkY = yOffset;
+                let linkX = margin;
+                
+                for (let i = 0; i < links.length; i++) {
+                  const link = links[i];
+                  const labelText = link.label;
+                  const urlText = link.url;
+                  const fullText = `${labelText} ${urlText}`;
+                  const safeLabel = sanitizeForFont(labelText, regularFont);
+                  const safeFull = sanitizeForFont(fullText, regularFont);
+                  
+                  const labelWidth = regularFont.widthOfTextAtSize(safeLabel, isCompact ? 8 : 9);
+                  const fullWidth = regularFont.widthOfTextAtSize(safeFull, isCompact ? 8 : 9);
+                  
+                  // Check if we need to wrap to next line
+                  if (linkX + fullWidth > pageWidth + margin && i > 0) {
+                    linkY -= (isCompact ? 12 : 14);
+                    linkX = margin;
+                  }
+                  
+                  // Draw label
+                  currentPage.drawText(safeLabel, {
+                    x: linkX,
+                    y: linkY,
+                    size: isCompact ? 8 : 9,
+                    font: boldFont,
+                    color: textColor,
+                  });
+                  
+                  // Draw URL
+                  currentPage.drawText(safeFull.substring(labelText.length), {
+                    x: linkX + labelWidth + 8, // Add 8px spacing between label and URL
+                    y: linkY,
+                    size: isCompact ? 8 : 9,
+                    font: regularFont,
+                    color: rgb(0,0,0.66),
+                  });
+                  
+                  // Add clickable annotation for the URL part
+                  const linkHeight = (isCompact ? 8 : 9) * 1.2;
+                  const annotY = linkY - ((isCompact ? 8 : 9) * 0.2);
+                  const pdfDocCtx = currentPage.doc;
+                  const context = pdfDocCtx.context;
+                  const linkAnnotation = context.obj({
+                    Type: PDFName.of('Annot'),
+                    Subtype: PDFName.of('Link'),
+                    Rect: [linkX + labelWidth + 8, annotY, linkX + fullWidth + 8, annotY + linkHeight], // Adjust for spacing
+                    Border: [0, 0, 0],
+                    C: [0, 0, 1],
+                    A: {
+                      Type: PDFName.of('Action'),
+                      S: PDFName.of('URI'),
+                      URI: PDFString.of(link.url),
+                      NewWindow: true
+                    }
+                  });
+                  const linkAnnotationRef = context.register(linkAnnotation);
+                  const annots = currentPage.node.lookup(PDFName.of('Annots'));
+                  if (annots) {
+                    (annots as any).push(linkAnnotationRef);
+                  } else {
+                    currentPage.node.set(PDFName.of('Annots'), context.obj([linkAnnotationRef]));
+                  }
+                  
+                  // Move to next link position
+                  linkX += fullWidth + 15; // Add space between links
                 }
-              });
-              const linkAnnotationRef = context.register(linkAnnotation);
-              const annots = currentPage.node.lookup(PDFName.of('Annots'));
-              if (annots) {
-                annots.push(linkAnnotationRef);
-              } else {
-                currentPage.node.set(PDFName.of('Annots'), context.obj([linkAnnotationRef]));
+                
+                yOffset -= (isCompact ? 16 : 19); // Space below links
               }
             }
-            cursorX += w;
-            // Gap between links
-            if (i < parts.length - 1) {
-              const gw = regularFont.widthOfTextAtSize(gap, 9);
-              currentPage.drawText(gap, {
-                x: cursorX,
-                y: yOffset,
-                size: 9,
-                font: regularFont,
-                color: rgb(0,0,0.66),
-              });
-              cursorX += gw;
+
+            // Description bullets (if any)
+            if (Array.isArray(proj.description) && proj.description.length) {
+              for (const d of proj.description) {
+                const bullet = "• ";
+                const indentX = margin + 16;
+                const maxWidth = pageWidth - 26;
+                const lines = wrapText(`${bullet}${d}`, maxWidth, regularFont, isCompact ? 9 : 10);
+                for (const line of lines) {
+                  ensureSpace(isCompact ? 10 : 12);
+                  currentPage.drawText(sanitizeForFont(line, regularFont), {
+                    x: indentX,
+                    y: yOffset,
+                    size: isCompact ? 9 : 10,
+                    font: regularFont,
+                    color: secondaryColor,
+                  });
+                  yOffset -= isCompact ? 10 : 12;
+                }
+              }
             }
+
+            yOffset -= isCompact ? 12 : 14; // Space after each project
           }
         }
-      }
+        break;
 
-      yOffset -= 19; // Space below title + links
-
-      // Description bullets (if any)
-      if (Array.isArray(proj.description) && proj.description.length) {
-        for (const d of proj.description) {
-          const bullet = "• ";
-          const indentX = margin + 16;
-          const maxWidth = pageWidth - 26;
-          const lines = wrapText(`${bullet}${d}`, maxWidth, regularFont, 10);
-          for (const line of lines) {
-            ensureSpace(12);
-            currentPage.drawText(sanitizeForFont(line, regularFont), {
-              x: indentX,
-              y: yOffset,
-              size: 10,
-              font: regularFont,
-              color: secondaryColor,
-            });
-            yOffset -= 12;
-          }
-        }
-      }
-
-      yOffset -= 14; // Space after each project
-    }
-  }
-  break;
-
-;
     }
   }
 

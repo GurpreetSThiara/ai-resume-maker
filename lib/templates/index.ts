@@ -185,6 +185,59 @@ export const ATS_TIMELINE: ResumeTemplate = {
 
 
 
+export const atsClassicCompactTemplate: ResumeTemplate = {
+  id: "ats-classic-compact",
+  name: "ATS Classic Compact",
+  description: "Compact version of ATS Classic with reduced spacing and no decorative lines for maximum content density.",
+  theme: {
+    fontSize: {
+      name: "text-3xl",
+      section: "text-xl",
+      content: "text-base",
+      small: "text-sm",
+    },
+    colors: {
+      primary: "text-gray-800",
+      secondary: "text-gray-500",
+      text: "text-gray-900",
+      accent: "text-gray-700",
+    },
+    spacing: {
+      section: "mb-6",
+      item: "mb-3",
+      content: "mb-1",
+    },
+    layout: {
+      container: "max-w-4xl mx-auto bg-white shadow rounded-lg overflow-hidden",
+      header: "border-b p-4",
+      content: "p-6",
+    },
+  },
+  pdfConfig: {
+    fonts: {
+      regular: "TimesRoman",
+      bold: "TimesRomanBold",
+    },
+    sizes: {
+      name: 20,
+      section: 14,
+      content: 12,
+      small: 10,
+    },
+    colors: {
+      text: { r: 0.1, g: 0.1, b: 0.1 },
+      heading: { r: 0.2, g: 0.2, b: 0.2 },
+      secondary: { r: 0.4, g: 0.4, b: 0.4 },
+      linkColor: { r: 0, g: 0, b: 1 },
+    },
+    spacing: {
+      page: 15,
+      section: 18,
+      item: 10,
+    },
+  },
+}
+
 export const availableTemplates: ResumeTemplate[] = [
   googleTemplate,
  // modernTemplate,
@@ -192,7 +245,8 @@ export const availableTemplates: ResumeTemplate[] = [
   ATS_GREEN,
   ATS_YELLOW,
   ATS_TIMELINE,
-  atsCompactLinesTemplate
+  atsCompactLinesTemplate,
+  atsClassicCompactTemplate
  // elegantATSTemplate,
  // compactATSTemplate,
   //creativeATSTemplate,

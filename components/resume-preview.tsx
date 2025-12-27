@@ -5,7 +5,7 @@ import { useRef, useEffect, forwardRef, useState } from "react"
 import type { ResumeData, ResumeTemplate, Section } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { getResumePreview } from "./resumes"
-import { atsCompactLinesTemplate } from "@/lib/templates"
+import { atsCompactLinesTemplate, atsClassicCompactTemplate } from "@/lib/templates"
 
 interface ResumePreviewProps {
   resumeData: ResumeData
@@ -154,7 +154,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
           resumeData={filteredResumeData} 
           setResumeData={setResumeData} 
           activeSection={activeSection} 
-          useBlackVariant={template.id === atsCompactLinesTemplate.id}
+          useBlackVariant={template.id === atsCompactLinesTemplate.id || template.id === atsClassicCompactTemplate.id}
         />}
       </div>
     )

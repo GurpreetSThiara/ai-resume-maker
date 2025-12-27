@@ -13,6 +13,8 @@ export const RESUME_IMAGES = {
   ATS_YELLOW: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/atsyellow.png",
   ATS_TIMELINE: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/timeline.png",
   COMPACT_LINES: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/compact-lines.png",
+    ATS_COMPACT: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/ats-compact.png",
+
 
 
   CLASSIC_BLUE: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/deveops/devops1.png",
@@ -38,6 +40,14 @@ export const RESUME_TEMPLATES = [
     url: RESUME_IMAGES.COMPACT_LINES,
     category: "ATS",
     description: "Ultra-compact ATS-friendly layout with minimal line spacing. Maximizes content while staying ATS-safe.",
+    suggestedFor: ["Experienced professionals", "Technical roles", "Dense resumes"]
+  },
+  {
+    id: "ats-classic-compact",
+    name: "ATS Classic Compact",
+    url: RESUME_IMAGES.ATS_COMPACT,
+    category: "ATS",
+    description: "Compact version of ATS Classic with reduced spacing and no decorative lines for maximum content density.",
     suggestedFor: ["Experienced professionals", "Technical roles", "Dense resumes"]
   },
   {
