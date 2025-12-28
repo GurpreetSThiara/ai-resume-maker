@@ -90,7 +90,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
     const filteredResumeData: ResumeData = {
       ...resumeData,
       sections: (resumeData.sections || [])
-        .filter((s: any) => hasSectionContent(s))
+        .filter((s: any) => s.id === 'custom-fields' || hasSectionContent(s)) // Keep custom-fields section even if empty
         .map((s: any) => {
           // Preserve original projects section so templates that render projects
           // (like `ats-classic`) receive the proper `projects` type and items.

@@ -3,7 +3,7 @@
 import type React from "react"
 import { useRef, useEffect, useState } from "react"
 import type { ResumeData } from "@/types/resume"
-import { sortSectionsByOrder } from "@/utils/sectionOrdering"
+import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import ProjectSection from '../resume-components/project-section'
 import { SECTION_TYPES } from '@/types/resume'
 
@@ -279,37 +279,53 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
               )}
             </header>
 
-            {/* Custom Fields */}
-            <div ref={customFieldsRef} className="mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
-                {Object.entries(resumeData.custom)
-                  .filter(([_, item]) => !item.hidden)
-                  .map(([key, item]) => (
-                    <div key={key} className="flex items-start gap-2">
-                      <span
-                        className="font-semibold text-gray-800 uppercase"
-                        contentEditable
-                        suppressContentEditableWarning
-                        onBlur={(e) => handleCustomItemChange(key, 'title', e.currentTarget.textContent || '')}
-                      >
-                        {item.title}:
-                      </span>
-                      <span
-                        className="text-gray-700 flex-1"
-                        contentEditable
-                        suppressContentEditableWarning
-                        onBlur={(e) => handleCustomItemChange(key, 'content', e.currentTarget.textContent || '')}
-                      >
-                        {item.content}
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            </div>
-
             {/* Main Sections */}
             <main>
-              {sortSectionsByOrder(resumeData.sections).map((section) => {
+              {getSectionsForRendering(resumeData.sections, resumeData.custom).map((section) => {
+                // Handle Custom Fields Section first (it doesn't need content check)
+                if (section.type === 'custom-fields') {
+                  const hasCustomFields = Object.entries(resumeData.custom).filter(([_, item]) => !item.hidden).length > 0
+                  if (!hasCustomFields) return null
+                  
+                  return (
+                    <section
+                      key={section.id}
+                      className="mb-6"
+                      ref={(el: HTMLDivElement | null) => {
+                        if (el) {
+                          customFieldsRef.current = el
+                          sectionRefs.current[section.id] = el
+                        }
+                      }}
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                        {Object.entries(resumeData.custom)
+                          .filter(([_, item]) => !item.hidden)
+                          .map(([key, item]) => (
+                            <div key={key} className="flex items-start gap-2">
+                              <span
+                                className="font-semibold text-gray-800 uppercase"
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => handleCustomItemChange(key, 'title', e.currentTarget.textContent || '')}
+                              >
+                                {item.title}:
+                              </span>
+                              <span
+                                className="text-gray-700 flex-1"
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => handleCustomItemChange(key, 'content', e.currentTarget.textContent || '')}
+                              >
+                                {item.content}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+                    </section>
+                  )
+                }
+                
                 // Check if section has content based on section type
                 let hasContent = false;
                 

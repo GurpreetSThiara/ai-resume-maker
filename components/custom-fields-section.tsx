@@ -23,6 +23,13 @@ export function CustomFieldsSection({ data, onUpdate, onSave, isDirty }: CustomF
   const addCustomField = () => {
     if (newField.title && newField.content) {
       const id = `custom_${newField.title.toLowerCase().replace(/\s+/g, "_")}_${Date.now()}`
+      // Get max order from existing custom fields, or default to 1000
+      const existingOrders = Object.values(data.custom)
+        .map(f => f.order ?? 0)
+        .filter(o => o !== undefined)
+      const maxOrder = existingOrders.length > 0 ? Math.max(...existingOrders) : 999
+      const newOrder = maxOrder + 1
+      
       const updatedCustom = {
         ...data.custom,
         [id]: {
@@ -31,6 +38,7 @@ export function CustomFieldsSection({ data, onUpdate, onSave, isDirty }: CustomF
           hidden: false,
           id,
           link: newField.link,
+          order: newOrder,
         },
       }
       onUpdate({ custom: updatedCustom })

@@ -2,6 +2,7 @@ import { PDFDocument, StandardFonts, rgb, PDFName, PDFString } from "pdf-lib"
 import type { PDFGenerationOptions } from "@/types/resume"
 import { sanitizeTextForPdf, sanitizeTextForPdfWithFont } from "@/lib/utils"
 import { drawProjectsSection } from '@/lib/pdf/sections/projects'
+import { getSectionsForRendering } from "@/utils/sectionOrdering"
 
 export async function generateClassic2ResumePDF({ 
   resumeData, 
@@ -101,66 +102,72 @@ export async function generateClassic2ResumePDF({
     yOffset -= isCompact ? 6 : 10
   }
 
-  // === CUSTOM FIELDS (Flex Layout) ===
-  const customEntries = Object.entries(resumeData.custom || {}).filter(([_, item]) => !item.hidden);
-  if (customEntries.length > 0) {
-    const items = customEntries.map(([key, item]) => {
-      const keyText = `${item.title}:`;
-      const keyWidth = boldFont.widthOfTextAtSize(keyText, 11);
-      const content = sanitizeTextForPdf(item.content);
-      const maxContentWidth = Math.min(250, pageWidth - keyWidth - 15);
-      const wrappedLines = wrapText(content, maxContentWidth, regularFont, 11);
-      const actualContentWidth = Math.max(...wrappedLines.map(line => regularFont.widthOfTextAtSize(line, 11)));
-      return {
-        key, item,
-        width: keyWidth + actualContentWidth + 10,
-        height: wrappedLines.length * 14,
-        keyWidth,
-        wrappedLines
-      };
-    });
-
-    const rows: any[][] = [];
-    let currentRow: any[] = [];
-    let currentRowWidth = 0;
-    const minGap = 20;
-
-    for (const item of items) {
-      if (currentRowWidth + item.width + minGap <= pageWidth) {
-        currentRow.push(item);
-        currentRowWidth += item.width + minGap;
-      } else {
-        rows.push(currentRow);
-        currentRow = [item];
-        currentRowWidth = item.width + minGap;
-      }
-    }
-    if (currentRow.length > 0) rows.push(currentRow);
-
-    for (const row of rows) {
-      const rowHeight = Math.max(...row.map(item => item.height));
-      ensureSpace(rowHeight + 10);
-      const totalItemsWidth = row.reduce((sum, item) => sum + item.width, 0);
-      const extraGap = row.length > 1 ? (pageWidth - totalItemsWidth) / (row.length - 1) : 0;
-      let currentX = margin;
-
-      for (const item of row) {
-        const keyText = `${item.item.title}:`;
-        draw(keyText, currentX, 11, boldFont, textColor);
-        item.wrappedLines.forEach((line: string, lineIndex: number) => {
-          const safeLine = sanitizeForFont(line, regularFont)
-          if (!safeLine) return
-          currentPage.drawText(safeLine, { x: currentX + item.keyWidth + 5, y: yOffset - (lineIndex * 14), size: 11, font: regularFont, color: textColor });
+  // === SECTIONS (including custom fields in order) ===
+  const orderedSections = getSectionsForRendering(resumeData.sections, resumeData.custom)
+  
+  for (const section of orderedSections) {
+    // Handle Custom Fields Section
+    if (section.type === 'custom-fields') {
+      const customEntries = Object.entries(resumeData.custom || {}).filter(([_, item]) => !item.hidden);
+      if (customEntries.length > 0) {
+        const items = customEntries.map(([key, item]) => {
+          const keyText = `${item.title}:`;
+          const keyWidth = boldFont.widthOfTextAtSize(keyText, 11);
+          const content = sanitizeTextForPdf(item.content);
+          const maxContentWidth = Math.min(250, pageWidth - keyWidth - 15);
+          const wrappedLines = wrapText(content, maxContentWidth, regularFont, 11);
+          const actualContentWidth = Math.max(...wrappedLines.map(line => regularFont.widthOfTextAtSize(line, 11)));
+          return {
+            key, item,
+            width: keyWidth + actualContentWidth + 10,
+            height: wrappedLines.length * 14,
+            keyWidth,
+            wrappedLines
+          };
         });
-        currentX += item.width + extraGap;
-      }
-      yOffset -= rowHeight + 8;
-    }
-    yOffset -= 10;
-  }
 
-  // === SECTIONS ===
-  for (const section of resumeData.sections) {
+        const rows: any[][] = [];
+        let currentRow: any[] = [];
+        let currentRowWidth = 0;
+        const minGap = 20;
+
+        for (const item of items) {
+          if (currentRowWidth + item.width + minGap <= pageWidth) {
+            currentRow.push(item);
+            currentRowWidth += item.width + minGap;
+          } else {
+            rows.push(currentRow);
+            currentRow = [item];
+            currentRowWidth = item.width + minGap;
+          }
+        }
+        if (currentRow.length > 0) rows.push(currentRow);
+
+        for (const row of rows) {
+          const rowHeight = Math.max(...row.map(item => item.height));
+          ensureSpace(rowHeight + 10);
+          const totalItemsWidth = row.reduce((sum, item) => sum + item.width, 0);
+          const extraGap = row.length > 1 ? (pageWidth - totalItemsWidth) / (row.length - 1) : 0;
+          let currentX = margin;
+
+          for (const item of row) {
+            const keyText = `${item.item.title}:`;
+            draw(keyText, currentX, 11, boldFont, textColor);
+            item.wrappedLines.forEach((line: string, lineIndex: number) => {
+              const safeLine = sanitizeForFont(line, regularFont)
+              if (!safeLine) return
+              currentPage.drawText(safeLine, { x: currentX + item.keyWidth + 5, y: yOffset - (lineIndex * 14), size: 11, font: regularFont, color: textColor });
+            });
+            currentX += item.width + extraGap;
+          }
+          yOffset -= rowHeight + 8;
+        }
+        yOffset -= 10;
+      }
+      continue; // Skip to next section
+    }
+    
+    // Regular sections
     ensureSpace(isCompact ? 20 : 30)
 
     // Section header

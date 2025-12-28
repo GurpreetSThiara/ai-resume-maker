@@ -3,7 +3,7 @@
 import { ResumeData, SECTION_TYPES } from "@/types/resume"
 import type React from "react"
 import { useRef, useEffect, useState } from "react"
-import { sortSectionsByOrder } from "@/utils/sectionOrdering"
+import { sortSectionsByOrder, getSectionsForRendering } from "@/utils/sectionOrdering"
 import ProjectSection from "../resume-components/project-section"
 
 
@@ -310,41 +310,50 @@ export const GoogleResume: React.FC<ResumeProps> = ({
               </div>
             )}
             
-            {/* Custom Details - Flex-wrap layout matching PDF */}
-            <div className="mb-8" ref={customFieldsRef}>
-              <div className="flex flex-wrap gap-x-8 gap-y-2">
-                {Object.entries(resumeData.custom)
-                  .filter(([_, item]) => !item.hidden)
-                  .map(([key, item]) => (
-                    <div key={key} className="flex items-start gap-1">
-                      <span
-                        className="font-bold text-xs leading-none"
-                        style={{ color: textColor, fontSize: '10px' }}
-                        contentEditable
-                        suppressContentEditableWarning
-                        onBlur={(e) => handleCustomItemChange(key, 'title', e.currentTarget.textContent || '')}
-                      >
-                        {item.title}:
-                      </span>
-                      <span
-                        className="text-xs leading-none"
-                        style={{
-                          color: item.link ? linkColor : textColor,
-                          fontSize: '10px',
-                        }}
-                        contentEditable
-                        suppressContentEditableWarning
-                        onBlur={(e) => handleCustomItemChange(key, 'content', e.currentTarget.textContent || '')}
-                      >
-                        {item.content}
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            </div>
+            {/* Custom Details - Now handled by getSectionsForRendering */}
             
             {/* Sections */}
-            {sortSectionsByOrder(resumeData.sections).map((section) => {
+            {getSectionsForRendering(resumeData.sections, resumeData.custom).map((section) => {
+              // Handle Custom Fields Section first (it doesn't need content check)
+              if (section.type === 'custom-fields') {
+                const hasCustomFields = Object.entries(resumeData.custom).filter(([_, item]) => !item.hidden).length > 0
+                if (!hasCustomFields) return null
+                
+                return (
+                  <div key={section.id} className="mb-8" ref={customFieldsRef}>
+                    <div className="flex flex-wrap gap-x-8 gap-y-2">
+                      {Object.entries(resumeData.custom)
+                        .filter(([_, item]) => !item.hidden)
+                        .map(([key, item]) => (
+                          <div key={key} className="flex items-start gap-1">
+                            <span
+                              className="font-bold text-xs leading-none"
+                              style={{ color: textColor, fontSize: '10px' }}
+                              contentEditable
+                              suppressContentEditableWarning
+                              onBlur={(e) => handleCustomItemChange(key, 'title', e.currentTarget.textContent || '')}
+                            >
+                              {item.title}:
+                            </span>
+                            <span
+                              className="text-xs leading-none"
+                              style={{
+                                color: item.link ? linkColor : textColor,
+                                fontSize: '10px',
+                              }}
+                              contentEditable
+                              suppressContentEditableWarning
+                              onBlur={(e) => handleCustomItemChange(key, 'content', e.currentTarget.textContent || '')}
+                            >
+                              {item.content}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )
+              }
+
               if (section.hidden) return null
               // Check if section has content based on section type
               let hasContent = false

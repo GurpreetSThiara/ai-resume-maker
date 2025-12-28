@@ -21,6 +21,7 @@ import { ResumeData } from "@/types/resume";
         }
       ])
     ),
-    sections: data.sections
+    // Filter out custom-fields section before saving (it's virtual, only for reordering)
+    sections: data.sections?.filter(s => s.id !== 'custom-fields') || []
   });
   

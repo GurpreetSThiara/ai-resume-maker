@@ -244,11 +244,11 @@ export const availableTemplates: ResumeTemplate[] = [
   classicATSTemplate,
   ATS_GREEN,
   ATS_YELLOW,
-  ATS_TIMELINE,
+// ATS_TIMELINE,  // Temporarily disabled
   atsCompactLinesTemplate,
   atsClassicCompactTemplate
  // elegantATSTemplate,
- // compactATSTemplate,
+// compactATSTemplate,
   //creativeATSTemplate,
 ]
 

@@ -40,7 +40,7 @@ import { CustomSection as CustomSectionComponent } from "@/components/custom-sec
 import { useAuth } from "@/contexts/auth-context"
 import {  CREATE_RESUME_STEPS } from "@/app/constants/global"
 import { LS_KEYS, setLocalStorageJSON, setLocalStorageItem, removeLocalStorageItems, getLocalStorageJSON, getLocalStorageItem, getValidResumeFromLocalStorage } from "@/utils/localstorage"
-import { initializeSectionOrder } from "@/utils/sectionOrdering"
+import { initializeSectionOrder, getSectionsWithCustomFields, separateSectionsAndCustomFields } from "@/utils/sectionOrdering"
 import { CreateResumeHeader } from "@/components/CreateResumeHeader"
 import { useTemplateSelector } from "@/hooks/use-template-selector";
 import { useHotkeys } from "@/hooks/use-hotkeys";
@@ -324,10 +324,7 @@ const CreateResumeContent: FC = () => {
           ...prevData.basics,
           ...(updates.basics || {}),
         },
-        custom: {
-          ...prevData.custom,
-          ...(updates.custom || {}),
-        },
+        custom: updates.custom !== undefined ? updates.custom : prevData.custom,
         sections: updates.sections || prevData.sections,
       }));
     }
@@ -456,14 +453,22 @@ const CreateResumeContent: FC = () => {
   };
 
   const handleSectionReorder = (reorderedSections: Section[]) => {
+    // Keep the custom-fields section in sections array to preserve its order
+    // It will be filtered out only when saving to database
     handleResumeDataUpdate((prev: ResumeData) => ({
       ...prev,
-      sections: reorderedSections
+      sections: reorderedSections,
+      custom: prev.custom // Custom fields themselves don't change
     }))
   }
 
-  // Initialize section order if not set
+  // Initialize section order if not set and combine with custom fields
+  // Keep custom-fields section if it exists, otherwise add it
   const sectionsWithOrder = initializeSectionOrder(resumeData.sections)
+  const sectionsWithCustomFields = getSectionsWithCustomFields(
+    sectionsWithOrder,
+    resumeData.custom
+  )
 
 
   if (loading) {
@@ -480,7 +485,7 @@ const CreateResumeContent: FC = () => {
 
       <div className="container mx-auto px-4 py-6">
        <CreateResumeHeader
-          sectionsWithOrder={sectionsWithOrder}
+          sectionsWithOrder={sectionsWithCustomFields}
           handleSectionReorder={handleSectionReorder}
           showPreview={showPreview}
           setShowPreview={setShowPreview}

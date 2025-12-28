@@ -1,5 +1,6 @@
 import { ResumeData, SECTION_TYPES } from '@/types/resume';
 import { PDFDocument, rgb, StandardFonts, PDFFont, PDFPage, RGB } from 'pdf-lib';
+import { getSectionsForRendering } from "@/utils/sectionOrdering";
 
 interface GenerateResumeProps {
   resumeData: ResumeData;
@@ -330,12 +331,17 @@ export async function generateATSGreenResume({
     yPosition -= spacing.paragraphGap;
   }
 
-  // CUSTOM FIELDS (Flex Layout)
-  const customEntries = Object.entries(resumeData.custom || {}).filter(
-    ([_, item]) => item && !item.hidden && item.title && item.content
-  );
+  // SECTIONS (including custom fields in order)
+  const orderedSections = getSectionsForRendering(resumeData.sections, resumeData.custom)
   
-  if (customEntries.length > 0) {
+  for (const section of orderedSections) {
+    // Handle Custom Fields Section
+    if (section.type === 'custom-fields') {
+      const customEntries = Object.entries(resumeData.custom || {}).filter(
+        ([_, item]) => item && !item.hidden && item.title && item.content
+      );
+      
+      if (customEntries.length > 0) {
     const pageWidth = pageSize[0] - margins.left - margins.right;
     const items = customEntries.map(([key, item]) => {
       const keyText = `${item.title}:`;
@@ -393,15 +399,14 @@ export async function generateATSGreenResume({
         });
         currentX += item.width + extraGap;
       }
-      yPosition -= rowHeight + spacing.lineHeight; // Use lineHeight instead of 8 for consistency
+        yPosition -= rowHeight + spacing.lineHeight; // Use lineHeight instead of 8 for consistency
+      }
+      yPosition -= spacing.paragraphGap;
+      }
+      continue; // Skip to next section
     }
-    yPosition -= spacing.paragraphGap;
-  }
-
-  // 3. SECTIONS (Experience, Education, Skills, etc.)
-  const sections = Array.isArray(resumeData.sections) ? resumeData.sections : [];
-  
-  for (const section of sections) {
+    
+    // Regular sections
     if (!section || !section.title) continue;
     
     // Check if section has content before drawing header

@@ -42,7 +42,10 @@ export async function generateResumePDF(options: PDFGenerationOptions) {
       // Keep sections intact (including projects). Individual generators
       // will decide how to render each section. Previously projects were
       // flattened into `custom` which caused mismatch between preview and PDF.
-      sections: (options.resumeData.sections || []).filter((s: any) => hasSectionContent(s)),
+      // Keep custom-fields section so generators can use its order for rendering
+      // Filter out sections without content (but keep custom-fields even if empty)
+      sections: (options.resumeData.sections || [])
+        .filter((s: any) => s.id === 'custom-fields' || hasSectionContent(s)),
     },
   }
 

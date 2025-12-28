@@ -3,6 +3,7 @@ import type { PDFPage, PDFFont } from "pdf-lib"
 import type { PDFGenerationOptions, ProjectsSection } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { sanitizeTextForPdf, sanitizeTextForPdfWithFont } from '@/lib/utils'
+import { getSectionsForRendering } from "@/utils/sectionOrdering"
 
 // ============================================================================
 // Projects Section Types & Utilities
@@ -397,11 +398,16 @@ export async function generateResumePDF({
     yOffset -= isBlackCompact ? 10 : 13
   }
 
-  // Custom entries
-  const customEntries = Object.entries(resumeData.custom || {}).filter(([_, item]: any) => !item?.hidden)
+  // Sections (including custom fields in order)
+  const orderedSections = getSectionsForRendering(resumeData.sections, resumeData.custom)
+  
+  for (const section of orderedSections) {
+    // Handle Custom Fields Section
+    if (section.type === 'custom-fields') {
+      const customEntries = Object.entries(resumeData.custom || {}).filter(([_, item]: any) => !item?.hidden)
 
-  if (customEntries.length > 0) {
-    if (isBlackCompact) {
+      if (customEntries.length > 0) {
+        if (isBlackCompact) {
       // Compact, clean two-column layout for ATS Compact variant
       const columnCount = 2
       const gap = 20
@@ -452,8 +458,8 @@ export async function generateResumePDF({
         yOffset -= rowHeight + 4
       }
 
-      yOffset -= 6
-    } else {
+        yOffset -= 6
+      } else {
       // Original flex-wrap layout for non-compact variant
       interface CustomItem {
         key: string
@@ -554,12 +560,13 @@ export async function generateResumePDF({
         yOffset -= rowHeight + 8
       }
 
-      yOffset -= 10
+        yOffset -= 10
+      }
+      }
+      continue; // Skip to next section
     }
-  }
-
-  // Sections
-  for (const section of resumeData.sections) {
+    
+    // Regular sections
     if ((section as any).hidden) continue
 
     let hasContent = false

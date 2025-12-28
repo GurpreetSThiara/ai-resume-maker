@@ -74,14 +74,14 @@ export const RESUME_TEMPLATES = [
     description: "A modern layout with subtle accents and clear sectioning for creative and product roles.",
     suggestedFor: ["Product", "Design", "Marketing"]
   },
-  {
-    id: "ats-timeline",
-    name: "Timeline",
-    url: RESUME_IMAGES.TIMELINE_1,
-    category: "Modern",
-    description: "Visual timeline design with blue accents. Perfect for showcasing career progression clearly.",
-    suggestedFor: ["All industries", "Career progression focused"]
-  },
+  // {
+  //   id: "ats-timeline",  // Temporarily disabled
+  //   name: "Timeline",
+  //   url: RESUME_IMAGES.TIMELINE_1,
+  //   category: "Modern",
+  //   description: "Visual timeline design with blue accents. Perfect for showcasing career progression clearly.",
+  //   suggestedFor: ["All industries", "Career progression focused"]
+  // },
 
   // },
   // {
