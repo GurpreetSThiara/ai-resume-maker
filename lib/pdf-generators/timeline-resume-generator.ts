@@ -241,7 +241,7 @@ export async function generateTimelineResumePDF({
     yPosition -= 6;
   }
 
-  // 4. Draw Custom Fields (Grid layout)
+  // 4. Draw Additional Links or Data (Grid layout)
   const visibleCustomFields = Object.entries(resumeData.custom).filter(([_, item]) => !item.hidden);
 
   if (visibleCustomFields.length > 0) {

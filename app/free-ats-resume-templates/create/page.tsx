@@ -40,7 +40,7 @@ import { CustomSection as CustomSectionComponent } from "@/components/custom-sec
 import { useAuth } from "@/contexts/auth-context"
 import {  CREATE_RESUME_STEPS } from "@/app/constants/global"
 import { LS_KEYS, setLocalStorageJSON, setLocalStorageItem, removeLocalStorageItems, getLocalStorageJSON, getLocalStorageItem, getValidResumeFromLocalStorage } from "@/utils/localstorage"
-import { initializeSectionOrder, getSectionsWithCustomFields, separateSectionsAndCustomFields } from "@/utils/sectionOrdering"
+import { initializeSectionOrder, getSectionsWithCustomFields, separateSectionsAndCustomFields, generateDynamicSteps } from "@/utils/sectionOrdering"
 import { CreateResumeHeader } from "@/components/CreateResumeHeader"
 import { useTemplateSelector } from "@/hooks/use-template-selector";
 import { useHotkeys } from "@/hooks/use-hotkeys";
@@ -72,7 +72,32 @@ const CreateResumeContent: FC = () => {
   const [limitModalOpen, setLimitModalOpen] = useState(false)
   const [limitModalBusy, setLimitModalBusy] = useState(false)
   const [saveModalOpen, setSaveModalOpen] = useState(false)
-  const steps = CREATE_RESUME_STEPS;
+  
+  // Generate dynamic steps based on current section order
+  const steps = generateDynamicSteps(resumeData.sections, resumeData.custom);
+
+  // Create a mapping from step ID to section type for dynamic navigation
+  const stepToSectionType: Record<number, string> = {
+    0: 'personal-info',      // Personal Info
+    1: 'professional-summary', // Professional Summary
+    10: 'review'             // Review
+  }
+  
+  // Map section types to their step indices in the dynamic steps
+  const sectionTypeToStepIndex: Record<string, number> = {}
+  steps.forEach((step, index) => {
+    if (step.id >= 2 && step.id <= 9) {
+      // Map section step IDs to their current position
+      if (step.id === 2) sectionTypeToStepIndex.education = index
+      else if (step.id === 3) sectionTypeToStepIndex.experience = index
+      else if (step.id === 4) sectionTypeToStepIndex.projects = index
+      else if (step.id === 5) sectionTypeToStepIndex.skills = index
+      else if (step.id === 6) sectionTypeToStepIndex.languages = index
+      else if (step.id === 7) sectionTypeToStepIndex.certifications = index
+      else if (step.id === 8) sectionTypeToStepIndex['custom-fields'] = index
+      else if (step.id === 9) sectionTypeToStepIndex.custom = index
+    }
+  })
 
   useHotkeys([
     {
@@ -395,28 +420,48 @@ const CreateResumeContent: FC = () => {
     // Update data and mark completed steps
     setResumeData(sanitizeResumeData(updatedData));
     
-    // Mark completed steps
+    // Mark completed steps based on dynamic step order
     const newCompletedSteps = new Set<number>();
-    if (updatedData.basics.name && updatedData.basics.email) newCompletedSteps.add(0); // Personal info
-    if (updatedData.basics.summary) newCompletedSteps.add(1); // Summary
+    if (updatedData.basics.name && updatedData.basics.email) newCompletedSteps.add(0); // Personal info (always step 0)
+    if (updatedData.basics.summary) newCompletedSteps.add(1); // Summary (always step 1)
+    
+    // Find dynamic step indices for sections
+    const educationStepIndex = steps.findIndex(s => s.id === 2);
+    const experienceStepIndex = steps.findIndex(s => s.id === 3);
+    const projectsStepIndex = steps.findIndex(s => s.id === 4);
+    const skillsStepIndex = steps.findIndex(s => s.id === 5);
+    const languagesStepIndex = steps.findIndex(s => s.id === 6);
+    const certificationsStepIndex = steps.findIndex(s => s.id === 7);
     
     const educationSection = updatedData.sections.find(s => s.type === SECTION_TYPES.EDUCATION) as EducationSection | undefined;
-    if (educationSection?.items && educationSection.items.length > 0) newCompletedSteps.add(2);
+    if (educationSection?.items && educationSection.items.length > 0 && educationStepIndex >= 0) {
+      newCompletedSteps.add(educationStepIndex);
+    }
     
     const experienceSection = updatedData.sections.find(s => s.type === SECTION_TYPES.EXPERIENCE) as ExperienceSection | undefined;
-    if (experienceSection?.items && experienceSection.items.length > 0) newCompletedSteps.add(3);
+    if (experienceSection?.items && experienceSection.items.length > 0 && experienceStepIndex >= 0) {
+      newCompletedSteps.add(experienceStepIndex);
+    }
     
     const projectsSection = updatedData.sections.find(s => s.type === SECTION_TYPES.PROJECTS) as any;
-    if (projectsSection?.items && projectsSection.items.length > 0) newCompletedSteps.add(4);
+    if (projectsSection?.items && projectsSection.items.length > 0 && projectsStepIndex >= 0) {
+      newCompletedSteps.add(projectsStepIndex);
+    }
 
     const skillsSection = updatedData.sections.find(s => s.type === SECTION_TYPES.SKILLS) as SkillsSection | undefined;
-    if (skillsSection?.items && skillsSection.items.length > 0) newCompletedSteps.add(5);
+    if (skillsSection?.items && skillsSection.items.length > 0 && skillsStepIndex >= 0) {
+      newCompletedSteps.add(skillsStepIndex);
+    }
 
     const certsSection = updatedData.sections.find(s => s.type === SECTION_TYPES.CERTIFICATIONS) as any;
-    if (certsSection?.items && certsSection.items.length > 0) newCompletedSteps.add(7);
+    if (certsSection?.items && certsSection.items.length > 0 && certificationsStepIndex >= 0) {
+      newCompletedSteps.add(certificationsStepIndex);
+    }
     
     const languagesSection = updatedData.sections.find(s => s.type === SECTION_TYPES.LANGUAGES) as any;
-    if (languagesSection?.items && languagesSection.items.length > 0) newCompletedSteps.add(6);
+    if (languagesSection?.items && languagesSection.items.length > 0 && languagesStepIndex >= 0) {
+      newCompletedSteps.add(languagesStepIndex);
+    }
     
     setCompletedSteps(newCompletedSteps);
     
@@ -424,7 +469,9 @@ const CreateResumeContent: FC = () => {
   };
 
   const renderCurrentSection = () => {
-    switch (currentStep) {
+    const currentStepId = steps[currentStep]?.id
+    
+    switch (currentStepId) {
       case 0:
         return <PersonalInfoSection data={resumeData} onUpdate={handleResumeDataUpdate} />
       case 1:

@@ -37,7 +37,7 @@ export async function generateElegantResumePDF({ resumeData, filename = "resume.
   y -= 6
 
   for (const section of resumeData.sections) {
-    // Check if section has any content (only for custom sections with content property)
+    // Check if section has any content (only for additional sections with content property)
     const hasContent = 'content' in section && 
                       typeof section.content === 'object' && 
                       section.content !== null &&

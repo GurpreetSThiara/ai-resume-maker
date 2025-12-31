@@ -92,6 +92,16 @@ export function SummarySection({ data, onUpdate }: SummarySectionProps) {
           className="min-h-[150px]"
         />
       </div>
+
+      <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-purple-600">💡</span>
+          <span className="font-medium text-purple-800">Pro Tip</span>
+        </div>
+        <p className="text-purple-700 text-sm">
+          Write it like a mini answer to "Why should we hire you?" — include your role, strongest skill, and one measurable outcome in 2–3 lines. Avoid objectives, buzzwords, and anything you can't prove later in the resume.
+        </p>
+      </div>
     </div>
   )
 }

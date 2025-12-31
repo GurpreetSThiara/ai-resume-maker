@@ -170,68 +170,82 @@ const drawProjectsSection = (
       cursorX += measureText(dateText, fonts.regular, style.linkSize) + 10
     }
 
-    // Build link list
-    const parts: Array<{ label: string; url?: string }> = []
-    if (proj.link) parts.push({ label: 'Link', url: normalizeUrl(proj.link) })
-    if (proj.repo) parts.push({ label: 'GitHub', url: normalizeUrl(proj.repo) })
-
-    if (parts.length) {
-      const linkY = itemStartY
+    // Links (if present, with clickable annotations) - Same as ATS Classic
+    if (proj.link || proj.repo) {
+      const links = [];
+      if (proj.link) links.push({ label: "Live demo:", url: normalizeUrl(proj.link) });
+      if (proj.repo) links.push({ label: "Github:", url: normalizeUrl(proj.repo) });
       
-      for (let i = 0; i < parts.length; i++) {
-        const p = parts[i]
-        const text = linkDisplay === 'full' && p.url ? `${p.label}: ${p.url}` : p.label
-        const safe = sanitizeForFont(text, fonts.regular)
-        if (!safe) return { y: ctx.y }
-        const w = measureText(text, fonts.regular, style.linkSize)
-
-        // Draw link text
-        ctx.page.drawText(safe, {
-          x: cursorX,
-          y: linkY,
-          size: style.linkSize,
-          font: fonts.regular,
-          color: style.linkColor,
-        })
-
-        // Create clickable link annotation
-        if (p.url) {
-          const linkHeight = style.linkSize * 1.2
-          const annotY = linkY - (style.linkSize * 0.2)
+      if (links.length) {
+        let linkY = itemStartY - (style.titleSize + 6); // Position below title
+        let linkX = margin;
+        
+        for (let i = 0; i < links.length; i++) {
+          const link = links[i];
+          const labelText = link.label;
+          const urlText = link.url;
+          const fullText = `${labelText} ${urlText}`;
+          const safeLabel = sanitizeForFont(labelText, fonts.regular);
+          const safeFull = sanitizeForFont(fullText, fonts.regular);
           
-          const pdfDoc = ctx.page.doc
-          const context = pdfDoc.context
+          const labelWidth = fonts.regular.widthOfTextAtSize(safeLabel, style.linkSize);
+          const fullWidth = fonts.regular.widthOfTextAtSize(safeFull, style.linkSize);
           
+          // Check if we need to wrap to next line
+          if (linkX + fullWidth > pageInnerWidth + margin && i > 0) {
+            linkY -= (style.linkSize + 4);
+            linkX = margin;
+          }
+          
+          // Draw label
+          ctx.page.drawText(safeLabel, {
+            x: linkX,
+            y: linkY,
+            size: style.linkSize,
+            font: fonts.bold,
+            color: style.titleColor,
+          });
+          
+          // Draw URL
+          ctx.page.drawText(safeFull.substring(labelText.length), {
+            x: linkX + labelWidth + 8, // Add 8px spacing between label and URL
+            y: linkY,
+            size: style.linkSize,
+            font: fonts.regular,
+            color: style.linkColor,
+          });
+          
+          // Add clickable annotation for the URL part
+          const linkHeight = style.linkSize * 1.2;
+          const annotY = linkY - (style.linkSize * 0.2);
+          const pdfDocCtx = ctx.page.doc;
+          const context = pdfDocCtx.context;
           const linkAnnotation = context.obj({
             Type: PDFName.of('Annot'),
             Subtype: PDFName.of('Link'),
-            Rect: [cursorX, annotY, cursorX + w, annotY + linkHeight],
+            Rect: [linkX + labelWidth + 8, annotY, linkX + fullWidth + 8, annotY + linkHeight], // Adjust for spacing
             Border: [0, 0, 0],
             C: [0, 0, 1],
             A: {
               Type: PDFName.of('Action'),
               S: PDFName.of('URI'),
-              URI: PDFString.of(p.url),
+              URI: PDFString.of(link.url),
               NewWindow: true
             }
-          })
-          
-          const linkAnnotationRef = context.register(linkAnnotation)
-          
-          const annots = ctx.page.node.lookup(PDFName.of('Annots'))
+          });
+          const linkAnnotationRef = context.register(linkAnnotation);
+          const annots = ctx.page.node.lookup(PDFName.of('Annots'));
           if (annots) {
-            annots.push(linkAnnotationRef)
+            (annots as any).push(linkAnnotationRef);
           } else {
-            ctx.page.node.set(PDFName.of('Annots'), context.obj([linkAnnotationRef]))
+            ctx.page.node.set(PDFName.of('Annots'), context.obj([linkAnnotationRef]));
           }
+          
+          // Move to next link position
+          linkX += fullWidth + 15; // Add space between links
         }
-
-        cursorX += w
-
-        // Add small space between links instead of pipe
-        if (i < parts.length - 1) {
-          cursorX += 8
-        }
+        
+        ctx.y -= (style.linkSize + 8); // Space below links
       }
     }
 

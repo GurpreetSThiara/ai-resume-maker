@@ -113,11 +113,11 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold mb-2">Custom Sections 🎨</h2>
+        <h2 className="text-2xl font-bold mb-2">Additional Sections 🎨</h2>
         <p className="text-muted-foreground">Add your own unique sections to highlight specific achievements or skills</p>
       </div>
 
-      {/* Existing Custom Sections */}
+      {/* Existing Additional Sections */}
       <div className="space-y-4">
         {customSections.map((section) => (
           <Card key={section.id} className="relative">
@@ -251,14 +251,14 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
       {!isAddingNew ? (
         <Button variant="outline" onClick={() => setIsAddingNew(true)} className="w-full">
           <Plus className="w-4 h-4 mr-2" />
-          Add Custom Section
+          Add Additional Section
         </Button>
       ) : (
         <Card className="border-dashed border-2 border-gray-300">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Plus className="w-5 h-5" />
-              Add Custom Section
+              Add Additional Section
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -315,10 +315,10 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
       <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-cyan-600">💡</span>
-          <span className="font-medium text-cyan-800">Custom Section Tips</span>
+          <span className="font-medium text-cyan-800">Additional Section Tips</span>
         </div>
         <p className="text-cyan-700 text-sm">
-          Use custom sections to highlight unique aspects of your profile such as awards, publications,
+          Use additional sections to highlight unique aspects of your profile such as awards, publications,
           volunteer work, or any other achievements that don&apos;t fit into standard categories.
         </p>
       </div>

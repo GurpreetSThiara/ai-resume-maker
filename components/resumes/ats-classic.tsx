@@ -536,7 +536,7 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
                       />
                     )}
 
-                    {/* Custom Section */}
+                    {/* Additional Sections */}
                     {section.type === 'custom' && section.content?.length > 0 && (
                       <ul className="list-none space-y-1 text-sm text-gray-700 ml-4">
                         {section.content.map((item, contentIdx) => (

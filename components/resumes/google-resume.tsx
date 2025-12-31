@@ -581,7 +581,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
                       />
                     )}
 
-                    {/* Custom Section */}
+                    {/* Additional Sections */}
                     {section.type === SECTION_TYPES.CUSTOM && section.content?.length > 0 && (
                       <div className="space-y-1">
                         {section.content.map((item, contentIdx) => (

@@ -89,7 +89,10 @@ export const CREATE_STEPS =  [
   ];  
 
 
-export const CREATE_RESUME_STEPS =  [
+export const SECTION_LABEL_CUSTOM_FIELDS = "Additional Links or Data";
+export const SECTION_LABEL_CUSTOM_SECTIONS = "Additional Sections";
+
+export const CREATE_RESUME_STEPS = [
     { id: 0, title: "Personal Info", icon: "👤", description: "Tell us about yourself" },
     { id: 1, title: "Professional Summary", icon: "📝", description: "Your career overview" },
     { id: 2, title: "Education", icon: "🎓", description: "Your academic journey" },
@@ -98,8 +101,8 @@ export const CREATE_RESUME_STEPS =  [
     { id: 5, title: "Skills & More", icon: "🚀", description: "Showcase your abilities" },
     { id: 6, title: "Languages", icon: "🌐", description: "Languages you speak" },
     { id: 7, title: "Certifications", icon: "🏆", description: "Add your certifications" },
-    { id: 8, title: "Custom Fields", icon: "⚡", description: "Add personal details" },
-    { id: 9, title: "Custom Sections", icon: "🎨", description: "Add additional sections" },
+    { id: 8, title: SECTION_LABEL_CUSTOM_FIELDS, icon: "⚡", description: "Add personal details" },
+    { id: 9, title: SECTION_LABEL_CUSTOM_SECTIONS, icon: "🎨", description: "Add additional sections" },
     { id: 10, title: "Review", icon: "✨", description: "Final review" },
   ]  
 

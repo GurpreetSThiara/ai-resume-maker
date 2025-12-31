@@ -102,11 +102,11 @@ export async function generateClassic2ResumePDF({
     yOffset -= isCompact ? 6 : 10
   }
 
-  // === SECTIONS (including custom fields in order) ===
+  // === SECTIONS (including additional links or data in order) ===
   const orderedSections = getSectionsForRendering(resumeData.sections, resumeData.custom)
   
   for (const section of orderedSections) {
-    // Handle Custom Fields Section
+    // Handle Additional Links or Data Section
     if (section.type === 'custom-fields') {
       const customEntries = Object.entries(resumeData.custom || {}).filter(([_, item]) => !item.hidden);
       if (customEntries.length > 0) {

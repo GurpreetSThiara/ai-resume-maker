@@ -593,7 +593,7 @@ export const ATS_YELLOW_HEADERS: React.FC<ATSYellowHeadersProps> = ({
                       />
                     )}
 
-                    {/* Custom Section */}
+                    {/* Additional Sections */}
                     {section.type === SECTION_TYPES.CUSTOM && section.content?.length > 0 && (
                       <div className="space-y-1 ml-4">
                         {section.content.map((item, contentIdx) => (

@@ -585,7 +585,7 @@ export const ATS_GREEN_HEADERS: any = ({
                       />
                     )}
 
-                    {/* Custom Section */}
+                    {/* Additional Sections */}
                     {section.type === SECTION_TYPES.CUSTOM && section.content?.length > 0 && (
                       <div className="space-y-1 ml-4">
                         {section.content.map((item, contentIdx) => (

@@ -1,6 +1,7 @@
 import type React from "react"
 import { PDFDocument, StandardFonts, rgb, PDFName, PDFArray } from "pdf-lib"
 import { ResumeData, SECTION_TYPES } from "@/types/resume"
+import { SECTION_LABEL_CUSTOM_FIELDS } from '@/app/constants/global'
 
 interface ThemeConfig {
   fontSize: {
@@ -102,7 +103,7 @@ export async function generateImpact({ pdfRef, theme, resumeData }: GenerationPr
 
   yOffset -= pdFtheme.pdfSpacing?.section || 20
 
-  // Custom Section with Proper Justification Between Key & Value
+  // ${SECTION_LABEL_CUSTOM_FIELDS} with Proper Justification Between Key & Value
   const customEntries = Object.entries(resumeData.custom).filter(([_, item]) => !item.hidden)
   const columnCount = 2
   const rowCount = Math.ceil(customEntries.length / columnCount)

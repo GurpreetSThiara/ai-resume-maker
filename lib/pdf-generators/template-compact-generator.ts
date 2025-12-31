@@ -29,7 +29,7 @@ export async function generateCompactResumePDF({ resumeData, filename = "resume.
   draw(contactInfo, margin, 9, regular, secondary)
   y -= 20
 
-  // Custom Fields
+  // Additional Links or Data
   Object.values(resumeData.custom).forEach((item) => {
     if (item.hidden) return
     draw(`${item.title}: ${item.content}`, margin, 9, regular, text)

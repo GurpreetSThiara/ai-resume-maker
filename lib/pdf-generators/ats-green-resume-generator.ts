@@ -331,11 +331,11 @@ export async function generateATSGreenResume({
     yPosition -= spacing.paragraphGap;
   }
 
-  // SECTIONS (including custom fields in order)
+  // SECTIONS (including additional links or data in order)
   const orderedSections = getSectionsForRendering(resumeData.sections, resumeData.custom)
   
   for (const section of orderedSections) {
-    // Handle Custom Fields Section
+    // Handle Additional Links or Data Section
     if (section.type === 'custom-fields') {
       const customEntries = Object.entries(resumeData.custom || {}).filter(
         ([_, item]) => item && !item.hidden && item.title && item.content

@@ -1,4 +1,5 @@
 import { Section, CustomField, CustomFieldsSection, SECTION_TYPES } from '@/types/resume'
+import { SECTION_LABEL_CUSTOM_FIELDS, SECTION_LABEL_CUSTOM_SECTIONS, CREATE_RESUME_STEPS } from '@/app/constants/global'
 
 /**
  * Reorders sections array by moving an item from one index to another
@@ -20,7 +21,7 @@ export const reorderSections = (
 }
 
 /**
- * Creates a single Custom Fields section if there are any custom fields
+ * Creates a single Additional Links or Data section if there are any custom fields
  */
 export const createCustomFieldsSection = (
   customFields: Record<string, CustomField>,
@@ -34,7 +35,7 @@ export const createCustomFieldsSection = (
   
   return {
     id: 'custom-fields',
-    title: 'Custom Fields',
+    title: SECTION_LABEL_CUSTOM_FIELDS,
     type: SECTION_TYPES.CUSTOM_FIELDS as any,
     order: startOrder,
     hidden: false
@@ -42,23 +43,23 @@ export const createCustomFieldsSection = (
 }
 
 /**
- * Combines regular sections with a single Custom Fields section for reordering
+ * Combines regular sections with a single Additional Links or Data section for reordering
  */
 export const getSectionsWithCustomFields = (
   sections: Section[], 
   customFields: Record<string, CustomField>
 ): Section[] => {
-  // Check if custom fields section already exists
+  // Check if additional links or data section already exists
   const existingIndex = sections.findIndex(s => s.id === 'custom-fields')
   
-  // Create or update custom fields section
+  // Create or update additional links or data section
   const customFieldsSection = createCustomFieldsSection(
     customFields,
     existingIndex >= 0 ? sections[existingIndex].order : sections.length
   )
   
   if (!customFieldsSection) {
-    // No custom fields, remove existing custom fields section if present
+    // No custom fields, remove existing additional links or data section if present
     return sections.filter(s => s.id !== 'custom-fields')
   }
   
@@ -72,12 +73,12 @@ export const getSectionsWithCustomFields = (
     return updatedSections
   }
   
-  // Add custom fields section to the end
+  // Add additional links or data section to the end
   return [...sections, customFieldsSection]
 }
 
 /**
- * Separates sections and removes the custom fields section
+ * Separates sections and removes the additional links or data section
  * Custom fields themselves are not modified, only the section position
  */
 export const separateSectionsAndCustomFields = (
@@ -87,7 +88,7 @@ export const separateSectionsAndCustomFields = (
   sections: Section[]
   customFields: Record<string, CustomField>
 } => {
-  // Filter out the custom fields section, keep all other sections
+  // Filter out the additional links or data section, keep all other sections
   const sections = combinedSections.filter(s => s.id !== 'custom-fields')
   
   // Custom fields themselves don't need order updates since they're grouped
@@ -147,8 +148,8 @@ export const getSectionTypeDisplayName = (type: string): string => {
     languages: 'Languages',
     projects: 'Projects',
     certifications: 'Certifications',
-    custom: 'Custom Section',
-    'custom-fields': 'Custom Fields'
+    custom: SECTION_LABEL_CUSTOM_SECTIONS,
+    'custom-fields': SECTION_LABEL_CUSTOM_FIELDS
   }
   return typeMap[type] || type.charAt(0).toUpperCase() + type.slice(1)
 }
@@ -212,4 +213,49 @@ export const getSectionsForRendering = (
   const allSections = [...sectionsWithoutCustomFields, customFieldsSection]
   
   return sortSectionsByOrder(allSections)
+}
+
+/**
+ * Generates dynamic sidebar steps based on the current section order
+ * Maps section types to their corresponding step definitions
+ */
+export const generateDynamicSteps = (
+  sections: Section[],
+  customFields: Record<string, CustomField>
+): typeof CREATE_RESUME_STEPS => {
+  // Get sections with custom fields for proper ordering
+  const sectionsForOrdering = getSectionsForRendering(sections, customFields)
+  
+  // Create a mapping from section type to step definition
+  const stepMap: Record<string, typeof CREATE_RESUME_STEPS[0]> = {
+    [SECTION_TYPES.EDUCATION]: CREATE_RESUME_STEPS[2], // Education
+    [SECTION_TYPES.EXPERIENCE]: CREATE_RESUME_STEPS[3], // Experience  
+    [SECTION_TYPES.PROJECTS]: CREATE_RESUME_STEPS[4], // Projects
+    [SECTION_TYPES.SKILLS]: CREATE_RESUME_STEPS[5], // Skills & More
+    [SECTION_TYPES.LANGUAGES]: CREATE_RESUME_STEPS[6], // Languages
+    [SECTION_TYPES.CERTIFICATIONS]: CREATE_RESUME_STEPS[7], // Certifications
+    [SECTION_TYPES.CUSTOM_FIELDS]: CREATE_RESUME_STEPS[8], // Additional Links or Data
+    [SECTION_TYPES.CUSTOM]: CREATE_RESUME_STEPS[9], // Additional Sections
+  }
+  
+  // Start with Personal Info and Professional Summary (always first)
+  const dynamicSteps: typeof CREATE_RESUME_STEPS = [
+    CREATE_RESUME_STEPS[0], // Personal Info
+    CREATE_RESUME_STEPS[1], // Professional Summary
+  ]
+  
+  // Add sections in their current order
+  sectionsForOrdering.forEach(section => {
+    const step = stepMap[section.type]
+    if (step && !dynamicSteps.find(s => s.id === step.id)) {
+      dynamicSteps.push(step)
+    }
+  })
+  
+  // Always end with Review step
+  if (!dynamicSteps.find(s => s.id === CREATE_RESUME_STEPS[10].id)) {
+    dynamicSteps.push(CREATE_RESUME_STEPS[10]) // Review
+  }
+  
+  return dynamicSteps
 }
