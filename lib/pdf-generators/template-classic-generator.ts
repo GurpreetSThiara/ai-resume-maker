@@ -279,6 +279,7 @@ export async function generateClassic2ResumePDF({
 
             // Project title
             const title = proj.name || "";
+            const itemStartY = yOffset + 5; // Capture start position like Google template
             currentPage.drawText(sanitizeForFont(title, boldFont), {
               x: margin,
               y: yOffset,
@@ -289,32 +290,47 @@ export async function generateClassic2ResumePDF({
 
             yOffset -= isCompact ? 14 : 19; // Space below title
 
-            // Links (if present, with clickable annotations) - Flex wrap strategy
+            // Links (if present, with clickable annotations) - Advanced URL wrapping
             if (proj.link || proj.repo) {
               const links = [];
               if (proj.link) links.push({ label: "Live demo:", url: proj.link });
               if (proj.repo) links.push({ label: "Github:", url: proj.repo });
               
               if (links.length) {
-                let linkY = yOffset;
-                let linkX = margin;
+                let linkY = itemStartY - (isCompact ? 11 : 13) - (isCompact ? 6 : 8); // Match Google: itemStartY - (titleSize + 6)
+                let linkX = margin + 8; // Add 8px indent
+                let minLinkY = linkY; // Track the lowest Y position used
+                
+                // Helper function to wrap long URLs
+                const wrapUrl = (url: string, maxWidth: number): string[] => {
+                  const lines: string[] = [];
+                  let remaining = sanitizeTextForPdf(url);
+                  
+                  while (remaining.length > 0) {
+                    let chunk = remaining;
+                    let width = regularFont.widthOfTextAtSize(chunk, isCompact ? 8 : 9);
+                    
+                    while (width > maxWidth && chunk.length > 1) {
+                      chunk = chunk.substring(0, chunk.length - 1);
+                      width = regularFont.widthOfTextAtSize(chunk, isCompact ? 8 : 9);
+                    }
+                    
+                    lines.push(chunk);
+                    remaining = remaining.substring(chunk.length);
+                  }
+                  
+                  return lines;
+                };
                 
                 for (let i = 0; i < links.length; i++) {
                   const link = links[i];
-                  const labelText = link.label;
-                  const urlText = link.url;
-                  const fullText = `${labelText} ${urlText}`;
-                  const safeLabel = sanitizeForFont(labelText, regularFont);
-                  const safeFull = sanitizeForFont(fullText, regularFont);
+                  const safeLabel = sanitizeTextForPdf(link.label);
                   
                   const labelWidth = regularFont.widthOfTextAtSize(safeLabel, isCompact ? 8 : 9);
-                  const fullWidth = regularFont.widthOfTextAtSize(safeFull, isCompact ? 8 : 9);
                   
-                  // Check if we need to wrap to next line
-                  if (linkX + fullWidth > pageWidth + margin && i > 0) {
-                    linkY -= (isCompact ? 12 : 14);
-                    linkX = margin;
-                  }
+                  // Check available width for URL on current line
+                  const availableWidth = pageWidth - linkX - labelWidth - 8;
+                  const urlLines = wrapUrl(link.url, availableWidth);
                   
                   // Draw label
                   currentPage.drawText(safeLabel, {
@@ -325,66 +341,87 @@ export async function generateClassic2ResumePDF({
                     color: textColor,
                   });
                   
-                  // Draw URL
-                  currentPage.drawText(safeFull.substring(labelText.length), {
-                    x: linkX + labelWidth + 8, // Add 8px spacing between label and URL
-                    y: linkY,
-                    size: isCompact ? 8 : 9,
-                    font: regularFont,
-                    color: rgb(0,0,0.66),
-                  });
+                  // Draw URL line by line
+                  let currentUrlY = linkY;
+                  let firstLineUrlX = linkX + labelWidth + 8;
                   
-                  // Add clickable annotation for the URL part
-                  const linkHeight = (isCompact ? 8 : 9) * 1.2;
-                  const annotY = linkY - ((isCompact ? 8 : 9) * 0.2);
-                  const pdfDocCtx = currentPage.doc;
-                  const context = pdfDocCtx.context;
-                  const linkAnnotation = context.obj({
-                    Type: PDFName.of('Annot'),
-                    Subtype: PDFName.of('Link'),
-                    Rect: [linkX + labelWidth + 8, annotY, linkX + fullWidth + 8, annotY + linkHeight], // Adjust for spacing
-                    Border: [0, 0, 0],
-                    C: [0, 0, 1],
-                    A: {
-                      Type: PDFName.of('Action'),
-                      S: PDFName.of('URI'),
-                      URI: PDFString.of(link.url),
-                      NewWindow: true
+                  for (let j = 0; j < urlLines.length; j++) {
+                    const urlLine = urlLines[j];
+                    const safeUrl = sanitizeTextForPdf(urlLine);
+                    const urlLineX = j === 0 ? firstLineUrlX : margin + 8; // Maintain 8px indent for wrapped lines
+                    
+                    currentPage.drawText(safeUrl, {
+                      x: urlLineX,
+                      y: currentUrlY,
+                      size: isCompact ? 8 : 9,
+                      font: regularFont,
+                      color: rgb(0,0,0.66),
+                    });
+                    
+                    // Add clickable annotation for this line
+                    const urlWidth = regularFont.widthOfTextAtSize(safeUrl, isCompact ? 8 : 9);
+                    const linkHeight = (isCompact ? 8 : 9) * 1.2;
+                    const annotY = currentUrlY - ((isCompact ? 8 : 9) * 0.2);
+                    const pdfDocCtx = currentPage.doc;
+                    const context = pdfDocCtx.context;
+                    const linkAnnotation = context.obj({
+                      Type: PDFName.of('Annot'),
+                      Subtype: PDFName.of('Link'),
+                      Rect: [urlLineX, annotY, urlLineX + urlWidth, annotY + linkHeight],
+                      Border: [0, 0, 0],
+                      C: [0, 0, 1],
+                      A: {
+                        Type: PDFName.of('Action'),
+                        S: PDFName.of('URI'),
+                        URI: PDFString.of(link.url),
+                        NewWindow: true
+                      }
+                    });
+                    const linkAnnotationRef = context.register(linkAnnotation);
+                    const annots = currentPage.node.lookup(PDFName.of('Annots'));
+                    if (annots) {
+                      (annots as any).push(linkAnnotationRef);
+                    } else {
+                      currentPage.node.set(PDFName.of('Annots'), context.obj([linkAnnotationRef]));
                     }
-                  });
-                  const linkAnnotationRef = context.register(linkAnnotation);
-                  const annots = currentPage.node.lookup(PDFName.of('Annots'));
-                  if (annots) {
-                    (annots as any).push(linkAnnotationRef);
-                  } else {
-                    currentPage.node.set(PDFName.of('Annots'), context.obj([linkAnnotationRef]));
+                    
+                    if (j < urlLines.length - 1) {
+                      currentUrlY -= (isCompact ? 10 : 11); // Match Google template spacing
+                    }
                   }
                   
-                  // Move to next link position
-                  linkX += fullWidth + 15; // Add space between links
+                  minLinkY = Math.min(minLinkY, currentUrlY);
+                  
+                  // Position for next link (if any)
+                  if (i < links.length - 1) {
+                    linkY = currentUrlY - (isCompact ? 11 : 13); // Match Google template spacing
+                    linkX = margin + 8; // Maintain 8px indent
+                    minLinkY = Math.min(minLinkY, linkY);
+                  }
                 }
                 
-                yOffset -= (isCompact ? 16 : 19); // Space below links
+                // Update yOffset with minimal spacing (just 6px gap to match Google)
+                yOffset = minLinkY - 13;
               }
             }
 
             // Description bullets (if any)
             if (Array.isArray(proj.description) && proj.description.length) {
               for (const d of proj.description) {
-                const bullet = "• ";
-                const indentX = margin + 16;
-                const maxWidth = pageWidth - 26;
-                const lines = wrapText(`${bullet}${d}`, maxWidth, regularFont, isCompact ? 9 : 10);
+                const bullet = "- "; // Use - for ATS-friendly uniform formatting
+                const indentX = margin + 15; // Match other sections' indent
+                const maxWidth = pageWidth - 20; // Match other sections' width
+                const lines = wrapText(`${bullet}${d}`, maxWidth, regularFont, isCompact ? 8 : 10); // Match font sizes
                 for (const line of lines) {
-                  ensureSpace(isCompact ? 10 : 12);
+                  ensureSpace(isCompact ? 8 : 12); // Match spacing
                   currentPage.drawText(sanitizeForFont(line, regularFont), {
                     x: indentX,
                     y: yOffset,
-                    size: isCompact ? 9 : 10,
+                    size: isCompact ? 8 : 10, // Match other sections
                     font: regularFont,
-                    color: secondaryColor,
+                    color: textColor, // Match other sections' color
                   });
-                  yOffset -= isCompact ? 10 : 12;
+                  yOffset -= isCompact ? 8 : 12; // Match spacing
                 }
               }
             }

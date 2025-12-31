@@ -170,86 +170,122 @@ const drawProjectsSection = (
       cursorX += measureText(dateText, fonts.regular, style.linkSize) + 10
     }
 
-    // Links (if present, with clickable annotations) - Same as ATS Classic
-    if (proj.link || proj.repo) {
-      const links = [];
-      if (proj.link) links.push({ label: "Live demo:", url: normalizeUrl(proj.link) });
-      if (proj.repo) links.push({ label: "Github:", url: normalizeUrl(proj.repo) });
+// Links (if present, with clickable annotations)
+if (proj.link || proj.repo) {
+  const links = [];
+  if (proj.link) links.push({ label: "Live demo:", url: normalizeUrl(proj.link) });
+  if (proj.repo) links.push({ label: "Github:", url: normalizeUrl(proj.repo) });
+  
+  if (links.length) {
+    let linkY = itemStartY - (style.titleSize + 6);
+    let linkX = margin;
+    let minLinkY = linkY; // Track the lowest Y position used
+    
+    // Helper function to wrap long URLs
+    const wrapUrl = (url: string, maxWidth: number): string[] => {
+      const lines: string[] = [];
+      let remaining = url;
       
-      if (links.length) {
-        let linkY = itemStartY - (style.titleSize + 6); // Position below title
-        let linkX = margin;
+      while (remaining.length > 0) {
+        let chunk = remaining;
+        let width = fonts.regular.widthOfTextAtSize(chunk, style.linkSize);
         
-        for (let i = 0; i < links.length; i++) {
-          const link = links[i];
-          const labelText = link.label;
-          const urlText = link.url;
-          const fullText = `${labelText} ${urlText}`;
-          const safeLabel = sanitizeForFont(labelText, fonts.regular);
-          const safeFull = sanitizeForFont(fullText, fonts.regular);
-          
-          const labelWidth = fonts.regular.widthOfTextAtSize(safeLabel, style.linkSize);
-          const fullWidth = fonts.regular.widthOfTextAtSize(safeFull, style.linkSize);
-          
-          // Check if we need to wrap to next line
-          if (linkX + fullWidth > pageInnerWidth + margin && i > 0) {
-            linkY -= (style.linkSize + 4);
-            linkX = margin;
-          }
-          
-          // Draw label
-          ctx.page.drawText(safeLabel, {
-            x: linkX,
-            y: linkY,
-            size: style.linkSize,
-            font: fonts.bold,
-            color: style.titleColor,
-          });
-          
-          // Draw URL
-          ctx.page.drawText(safeFull.substring(labelText.length), {
-            x: linkX + labelWidth + 8, // Add 8px spacing between label and URL
-            y: linkY,
-            size: style.linkSize,
-            font: fonts.regular,
-            color: style.linkColor,
-          });
-          
-          // Add clickable annotation for the URL part
-          const linkHeight = style.linkSize * 1.2;
-          const annotY = linkY - (style.linkSize * 0.2);
-          const pdfDocCtx = ctx.page.doc;
-          const context = pdfDocCtx.context;
-          const linkAnnotation = context.obj({
-            Type: PDFName.of('Annot'),
-            Subtype: PDFName.of('Link'),
-            Rect: [linkX + labelWidth + 8, annotY, linkX + fullWidth + 8, annotY + linkHeight], // Adjust for spacing
-            Border: [0, 0, 0],
-            C: [0, 0, 1],
-            A: {
-              Type: PDFName.of('Action'),
-              S: PDFName.of('URI'),
-              URI: PDFString.of(link.url),
-              NewWindow: true
-            }
-          });
-          const linkAnnotationRef = context.register(linkAnnotation);
-          const annots = ctx.page.node.lookup(PDFName.of('Annots'));
-          if (annots) {
-            (annots as any).push(linkAnnotationRef);
-          } else {
-            ctx.page.node.set(PDFName.of('Annots'), context.obj([linkAnnotationRef]));
-          }
-          
-          // Move to next link position
-          linkX += fullWidth + 15; // Add space between links
+        while (width > maxWidth && chunk.length > 1) {
+          chunk = chunk.substring(0, chunk.length - 1);
+          width = fonts.regular.widthOfTextAtSize(chunk, style.linkSize);
         }
         
-        ctx.y -= (style.linkSize + 8); // Space below links
+        lines.push(chunk);
+        remaining = remaining.substring(chunk.length);
+      }
+      
+      return lines;
+    };
+    
+    for (let i = 0; i < links.length; i++) {
+      const link = links[i];
+      const safeLabel = sanitizeForFont(link.label, fonts.regular);
+      
+      const labelWidth = fonts.regular.widthOfTextAtSize(safeLabel, style.linkSize);
+      
+      // Check available width for URL on current line
+      const availableWidth = margin + pageInnerWidth - linkX - labelWidth - 8;
+      const urlLines = wrapUrl(link.url, availableWidth);
+      
+      // Draw label
+      ctx.page.drawText(safeLabel, {
+        x: linkX,
+        y: linkY,
+        size: style.linkSize,
+        font: fonts.bold,
+        color: style.titleColor,
+      });
+      
+      // Draw URL line by line
+      let currentUrlY = linkY;
+      let firstLineUrlX = linkX + labelWidth + 8;
+      
+      for (let j = 0; j < urlLines.length; j++) {
+        const urlLine = urlLines[j];
+        const safeUrl = sanitizeForFont(urlLine, fonts.regular);
+        const urlLineX = j === 0 ? firstLineUrlX : margin;
+        
+        ctx.page.drawText(safeUrl, {
+          x: urlLineX,
+          y: currentUrlY,
+          size: style.linkSize,
+          font: fonts.regular,
+          color: style.linkColor,
+        });
+        
+        // Add clickable annotation for this line
+        const urlWidth = fonts.regular.widthOfTextAtSize(safeUrl, style.linkSize);
+        const linkHeight = style.linkSize * 1.2;
+        const annotY = currentUrlY - (style.linkSize * 0.2);
+        const pdfDocCtx = ctx.page.doc;
+        const context = pdfDocCtx.context;
+        const linkAnnotation = context.obj({
+          Type: PDFName.of('Annot'),
+          Subtype: PDFName.of('Link'),
+          Rect: [urlLineX, annotY, urlLineX + urlWidth, annotY + linkHeight],
+          Border: [0, 0, 0],
+          C: [0, 0, 1],
+          A: {
+            Type: PDFName.of('Action'),
+            S: PDFName.of('URI'),
+            URI: PDFString.of(link.url),
+            NewWindow: true
+          }
+        });
+        const linkAnnotationRef = context.register(linkAnnotation);
+        const annots = ctx.page.node.lookup(PDFName.of('Annots'));
+        if (annots) {
+          (annots as any).push(linkAnnotationRef);
+        } else {
+          ctx.page.node.set(PDFName.of('Annots'), context.obj([linkAnnotationRef]));
+        }
+        
+        if (j < urlLines.length - 1) {
+          currentUrlY -= (style.linkSize + 2);
+        }
+      }
+      
+      minLinkY = Math.min(minLinkY, currentUrlY);
+      
+      // Position for next link (if any)
+      if (i < links.length - 1) {
+        linkY = currentUrlY - (style.linkSize + 4);
+        linkX = margin;
+        minLinkY = Math.min(minLinkY, linkY);
       }
     }
+    
+    // Update ctx.y with minimal spacing (just 4-6px gap)
+    ctx.y = minLinkY - 6;
+  }
+}
 
-    ctx.y -= style.titleSize + 6
+ctx.y -= style.titleSize + 2
 
     // Description bullets
     if (Array.isArray(proj.description) && proj.description.length) {
