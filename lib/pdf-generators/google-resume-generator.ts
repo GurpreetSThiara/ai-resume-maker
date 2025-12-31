@@ -699,10 +699,10 @@ export async function generateResumePDF({
           const style = {
             titleSize: isBlackCompact ? 10 : 11,
             titleColor: textColor,
-            linkSize: isBlackCompact ? 7 : 8,
+            linkSize: isBlackCompact ? 8 : 9, // Increased from 7/8 to match other sections
             linkColor,
             descSize: isBlackCompact ? 9 : 10,
-            descColor: secondaryColor,
+            descColor: textColor, // Changed from secondaryColor to textColor for consistency
             bulletIndent: 12,
             itemSpacing: isBlackCompact ? 3 : 5,
           }
