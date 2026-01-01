@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Check, Zap, Shield, Download, FileText, MousePointer2, CreditCard, Clock, Lock, Sparkles } from "lucide-react"
 import { CREATE_RESUME } from "@/config/urls"
 import { HeroButtons, SecondaryCTAButton } from "@/components/appUI/home/HeroButtons"
+import { FloatingBadge } from "@/components/appUI/home/FloatingBadge"
 
 export  function Hero() {
   return (
@@ -112,12 +113,7 @@ export  function Hero() {
             {/* Right Visual - Mock Resume Preview */}
             <div className="relative lg:ml-auto max-w-md mx-auto lg:max-w-lg w-full">
               {/* Floating Badge */}
-              <div className="absolute -top-4 -right-4 sm:-top-6 sm:-right-6 bg-primary text-primary-foreground px-4 sm:px-6 py-3 sm:py-4 rounded-2xl shadow-2xl z-20 animate-bounce border border-primary/20">
-                <div className="flex items-center gap-2 font-bold text-sm sm:text-base whitespace-nowrap">
-                  <Download className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Unlimited Downloads
-                </div>
-              </div>
+              <FloatingBadge />
 
               {/* Mock Resume Card */}
               <div className="relative z-10 bg-white rounded-2xl shadow-2xl border border-border p-6 sm:p-8 lg:p-10 transform hover:scale-[1.02] transition-transform duration-300">
