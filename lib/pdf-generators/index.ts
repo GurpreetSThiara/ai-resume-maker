@@ -42,21 +42,36 @@ export async function generateResumePDF(options: PDFGenerationOptions) {
       // Keep sections intact (including projects). Individual generators
       // will decide how to render each section. Previously projects were
       // flattened into `custom` which caused mismatch between preview and PDF.
-      sections: (options.resumeData.sections || []).filter((s: any) => hasSectionContent(s)),
+      // Keep custom-fields section so generators can use its order for rendering
+      // Filter out sections without content (but keep custom-fields even if empty)
+      sections: (options.resumeData.sections || [])
+        .filter((s: any) => s.id === 'custom-fields' || hasSectionContent(s)),
     },
   }
 
 
   let result
   switch (template.id) {
-    case "google":
+    case "classic-blue":
       result = await generateGooglePDF(filteredOptions)
+      break
+    case "ats-compact-lines":
+      result = await generateGooglePDF({
+        ...filteredOptions,
+        variant: "black_compact",
+      } as any)
       break
     case "modern":
       result = await generateModernResumePDF(filteredOptions)
       break
     case "ats-classic":
       result = await generateClassic2ResumePDF(filteredOptions)
+      break
+    case "ats-classic-compact":
+      result = await generateClassic2ResumePDF({
+        ...filteredOptions,
+        variant: "compact",
+      } as any)
       break
     case "ats-elegant":
       result = await generateElegantResumePDF(filteredOptions)

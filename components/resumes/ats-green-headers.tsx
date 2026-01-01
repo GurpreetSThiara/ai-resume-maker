@@ -5,6 +5,7 @@ import { useRef, useEffect, useState } from "react"
 import type { ResumeData } from "@/types/resume"
 import ProjectSection from '../resume-components/project-section'
 import { SECTION_TYPES } from "@/types/resume"
+import { getSectionsForRendering } from "@/utils/sectionOrdering"
 
 
 
@@ -137,6 +138,15 @@ export const ATS_GREEN_HEADERS: any = ({
     })
   }
 
+  const handleCustomItemChange = (id: string, field: "title" | "content", value: string) => {
+    if (!setResumeData) return
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      if (updated.custom[id]) updated.custom[id][field] = value
+      return updated
+    })
+  }
+
   const handleProjectFieldChange = (sectionId: string | undefined, projectIndex: number, field: string, value: string) => {
     if (!sectionId || !setResumeData) return
     setResumeData((prev) => {
@@ -264,7 +274,53 @@ export const ATS_GREEN_HEADERS: any = ({
               </p>
             </div>
 
-            {resumeData.sections.map((section) => {
+            {/* Custom Fields - Now handled by getSectionsForRendering */}
+
+            {getSectionsForRendering(resumeData.sections, resumeData.custom).map((section) => {
+              // Handle Custom Fields Section first (it doesn't need content check)
+              if (section.type === 'custom-fields') {
+                const hasCustomFields = Object.entries(resumeData.custom).filter(([_, item]) => !(item as any).hidden).length > 0
+                if (!hasCustomFields) return null
+                
+                return (
+                  <div key={section.id} className="mb-6">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                      {Object.entries(resumeData.custom)
+                        .filter(([_, item]) => !(item as any).hidden)
+                        .map(([key, item]) => {
+                          const customField = item as any
+                          return (
+                          <div key={key} className="text-sm" style={{ fontSize: "11px" }}>
+                            <span
+                              className="font-semibold"
+                              style={{ color: "#000000", fontWeight: "600" }}
+                              contentEditable={!!setResumeData}
+                              suppressContentEditableWarning
+                              onBlur={(e) => handleCustomItemChange(key, "title", e.currentTarget.textContent || "")}
+                            >
+                              {customField.title}:
+                            </span>{" "}
+                            <span
+                              style={{ color: "#333333" }}
+                              contentEditable={!!setResumeData}
+                              suppressContentEditableWarning
+                              onBlur={(e) => handleCustomItemChange(key, "content", e.currentTarget.textContent || "")}
+                            >
+                              {customField.link ? (
+                                <a href={customField.content} target="_blank" rel="noopener noreferrer" style={{ color: "#0066cc", textDecoration: "underline" }}>
+                                  {customField.content}
+                                </a>
+                              ) : (
+                                customField.content
+                              )}
+                            </span>
+                          </div>
+                        )})}
+                    </div>
+                  </div>
+                )
+              }
+
               // Check if section has content
               let hasContent = false
 
@@ -527,6 +583,31 @@ export const ATS_GREEN_HEADERS: any = ({
                         titleClassName={'font-bold text-sm leading-tight mb-1'}
                         descriptionClassName={'text-sm leading-tight'}
                       />
+                    )}
+
+                    {/* Additional Sections */}
+                    {section.type === SECTION_TYPES.CUSTOM && section.content?.length > 0 && (
+                      <div className="space-y-1 ml-4">
+                        {section.content.map((item, contentIdx) => (
+                          <div key={contentIdx} className="flex items-start">
+                            <span
+                              className="text-sm leading-tight mr-2 flex-shrink-0"
+                              style={{ color: "#000000", fontSize: "12px" }}
+                            >
+                              •
+                            </span>
+                            <p
+                              className="text-sm leading-tight"
+                              style={{ color: "#000000", fontSize: "12px" }}
+                              contentEditable={!!setResumeData}
+                              suppressContentEditableWarning
+                              onBlur={(e) => handleCustomContentChange(section.id, contentIdx, e.currentTarget.textContent || "")}
+                            >
+                              {item}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>

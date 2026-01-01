@@ -12,20 +12,7 @@ export const sampleResume: ResumeData = {
   },
 
   custom: {
-    dob: {
-      title: "Date of Birth",
-      content: "1995-03-22",
-      hidden: false,
-      id: "dob",
-      link: false
-    },
-    gender: {
-      title: "Gender",
-      content: "Male",
-      hidden: false,
-      id: "gender",
-      link: false
-    },
+
     portfolio: {
       title: "Portfolio",
       content: "https://johndoe.dev",
@@ -37,29 +24,27 @@ export const sampleResume: ResumeData = {
 
   sections: [
     {
-      id: "edu-1",
-      title: "Education",
-      type: "education",
-      order: 1,
+      id: "skills-1",
+      title: "Skills",
+      type: "skills",
+      order: 0,
       items: [
-        {
-          institution: "University of California, Berkeley",
-          degree: "B.Sc. in Computer Science",
-          startDate: "2013",
-          endDate: "2017",
-          location: "Berkeley, CA",
-          highlights: [
-            "Graduated with Distinction",
-            "Completed senior project on real-time data visualization using WebSockets"
-          ]
-        }
+        "React",
+        "Next.js",
+        "TypeScript",
+        "Node.js",
+        "Express",
+        "MongoDB",
+        "PostgreSQL",
+        "Docker",
+        "Git"
       ]
     },
     {
       id: "exp-1",
       title: "Experience",
       type: "experience",
-      order: 2,
+      order: 1,
       items: [
         {
           company: "BlueWave Technologies",
@@ -88,44 +73,10 @@ export const sampleResume: ResumeData = {
       ]
     },
     {
-      id: "skills-1",
-      title: "Skills",
-      type: "skills",
-      order: 3,
-      items: [
-        "React",
-        "Next.js",
-        "TypeScript",
-        "Node.js",
-        "Express",
-        "MongoDB",
-        "PostgreSQL",
-        "Docker",
-        "Git"
-      ]
-    },
-    {
-      id: "lang-1",
-      title: "Languages",
-      type: "languages",
-      order: 4,
-      items: ["English", "Spanish"]
-    },
-    {
-      id: "cert-1",
-      title: "Certifications",
-      type: "certifications",
-      order: 5,
-      items: [
-        "AWS Certified Developer – Associate",
-        "JavaScript Algorithms and Data Structures (freeCodeCamp)"
-      ]
-    },
-    {
       id: "proj-1",
       title: "Projects",
       type: "projects",
-      order: 6,
+      order: 2,
       items: [
         {
           name: "Smart Resume Builder",
@@ -149,16 +100,52 @@ export const sampleResume: ResumeData = {
       ]
     },
     {
+      id: "edu-1",
+      title: "Education",
+      type: "education",
+      order: 3,
+      items: [
+        {
+          institution: "University of California, Berkeley",
+          degree: "B.Sc. in Computer Science",
+          startDate: "2013",
+          endDate: "2017",
+          location: "Berkeley, CA",
+          highlights: [
+            "Graduated with Distinction",
+            "Completed senior project on real-time data visualization using WebSockets"
+          ]
+        }
+      ]
+    },
+    {
+      id: "cert-1",
+      title: "Certifications",
+      type: "certifications",
+      order: 4,
+      items: [
+        "AWS Certified Developer – Associate",
+        "JavaScript Algorithms and Data Structures (freeCodeCamp)"
+      ]
+    },
+    {
       id: "custom-1",
-      title: "Hobbies",
+      title: "Additional Sections",
       type: "custom",
-      order: 7,
+      order: 5,
       content: [
         "Playing chess",
         "Photography",
         "Travel blogging",
         "Exploring new JavaScript frameworks"
       ]
+    },
+    {
+      id: "lang-1",
+      title: "Languages",
+      type: "languages",
+      order: 6,
+      items: ["English", "Spanish"]
     }
   ]
 };

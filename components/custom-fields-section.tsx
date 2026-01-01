@@ -23,6 +23,13 @@ export function CustomFieldsSection({ data, onUpdate, onSave, isDirty }: CustomF
   const addCustomField = () => {
     if (newField.title && newField.content) {
       const id = `custom_${newField.title.toLowerCase().replace(/\s+/g, "_")}_${Date.now()}`
+      // Get max order from existing custom fields, or default to 1000
+      const existingOrders = Object.values(data.custom)
+        .map(f => f.order ?? 0)
+        .filter(o => o !== undefined)
+      const maxOrder = existingOrders.length > 0 ? Math.max(...existingOrders) : 999
+      const newOrder = maxOrder + 1
+      
       const updatedCustom = {
         ...data.custom,
         [id]: {
@@ -31,6 +38,7 @@ export function CustomFieldsSection({ data, onUpdate, onSave, isDirty }: CustomF
           hidden: false,
           id,
           link: newField.link,
+          order: newOrder,
         },
       }
       onUpdate({ custom: updatedCustom })
@@ -144,7 +152,7 @@ export function CustomFieldsSection({ data, onUpdate, onSave, isDirty }: CustomF
               <Label htmlFor="new-title">Field Title</Label>
               <Input
                 id="new-title"
-                placeholder="e.g., Date of Birth, Website"
+                placeholder="e.g. Website, GitHub, Twitter"
                 value={newField.title}
                 onChange={(e) => setNewField((prev) => ({ ...prev, title: e.target.value }))}
                 className="mt-1"
@@ -212,8 +220,7 @@ export function CustomFieldsSection({ data, onUpdate, onSave, isDirty }: CustomF
           <span className="font-medium text-green-800">Suggestion</span>
         </div>
         <p className="text-green-700 text-sm">
-          Consider adding fields like Date of Birth, Nationality, Languages, or Personal Website to give recruiters a
-          more complete picture of who you are.
+          Add links to your professional profiles, portfolio, projects, and social media to showcase your work and give recruiters valuable insights into your expertise. Avoid adding personal information like date of birth, gender, or nationality as these are not valuable to ATS systems.
         </p>
       </div>
     </div>

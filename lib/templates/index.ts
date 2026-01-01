@@ -1,7 +1,7 @@
 import type { ResumeTemplate } from "@/types/resume"
 
 export const googleTemplate: ResumeTemplate = {
-  id: "google",
+  id: "classic-blue",
   name: "ATS Classic 1",
   description: "Clean, professional template inspired by Google's design principles",
   theme: {
@@ -109,6 +109,59 @@ export const ATS_YELLOW: ResumeTemplate = {
   },
 }
 
+export const atsCompactLinesTemplate: ResumeTemplate = {
+  id: "ats-compact-lines",
+  name: "ATS Compact Lines",
+  description: "A compact ATS-friendly resume template with black lines and titles for maximum content density.",
+  theme: {
+    fontSize: {
+      name: "text-3xl",
+      section: "text-xl",
+      content: "text-base",
+      small: "text-sm",
+    },
+    colors: {
+      primary: "text-black",
+      secondary: "text-gray-600",
+      text: "text-gray-800",
+      accent: "text-black",
+    },
+    spacing: {
+      section: "mb-8",
+      item: "mb-4",
+      content: "mb-2",
+    },
+    layout: {
+      container: "max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden",
+      header: "border-b border-gray-200 p-4",
+      content: "p-6",
+    },
+  },
+  pdfConfig: {
+    fonts: {
+      regular: "TimesRoman",
+      bold: "TimesRomanBold",
+    },
+    sizes: {
+      name: 20,
+      section: 14,
+      content: 12,
+      small: 10,
+    },
+    colors: {
+      text: { r: 0.2, g: 0.2, b: 0.2 },
+      heading: { r: 0, g: 0, b: 0 },
+      secondary: { r: 0.4, g: 0.4, b: 0.4 },
+      linkColor: { r: 0, g: 0, b: 1 },
+    },
+    spacing: {
+      page: 15,
+      section: 20,
+      item: 10,
+    },
+  },
+}
+
 export const ATS_TIMELINE: ResumeTemplate = {
   id: "ats-timeline",
   name: "Timeline",
@@ -132,15 +185,70 @@ export const ATS_TIMELINE: ResumeTemplate = {
 
 
 
+export const atsClassicCompactTemplate: ResumeTemplate = {
+  id: "ats-classic-compact",
+  name: "ATS Classic Compact",
+  description: "Compact version of ATS Classic with reduced spacing and no decorative lines for maximum content density.",
+  theme: {
+    fontSize: {
+      name: "text-3xl",
+      section: "text-xl",
+      content: "text-base",
+      small: "text-sm",
+    },
+    colors: {
+      primary: "text-gray-800",
+      secondary: "text-gray-500",
+      text: "text-gray-900",
+      accent: "text-gray-700",
+    },
+    spacing: {
+      section: "mb-6",
+      item: "mb-3",
+      content: "mb-1",
+    },
+    layout: {
+      container: "max-w-4xl mx-auto bg-white shadow rounded-lg overflow-hidden",
+      header: "border-b p-4",
+      content: "p-6",
+    },
+  },
+  pdfConfig: {
+    fonts: {
+      regular: "TimesRoman",
+      bold: "TimesRomanBold",
+    },
+    sizes: {
+      name: 20,
+      section: 14,
+      content: 12,
+      small: 10,
+    },
+    colors: {
+      text: { r: 0.1, g: 0.1, b: 0.1 },
+      heading: { r: 0.2, g: 0.2, b: 0.2 },
+      secondary: { r: 0.4, g: 0.4, b: 0.4 },
+      linkColor: { r: 0, g: 0, b: 1 },
+    },
+    spacing: {
+      page: 15,
+      section: 18,
+      item: 10,
+    },
+  },
+}
+
 export const availableTemplates: ResumeTemplate[] = [
   googleTemplate,
  // modernTemplate,
   classicATSTemplate,
   ATS_GREEN,
   ATS_YELLOW,
-  ATS_TIMELINE
+// ATS_TIMELINE,  // Temporarily disabled
+  atsCompactLinesTemplate,
+  atsClassicCompactTemplate
  // elegantATSTemplate,
- // compactATSTemplate,
+// compactATSTemplate,
   //creativeATSTemplate,
 ]
 

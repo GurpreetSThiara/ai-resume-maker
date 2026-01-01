@@ -260,10 +260,10 @@ function PreviewContent() {
                       <h3 className="font-semibold text-gray-900 mb-2">ATS Green Template</h3>
                       <p className="text-sm text-gray-600">Modern ATS-optimized design with green accents</p>
                     </Link>
-                    <Link href="/free-ats-resume-templates/preview?template=ats-timeline" className="block p-4 bg-white border rounded-lg hover:shadow-md transition-shadow">
+                    {/* <Link href="/free-ats-resume-templates/preview?template=ats-timeline" className="block p-4 bg-white border rounded-lg hover:shadow-md transition-shadow">
                       <h3 className="font-semibold text-gray-900 mb-2">Timeline Template</h3>
                       <p className="text-sm text-gray-600">Visual timeline design for career progression</p>
-                    </Link>
+                    </Link> */}
                     <Link href="/free-ats-resume-templates" className="block p-4 bg-white border rounded-lg hover:shadow-md transition-shadow">
                       <h3 className="font-semibold text-gray-900 mb-2">All Templates</h3>
                       <p className="text-sm text-gray-600">Browse our complete collection of resume templates</p>

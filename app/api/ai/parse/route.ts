@@ -1,6 +1,63 @@
 import { openRouter } from "@/lib/openrouter"
 export const dynamic = "force-dynamic"
 
+// Retry configuration
+const MAX_RETRIES = 3
+const INITIAL_DELAY = 1000 // 1 second
+
+async function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+async function callAIWithRetry(text: string, systemPrompt: string, retries = 0): Promise<any> {
+  try {
+    const client = openRouter()
+    const response = await client.chat.completions.create({
+      model: "openai/gpt-oss-20b:free",
+      temperature: 0.3,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: text },
+      ],
+    })
+
+    const result = response.choices?.[0]?.message?.content?.trim()
+    if (!result) throw new Error("No response from model")
+
+    // Try to parse as JSON first
+    try {
+      const parsed = JSON.parse(result)
+      return parsed
+    } catch (parseError) {
+      // If direct parsing fails, try to extract JSON from the response
+      try {
+        const jsonMatch = result.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const extractedJson = jsonMatch[0];
+          const parsed = JSON.parse(extractedJson);
+          return parsed;
+        }
+      } catch (extractError) {
+        console.error("Failed to extract JSON from response:", extractError);
+      }
+      
+      throw new Error("Invalid JSON response from AI service")
+    }
+
+  } catch (error: any) {
+    // If it's a 429 error and we have retries left, wait and retry
+    if (error.status === 429 && retries < MAX_RETRIES) {
+      const delay = INITIAL_DELAY * Math.pow(2, retries) // Exponential backoff
+      console.log(`Rate limited. Retrying in ${delay}ms... (attempt ${retries + 1}/${MAX_RETRIES})`)
+      await sleep(delay)
+      return callAIWithRetry(text, systemPrompt, retries + 1)
+    }
+    
+    // For other errors or no retries left, throw the error
+    throw error
+  }
+}
+
 export async function POST(request: Request) {
 
   try {
@@ -195,7 +252,7 @@ Project = {
   - "basics"
   - "custom"
   - "sections" (as an array of section objects — never keyed objects)
-- If any section doesn’t exist, output it with an empty array or empty content.
+- If any section doesn't exist, output it with an empty array or empty content.
 - Dates must use "YYYY-MM" or "Present".
 - Escape all internal quotes properly.
 - Output must be **parsable by JSON.parse()** with no post-processing required.
@@ -206,24 +263,34 @@ Project = {
 Now, based on the raw resume text provided by the user, generate the ResumeData JSON object.
 `
 
-    const response = await openRouter.chat.completions.create({
-      model: "openai/gpt-oss-20b:free",
-      temperature: 0.3,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: text },
-      ],
-    })
-
-    const result = response.choices?.[0]?.message?.content?.trim()
-    if (!result) return new Response("No response from model", { status: 500 })
-
     try {
-      const parsed = JSON.parse(result)
+      const parsed = await callAIWithRetry(text, systemPrompt)
       return Response.json(parsed)
-    } catch {
-      // fallback if AI didn’t return valid JSON
-      return new Response(result, { status: 200 })
+    } catch (error: any) {
+      console.error("Error generating resume:", error)
+      
+      // Handle specific error types
+      if (error.status === 429) {
+        return new Response(
+          JSON.stringify({ 
+            error: "AI service is temporarily rate limited. Please try again in a few moments.",
+            code: "RATE_LIMITED"
+          }),
+          { status: 429 }
+        )
+      }
+      
+      if (error.message?.includes("Invalid JSON response")) {
+        return new Response(
+          JSON.stringify({ 
+            error: "AI service returned invalid response. Please try again.",
+            code: "INVALID_RESPONSE"
+          }),
+          { status: 422 }
+        )
+      }
+      
+      return new Response("Internal Server Error", { status: 500 })
     }
 
   } catch (error) {

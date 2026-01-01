@@ -425,7 +425,7 @@ export async function generateTimelineResumeDOCX({ resumeData, filename = "resum
       )
     }
 
-    // Custom Section
+    // Additional Sections
     if (section.type === SECTION_TYPES.CUSTOM) {
       section.content.forEach((item) => {
         children.push(

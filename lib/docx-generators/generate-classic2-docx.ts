@@ -189,7 +189,7 @@ export async function generateClassic2ResumeDOCX({ resumeData, filename = "resum
       children.push(customTable)
     }
 
-    // Add spacing after custom section
+    // Add spacing after additional section
     children.push(new Paragraph({ text: "", spacing: { after: 120 } })) // Reduced from 200 to 120
   }
 

@@ -94,7 +94,7 @@ export  function Templates() {
          <h1 className="text-3xl font-bold">Choose a resume template</h1>
         <p className="mt-2 text-muted-foreground">Pick a template or upload your resume to start building your resume. You can preview, customize, and export to PDF.</p>
        </div>
-       <PdfUploadModal isLoading={isLoading} status={status} onFileUpload={handleFileUpload} />
+       {/* <PdfUploadModal isLoading={isLoading} status={status} onFileUpload={handleFileUpload} /> */}
       </header>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

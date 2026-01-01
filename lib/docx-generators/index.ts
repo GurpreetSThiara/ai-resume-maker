@@ -1,8 +1,9 @@
 import type { PDFGenerationOptions } from "@/types/resume"
 import { generateClassic1ResumeDOCX } from "./generate-classic1-docx"
 import { generateClassic2ResumeDOCX } from "./generate-classic2-docx"
-import { generateTimelineResumeDOCX } from "./generate-timeline-docx"
-import { ATS_TIMELINE } from "../templates"
+import { generateTimelineResumeDOCX } from "./generate-timeline-docx";
+import { generateATSCompactLinesDOCX } from './ats-compact-lines-docx';
+import { ATS_TIMELINE, atsCompactLinesTemplate } from "../templates";
 
 
 export async function generateResumeDOCX(options: PDFGenerationOptions) {
@@ -10,17 +11,12 @@ export async function generateResumeDOCX(options: PDFGenerationOptions) {
 
   let result
   switch (template.id) {
-    case "google":
-      result = await generateClassic1ResumeDOCX(options)
-      break
-    case "ats-classic":
-      result = await generateClassic2ResumeDOCX(options)
-      break
-    case ATS_TIMELINE.id:
-      result = await generateTimelineResumeDOCX(options)
+    case "ats_compact_lines":
+      result = await generateATSCompactLinesDOCX(options as any)
       break
     default:
-      result = await generateClassic2ResumeDOCX(options)
+      // DOCX download is only supported for ATS Compact Lines template
+      throw new Error("DOCX download is only available for the ATS Compact Lines template.")
   }
 
   // Track download for DOCX generators

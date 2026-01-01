@@ -3,7 +3,7 @@
 import { ResumeData, SECTION_TYPES } from "@/types/resume"
 import type React from "react"
 import { useRef, useEffect, useState } from "react"
-import { sortSectionsByOrder, getSectionsForRendering } from "@/utils/sectionOrdering"
+import { sortSectionsByOrder } from "@/utils/sectionOrdering"
 import ProjectSection from "../resume-components/project-section"
 
 
@@ -14,17 +14,15 @@ interface ResumeProps {
   resumeData: ResumeData
   setResumeData: (data: ResumeData | ((prev: ResumeData) => ResumeData)) => void
   activeSection: string
-  useBlackVariant?: boolean
 }
 
-export const GoogleResume: React.FC<ResumeProps> = ({
+export const GoogleBlackLinesResume: React.FC<ResumeProps> = ({
   pdfRef,
   font,
   theme,
   resumeData,
   setResumeData,
   activeSection,
-  useBlackVariant = false,
 }) => {
   const personalInfoRef = useRef<HTMLDivElement>(null)
   const customFieldsRef = useRef<HTMLDivElement>(null)
@@ -115,7 +113,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
       
       // Split by bullet separator and clean up
       const items = value.split('•').map(item => item.trim()).filter(item => item.length > 0);
-      ;(section as any).items = items;
+      (section as any).items = items;
       return updated;
     });
   };
@@ -199,20 +197,11 @@ export const GoogleResume: React.FC<ResumeProps> = ({
     })
   }
 
-  // Colors tuned to match the ATS Compact Lines PDF variant
-  // Always use black titles and light black dividers so ATS Compact preview
-  // (which reuses this component) matches the downloaded PDF.
-  const accentColor = useBlackVariant
-    ? 'rgb(0, 0, 0)'                // black titles for ATS Compact Lines
-    : 'rgb(38, 102, 166)'            // blue for Google
-  const textColor = 'rgb(26, 26, 26)'
-  const secondaryColor = 'rgb(102, 102, 102)'
-  const linkColor = useBlackVariant
-    ? 'rgb(0, 0, 0)'                // black links for ATS Compact Lines
-    : 'rgb(0, 0, 255)'                // blue links for Google
-  const sectionLineColor = useBlackVariant
-    ? 'rgba(0, 0, 0, 0.25)'          // light black line for ATS Compact Lines
-    : 'rgb(38, 102, 166)'            // blue line for Google
+  // Colors matching the PDF generator
+  const accentColor = "rgb(0, 0, 0)" // Black
+  const textColor = "rgb(26, 26, 26)" // rgb(0.1, 0.1, 0.1)
+  const secondaryColor = "rgb(102, 102, 102)" // rgb(0.4, 0.4, 0.4)
+  const linkColor = "rgb(0, 0, 255)" // rgb(0, 0, 1)
 
   return (
     <div className="w-full h-full flex justify-center items-start overflow-auto" style={{ minHeight: 0, minWidth: 0 }}>
@@ -225,7 +214,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
           className="relative"
           style={{
             minWidth: 595,
-            // minHeight: 842,
+       //     minHeight: 842,
             maxWidth: '100%',
             transform: `scale(${scale})`,
             transformOrigin: 'top center',
@@ -239,7 +228,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
           }}
         >
           {/* A4 page container with exact PDF dimensions */}
-          <div className="px-12 py-12" style={{ minWidth: 595, maxWidth: '100%' }}>
+          <div className="px-12 py-12" style={{  minWidth: 595, maxWidth: '100%' }}>
             {/* Header - Name */}
             <div className="mb-5" ref={personalInfoRef}>
               <h1
@@ -310,50 +299,41 @@ export const GoogleResume: React.FC<ResumeProps> = ({
               </div>
             )}
             
-            {/* Custom Details - Now handled by getSectionsForRendering */}
+            {/* Custom Details - Flex-wrap layout matching PDF */}
+            <div className="mb-8" ref={customFieldsRef}>
+              <div className="flex flex-wrap gap-x-8 gap-y-2">
+                {Object.entries(resumeData.custom)
+                  .filter(([_, item]) => !item.hidden)
+                  .map(([key, item]) => (
+                    <div key={key} className="flex items-start gap-1">
+                      <span
+                        className="font-bold text-xs leading-none"
+                        style={{ color: textColor, fontSize: '10px' }}
+                        contentEditable
+                        suppressContentEditableWarning
+                        onBlur={(e) => handleCustomItemChange(key, 'title', e.currentTarget.textContent || '')}
+                      >
+                        {item.title}:
+                      </span>
+                      <span
+                        className="text-xs leading-none"
+                        style={{
+                          color: item.link ? linkColor : textColor,
+                          fontSize: '10px',
+                        }}
+                        contentEditable
+                        suppressContentEditableWarning
+                        onBlur={(e) => handleCustomItemChange(key, 'content', e.currentTarget.textContent || '')}
+                      >
+                        {item.content}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
             
             {/* Sections */}
-            {getSectionsForRendering(resumeData.sections, resumeData.custom).map((section) => {
-              // Handle Custom Fields Section first (it doesn't need content check)
-              if (section.type === 'custom-fields') {
-                const hasCustomFields = Object.entries(resumeData.custom).filter(([_, item]) => !item.hidden).length > 0
-                if (!hasCustomFields) return null
-                
-                return (
-                  <div key={section.id} className="mb-8" ref={customFieldsRef}>
-                    <div className="flex flex-wrap gap-x-8 gap-y-2">
-                      {Object.entries(resumeData.custom)
-                        .filter(([_, item]) => !item.hidden)
-                        .map(([key, item]) => (
-                          <div key={key} className="flex items-start gap-1">
-                            <span
-                              className="font-bold text-xs leading-none"
-                              style={{ color: textColor, fontSize: '10px' }}
-                              contentEditable
-                              suppressContentEditableWarning
-                              onBlur={(e) => handleCustomItemChange(key, 'title', e.currentTarget.textContent || '')}
-                            >
-                              {item.title}:
-                            </span>
-                            <span
-                              className="text-xs leading-none"
-                              style={{
-                                color: item.link ? linkColor : textColor,
-                                fontSize: '10px',
-                              }}
-                              contentEditable
-                              suppressContentEditableWarning
-                              onBlur={(e) => handleCustomItemChange(key, 'content', e.currentTarget.textContent || '')}
-                            >
-                              {item.content}
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                )
-              }
-
+            {sortSectionsByOrder(resumeData.sections).map((section) => {
               if (section.hidden) return null
               // Check if section has content based on section type
               let hasContent = false
@@ -390,7 +370,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
                     >
                       {section.title}
                     </h2>
-                    <div className="h-px w-full" style={{ backgroundColor: sectionLineColor }} />
+                    <div className="h-px w-full" style={{ backgroundColor: accentColor }} />
                   </div>
                   
                   {/* Section Content */}

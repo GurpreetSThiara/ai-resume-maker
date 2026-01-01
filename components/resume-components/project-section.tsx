@@ -6,6 +6,8 @@ type Project = {
   link?: string
   repo?: string
   description?: string[]
+  startDate?: string
+  endDate?: string
 }
 
 type Props = {
@@ -94,19 +96,24 @@ export default function ProjectSection({
             )}
 
             {(proj.link || proj.repo) && (
-              <span className="ml-2 text-[10px] font-medium align-middle">
+              <div className="ml-2 text-[10px] font-medium align-middle flex flex-wrap gap-x-4 gap-y-1">
                 {proj.link && (
-                  <a href={proj.link} target="_blank" rel="noreferrer" className="hover:underline" style={{ color: linkColor }}>
-                    Link
-                  </a>
+                  <div className="flex items-center">
+                    <span className="font-medium text-gray-800">Live demo:</span>
+                    <a href={proj.link} target="_blank" rel="noreferrer" className="hover:underline ml-2" style={{ color: linkColor }}>
+                      {proj.link}
+                    </a>
+                  </div>
                 )}
-                {proj.link && proj.repo && <span className="mx-1 text-gray-300">|</span>}
                 {proj.repo && (
-                  <a href={proj.repo} target="_blank" rel="noreferrer" className="hover:underline" style={{ color: linkColor }}>
-                    GitHub
-                  </a>
+                  <div className="flex items-center">
+                    <span className="font-medium text-gray-800">Github:</span>
+                    <a href={proj.repo} target="_blank" rel="noreferrer" className="hover:underline ml-2" style={{ color: linkColor }}>
+                      {proj.repo}
+                    </a>
+                  </div>
                 )}
-              </span>
+              </div>
             )}
           </header>
 

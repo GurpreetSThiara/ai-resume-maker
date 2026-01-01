@@ -79,7 +79,7 @@ export function PersonalInfoSection({ data, onUpdate }: PersonalInfoSectionProps
 
         <div className="space-y-2">
           <Label htmlFor="linkedin" className="text-sm font-medium">
-            LinkedIn
+            LinkedIn or Social Link
           </Label>
           <Input
             id="linkedin"
@@ -89,6 +89,16 @@ export function PersonalInfoSection({ data, onUpdate }: PersonalInfoSectionProps
             className="h-12"
           />
         </div>
+      </div>
+
+      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-blue-600">💼</span>
+          <span className="font-medium text-blue-800">Pro Tip</span>
+        </div>
+        <p className="text-blue-700 text-sm">
+          A complete LinkedIn profile is crucial for recruiters. It validates your professional experience, showcases recommendations, and provides additional context beyond your resume.
+        </p>
       </div>
     </div>
   )

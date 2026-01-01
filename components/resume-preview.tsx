@@ -5,6 +5,7 @@ import { useRef, useEffect, forwardRef, useState } from "react"
 import type { ResumeData, ResumeTemplate, Section } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { getResumePreview } from "./resumes"
+import { atsCompactLinesTemplate, atsClassicCompactTemplate } from "@/lib/templates"
 
 interface ResumePreviewProps {
   resumeData: ResumeData
@@ -89,7 +90,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
     const filteredResumeData: ResumeData = {
       ...resumeData,
       sections: (resumeData.sections || [])
-        .filter((s: any) => hasSectionContent(s))
+        .filter((s: any) => s.id === 'custom-fields' || hasSectionContent(s)) // Keep custom-fields section even if empty
         .map((s: any) => {
           // Preserve original projects section so templates that render projects
           // (like `ats-classic`) receive the proper `projects` type and items.
@@ -146,7 +147,15 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
 
     return (
       <div ref={ref} className={`bg-green-50 font-serif ${className || 'min-h-screen'}`}>
-        {ResumeComponent && <ResumeComponent resumeData={filteredResumeData} setResumeData={setResumeData} activeSection={activeSection} />}
+        {ResumeComponent && <ResumeComponent 
+          pdfRef={ref}
+          font={{ className: '', name: 'Helvetica, Arial, sans-serif' }}
+          theme={template.theme || {}}
+          resumeData={filteredResumeData} 
+          setResumeData={setResumeData} 
+          activeSection={activeSection} 
+          useBlackVariant={template.id === atsCompactLinesTemplate.id || template.id === atsClassicCompactTemplate.id}
+        />}
       </div>
     )
   },

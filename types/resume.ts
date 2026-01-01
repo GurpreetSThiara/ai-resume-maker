@@ -10,7 +10,7 @@ export interface ResumeData {
     
   }
 
-  // Custom fields (DOB, gender, etc.)
+  // Additional links or data (DOB, gender, etc.)
   custom: Record<string, CustomField>
 
   // Flexible sections (Education, Experience, Skills, Custom, etc.)
@@ -24,6 +24,7 @@ export interface CustomField {
   hidden: boolean
   id: string
   link: boolean
+  order?: number // Order for reordering additional links or data
 }
 
 // 🔹 Base Section Type
@@ -44,6 +45,7 @@ export const SECTION_TYPES = {
   CERTIFICATIONS: "certifications",
   PROJECTS: "projects",
   CUSTOM: "custom",
+  CUSTOM_FIELDS: "custom-fields", // All additional links or data grouped together
 } as const
 
 // 🔹 Allowed Section Types (derived from constants)
@@ -94,6 +96,11 @@ export interface CustomSection extends BaseSection {
   content: string[]
 }
 
+export interface CustomFieldsSection extends BaseSection {
+  type: typeof SECTION_TYPES.CUSTOM_FIELDS
+  // This section represents all additional links or data as a group
+}
+
 // 🔹 Specific Data Models
 export interface Education {
   institution: string
@@ -122,6 +129,7 @@ export type Section =
   | CertificationsSection
   | ProjectsSection
   | CustomSection
+  | CustomFieldsSection
 
 export interface ResumeTemplate {
   id: string

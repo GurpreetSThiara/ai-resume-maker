@@ -3,7 +3,7 @@
 import type React from "react"
 import { useRef, useEffect, useState } from "react"
 import type { ResumeData } from "@/types/resume"
-import { sortSectionsByOrder } from "@/utils/sectionOrdering"
+import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import ProjectSection from '../resume-components/project-section'
 import { SECTION_TYPES } from '@/types/resume'
 
@@ -14,6 +14,7 @@ interface ResumeProps {
   resumeData: ResumeData
   setResumeData: (data: ResumeData | ((prev: ResumeData) => ResumeData)) => void
   activeSection: string
+  useBlackVariant?: boolean
 }
 
 export const ClassicATSResume: React.FC<ResumeProps> = ({
@@ -23,6 +24,7 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
   resumeData,
   setResumeData,
   activeSection,
+  useBlackVariant = false,
 }) => {
   const personalInfoRef = useRef<HTMLDivElement>(null)
   const customFieldsRef = useRef<HTMLDivElement>(null)
@@ -113,7 +115,9 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
       
       // Split by commas and clean up
       const items = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
-      section.items = items;
+      if ('items' in section) {
+        section.items = items;
+      }
       return updated;
     });
   };
@@ -222,12 +226,12 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
           }}
         >
           {/* A4 page container with exact dimensions */}
-          <div className="px-8 py-8 border border-green-900" style={{  minWidth: 595, maxWidth: '100%' }} >
+          <div className={`${useBlackVariant ? 'px-6 py-6' : 'px-8 py-8'} border border-green-900`} style={{  minWidth: 595, maxWidth: '100%' }} >
             
             {/* Header */}
-            <header ref={personalInfoRef} className="mb-6">
+            <header ref={personalInfoRef} className={`${useBlackVariant ? 'mb-4' : 'mb-6'}`}>
               <h1
-                className="text-2xl font-bold text-gray-900 tracking-tight mb-3"
+                className={`${useBlackVariant ? 'text-xl' : 'text-2xl'} font-bold ${useBlackVariant ? 'text-black' : 'text-gray-900'} tracking-tight ${useBlackVariant ? 'mb-2' : 'mb-3'}`}
                 contentEditable
                 suppressContentEditableWarning
                 onBlur={handleNameChange}
@@ -236,7 +240,7 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
               </h1>
 
               {/* Contact information */}
-             <div className="text-sm text-gray-600 mb-4 flex flex-col space-y-2">
+             <div className={`${useBlackVariant ? 'text-xs' : 'text-sm'} ${useBlackVariant ? 'text-gray-700' : 'text-gray-600'} ${useBlackVariant ? 'mb-3' : 'mb-4'} flex flex-col ${useBlackVariant ? 'space-y-1' : 'space-y-2'}`}>
   {[resumeData.basics.email, resumeData.basics.phone, resumeData.basics.location, resumeData.basics.linkedin]
     .filter(Boolean)
     .map((field, index) => (
@@ -262,9 +266,9 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
 
               {/* Summary */}
               {resumeData?.basics?.summary && (
-                <div className="mb-4">
+                <div className={`${useBlackVariant ? 'mb-3' : 'mb-4'}`}>
                   <p 
-                    className="text-sm text-gray-700 leading-relaxed"
+                    className={`${useBlackVariant ? 'text-xs' : 'text-sm'} ${useBlackVariant ? 'text-gray-800' : 'text-gray-700'} leading-relaxed`}
                     contentEditable
                     suppressContentEditableWarning
                     onBlur={handleSummaryChange}
@@ -275,37 +279,53 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
               )}
             </header>
 
-            {/* Custom Fields */}
-            <div ref={customFieldsRef} className="mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
-                {Object.entries(resumeData.custom)
-                  .filter(([_, item]) => !item.hidden)
-                  .map(([key, item]) => (
-                    <div key={key} className="flex items-start gap-2">
-                      <span
-                        className="font-semibold text-gray-800 uppercase"
-                        contentEditable
-                        suppressContentEditableWarning
-                        onBlur={(e) => handleCustomItemChange(key, 'title', e.currentTarget.textContent || '')}
-                      >
-                        {item.title}:
-                      </span>
-                      <span
-                        className="text-gray-700 flex-1"
-                        contentEditable
-                        suppressContentEditableWarning
-                        onBlur={(e) => handleCustomItemChange(key, 'content', e.currentTarget.textContent || '')}
-                      >
-                        {item.content}
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            </div>
-
             {/* Main Sections */}
             <main>
-              {sortSectionsByOrder(resumeData.sections).map((section) => {
+              {getSectionsForRendering(resumeData.sections, resumeData.custom).map((section) => {
+                // Handle Custom Fields Section first (it doesn't need content check)
+                if (section.type === 'custom-fields') {
+                  const hasCustomFields = Object.entries(resumeData.custom).filter(([_, item]) => !item.hidden).length > 0
+                  if (!hasCustomFields) return null
+                  
+                  return (
+                    <section
+                      key={section.id}
+                      className="mb-6"
+                      ref={(el: HTMLDivElement | null) => {
+                        if (el) {
+                          customFieldsRef.current = el
+                          sectionRefs.current[section.id] = el
+                        }
+                      }}
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                        {Object.entries(resumeData.custom)
+                          .filter(([_, item]) => !item.hidden)
+                          .map(([key, item]) => (
+                            <div key={key} className="flex items-start gap-2">
+                              <span
+                                className="font-semibold text-gray-800 uppercase"
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => handleCustomItemChange(key, 'title', e.currentTarget.textContent || '')}
+                              >
+                                {item.title}:
+                              </span>
+                              <span
+                                className="text-gray-700 flex-1"
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => handleCustomItemChange(key, 'content', e.currentTarget.textContent || '')}
+                              >
+                                {item.content}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+                    </section>
+                  )
+                }
+                
                 // Check if section has content based on section type
                 let hasContent = false;
                 
@@ -325,7 +345,7 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
                   <section
                     key={section.id}
                     className="mb-6"
-                    ref={(el) => {
+                    ref={(el: HTMLDivElement | null) => {
                       if (el) {
                         sectionRefs.current[section.id] = el
                       }
@@ -516,7 +536,7 @@ export const ClassicATSResume: React.FC<ResumeProps> = ({
                       />
                     )}
 
-                    {/* Custom Section */}
+                    {/* Additional Sections */}
                     {section.type === 'custom' && section.content?.length > 0 && (
                       <ul className="list-none space-y-1 text-sm text-gray-700 ml-4">
                         {section.content.map((item, contentIdx) => (

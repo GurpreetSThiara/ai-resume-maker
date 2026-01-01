@@ -3,6 +3,7 @@ import type { PDFPage, PDFFont } from "pdf-lib"
 import type { PDFGenerationOptions, ProjectsSection } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { sanitizeTextForPdf, sanitizeTextForPdfWithFont } from '@/lib/utils'
+import { getSectionsForRendering } from "@/utils/sectionOrdering"
 
 // ============================================================================
 // Projects Section Types & Utilities
@@ -169,83 +170,122 @@ const drawProjectsSection = (
       cursorX += measureText(dateText, fonts.regular, style.linkSize) + 10
     }
 
-    // Build link list
-    const parts: Array<{ label: string; url?: string }> = []
-    if (proj.link) parts.push({ label: 'Link', url: normalizeUrl(proj.link) })
-    if (proj.repo) parts.push({ label: 'GitHub', url: normalizeUrl(proj.repo) })
-
-    if (parts.length) {
-      const gap = '  |  '
-      const linkY = itemStartY
+// Links (if present, with clickable annotations)
+if (proj.link || proj.repo) {
+  const links = [];
+  if (proj.link) links.push({ label: "Live demo:", url: normalizeUrl(proj.link) });
+  if (proj.repo) links.push({ label: "Github:", url: normalizeUrl(proj.repo) });
+  
+  if (links.length) {
+    let linkY = itemStartY - (style.titleSize + 6);
+    let linkX = margin;
+    let minLinkY = linkY; // Track the lowest Y position used
+    
+    // Helper function to wrap long URLs
+    const wrapUrl = (url: string, maxWidth: number): string[] => {
+      const lines: string[] = [];
+      let remaining = url;
       
-      for (let i = 0; i < parts.length; i++) {
-        const p = parts[i]
-        const text = linkDisplay === 'full' && p.url ? `${p.label}: ${p.url}` : p.label
-        const safe = sanitizeForFont(text, fonts.regular)
-        if (!safe) return { y: ctx.y }
-        const w = measureText(text, fonts.regular, style.linkSize)
-
-        // Draw link text
-        ctx.page.drawText(safe, {
-          x: cursorX,
-          y: linkY,
+      while (remaining.length > 0) {
+        let chunk = remaining;
+        let width = fonts.regular.widthOfTextAtSize(chunk, style.linkSize);
+        
+        while (width > maxWidth && chunk.length > 1) {
+          chunk = chunk.substring(0, chunk.length - 1);
+          width = fonts.regular.widthOfTextAtSize(chunk, style.linkSize);
+        }
+        
+        lines.push(chunk);
+        remaining = remaining.substring(chunk.length);
+      }
+      
+      return lines;
+    };
+    
+    for (let i = 0; i < links.length; i++) {
+      const link = links[i];
+      const safeLabel = sanitizeForFont(link.label, fonts.regular);
+      
+      const labelWidth = fonts.regular.widthOfTextAtSize(safeLabel, style.linkSize);
+      
+      // Check available width for URL on current line
+      const availableWidth = margin + pageInnerWidth - linkX - labelWidth - 8;
+      const urlLines = wrapUrl(link.url, availableWidth);
+      
+      // Draw label
+      ctx.page.drawText(safeLabel, {
+        x: linkX,
+        y: linkY,
+        size: style.linkSize,
+        font: fonts.bold,
+        color: style.titleColor,
+      });
+      
+      // Draw URL line by line
+      let currentUrlY = linkY;
+      let firstLineUrlX = linkX + labelWidth + 8;
+      
+      for (let j = 0; j < urlLines.length; j++) {
+        const urlLine = urlLines[j];
+        const safeUrl = sanitizeForFont(urlLine, fonts.regular);
+        const urlLineX = j === 0 ? firstLineUrlX : margin;
+        
+        ctx.page.drawText(safeUrl, {
+          x: urlLineX,
+          y: currentUrlY,
           size: style.linkSize,
           font: fonts.regular,
           color: style.linkColor,
-        })
-
-        // Create clickable link annotation
-        if (p.url) {
-          const linkHeight = style.linkSize * 1.2
-          const annotY = linkY - (style.linkSize * 0.2)
-          
-          const pdfDoc = ctx.page.doc
-          const context = pdfDoc.context
-          
-          const linkAnnotation = context.obj({
-            Type: PDFName.of('Annot'),
-            Subtype: PDFName.of('Link'),
-            Rect: [cursorX, annotY, cursorX + w, annotY + linkHeight],
-            Border: [0, 0, 0],
-            C: [0, 0, 1],
-            A: {
-              Type: PDFName.of('Action'),
-              S: PDFName.of('URI'),
-              URI: PDFString.of(p.url),
-              NewWindow: true
-            }
-          })
-          
-          const linkAnnotationRef = context.register(linkAnnotation)
-          
-          const annots = ctx.page.node.lookup(PDFName.of('Annots'))
-          if (annots) {
-            annots.push(linkAnnotationRef)
-          } else {
-            ctx.page.node.set(PDFName.of('Annots'), context.obj([linkAnnotationRef]))
+        });
+        
+        // Add clickable annotation for this line
+        const urlWidth = fonts.regular.widthOfTextAtSize(safeUrl, style.linkSize);
+        const linkHeight = style.linkSize * 1.2;
+        const annotY = currentUrlY - (style.linkSize * 0.2);
+        const pdfDocCtx = ctx.page.doc;
+        const context = pdfDocCtx.context;
+        const linkAnnotation = context.obj({
+          Type: PDFName.of('Annot'),
+          Subtype: PDFName.of('Link'),
+          Rect: [urlLineX, annotY, urlLineX + urlWidth, annotY + linkHeight],
+          Border: [0, 0, 0],
+          C: [0, 0, 1],
+          A: {
+            Type: PDFName.of('Action'),
+            S: PDFName.of('URI'),
+            URI: PDFString.of(link.url),
+            NewWindow: true
           }
+        });
+        const linkAnnotationRef = context.register(linkAnnotation);
+        const annots = ctx.page.node.lookup(PDFName.of('Annots'));
+        if (annots) {
+          (annots as any).push(linkAnnotationRef);
+        } else {
+          ctx.page.node.set(PDFName.of('Annots'), context.obj([linkAnnotationRef]));
         }
-
-        cursorX += w
-
-        // Gap between links
-        if (i < parts.length - 1) {
-          const gw = measureText(gap, fonts.regular, style.linkSize)
-          const safe = sanitizeForFont(gap, fonts.regular)
-          if (!safe) return { y: ctx.y }
-          ctx.page.drawText(safe, {
-            x: cursorX,
-            y: linkY,
-            size: style.linkSize,
-            font: fonts.regular,
-            color: style.linkColor,
-          })
-          cursorX += gw
+        
+        if (j < urlLines.length - 1) {
+          currentUrlY -= (style.linkSize + 2);
         }
       }
+      
+      minLinkY = Math.min(minLinkY, currentUrlY);
+      
+      // Position for next link (if any)
+      if (i < links.length - 1) {
+        linkY = currentUrlY - (style.linkSize + 4);
+        linkX = margin;
+        minLinkY = Math.min(minLinkY, linkY);
+      }
     }
+    
+    // Update ctx.y with minimal spacing (just 4-6px gap)
+    ctx.y = minLinkY - 6;
+  }
+}
 
-    ctx.y -= style.titleSize + 6
+ctx.y -= style.titleSize + 2
 
     // Description bullets
     if (Array.isArray(proj.description) && proj.description.length) {
@@ -298,16 +338,16 @@ const drawProjectsSection = (
 
   return { y: ctx.y }
 }
-
-// ============================================================================
 // Main PDF Generation Function
 // ============================================================================
 
 export async function generateResumePDF({
   resumeData,
-  filename = "resume.pdf"
-}: PDFGenerationOptions) {
-  
+  filename = "resume.pdf",
+  // Optional variant to support a compact black-lines layout while reusing logic
+  variant = "default",
+}: PDFGenerationOptions & { variant?: "default" | "black_compact" }) {
+
   const pdfDoc = await PDFDocument.create()
   let currentPage = pdfDoc.addPage([595.276, 841.89]) // A4
 
@@ -315,13 +355,16 @@ export async function generateResumePDF({
   const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
 
-  let yOffset = 800
-  const margin = 50
+  const isBlackCompact = variant === "black_compact"
+
+  // Slightly smaller margins and higher starting offset for compact variant
+  const margin = isBlackCompact ? 40 : 50
+  let yOffset = isBlackCompact ? 790 : 800
   const pageWidth = 595.276 - 2 * margin
 
-  const accentColor = rgb(0.15, 0.4, 0.65) // Blue accent
+  const accentColor = isBlackCompact ? rgb(0, 0, 0) : rgb(0.15, 0.4, 0.65) // Black vs blue accent
   const textColor = rgb(0.1, 0.1, 0.1)
-  const secondaryColor = rgb(0.4, 0.4, 0.4)
+  const secondaryColor = rgb(0.35, 0.35, 0.35)
   const linkColor = rgb(0, 0, 1)
 
   const ensureSpace = (spaceNeeded: number) => {
@@ -361,184 +404,223 @@ export async function generateResumePDF({
   }
 
   // Name
-  draw(resumeData.basics.name, margin, 20, boldFont, accentColor)
-  yOffset -= 20
+  const nameSize = isBlackCompact ? 18 : 20
+  draw(resumeData.basics.name, margin, nameSize, boldFont, accentColor)
+  yOffset -= nameSize
 
-  // Contact Info
+  // Contact Info - render as one joined string so separators are uniform
   const { email, phone, location, linkedin } = resumeData.basics
-  const contactItems = [email, phone, location, linkedin].filter(Boolean)
+  const contactItems = [email, phone, location, linkedin]
+    .filter(Boolean)
+    .map((item) => sanitizeTextForPdf(String(item)))
+    .filter((item) => item.length > 0)
 
-  const maxWidth = pageWidth
+  if (contactItems.length > 0) {
+    const contactText = contactItems.join(" | ")
+    const contactFontSize = isBlackCompact ? 9 : 10
+    const contactLines = wrapText(contactText, pageWidth - 20, regularFont, contactFontSize)
 
-  let cursorX = margin
-  const lineHeight = 12
-  let lineY = yOffset
-
-  for (const item of contactItems) {
-    const text = sanitizeForFont(String(item), regularFont)
-    if (!text) continue
-
-    const textWidth = regularFont.widthOfTextAtSize(text, 10)
-
-    // Wrap to next line if this item doesn't fit
-    if (cursorX + textWidth > margin + maxWidth) {
-      lineY -= lineHeight
-      cursorX = margin
+    for (const line of contactLines) {
+      const safeLine = sanitizeForFont(line, regularFont)
+      if (!safeLine) continue
+      currentPage.drawText(safeLine, {
+        x: margin,
+        y: yOffset,
+        size: contactFontSize,
+        font: regularFont,
+        color: secondaryColor,
+      })
+      yOffset -= isBlackCompact ? 10 : 12
     }
 
-    // Draw text item
-    currentPage.drawText(text, {
-      x: cursorX,
-      y: lineY,
-      size: 10,
-      font: regularFont,
-      color: secondaryColor,
-    })
-
-    cursorX += textWidth
-
-    // Draw separator if not last visible item
-    if (item !== contactItems[contactItems.length - 1]) {
-      const rawSeparator = " | "
-      const separator = sanitizeForFont(rawSeparator, regularFont)
-      if (separator) {
-        const sepWidth = regularFont.widthOfTextAtSize(separator, 10)
-        currentPage.drawText(separator, {
-          x: cursorX,
-          y: lineY,
-          size: 10,
-          font: regularFont,
-          color: secondaryColor,
-        })
-        cursorX += sepWidth
-      }
-    }
+    // Extra spacing after contact block
+    yOffset -= isBlackCompact ? 6 : 8
   }
-
-  // Update yOffset for next section to below drawn lines
-  yOffset = lineY - 15
 
   // Summary
   if (resumeData.basics.summary) {
-    const summaryLines = wrapText(resumeData.basics.summary, pageWidth - 20, regularFont, 10)
+    const summaryFontSize = isBlackCompact ? 9 : 10
+    const summaryLines = wrapText(resumeData.basics.summary, pageWidth - 20, regularFont, summaryFontSize)
     for (const line of summaryLines) {
-      draw(line, margin, 10, regularFont, textColor)
-      yOffset -= 12
+      draw(line, margin, summaryFontSize, regularFont, textColor)
+      yOffset -= isBlackCompact ? 10 : 12
     }
-    yOffset -= 13
+    yOffset -= isBlackCompact ? 10 : 13
   }
 
-  // Custom entries
-  const customEntries = Object.entries(resumeData.custom || {}).filter(([_, item]: any) => !item?.hidden)
+  // Sections (including custom fields in order)
+  const orderedSections = getSectionsForRendering(resumeData.sections, resumeData.custom)
+  
+  for (const section of orderedSections) {
+    // Handle Custom Fields Section
+    if (section.type === 'custom-fields') {
+      const customEntries = Object.entries(resumeData.custom || {}).filter(([_, item]: any) => !item?.hidden)
 
-  if (customEntries.length > 0) {
-    interface CustomItem {
-      key: string
-      item: any
-      width: number
-      height: number
-      keyWidth: number
-      contentWidth: number
-      wrappedLines: string[]
-    }
+      if (customEntries.length > 0) {
+        if (isBlackCompact) {
+      // Compact, clean two-column layout for ATS Compact variant
+      const columnCount = 2
+      const gap = 20
+      const columnWidth = (pageWidth - gap * (columnCount - 1)) / columnCount
+      const fontSize = 9
 
-    const items: CustomItem[] = customEntries.map(([key, item]) => {
-      const keyText = `${item.title}:`
-      const keyWidth = boldFont.widthOfTextAtSize(keyText, 10)
-      const content = sanitizeTextForPdf(item.content)
-      const contentFontWidth = regularFont.widthOfTextAtSize(content, 10)
-      
-      const maxContentWidth = Math.min(300, pageWidth - keyWidth - 20)
-      const wrappedLines = contentFontWidth > maxContentWidth 
-        ? wrapText(content, maxContentWidth, regularFont, 10)
-        : [content]
-      
-      const actualContentWidth = Math.max(...wrappedLines.map(line => 
-        regularFont.widthOfTextAtSize(line, 10)
-      ))
-      
-      return {
-        key,
-        item,
-        width: keyWidth + actualContentWidth + 15,
-        height: wrappedLines.length * 12,
-        keyWidth,
-        contentWidth: actualContentWidth,
-        wrappedLines
+      const entries = customEntries.map(([key, item]) => ({ key, item }))
+
+      for (let i = 0; i < entries.length; i += columnCount) {
+        const rowEntries = entries.slice(i, i + columnCount)
+
+        // Measure row height based on wrapped lines in each column
+        let rowHeight = 0
+        const rowLines: string[][] = []
+
+        for (const { item } of rowEntries) {
+          const label = sanitizeTextForPdf(`${item.title}:`)
+          const value = sanitizeTextForPdf(item.content || "")
+          const text = value ? `${label} ${value}` : label
+          const lines = wrapText(text, columnWidth, regularFont, fontSize)
+          rowLines.push(lines)
+          const height = lines.length * (fontSize + 2)
+          if (height > rowHeight) rowHeight = height
+        }
+
+        ensureSpace(rowHeight + 4)
+        let colX = margin
+        const rowStartY = yOffset
+
+        rowEntries.forEach(({ item }, colIndex) => {
+          const lines = rowLines[colIndex]
+          let lineY = rowStartY
+          for (const line of lines) {
+            const safe = sanitizeForFont(line, regularFont)
+            if (!safe) continue
+            currentPage.drawText(safe, {
+              x: colX,
+              y: lineY,
+              size: fontSize,
+              font: regularFont,
+              color: item.link ? linkColor : textColor,
+            })
+            lineY -= fontSize + 2
+          }
+          colX += columnWidth + gap
+        })
+
+        yOffset -= rowHeight + 4
       }
-    })
 
-    // Flex-wrap layout
-    const rows: CustomItem[][] = []
-    let currentRow: CustomItem[] = []
-    let currentRowWidth = 0
-    const minGap = 30
-    
-    for (const item of items) {
-      const itemTotalWidth = item.width + minGap
-      
-      if (currentRowWidth + itemTotalWidth <= pageWidth + minGap) {
-        currentRow.push(item)
-        currentRowWidth += itemTotalWidth
+        yOffset -= 6
       } else {
-        if (currentRow.length > 0) rows.push(currentRow)
-        currentRow = [item]
-        currentRowWidth = itemTotalWidth
+      // Original flex-wrap layout for non-compact variant
+      interface CustomItem {
+        key: string
+        item: any
+        width: number
+        height: number
+        keyWidth: number
+        contentWidth: number
+        wrappedLines: string[]
       }
-    }
-    
-    if (currentRow.length > 0) rows.push(currentRow)
 
-    // Render rows
-    for (const row of rows) {
-      const rowHeight = Math.max(...row.map(item => item.height))
-      ensureSpace(rowHeight + 5)
-      
-      const rowStartY = yOffset
-      const totalItemsWidth = row.reduce((sum, item) => sum + item.width, 0)
-      const totalGaps = (row.length - 1) * minGap
-      const availableSpace = pageWidth - totalItemsWidth - totalGaps
-      const extraGapPerItem = row.length > 1 ? availableSpace / (row.length - 1) : 0
-      
-      let currentX = margin
-      
-      for (let i = 0; i < row.length; i++) {
-        const item = row[i]
-        const keyText = `${item.item.title}:`
+      const items: CustomItem[] = customEntries.map(([key, item]) => {
+        const keyText = `${item.title}:`
+        const keyWidth = boldFont.widthOfTextAtSize(keyText, 10)
+        const content = sanitizeTextForPdf(item.content)
+        const contentFontWidth = regularFont.widthOfTextAtSize(content, 10)
         
-        currentPage.drawText(sanitizeTextForPdf(keyText), {
-          x: currentX,
-          y: rowStartY,
-          size: 10,
-          font: boldFont,
-          color: textColor
-        })
+        const maxContentWidth = Math.min(300, pageWidth - keyWidth - 20)
+        const wrappedLines = contentFontWidth > maxContentWidth 
+          ? wrapText(content, maxContentWidth, regularFont, 10)
+          : [content]
         
-        const contentX = currentX + item.keyWidth + 5
-        item.wrappedLines.forEach((line, lineIndex) => {
-          currentPage.drawText(sanitizeForFont(line, regularFont), {
-            x: contentX,
-            y: rowStartY - (lineIndex * 12),
-            size: 10,
-            font: regularFont,
-            color: item.item.link ? linkColor : textColor
+        const actualContentWidth = Math.max(...wrappedLines.map(line => 
+          regularFont.widthOfTextAtSize(line, 10)
+        ))
+        
+        return {
+          key,
+          item,
+          width: keyWidth + actualContentWidth + 15,
+          height: wrappedLines.length * 12,
+          keyWidth,
+          contentWidth: actualContentWidth,
+          wrappedLines
+        }
+      })
+
+      // Flex-wrap layout
+      const rows: CustomItem[][] = []
+      let currentRow: CustomItem[] = []
+      let currentRowWidth = 0
+      const minGap = 30
+      
+      for (const item of items) {
+        const itemTotalWidth = item.width + minGap
+        
+        if (currentRowWidth + itemTotalWidth <= pageWidth + minGap) {
+          currentRow.push(item)
+          currentRowWidth += itemTotalWidth
+        } else {
+          if (currentRow.length > 0) rows.push(currentRow)
+          currentRow = [item]
+          currentRowWidth = itemTotalWidth
+        }
+      }
+      
+      if (currentRow.length > 0) rows.push(currentRow)
+
+      // Render rows
+      for (const row of rows) {
+        const rowHeight = Math.max(...row.map(item => item.height))
+        ensureSpace(rowHeight + 5)
+        
+        const rowStartY = yOffset
+        const totalItemsWidth = row.reduce((sum, item) => sum + item.width, 0)
+        const totalGaps = (row.length - 1) * minGap
+        const availableSpace = pageWidth - totalItemsWidth - totalGaps
+        const extraGapPerItem = row.length > 1 ? availableSpace / (row.length - 1) : 0
+        
+        let currentX = margin
+        
+        for (let i = 0; i < row.length; i++) {
+          const item = row[i]
+          const keyText = `${item.item.title}:`
+          
+          currentPage.drawText(sanitizeTextForPdf(keyText), {
+            x: currentX,
+            y: rowStartY,
+            size: isBlackCompact ? 9 : 10,
+            font: boldFont,
+            color: textColor
           })
-        })
+          
+          const contentX = currentX + item.keyWidth + 5
+          item.wrappedLines.forEach((line, lineIndex) => {
+            currentPage.drawText(sanitizeForFont(line, regularFont), {
+              x: contentX,
+              y: rowStartY - (lineIndex * (isBlackCompact ? 10 : 12)),
+              size: isBlackCompact ? 9 : 10,
+              font: regularFont,
+              color: item.item.link ? linkColor : textColor
+            })
+          })
+          
+          currentX += item.width + minGap + (i < row.length - 1 ? extraGapPerItem : 0)
+        }
         
-        currentX += item.width + minGap + (i < row.length - 1 ? extraGapPerItem : 0)
+        yOffset -= rowHeight + 8
       }
-      
-      yOffset -= rowHeight + 8
+
+        yOffset -= 10
+      }
+      }
+      continue; // Skip to next section
     }
-
-    yOffset -= 10
-  }
-
-  // Sections
-  for (const section of resumeData.sections) {
-    if ((section as any).hidden) continue
     
+    // Regular sections
+    if ((section as any).hidden) continue
+
     let hasContent = false
+
     if ('items' in (section as any) && Array.isArray((section as any).items)) {
       if ([SECTION_TYPES.EDUCATION, SECTION_TYPES.EXPERIENCE, SECTION_TYPES.PROJECTS].includes(section.type as any)) {
         hasContent = (section as any).items.length > 0
@@ -553,66 +635,71 @@ export async function generateResumePDF({
     ensureSpace(30)
 
     // Section Title
-    draw(section.title, margin, 14, boldFont, accentColor)
+    draw(section.title, margin, isBlackCompact ? 13 : 14, boldFont, accentColor)
 
-    // Divider line
-    currentPage.drawLine({
-      start: { x: margin, y: yOffset - 2 },
-      end: { x: margin + pageWidth, y: yOffset - 2 },
-      thickness: 1,
-      color: accentColor,
+    // Divider line - ultra-thin rectangle for ATS-friendly formatting
+    currentPage.drawRectangle({
+      x: margin,
+      y: yOffset - 2.0025, // Center the ultra-thin rectangle
+      width: pageWidth,
+      height: isBlackCompact ? 0.2 : 0.1, // Different thickness for compact vs normal variants
+      color: isBlackCompact ? rgb(0.8, 0.8, 0.8) : accentColor,
     })
 
-    yOffset -= 18
+    yOffset -= isBlackCompact ? 16 : 18
 
     switch (section.type) {
       case SECTION_TYPES.EDUCATION:
         for (const edu of section.items) {
-          ensureSpace(15)
-          draw(edu.institution, margin, 11, boldFont, textColor)
-          yOffset -= 12
-          draw(edu.degree, margin, 10, regularFont, textColor)
-          yOffset -= 12
+          ensureSpace(isBlackCompact ? 13 : 15)
+          const instSize = isBlackCompact ? 10 : 11
+          const degreeSize = isBlackCompact ? 9 : 10
+          draw(edu.institution, margin, instSize, boldFont, textColor)
+          yOffset -= instSize + 1
+          draw(edu.degree, margin, degreeSize, regularFont, textColor)
+          yOffset -= degreeSize + 1
           const eduDates = `${edu.startDate} - ${edu.endDate}${edu.location ? ` • ${edu.location}` : ''}`
-          draw(eduDates, margin, 9, regularFont, secondaryColor)
-          yOffset -= 12
+          draw(eduDates, margin, isBlackCompact ? 8 : 9, regularFont, secondaryColor)
+          yOffset -= isBlackCompact ? 10 : 12
 
           if (edu.highlights?.length) {
             for (const highlight of edu.highlights) {
-              ensureSpace(12)
-              const lines = wrapText(`• ${highlight}`, pageWidth - 20, regularFont, 10)
+              ensureSpace(isBlackCompact ? 10 : 12)
+              const lines = wrapText(`• ${highlight}`, pageWidth - 20, regularFont, isBlackCompact ? 9 : 10)
               for (const line of lines) {
-                draw(line, margin + 12, 10, regularFont, textColor)
-                yOffset -= 12
+                draw(line, margin + 12, isBlackCompact ? 9 : 10, regularFont, textColor)
+                yOffset -= isBlackCompact ? 10 : 12
               }
             }
           }
-          yOffset -= 5
+          yOffset -= isBlackCompact ? 3 : 5
         }
         break
 
       case SECTION_TYPES.EXPERIENCE:
         for (const exp of section.items) {
-          ensureSpace(15)
-          draw(exp.company, margin, 11, boldFont, textColor)
-          yOffset -= 12
-          draw(exp.role, margin, 10, regularFont, textColor)
-          yOffset -= 12
+          ensureSpace(isBlackCompact ? 13 : 15)
+          const companySize = isBlackCompact ? 10 : 11
+          const roleSize = isBlackCompact ? 9 : 10
+          draw(exp.company, margin, companySize, boldFont, textColor)
+          yOffset -= companySize + 1
+          draw(exp.role, margin, roleSize, regularFont, textColor)
+          yOffset -= roleSize + 1
           const expDates = `${exp.startDate} - ${exp.endDate}${exp.location ? ` • ${exp.location}` : ''}`
-          draw(expDates, margin, 9, regularFont, secondaryColor)
-          yOffset -= 12
+          draw(expDates, margin, isBlackCompact ? 8 : 9, regularFont, secondaryColor)
+          yOffset -= isBlackCompact ? 10 : 12
 
           if (exp.achievements?.length) {
             for (const achievement of exp.achievements) {
-              ensureSpace(12)
-              const lines = wrapText(`• ${achievement}`, pageWidth - 20, regularFont, 10)
+              ensureSpace(isBlackCompact ? 10 : 12)
+              const lines = wrapText(`• ${achievement}`, pageWidth - 20, regularFont, isBlackCompact ? 9 : 10)
               for (const line of lines) {
-                draw(line, margin + 12, 10, regularFont, textColor)
-                yOffset -= 12
+                draw(line, margin + 12, isBlackCompact ? 9 : 10, regularFont, textColor)
+                yOffset -= isBlackCompact ? 10 : 12
               }
             }
           }
-          yOffset -= 5
+          yOffset -= isBlackCompact ? 3 : 5
         }
         break
 
@@ -620,11 +707,11 @@ export async function generateResumePDF({
       case SECTION_TYPES.LANGUAGES:
       case SECTION_TYPES.CERTIFICATIONS:
         if (section.items?.length) {
-          ensureSpace(12)
-          const lines = wrapText(section.items.join(" • "), pageWidth - 20, regularFont, 10)
+          ensureSpace(isBlackCompact ? 10 : 12)
+          const lines = wrapText(section.items.join(" • "), pageWidth - 20, regularFont, isBlackCompact ? 9 : 10)
           for (const line of lines) {
-            draw(line, margin, 10, regularFont, textColor)
-            yOffset -= 12
+            draw(line, margin, isBlackCompact ? 9 : 10, regularFont, textColor)
+            yOffset -= isBlackCompact ? 10 : 12
           }
         }
         break
@@ -647,14 +734,14 @@ export async function generateResumePDF({
           }
           
           const style = {
-            titleSize: 11,
+            titleSize: isBlackCompact ? 10 : 11,
             titleColor: textColor,
-            linkSize: 8,
+            linkSize: isBlackCompact ? 8 : 9, // Increased from 7/8 to match other sections
             linkColor,
-            descSize: 10,
-            descColor: secondaryColor,
+            descSize: isBlackCompact ? 9 : 10,
+            descColor: textColor, // Changed from secondaryColor to textColor for consistency
             bulletIndent: 12,
-            itemSpacing: 5,
+            itemSpacing: isBlackCompact ? 3 : 5,
           }
           
           const { y } = drawProjectsSection(ctx as any, section as any, style as any, {
@@ -669,14 +756,14 @@ export async function generateResumePDF({
       case SECTION_TYPES.CUSTOM:
         if (section.content?.length) {
           for (const text of section.content) {
-            ensureSpace(12)
-            const lines = wrapText(`• ${text}`, pageWidth - 20, regularFont, 10)
+            ensureSpace(isBlackCompact ? 10 : 12)
+            const lines = wrapText(`• ${text}`, pageWidth - 20, regularFont, isBlackCompact ? 9 : 10)
             for (const line of lines) {
-              draw(line, margin + 12, 10, regularFont, textColor)
-              yOffset -= 12
+              draw(line, margin + 12, isBlackCompact ? 9 : 10, regularFont, textColor)
+              yOffset -= isBlackCompact ? 10 : 12
             }
           }
-          yOffset -= 5
+          yOffset -= isBlackCompact ? 3 : 5
         }
         break
     }

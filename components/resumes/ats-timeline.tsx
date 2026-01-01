@@ -631,7 +631,7 @@ export const ATS_TIMELINE: React.FC<ResumeProps> = ({
                     </div>
                   )}
 
-                  {/* Custom Section */}
+                  {/* Additional Sections */}
                   {section.type === SECTION_TYPES.CUSTOM && (
                     <div className="space-y-2 pl-2">
                       {section.content.map((item, itemIdx) => (

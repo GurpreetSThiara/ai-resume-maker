@@ -3,6 +3,7 @@
 import type React from "react"
 import { useRef, useEffect } from "react"
 import { ResumeData } from "@/types/resume"
+import { getSectionsForRendering } from "@/utils/sectionOrdering"
 
 interface ResumeProps {
   pdfRef: React.RefObject<HTMLDivElement>
@@ -44,10 +45,10 @@ export const CompactATSResume: React.FC<ResumeProps> = ({
   }, [activeSection, pdfRef])
 
   const handleNameChange = (e: React.FormEvent<HTMLHeadingElement>) =>
-    setResumeData((prev) => ({ ...prev, name: e.currentTarget.textContent || "" }))
+    setResumeData((prev) => ({ ...prev, basics: { ...prev.basics, name: e.currentTarget.textContent || "" } }))
 
   const handleContactInfoChange = (e: React.FormEvent<HTMLSpanElement>, key: string) =>
-    setResumeData((prev) => ({ ...prev, [key]: e.currentTarget.textContent || "" }))
+    setResumeData((prev) => ({ ...prev, basics: { ...prev.basics, [key]: e.currentTarget.textContent || "" } }))
 
   const handleCustomItemChange = (id: string, field: "title" | "content", value: string) =>
     setResumeData((prev) => {
@@ -103,16 +104,16 @@ export const CompactATSResume: React.FC<ResumeProps> = ({
         {/* Header */}
         <div ref={personalInfoRef} className="pb-3 border-b border-gray-300">
           <h1 className="text-2xl font-bold text-gray-900" contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
-            {resumeData.name}
+            {resumeData.basics.name}
           </h1>
           <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-600">
             {["email", "phone", "location"].map((field) => (
               <span key={field} contentEditable suppressContentEditableWarning onBlur={(e) => handleContactInfoChange(e, field)}>
-                {resumeData[field as keyof ResumeData] as string}
+                {resumeData.basics[field as keyof typeof resumeData.basics] as string}
               </span>
             ))}
-            {resumeData.linkedin && (
-              <a href={resumeData.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+            {resumeData.basics.linkedin && (
+              <a href={resumeData.basics.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
                 <span contentEditable suppressContentEditableWarning onBlur={(e) => handleContactInfoChange(e, "linkedin")}>
                   LinkedIn
                 </span>
@@ -121,33 +122,57 @@ export const CompactATSResume: React.FC<ResumeProps> = ({
           </div>
         </div>
 
-        {/* Custom Fields */}
-        <div ref={customFieldsRef} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3 text-xs">
-          {Object.keys(resumeData.custom).map((i) => {
-            const item = resumeData.custom[i]
-            return (
-              <div className={`flex gap-1 ${item.hidden && "hidden"}`} key={item.id}>
-                <span className="font-semibold text-gray-800" contentEditable suppressContentEditableWarning onBlur={(e) => handleCustomItemChange(i, "title", e.currentTarget.textContent || "")}>
-                  {item.title}:
-                </span>
-                <span className="text-gray-700" contentEditable suppressContentEditableWarning onBlur={(e) => handleCustomItemChange(i, "content", e.currentTarget.textContent || "")}>
-                  {item.content}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-
         {/* Sections */}
         <div className="mt-5">
-          {resumeData.sections.map((section) => (
-            <section
-              key={section.id}
-              className="mb-6"
-              ref={(el) => {
-                sectionRefs.current[section.id] = el
-              }}
-            >
+          {getSectionsForRendering(resumeData.sections, resumeData.custom).map((section) => {
+            // Handle Custom Fields Section
+            if (section.type === 'custom-fields') {
+              const hasCustomFields = Object.entries(resumeData.custom).filter(([_, item]) => !item.hidden).length > 0
+              if (!hasCustomFields) return null
+              
+              return (
+                <section
+                  key={section.id}
+                  className="mb-6"
+                  ref={(el) => {
+                    if (el) {
+                      customFieldsRef.current = el
+                      sectionRefs.current[section.id] = el
+                    }
+                  }}
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    {Object.entries(resumeData.custom)
+                      .filter(([_, item]) => !item.hidden)
+                      .map(([i, item]) => (
+                        <div className="flex gap-1" key={item.id}>
+                          <span className="font-semibold text-gray-800" contentEditable suppressContentEditableWarning onBlur={(e) => handleCustomItemChange(i, "title", e.currentTarget.textContent || "")}>
+                            {item.title}:
+                          </span>
+                          <span className="text-gray-700" contentEditable suppressContentEditableWarning onBlur={(e) => handleCustomItemChange(i, "content", e.currentTarget.textContent || "")}>
+                            {item.link ? (
+                              <a href={item.content} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                                {item.content}
+                              </a>
+                            ) : (
+                              item.content
+                            )}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                </section>
+              )
+            }
+            
+            return (
+              <section
+                key={section.id}
+                className="mb-6"
+                ref={(el) => {
+                  sectionRefs.current[section.id] = el
+                }}
+              >
               <h2 className="text-base font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-2 uppercase tracking-wide" contentEditable suppressContentEditableWarning onBlur={(e) => handleSectionTitleChange(section.id, e.currentTarget.textContent || "")}>
                 {section.title}
               </h2>
@@ -172,8 +197,9 @@ export const CompactATSResume: React.FC<ResumeProps> = ({
                   </ul>
                 </div>
               ))}
-            </section>
-          ))}
+              </section>
+            )
+          })}
         </div>
       </div>
     </div>
