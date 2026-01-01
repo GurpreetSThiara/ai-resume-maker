@@ -15,14 +15,21 @@ function getRandomApiKey() {
   return OPENROUTER_API_KEYS[idx];
 }
 
-const client = new OpenAI({
-  apiKey: getRandomApiKey(),
-  baseURL: "https://openrouter.ai/api/v1",
-  defaultHeaders: {
-    "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL,
-    "X-Title": "AI Resume Builder",
-  },
-})
+function createOpenRouterClient() {
+  const apiKey = getRandomApiKey();
+  if (!apiKey) {
+    throw new Error('No OpenRouter API keys available');
+  }
+  
+  return new OpenAI({
+    apiKey,
+    baseURL: "https://openrouter.ai/api/v1",
+    defaultHeaders: {
+      "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL,
+      "X-Title": "AI Resume Builder",
+    },
+  });
+}
 
 interface OpenRouterMessageParams {
   messages: any[];
@@ -33,6 +40,7 @@ interface OpenRouterMessageParams {
 
 export async function sendOpenRouterMessage({ messages, model, siteUrl, siteTitle }: OpenRouterMessageParams) {
   try {
+    const client = createOpenRouterClient();
     const completion = await client.chat.completions.create({
       messages,
       model,
@@ -50,4 +58,4 @@ export async function sendOpenRouterMessage({ messages, model, siteUrl, siteTitl
   }
 }
 
-export { client as openRouter }
+export { createOpenRouterClient as openRouter }
