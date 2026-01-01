@@ -637,11 +637,12 @@ export async function generateResumePDF({
     // Section Title
     draw(section.title, margin, isBlackCompact ? 13 : 14, boldFont, accentColor)
 
-    // Divider line
-    currentPage.drawLine({
-      start: { x: margin, y: yOffset - 2 },
-      end: { x: margin + pageWidth, y: yOffset - 2 },
-      thickness: 0.5,
+    // Divider line - ultra-thin rectangle for ATS-friendly formatting
+    currentPage.drawRectangle({
+      x: margin,
+      y: yOffset - 2.0025, // Center the ultra-thin rectangle
+      width: pageWidth,
+      height: isBlackCompact ? 0.2 : 0.1, // Different thickness for compact vs normal variants
       color: isBlackCompact ? rgb(0.8, 0.8, 0.8) : accentColor,
     })
 
