@@ -45,7 +45,7 @@ export const Values = () => {
                       );
                     })}
                   </div>
-
+{/* 
                   <div className="text-center mb-16">
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-full mb-6">
                       <Badge className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
@@ -57,9 +57,9 @@ export const Values = () => {
                     <p className="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
                       Create a free account to unlock powerful AI features that will make your resume stand out from the crowd.
                     </p>
-                  </div>
+                  </div> */}
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {AIFeatures.map((feature, index) => {
                       const Icon = feature.icon;
                       return (
@@ -91,7 +91,7 @@ export const Values = () => {
                         </Card>
                       );
                     })}
-                  </div>
+                  </div> */}
                 </div>
               </section>
     )
