@@ -4,14 +4,15 @@ import type { Metadata } from 'next';
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: { template?: string };
+  searchParams: Promise<{ template?: string }>;
 }): Promise<Metadata> {
-  const isParamUrl = Boolean(searchParams?.template);
+  const params = await searchParams; // ✅ REQUIRED in Next.js 16
+  const isParamUrl = Boolean(params?.template);
 
   return {
-    title: 'Create Free Resume - No Sign Up | No Credit Card | CreateFreeCV.com',
+    title: 'Create Free ATS Resume - Choose Template | CreateFreeCV.com',
     description:
-      'Select from a variety of free ATS-friendly resume templates to start building your professional resume. No sign-up required. Download pdf for free.',
+      'Select from a variety of free ATS-friendly resume templates to start building your professional resume. No sign-up required. Download in pdf for free.',
 
     alternates: {
       canonical:
