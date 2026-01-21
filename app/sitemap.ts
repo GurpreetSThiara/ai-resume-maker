@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
- 
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://createfreecv.com';
 
@@ -23,27 +23,28 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.5,
     },
     {
-        url: `${baseUrl}/contact`,
-        lastModified: new Date(),
-        changeFrequency: 'yearly',
-        priority: 0.5,
+      url: `${baseUrl}/contact`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.5,
     },
     {
-        url: `${baseUrl}/privacy-policy`,
-        lastModified: new Date(),
-        changeFrequency: 'yearly',
-        priority: 0.3,
+      url: `${baseUrl}/privacy-policy`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.3,
     },
     {
-  url: `${baseUrl}/free-ats-resume-templates`,
-  lastModified: new Date(),
-  changeFrequency: 'weekly',
-  priority: 1,
-},
-{  url: `${baseUrl}/free-cover-letter-templates/preview?template=ats-classic`,
-  lastModified: new Date(),
-  changeFrequency: 'weekly',
-  priority: 0.9,
-}
+      url: `${baseUrl}/free-ats-resume-templates`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 1,
+    },
+    {
+      url: `${baseUrl}/free-ats-resume-templates/create`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
   ];
 }
