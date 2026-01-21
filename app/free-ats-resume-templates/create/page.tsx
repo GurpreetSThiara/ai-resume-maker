@@ -16,7 +16,7 @@ export async function generateMetadata({
 
     alternates: {
       canonical:
-        'https://www.createfreecv.com/free-ats-resume-templates/create',
+        'https://createfreecv.com/free-ats-resume-templates/create',
     },
 
     robots: isParamUrl
