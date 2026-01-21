@@ -30,21 +30,7 @@ async headers() {
   ]
 },
 
-  async redirects() {
-  return [
-    {
-      source: '/:path*',
-      has: [
-        {
-          type: 'host',
-          value: 'www.createfreecv.com',
-        },
-      ],
-      destination: 'https://createfreecv.com/:path*',
-      permanent: true,
-    },
-  ]
-}
+
 
 }
 
