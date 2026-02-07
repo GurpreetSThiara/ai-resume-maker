@@ -4,6 +4,7 @@ import type React from "react"
 import { useRef, useEffect } from "react"
 import { ResumeData } from "@/types/resume"
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
+import { getEffectiveSkillGroupsFromSection, formatGroupedSkillsLine } from "@/utils/skills"
 
 interface ResumeProps {
   pdfRef: React.RefObject<HTMLDivElement>
@@ -124,7 +125,7 @@ export const CompactATSResume: React.FC<ResumeProps> = ({
 
         {/* Sections */}
         <div className="mt-5">
-          {getSectionsForRendering(resumeData.sections, resumeData.custom).map((section) => {
+              {getSectionsForRendering(resumeData.sections, resumeData.custom).map((section) => {
             // Handle Custom Fields Section
             if (section.type === 'custom-fields') {
               const hasCustomFields = Object.entries(resumeData.custom).filter(([_, item]) => !item.hidden).length > 0

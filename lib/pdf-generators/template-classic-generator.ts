@@ -3,6 +3,7 @@ import type { PDFGenerationOptions } from "@/types/resume"
 import { sanitizeTextForPdf, sanitizeTextForPdfWithFont } from "@/lib/utils"
 import { drawProjectsSection } from '@/lib/pdf/sections/projects'
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
+import { getEffectiveSkillGroupsFromSection, formatGroupedSkillsLine } from "@/utils/skills"
 
 export async function generateClassic2ResumePDF({ 
   resumeData, 
@@ -246,13 +247,49 @@ export async function generateClassic2ResumePDF({
         }
         break
 
-      case "skills":
+      case "skills": {
+        const groups = getEffectiveSkillGroupsFromSection(section as any)
+        const visibleGroups = groups.filter(g => g.skills.length > 0)
+        
+        if (visibleGroups.length > 0) {
+          for (const group of visibleGroups) {
+            // Draw bold title
+            const titleText = `${group.title}: ` // Add space after colon
+            const titleWidth = boldFont.widthOfTextAtSize(titleText, isCompact ? 8 : 10)
+            
+            draw(titleText, margin + 15, isCompact ? 8 : 10, boldFont, textColor)
+
+            // Draw skills on same line
+            const skillsText = group.skills.join(', ')
+            const skillsLines = wrapText(skillsText, pageWidth - 20 - titleWidth, regularFont, isCompact ? 8 : 10)
+            
+            if (skillsLines.length > 0) {
+              // Draw first line of skills on same line as title
+              draw(skillsLines[0], margin + 15 + titleWidth, isCompact ? 8 : 10, regularFont, textColor)
+              yOffset -= isCompact ? 8 : 12
+
+              // Draw subsequent lines indented
+              for (let i = 1; i < skillsLines.length; i++) {
+                draw(skillsLines[i], margin + 15 + titleWidth, isCompact ? 8 : 10, regularFont, textColor)
+                yOffset -= isCompact ? 8 : 12
+              }
+            } else {
+              yOffset -= isCompact ? 8 : 12 // If no skills, still move down one line
+            }
+            
+            yOffset -= isCompact ? 4 : 8
+          }
+          yOffset -= isCompact ? 12 : 16
+        }
+        break
+      }
+
       case "languages":
       case "certifications":
         if (section.items?.length) {
           const lines = wrapText(section.items.join(", "), pageWidth - 20, regularFont, isCompact ? 8 : 10)
-          for (const line of lines) {
-            draw(line, margin + 15, isCompact ? 8 : 10, regularFont, textColor)
+          for (const l of lines) {
+            draw(l, margin + 15, isCompact ? 8 : 10, regularFont, textColor)
             yOffset -= isCompact ? 8 : 12
           }
           yOffset -= isCompact ? 12 : 16

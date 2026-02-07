@@ -1,6 +1,7 @@
 import { ResumeData, SECTION_TYPES } from '@/types/resume';
 import { PDFDocument, rgb, StandardFonts, PDFFont, PDFPage, RGB } from 'pdf-lib';
 import { getSectionsForRendering } from "@/utils/sectionOrdering";
+import { getEffectiveSkillGroupsFromSection, formatGroupedSkillsLine } from "@/utils/skills";
 
 interface GenerateResumeProps {
   resumeData: ResumeData;
@@ -551,29 +552,67 @@ export async function generateATSGreenResume({
         }
         break;
 
-      case SECTION_TYPES.SKILLS:
-        const skillsSection = section as any;
-        if (Array.isArray(skillsSection.items) && skillsSection.items.length > 0) {
-          const skillsText = skillsSection.items
-            .filter((skill: any) => skill != null)
-            .map((skill: any) => safeString(skill))
-            .filter(Boolean)
-            .join(', ');
-          
-          if (skillsText) {
+      case SECTION_TYPES.SKILLS: {
+        const groups = getEffectiveSkillGroupsFromSection(section as any)
+        const visibleGroups = groups.filter(g => g.skills.length > 0)
+        
+        if (visibleGroups.length > 0) {
+          for (const group of visibleGroups) {
+            // Draw bold title
+            const titleText = `${group.title}: ` // Add space after colon
+            const titleWidth = boldFont.widthOfTextAtSize(titleText, fontSizes.content)
+            
+            // Draw title
+            currentPage.drawText(sanitizeForFont(titleText, boldFont), {
+              x: margins.left,
+              y: yPosition,
+              size: fontSizes.content,
+              font: boldFont,
+              color: colors.text,
+            });
+
+            // Draw skills on same line
+            const skillsText = group.skills.join(', ')
             const skillLines = wrapText(
               skillsText,
-              pageSize[0] - margins.left - margins.right,
+              pageSize[0] - margins.left - margins.right - titleWidth,
               regularFont,
               fontSizes.content
             );
 
-            drawWrappedLines(skillLines, margins.left, spacing.lineHeight, {
-              size: fontSizes.content,
-            });
+            if (skillLines.length > 0) {
+              // Draw first line of skills on same line as title
+              currentPage.drawText(sanitizeForFont(skillLines[0], regularFont), {
+                x: margins.left + titleWidth,
+                y: yPosition,
+                size: fontSizes.content,
+                font: regularFont,
+                color: colors.text,
+              });
+              
+              // Draw subsequent lines indented
+              for (let i = 1; i < skillLines.length; i++) {
+                yPosition -= spacing.lineHeight;
+                currentPage.drawText(sanitizeForFont(skillLines[i], regularFont), {
+                  x: margins.left + titleWidth,
+                  y: yPosition,
+                  size: fontSizes.content,
+                  font: regularFont,
+                  color: colors.text,
+                });
+              }
+            }
+            
+            yPosition -= spacing.lineHeight; // Move to next line
+            
+            // Add small spacing between skill groups
+            if (group !== visibleGroups[visibleGroups.length - 1]) {
+              yPosition -= spacing.lineHeight * 0.5;
+            }
           }
         }
         break;
+      }
 
       case SECTION_TYPES.LANGUAGES:
         const langSection = section as any;

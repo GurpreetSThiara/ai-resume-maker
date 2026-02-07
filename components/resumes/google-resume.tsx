@@ -5,6 +5,7 @@ import type React from "react"
 import { useRef, useEffect, useState } from "react"
 import { sortSectionsByOrder, getSectionsForRendering } from "@/utils/sectionOrdering"
 import ProjectSection from "../resume-components/project-section"
+import { getEffectiveSkillGroupsFromSection, formatGroupedSkillsLine } from "@/utils/skills"
 
 
 interface ResumeProps {
@@ -107,15 +108,23 @@ export const GoogleResume: React.FC<ResumeProps> = ({
     });
   };
 
-  const handleSkillsChange = (sectionId: string, value: string) => {
+  const handleSkillsChange = (sectionId: string, updatedGroups: any[]) => {
     setResumeData((prev) => {
       const updated = structuredClone(prev);
       const section = updated.sections.find((s) => s.id === sectionId);
-      if (!section || !('items' in section)) return prev;
+      if (!section) return prev;
       
-      // Split by bullet separator and clean up
-      const items = value.split('•').map(item => item.trim()).filter(item => item.length > 0);
-      ;(section as any).items = items;
+      // Update groups
+      if ('groups' in section) {
+        section.groups = updatedGroups;
+      }
+      
+      // Also update flat items for backward compatibility
+      const flatItems = updatedGroups.flatMap(group => group.skills);
+      if ('items' in section) {
+        section.items = flatItems;
+      }
+      
       return updated;
     });
   };
@@ -551,20 +560,66 @@ export const GoogleResume: React.FC<ResumeProps> = ({
                       </div>
                     ))}
 
-                    {/* Skills, Languages, Certifications Sections */}
-                    {(section.type === SECTION_TYPES.SKILLS || section.type === SECTION_TYPES.LANGUAGES || section.type === SECTION_TYPES.CERTIFICATIONS) && section.items?.length > 0 && (
-                      <div className="mb-4">
-                        <p
-                          className="text-xs leading-relaxed"
-                          style={{ color: textColor, fontSize: '10px' }}
-                          contentEditable
-                          suppressContentEditableWarning
-                          onBlur={(e) => handleSkillsChange(section.id, e.currentTarget.textContent || '')}
-                        >
-                          {section.items.join(' • ')}
-                        </p>
-                      </div>
-                    )}
+                    {/* Languages, Certifications Sections (simple flat list) */}
+                    {(section.type === SECTION_TYPES.LANGUAGES || section.type === SECTION_TYPES.CERTIFICATIONS) &&
+                      section.items?.length > 0 && (
+                        <div className="mb-4">
+                          <p
+                            className="text-xs leading-relaxed"
+                            style={{ color: textColor, fontSize: "10px" }}
+                          >
+                            {section.items.join(" • ")}
+                          </p>
+                        </div>
+                      )}
+
+                    {/* Skills Section – grouped by category, one line per group */}
+                    {section.type === SECTION_TYPES.SKILLS && (() => {
+                      const groups = getEffectiveSkillGroupsFromSection(section)
+                      const visibleGroups = groups.filter(g => g.skills.length > 0)
+                      if (!visibleGroups.length) return null
+                      return (
+                        <div className="mb-4 space-y-1">
+                          {visibleGroups.map(group => (
+                            <p 
+                              key={group.title} 
+                              className="text-sm leading-relaxed"
+                              style={{ color: textColor, fontSize: '11px' }}
+                            >
+                              <span
+                                className="font-semibold"
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => {
+                                  const newTitle = e.currentTarget.textContent || ''
+                                  const updatedGroups = groups.map(g => 
+                                    g.title === group.title ? { ...g, title: newTitle } : g
+                                  )
+                                  handleSkillsChange(section.id, updatedGroups)
+                                }}
+                              >
+                                {group.title}
+                              </span>
+                              :{" "}
+                              <span
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => {
+                                  const newSkills = e.currentTarget.textContent || ''
+                                  const skillsArray = newSkills.split(',').map(s => s.trim()).filter(s => s.length > 0)
+                                  const updatedGroups = groups.map(g => 
+                                    g.title === group.title ? { ...g, skills: skillsArray } : g
+                                  )
+                                  handleSkillsChange(section.id, updatedGroups)
+                                }}
+                              >
+                                {group.skills.join(", ")}
+                              </span>
+                            </p>
+                          ))}
+                        </div>
+                      )
+                    })()}
 
                     {/* Projects Section */}
                     {section.type === SECTION_TYPES.PROJECTS && Array.isArray((section as any).items) && (

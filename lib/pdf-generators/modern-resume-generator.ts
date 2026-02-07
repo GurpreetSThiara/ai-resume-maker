@@ -2,6 +2,7 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
 import type { PDFGenerationOptions } from "@/types/resume"
 import { ResumeData } from '@/types/resume'
 import { sanitizeTextForPdf } from '@/lib/utils'
+import { getEffectiveSkillGroupsFromSection } from '@/utils/skills'
 
 export async function generateModernResumePDF({ resumeData, filename = "resume.pdf" }: PDFGenerationOptions) {
   const pdfDoc = await PDFDocument.create()
@@ -210,7 +211,41 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
         })
         break
 
-      case "skills":
+      case "skills": {
+        const groups = getEffectiveSkillGroupsFromSection(section)
+        const visibleGroups = groups.filter(g => g.skills.length > 0)
+        
+        if (visibleGroups.length > 0) {
+          for (const group of visibleGroups) {
+            // Draw bold title
+            const titleText = `${group.title}: ` // Add a space after the colon
+            drawText(titleText, margin, fontBold, 9)
+
+            // Draw skills on the same line with regular font
+            const skillsText = group.skills.join(', ')
+            const skillsX = margin + fontBold.widthOfTextAtSize(titleText, 9)
+            const skillsWrapped = wrapText(skillsText, 80 - fontBold.widthOfTextAtSize(titleText, 9))
+            
+            if (skillsWrapped.length > 0) {
+              // Draw the first line of skills on the same line as the title
+              drawText(skillsWrapped[0], skillsX, fontRegular, 9)
+              y -= lineHeight
+
+              // Draw subsequent lines of skills below, indented
+              for (let i = 1; i < skillsWrapped.length; i++) {
+                drawText(skillsWrapped[i], skillsX, fontRegular, 9)
+                y -= lineHeight
+              }
+            } else {
+              y -= lineHeight // If no skills, still move down one line for consistency
+            }
+            
+            y -= lineHeight * 0.5 // Small spacing between groups
+          }
+        }
+        break
+      }
+
       case "languages":
       case "certifications":
         const itemsText = section.items.join(", ")

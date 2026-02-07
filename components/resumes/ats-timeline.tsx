@@ -6,6 +6,7 @@ import { useRef, useEffect, useState } from "react"
 import type { ResumeData } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { sortSectionsByOrder } from "@/utils/sectionOrdering"
+import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
 
 interface ResumeProps {
   pdfRef: React.RefObject<HTMLDivElement>
@@ -100,17 +101,33 @@ export const ATS_TIMELINE: React.FC<ResumeProps> = ({
     })
   }
 
-  const handleSkillsChange = (sectionId: string, value: string) => {
+  const handleSkillsChange = (sectionId: string, updatedGroups: any[] | string) => {
     setResumeData((prev) => {
       const updated = structuredClone(prev)
       const section = updated.sections.find((s) => s.id === sectionId)
       if (!section) return prev
 
-      const items = value
-        .split(",")
-        .map((item) => item.trim())
-        .filter((item) => item.length > 0)
-      section.items = items
+      // Handle both grouped skills (array) and flat skills (string for languages/certifications)
+      if (Array.isArray(updatedGroups)) {
+        // Update groups for skills
+        if ('groups' in section) {
+          section.groups = updatedGroups;
+        }
+        
+        // Also update flat items for backward compatibility
+        const flatItems = updatedGroups.flatMap(group => group.skills);
+        if ('items' in section) {
+          section.items = flatItems;
+        }
+      } else {
+        // Handle flat string for languages/certifications
+        const items = updatedGroups
+          .split(",")
+          .map((item) => item.trim())
+          .filter((item) => item.length > 0)
+        section.items = items
+      }
+      
       return updated
     })
   }
@@ -615,12 +632,59 @@ export const ATS_TIMELINE: React.FC<ResumeProps> = ({
                     ))}
 
                   {/* Skills Section */}
-                  {(section.type === SECTION_TYPES.SKILLS ||
-                    section.type === SECTION_TYPES.LANGUAGES ||
+                  {section.type === SECTION_TYPES.SKILLS && (() => {
+                    const groups = getEffectiveSkillGroupsFromSection(section)
+                    const visibleGroups = groups.filter(g => g.skills.length > 0)
+                    if (!visibleGroups.length) return null
+                    return (
+                      <div className="pl-2 mb-4 space-y-1">
+                        {visibleGroups.map(group => (
+                          <p 
+                            key={group.title} 
+                            className="text-sm"
+                            style={{ color: "#4a5568", fontSize: "12px", lineHeight: "1.6" }}
+                          >
+                            <span
+                              className="font-semibold"
+                              contentEditable
+                              suppressContentEditableWarning
+                              onBlur={(e) => {
+                                const newTitle = e.currentTarget.textContent || ''
+                                const updatedGroups = groups.map(g => 
+                                  g.title === group.title ? { ...g, title: newTitle } : g
+                                )
+                                handleSkillsChange(section.id, updatedGroups)
+                              }}
+                            >
+                              {group.title}
+                            </span>
+                            :{" "}
+                            <span
+                              contentEditable
+                              suppressContentEditableWarning
+                              onBlur={(e) => {
+                                const newSkills = e.currentTarget.textContent || ''
+                                const skillsArray = newSkills.split(',').map(s => s.trim()).filter(s => s.length > 0)
+                                const updatedGroups = groups.map(g => 
+                                  g.title === group.title ? { ...g, skills: skillsArray } : g
+                                )
+                                handleSkillsChange(section.id, updatedGroups)
+                              }}
+                            >
+                              {group.skills.join(", ")}
+                            </span>
+                          </p>
+                        ))}
+                      </div>
+                    )
+                  })()}
+
+                  {/* Languages & Certifications - flat list */}
+                  {(section.type === SECTION_TYPES.LANGUAGES ||
                     section.type === SECTION_TYPES.CERTIFICATIONS) && (
                     <div className="pl-2">
                       <p
-                        className="text-sm leading-relaxed"
+                        className="text-sm"
                         style={{ color: "#4a5568", fontSize: "12px", lineHeight: "1.6" }}
                         contentEditable={!!setResumeData}
                         suppressContentEditableWarning

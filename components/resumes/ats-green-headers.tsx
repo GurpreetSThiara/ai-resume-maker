@@ -6,6 +6,7 @@ import type { ResumeData } from "@/types/resume"
 import ProjectSection from '../resume-components/project-section'
 import { SECTION_TYPES } from "@/types/resume"
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
+import { getEffectiveSkillGroupsFromSection, formatGroupedSkillsLine } from "@/utils/skills"
 
 
 
@@ -83,14 +84,24 @@ export const ATS_GREEN_HEADERS: any = ({
     })
   }
 
-  const handleSkillsChange = (sectionId: string, value: string) => {
+  const handleSkillsChange = (sectionId: string, updatedGroups: any[]) => {
     if (!setResumeData) return
     setResumeData((prev) => {
       const updated = structuredClone(prev)
       const section = updated.sections.find((s) => s.id === sectionId)
       if (!section) return prev
-
-      section.items = [value]
+      
+      // Update groups
+      if ('groups' in section) {
+        section.groups = updatedGroups;
+      }
+      
+      // Also update flat items for backward compatibility
+      const flatItems = updatedGroups.flatMap(group => group.skills);
+      if ('items' in section) {
+        section.items = flatItems;
+      }
+      
       return updated
     })
   }
@@ -520,20 +531,65 @@ export const ATS_GREEN_HEADERS: any = ({
                         </div>
                       ))}
 
-                    {/* Skills, Languages Sections */}
-                    {(section.type === SECTION_TYPES.SKILLS || section.type === SECTION_TYPES.LANGUAGES) && section.items?.length > 0 && (
+                    {/* Languages – flat list */}
+                    {section.type === SECTION_TYPES.LANGUAGES && section.items?.length > 0 && (
                       <div className="mb-3">
                         <p
                           className="text-sm leading-relaxed"
                           style={{ color: "#000000", fontSize: "12px" }}
-                          contentEditable={!!setResumeData}
-                          suppressContentEditableWarning
-                          onBlur={(e) => handleSkillsChange(section.id, e.currentTarget.textContent || "")}
                         >
-                          {section.items.join("")}
+                          {section.items.join(", ")}
                         </p>
                       </div>
                     )}
+
+                    {/* Skills – grouped by category, each group on its own line */}
+                    {section.type === SECTION_TYPES.SKILLS && (() => {
+                      const groups = getEffectiveSkillGroupsFromSection(section)
+                      const visibleGroups = groups.filter(g => g.skills.length > 0)
+                      if (!visibleGroups.length) return null
+                      return (
+                        <div className="mb-3 space-y-1">
+                          {visibleGroups.map(group => (
+                            <p 
+                              key={group.title} 
+                              className="text-sm leading-relaxed"
+                              style={{ color: "#000000", fontSize: "12px" }}
+                            >
+                              <span
+                                className="font-semibold"
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => {
+                                  const newTitle = e.currentTarget.textContent || ''
+                                  const updatedGroups = groups.map(g => 
+                                    g.title === group.title ? { ...g, title: newTitle } : g
+                                  )
+                                  handleSkillsChange(section.id, updatedGroups)
+                                }}
+                              >
+                                {group.title}
+                              </span>
+                              :{" "}
+                              <span
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => {
+                                  const newSkills = e.currentTarget.textContent || ''
+                                  const skillsArray = newSkills.split(',').map(s => s.trim()).filter(s => s.length > 0)
+                                  const updatedGroups = groups.map(g => 
+                                    g.title === group.title ? { ...g, skills: skillsArray } : g
+                                  )
+                                  handleSkillsChange(section.id, updatedGroups)
+                                }}
+                              >
+                                {group.skills.join(", ")}
+                              </span>
+                            </p>
+                          ))}
+                        </div>
+                      )
+                    })()}
 
                     {/* Certifications Section */}
                     {section.type === SECTION_TYPES.CERTIFICATIONS && section.items?.length > 0 && (

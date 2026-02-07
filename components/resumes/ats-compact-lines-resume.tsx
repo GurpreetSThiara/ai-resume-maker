@@ -5,6 +5,7 @@ import type React from "react"
 import { useRef, useEffect, useState } from "react"
 import { sortSectionsByOrder } from "@/utils/sectionOrdering"
 import ProjectSection from "../resume-components/project-section"
+import { getEffectiveSkillGroupsFromSection, formatGroupedSkillsLine } from "@/utils/skills"
 
 
 interface ResumeProps {
@@ -415,13 +416,32 @@ export const ATSCompactLinesResume: React.FC<ResumeProps> = ({
                     </div>
                   )}
 
-                  {(section.type === SECTION_TYPES.SKILLS ||
-                    section.type === SECTION_TYPES.LANGUAGES ||
+                  {/* Languages & Certifications – keep flat display */}
+                  {(section.type === SECTION_TYPES.LANGUAGES ||
                     section.type === SECTION_TYPES.CERTIFICATIONS) && (
                     <div className="text-sm">
-                      {(section as any).items.filter((item: string) => item && item.trim()).join(' • ')}
+                      {(section as any).items
+                        .filter((item: string) => item && item.trim())
+                        .join(" • ")}
                     </div>
                   )}
+
+                  {/* Skills – grouped by category, each on its own concise line */}
+                  {section.type === SECTION_TYPES.SKILLS && (() => {
+                    const groups = getEffectiveSkillGroupsFromSection(section)
+                    const visibleGroups = groups.filter(g => g.skills.length > 0)
+                    if (!visibleGroups.length) return null
+                    return (
+                      <div className="text-sm space-y-0.5">
+                        {visibleGroups.map(group => (
+                          <div key={group.title}>
+                            <span className="font-semibold">{group.title}:</span>{" "}
+                            <span>{group.skills.join(", ")}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })()}
 
                   {section.type === SECTION_TYPES.CUSTOM && (
                     <div className="space-y-2">

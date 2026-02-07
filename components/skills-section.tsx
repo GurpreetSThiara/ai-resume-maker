@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Trash2, Edit2, Zap } from "lucide-react"
+import { Plus, Trash2, Edit2, Zap, FolderPlus, Tag } from "lucide-react"
 import { SectionVisibilityToggle } from "@/components/section-visibility-toggle"
 import { SectionHiddenBanner } from "@/components/section-hidden-banner"
-import type { ResumeData, SkillsSection as ISkillsSection } from "@/types/resume"
+import type { ResumeData, SkillsSection as ISkillsSection, SkillGroup } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 
 interface SkillsSectionProps {
@@ -18,80 +18,117 @@ interface SkillsSectionProps {
 
 export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
   const [newSkill, setNewSkill] = useState("")
-  const [editingSkill, setEditingSkill] = useState<string | null>(null)
-  const [editData, setEditData] = useState("")
+  const [newSkillCategory, setNewSkillCategory] = useState("")
   const [isAddingNew, setIsAddingNew] = useState(false)
 
   // Find the skills section
   const skillsSectionIndex = data.sections.findIndex((s) => s.type === SECTION_TYPES.SKILLS)
-  const skillsSection = data.sections[skillsSectionIndex] as ISkillsSection || {
+  const skillsSection = (data.sections[skillsSectionIndex] as ISkillsSection) || {
     id: (data.sections.length + 1).toString(),
     title: "Skills & More",
     type: SECTION_TYPES.SKILLS,
     items: [],
-    hidden: false
+    hidden: false,
+    groups: undefined,
   }
+
+  // Build effective grouped structure:
+  // - If `groups` exists and has entries, use it
+  // - Otherwise, treat legacy flat items as a single "General" group
+  const effectiveGroups: SkillGroup[] =
+    skillsSection.groups && skillsSection.groups.length > 0
+      ? skillsSection.groups
+      : [{
+          id: "general",
+          title: "General",
+          skills: skillsSection.items || [],
+        }]
 
   const isHidden = skillsSection.hidden || false
 
-  const addSkill = () => {
-    if (newSkill.trim()) {
-      const skills = [...skillsSection.items, newSkill.trim()]
-      updateSkillsSection(skills)
-      setNewSkill("")
-      setIsAddingNew(false)
-    }
-  }
+  // Helper to update or create the skills section, always keeping
+  // the flat `items` array in sync with grouped skills for backward compatibility.
+  const updateSkillsSection = (groups: SkillGroup[], hidden?: boolean) => {
+    const flatItems = groups.flatMap(group => group.skills)
 
-  const removeSkill = (skillToRemove: string) => {
-    const skills = skillsSection.items.filter(skill => skill !== skillToRemove)
-    updateSkillsSection(skills)
-  }
-
-  const startEditing = (skill: string) => {
-    setEditingSkill(skill)
-    setEditData(skill)
-  }
-
-  const saveEdit = () => {
-    if (editingSkill && editData.trim()) {
-      const skills = skillsSection.items.map(skill => 
-        skill === editingSkill ? editData.trim() : skill
-      )
-      updateSkillsSection(skills)
-      setEditingSkill(null)
-      setEditData("")
-    }
-  }
-
-  const cancelEdit = () => {
-    setEditingSkill(null)
-    setEditData("")
-  }
-
-  // Helper to update or create the skills section
-  const updateSkillsSection = (skills: string[], hidden?: boolean) => {
     const updatedSections = [...data.sections]
     if (skillsSectionIndex === -1) {
       updatedSections.push({
         id: (data.sections.length + 1).toString(),
         title: "Skills & More",
         type: SECTION_TYPES.SKILLS,
-        items: skills,
-        hidden: hidden ?? false
+        items: flatItems,
+        groups,
+        hidden: hidden ?? false,
       })
     } else {
       updatedSections[skillsSectionIndex] = {
         ...skillsSection,
-        items: skills,
-        hidden: hidden ?? skillsSection.hidden
+        items: flatItems,
+        groups,
+        hidden: hidden ?? skillsSection.hidden,
       }
     }
     onUpdate({ sections: updatedSections })
   }
 
+  const addSkillToGroup = () => {
+    const skillValue = newSkill.trim()
+    if (!skillValue) return
+
+    const categoryTitle = (newSkillCategory.trim() || "General")
+
+    // Try to find an existing group by title (case-insensitive)
+    const existingGroup = effectiveGroups.find(
+      g => (g.title || "").toLowerCase() === categoryTitle.toLowerCase()
+    )
+
+    let updatedGroups: SkillGroup[]
+
+    if (existingGroup) {
+      updatedGroups = effectiveGroups.map(group =>
+        group.id === existingGroup.id
+          ? { ...group, skills: [...group.skills, skillValue] }
+          : group
+      )
+    } else {
+      const newGroup: SkillGroup = {
+        id: Date.now().toString(),
+        title: categoryTitle,
+        skills: [skillValue],
+      }
+      updatedGroups = [...effectiveGroups, newGroup]
+    }
+
+    updateSkillsSection(updatedGroups)
+    setNewSkill("")
+    setNewSkillCategory("")
+    setIsAddingNew(false)
+  }
+
+  const updateGroupTitle = (groupId: string, title: string) => {
+    const updatedGroups = effectiveGroups.map(group =>
+      group.id === groupId ? { ...group, title } : group
+    )
+
+    updateSkillsSection(updatedGroups)
+  }
+
+  const removeGroup = (groupId: string) => {
+    // Prevent removing the last remaining group; instead, just clear its skills
+    if (effectiveGroups.length === 1) {
+      const onlyGroup = effectiveGroups[0]
+      const clearedGroup: SkillGroup = { ...onlyGroup, skills: [] }
+      updateSkillsSection([clearedGroup])
+      return
+    }
+
+    const updatedGroups = effectiveGroups.filter(group => group.id !== groupId)
+    updateSkillsSection(updatedGroups)
+  }
+
   const toggleVisibility = () => {
-    updateSkillsSection(skillsSection.items, !isHidden)
+    updateSkillsSection(effectiveGroups, !isHidden)
   }
 
   return (
@@ -108,82 +145,69 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
       {/* Disabled overlay when hidden */}
       {isHidden && <SectionHiddenBanner />}
 
-      {/* Existing Skills */}
-      <div className="space-y-3">
-        {skillsSection.items.length === 0 ? (
+      {/* Existing Skills (grouped) */}
+      <div className="space-y-4">
+        {effectiveGroups.every(group => group.skills.length === 0) ? (
           <div className="text-center py-8 text-muted-foreground">
             <Zap className="w-8 h-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No skills added yet</p>
           </div>
         ) : (
-          skillsSection.items.map((skill) => (
-            <Card key={skill} className={`relative transition-all ${isHidden ? 'opacity-50 bg-gray-50' : ''}`}>
-              {editingSkill === skill ? (
-                <CardContent className="pt-6 space-y-4">
-                  <div>
-                    <Label htmlFor={`edit-skill-${skill}`}>Edit Skill</Label>
+          effectiveGroups.map((group) => (
+            <Card
+              key={group.id}
+              className={`relative transition-all ${isHidden ? "opacity-50 bg-gray-50" : ""}`}
+            >
+              <CardHeader className="pb-3 flex flex-row items-center justify-between gap-3">
+                <div className="flex-1 min-w-0 flex items-center gap-2">
+                  <Tag className="w-4 h-4 text-blue-500 shrink-0" />
+                  <Input
+                    value={group.title}
+                    onChange={(e) => updateGroupTitle(group.id, e.target.value)}
+                    placeholder="Category title (e.g., Frontend, Backend, Tools)"
+                    className="font-medium h-8"
+                    disabled={isHidden}
+                  />
+                </div>
+                <div className="flex gap-1 shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeGroup(group.id)}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                    disabled={isHidden}
+                    title="Delete category"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+
+              <CardContent className="pt-0 space-y-2">
+                {group.skills.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">
+                    No skills in this category yet.
+                  </p>
+                ) : (
+                  <div key={`${group.id}-skills`} className="space-y-2">
+                    <Label htmlFor={`skills-${group.id}`}>Skills</Label>
                     <Input
-                      id={`edit-skill-${skill}`}
-                      value={editData}
-                      onChange={(e) => setEditData(e.target.value)}
-                      placeholder="Enter skill, language, or certification"
+                      id={`skills-${group.id}`}
+                      value={group.skills.join(', ')}
+                      onChange={(e) => {
+                        const newSkills = e.target.value.split(',').map(s => s.trim()).filter(s => s.length > 0)
+                        const updatedGroups = effectiveGroups.map(g =>
+                          g.id === group.id ? { ...g, skills: newSkills } : g
+                        )
+                        updateSkillsSection(updatedGroups)
+                      }}
+                      placeholder="Enter skills separated by commas (e.g., React, Vue, Angular)"
                       className="mt-1"
                       disabled={isHidden}
                     />
                   </div>
-
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={saveEdit} 
-                      className="flex-1"
-                      disabled={isHidden}
-                    >
-                      Save Changes
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      onClick={cancelEdit} 
-                      className="flex-1 bg-transparent"
-                      disabled={isHidden}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </CardContent>
-              ) : (
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-base font-medium flex items-center gap-2 truncate">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                        <span className="truncate">{skill}</span>
-                      </CardTitle>
-                    </div>
-                    <div className="flex gap-1 shrink-0">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => startEditing(skill)}
-                        className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
-                        disabled={isHidden}
-                        title={isHidden ? 'Enable section to edit' : 'Edit skill'}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeSkill(skill)}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                        disabled={isHidden}
-                        title={isHidden ? 'Enable section to delete' : 'Delete skill'}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-              )}
+                )}
+              </CardContent>
             </Card>
           ))
         )}
@@ -201,6 +225,18 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
           {isAddingNew ? (
             <>
               <div>
+                <Label htmlFor="skill-category">Skill Category</Label>
+                <Input
+                  id="skill-category"
+                  placeholder="e.g., Frontend, Backend, Tools (leave empty for General)"
+                  value={newSkillCategory}
+                  onChange={(e) => setNewSkillCategory(e.target.value)}
+                  className="mt-1"
+                  disabled={isHidden}
+                />
+              </div>
+
+              <div>
                 <Label htmlFor="new-skill">New Skill</Label>
                 <Input
                   id="new-skill"
@@ -209,13 +245,13 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
                   onChange={(e) => setNewSkill(e.target.value)}
                   className="mt-1"
                   disabled={isHidden}
-                  onKeyPress={(e) => e.key === 'Enter' && addSkill()}
+                  onKeyPress={(e) => e.key === "Enter" && addSkillToGroup()}
                 />
               </div>
 
               <div className="flex gap-2">
                 <Button 
-                  onClick={addSkill} 
+                  onClick={addSkillToGroup} 
                   className="flex-1"
                   disabled={isHidden}
                 >

@@ -38,6 +38,23 @@ export const sampleResume: ResumeData = {
         "PostgreSQL",
         "Docker",
         "Git"
+      ],
+      groups: [
+        {
+          id: "frontend-skills",
+          title: "Frontend",
+          skills: ["React", "Next.js", "TypeScript", "HTML", "CSS", "Tailwind CSS"]
+        },
+        {
+          id: "backend-skills",
+          title: "Backend",
+          skills: ["Node.js", "Express", "MongoDB", "PostgreSQL", "REST APIs", "GraphQL"]
+        },
+        {
+          id: "devops-skills",
+          title: "DevOps & Tools",
+          skills: ["Docker", "Git", "AWS", "CI/CD", "Linux", "Nginx"]
+        }
       ]
     },
     {

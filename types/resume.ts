@@ -62,9 +62,27 @@ export interface ExperienceSection extends BaseSection {
   items: Experience[]
 }
 
+// 🔹 Skills grouping model
+export interface SkillGroup {
+  id: string
+  title: string
+  skills: string[]
+}
+
 export interface SkillsSection extends BaseSection {
   type: typeof SECTION_TYPES.SKILLS
+  /**
+   * Flat list of skills kept for backward compatibility.
+   * All renderers (templates, PDF/DOCX, summary, review, etc.) can continue
+   * to rely on this field.
+   */
   items: string[]
+  /**
+   * New grouped skills structure used by the Skills editor UI.
+   * When absent, the editor will automatically treat `items` as a single
+   * "General" group so existing resumes still work seamlessly.
+   */
+  groups?: SkillGroup[]
 }
 
 export interface LanguagesSection extends BaseSection {

@@ -2,6 +2,7 @@ import { PDFDocument, StandardFonts, rgb, PDFName, PDFString } from "pdf-lib"
 import type { PDFPage, PDFFont } from "pdf-lib"
 import type { PDFGenerationOptions, ProjectsSection } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
+import { getEffectiveSkillGroupsFromSection, formatGroupedSkillsLine } from "@/utils/skills"
 import { sanitizeTextForPdf, sanitizeTextForPdfWithFont } from '@/lib/utils'
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
 
@@ -703,14 +704,54 @@ export async function generateResumePDF({
         }
         break
 
-      case SECTION_TYPES.SKILLS:
+      case SECTION_TYPES.SKILLS: {
+        // Render grouped skills by category on separate lines
+        const groups = getEffectiveSkillGroupsFromSection(section as any)
+        const visibleGroups = groups.filter(g => g.skills.length > 0)
+        
+        if (visibleGroups.length > 0) {
+          for (const group of visibleGroups) {
+            // Draw bold title
+            const titleText = `${group.title}: ` // Add space after colon
+            const titleWidth = boldFont.widthOfTextAtSize(titleText, isBlackCompact ? 9 : 10)
+            
+            ensureSpace(isBlackCompact ? 10 : 12)
+            draw(titleText, margin, isBlackCompact ? 9 : 10, boldFont, textColor)
+
+            // Draw skills on same line
+            const skillsText = group.skills.join(', ')
+            const skillsLines = wrapText(skillsText, pageWidth - 20 - titleWidth, regularFont, isBlackCompact ? 9 : 10)
+            
+            if (skillsLines.length > 0) {
+              // Draw first line of skills on same line as title
+              draw(skillsLines[0], margin + titleWidth, isBlackCompact ? 9 : 10, regularFont, textColor)
+              yOffset -= isBlackCompact ? 10 : 12
+
+              // Draw subsequent lines indented
+              for (let i = 1; i < skillsLines.length; i++) {
+                draw(skillsLines[i], margin + titleWidth, isBlackCompact ? 9 : 10, regularFont, textColor)
+                yOffset -= isBlackCompact ? 10 : 12
+              }
+            } else {
+              yOffset -= isBlackCompact ? 10 : 12 // If no skills, still move down one line
+            }
+            
+            // Add small spacing between skill groups
+            if (group !== visibleGroups[visibleGroups.length - 1]) {
+              yOffset -= isBlackCompact ? 3 : 5
+            }
+          }
+        }
+        break
+      }
+
       case SECTION_TYPES.LANGUAGES:
       case SECTION_TYPES.CERTIFICATIONS:
         if (section.items?.length) {
           ensureSpace(isBlackCompact ? 10 : 12)
           const lines = wrapText(section.items.join(" • "), pageWidth - 20, regularFont, isBlackCompact ? 9 : 10)
-          for (const line of lines) {
-            draw(line, margin, isBlackCompact ? 9 : 10, regularFont, textColor)
+          for (const l of lines) {
+            draw(l, margin, isBlackCompact ? 9 : 10, regularFont, textColor)
             yOffset -= isBlackCompact ? 10 : 12
           }
         }
