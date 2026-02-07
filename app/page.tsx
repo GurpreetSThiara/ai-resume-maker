@@ -13,6 +13,7 @@ import { Hero } from "@/components/appUI/home/Hero"
 import { HowItWorks } from "@/components/appUI/home/HowItWorks"
 import { Values } from "@/components/appUI/home/ValueProps"
 import { ReviewsSection } from "@/components/reviews-section"
+import { ContentResourcesSection } from "@/components/appUI/home/ContentResourcesSection"
 import Script from "next/script"
 export const metadata: Metadata = {
   title: 'Free ATS Resume Builder - No Sign Up | Optional AI with Free Account',
@@ -101,10 +102,13 @@ export default function HomePage() {
 
       {/* Hero Section */}
      <Hero/>     
-     
+          
+     {/* Content Resources Section */}
+     <ContentResourcesSection/>
           
       {/* Value Props */}
      <Values/>
+
 
      {/* <ResumeCarousel/> */}
      <FreeTemplatesSection/>
