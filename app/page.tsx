@@ -12,7 +12,6 @@ import AdvancedFeatures from "@/components/appUI/home/FeatureDeepDive"
 import { Hero } from "@/components/appUI/home/Hero"
 import { HowItWorks } from "@/components/appUI/home/HowItWorks"
 import { Values } from "@/components/appUI/home/ValueProps"
-import { ReviewsSection } from "@/components/reviews-section"
 import { ContentResourcesSection } from "@/components/appUI/home/ContentResourcesSection"
 import Script from "next/script"
 export const metadata: Metadata = {
@@ -122,9 +121,6 @@ export default function HomePage() {
       {/* Features Deep Dive */}
       <AdvancedFeatures/>
       
-      {/* Reviews Section */}
-      <ReviewsSection />
-
       {/* Testimonials + FAQ */}
       {/* <section className="py-20 px-4">
         <div className="container mx-auto grid gap-12 lg:grid-cols-2 items-start">

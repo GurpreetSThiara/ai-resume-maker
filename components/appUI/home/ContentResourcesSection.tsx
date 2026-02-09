@@ -17,8 +17,9 @@ export function ContentResourcesSection() {
           Everything you need to land your dream job.
         </p>
 
-        {/* Resource Card */}
-        <div className="max-w-2xl mx-auto mb-12">
+        {/* Resource Cards */}
+        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-12">
+          {/* First Resource Card */}
           <Link
             href="/how-to-write-a-resume"
             className="group block bg-white rounded-lg shadow-md border border-gray-200 p-8 hover:shadow-lg transition-shadow duration-200"
@@ -46,6 +47,35 @@ export function ContentResourcesSection() {
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
+
+          {/* Second Resource Card - Fresher Resume */}
+          <Link
+            href="/resume-for-freshers"
+            className="group block bg-white rounded-lg shadow-md border border-gray-200 p-8 hover:shadow-lg transition-shadow duration-200"
+          >
+            <div className="flex items-center justify-center mb-6">
+              <div className="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                <FileText className="w-8 h-8 text-green-600" />
+              </div>
+            </div>
+            
+            <div className="inline-flex items-center px-3 py-1 bg-green-50 text-green-700 text-sm font-medium rounded-full mb-4">
+              Popular Guide
+            </div>
+            
+            <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-green-600 transition-colors">
+              Resume for Freshers
+            </h3>
+            
+            <p className="text-slate-600 leading-relaxed mb-6">
+              Step-by-step guide for students and recent graduates to create their first job-winning resume with 25+ examples.
+            </p>
+            
+            <div className="flex items-center justify-center text-green-600 font-medium group-hover:text-green-700">
+              <span>Read Fresher Guide</span>
+              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
         </div>
 
         {/* Bottom CTA */}
@@ -53,12 +83,20 @@ export function ContentResourcesSection() {
           <p className="text-slate-600 mb-6">
             More career resources coming soon! Check back often for new guides and tips.
           </p>
-          <Link href="/how-to-write-a-resume">
-            <Button size="lg" className="h-12 px-8 text-base">
-              Read Complete Guide
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/how-to-write-a-resume">
+              <Button size="lg" className="h-12 px-8 text-base">
+                Read Resume Guide
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+            <Link href="/resume-for-freshers">
+              <Button size="lg" variant="outline" className="h-12 px-8 text-base border-green-600 text-green-600 hover:bg-green-50">
+                Fresher Resume Guide
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     </section>

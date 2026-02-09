@@ -3,12 +3,12 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { FileText, Home, Plus, User, LogOut, User2, Menu, Star } from "lucide-react"
+import { FileText, Home, Plus, User, LogOut, User2, Menu, Star, BookOpen, Coffee } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Drawer } from "@/components/ui/drawer"
 import React from "react"
-import { CREATE_RESUME } from "@/config/urls"
+import { CREATE_RESUME, BUY_ME_COFFEE } from "@/config/urls"
 import { useAuth } from "@/contexts/auth-context"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Brand } from "@/components/ui/brand"
@@ -54,6 +54,16 @@ export function Navbar() {
         <Plus className="w-4 h-4" aria-hidden="true" />
         Cover Letter
       </Link>
+      <Link
+        href="/blog"
+        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+          pathname?.startsWith("/blog") ? "bg-purple-100 text-purple-700" : "text-gray-600 hover:text-gray-900"
+        }`}
+        onClick={() => setDrawerOpen(false)}
+      >
+        <BookOpen className="w-4 h-4" aria-hidden="true" />
+        Blog
+      </Link>
       {/* <Link
         href="/reviews"
         className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
@@ -76,6 +86,15 @@ export function Navbar() {
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6">
             {navLinks}
+            <Link
+              href={BUY_ME_COFFEE}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg transition-colors bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+            >
+              <Coffee className="w-4 h-4" aria-hidden="true" />
+              <span className="font-medium">Buy Me a Coffee</span>
+            </Link>
           </nav>
 
           
