@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { FileText, Home, Plus, User, LogOut, User2, Menu, Star, BookOpen, Coffee } from "lucide-react"
+import { FileText, Home, Plus, User, LogOut, User2, Menu, Star, BookOpen, Coffee, Image as ImageIcon, ChevronDown } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Drawer } from "@/components/ui/drawer"
@@ -21,8 +21,8 @@ export function Navbar() {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const { open } = useAuthModal();
 
-  // Navigation links for reuse
-  const navLinks = (
+  // Always visible navigation items
+  const alwaysVisibleLinks = (
     <>
       <Link
         href="/"
@@ -54,6 +54,42 @@ export function Navbar() {
         <Plus className="w-4 h-4" aria-hidden="true" />
         Cover Letter
       </Link>
+    </>
+  );
+
+  // Additional links for dropdown
+  const dropdownLinks = (
+    <>
+      <DropdownMenuItem asChild>
+        <Link href="/blog" className="flex items-center w-full">
+          <BookOpen className="w-4 h-4 mr-2" aria-hidden="true" />
+          Blog
+        </Link>
+      </DropdownMenuItem>
+      <DropdownMenuItem asChild>
+        <Link href="/image-converter" className="flex items-center w-full">
+          <ImageIcon className="w-4 h-4 mr-2" aria-hidden="true" />
+          Image Converter
+        </Link>
+      </DropdownMenuItem>
+      <DropdownMenuItem asChild>
+        <Link 
+          href={BUY_ME_COFFEE}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center w-full"
+        >
+          <Coffee className="w-4 h-4 mr-2" aria-hidden="true" />
+          Buy Me a Coffee
+        </Link>
+      </DropdownMenuItem>
+    </>
+  );
+
+  // All navigation links for mobile drawer
+  const navLinks = (
+    <>
+      {alwaysVisibleLinks}
       <Link
         href="/blog"
         className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
@@ -64,16 +100,28 @@ export function Navbar() {
         <BookOpen className="w-4 h-4" aria-hidden="true" />
         Blog
       </Link>
-      {/* <Link
-        href="/reviews"
+      <Link
+        href="/image-converter"
         className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-          pathname === "/reviews" ? "bg-yellow-100 text-yellow-700" : "text-gray-600 hover:text-gray-900"
+          pathname?.startsWith("/image-converter") ? "bg-orange-100 text-orange-700" : "text-gray-600 hover:text-gray-900"
         }`}
         onClick={() => setDrawerOpen(false)}
       >
-        <Star className="w-4 h-4" aria-hidden="true" />
-        Reviews
-      </Link> */}
+        <ImageIcon className="w-4 h-4" aria-hidden="true" />
+        Image Converter
+      </Link>
+      <Link
+        href={BUY_ME_COFFEE}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+          pathname?.startsWith("/buy-me-coffee") ? "bg-yellow-100 text-yellow-700" : "text-gray-600 hover:text-gray-900"
+        }`}
+        onClick={() => setDrawerOpen(false)}
+      >
+        <Coffee className="w-4 h-4" aria-hidden="true" />
+        Buy Me a Coffee
+      </Link>
     </>
   );
 
@@ -85,16 +133,26 @@ export function Navbar() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6">
-            {navLinks}
-            <Link
-              href={BUY_ME_COFFEE}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg transition-colors bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
-            >
-              <Coffee className="w-4 h-4" aria-hidden="true" />
-              <span className="font-medium">Buy Me a Coffee</span>
-            </Link>
+            {/* Always visible links */}
+            {alwaysVisibleLinks}
+            
+            {/* Dropdown for additional links on all desktop screens */}
+            <div className="hidden md:flex">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900"
+                  >
+                    More
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {dropdownLinks}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </nav>
 
           
