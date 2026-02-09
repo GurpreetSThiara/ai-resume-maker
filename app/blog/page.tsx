@@ -34,6 +34,17 @@ const blogPosts = [
     category: 'ATS Tips',
     featured: false,
     image: '/blog/ats-resume-guide.jpg'
+  },
+  {
+    id: 'software-engineer-resume',
+    title: 'Resume for Software Engineers: How to Create a Technical Resume That Gets Interviews in 2026',
+    excerpt: 'Learn how software engineers can create ATS-optimized technical resumes that get interviews. Complete guide with examples, formatting tips, and what recruiters look for in 2026.',
+    author: 'CreateFreeCV Team',
+    publishedAt: '2026-02-09',
+    readingTime: '12 min read',
+    category: 'Resume Writing',
+    featured: false,
+    image: '/blog/software-engineer-resume.jpg'
   }
 ];
 
