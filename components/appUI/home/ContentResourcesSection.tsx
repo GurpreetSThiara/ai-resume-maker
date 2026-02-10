@@ -18,7 +18,7 @@ export function ContentResourcesSection() {
         </p>
 
         {/* Resource Cards */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-12">
+        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-12">
           {/* First Resource Card */}
           <Link
             href="/how-to-write-a-resume"
@@ -73,6 +73,35 @@ export function ContentResourcesSection() {
             
             <div className="flex items-center justify-center text-green-600 font-medium group-hover:text-green-700">
               <span>Read Fresher Guide</span>
+              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
+
+          {/* Third Resource Card - ATS Resume Explained */}
+          <Link
+            href="/blog/ats-resume-explained"
+            className="group block bg-white rounded-lg shadow-md border border-gray-200 p-8 hover:shadow-lg transition-shadow duration-200"
+          >
+            <div className="flex items-center justify-center mb-6">
+              <div className="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
+                <FileText className="w-8 h-8 text-purple-600" />
+              </div>
+            </div>
+
+            <div className="inline-flex items-center px-3 py-1 bg-purple-50 text-purple-700 text-sm font-medium rounded-full mb-4">
+              New in 2026
+            </div>
+
+            <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-purple-600 transition-colors">
+              ATS Resume Explained
+            </h3>
+
+            <p className="text-slate-600 leading-relaxed mb-6">
+              Learn what Applicant Tracking Systems (ATS) are, how they scan your resume, and how to create an ATS-friendly resume that reaches recruiters in 2026.
+            </p>
+
+            <div className="flex items-center justify-center text-purple-600 font-medium group-hover:text-purple-700">
+              <span>Read ATS Guide</span>
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>

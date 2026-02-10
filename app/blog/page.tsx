@@ -21,7 +21,7 @@ const blogPosts = [
     publishedAt: '2026-02-09',
     readingTime: '8 min read',
     category: 'Resume Writing',
-    featured: true,
+    featured: false,
     image: '/blog/fresher-resume-guide.jpg'
   },
   {
@@ -45,6 +45,18 @@ const blogPosts = [
     category: 'Resume Writing',
     featured: false,
     image: '/blog/software-engineer-resume.jpg'
+  },
+  {
+    id: 'ats-resume-explained',
+    title: 'ATS Resume Explained: What It Is, How It Works, and How to Beat It in 2026',
+    excerpt:
+      'Understand what Applicant Tracking Systems (ATS) are, how they read your resume, and how to create an ATS-friendly resume that reaches human recruiters in 2026.',
+    author: 'CreateFreeCV Team',
+    publishedAt: '2026-02-10',
+    readingTime: '10 min read',
+    category: 'ATS Tips',
+    featured: true,
+    image: '/blog/ats-resume-explained.jpg',
   }
 ];
 
