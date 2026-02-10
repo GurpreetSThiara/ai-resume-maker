@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Prioritize important pages
+Crawl-delay: 1
+
+# Disallow user-specific pages that shouldn't be indexed
+Disallow: /profile
+Disallow: /settings
+Disallow: /cover-letter/editor/
+
+# Allow dynamic cover letter pages but with specific patterns
+Allow: /cover-letter/$
+Allow: /cover-letter/editor/
+
+# Sitemap location
+Sitemap: https://createfreecv.com/sitemap.xml
