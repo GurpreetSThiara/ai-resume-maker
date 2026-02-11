@@ -64,6 +64,12 @@ export function Navbar() {
         </Link>
       </DropdownMenuItem>
       <DropdownMenuItem asChild>
+        <Link href="/resume-examples" className="flex items-center w-full">
+          <FileText className="w-4 h-4 mr-2" aria-hidden="true" />
+          Resume Examples
+        </Link>
+      </DropdownMenuItem>
+      <DropdownMenuItem asChild>
         <Link href="/faq" className="flex items-center w-full">
           <HelpCircle className="w-4 h-4 mr-2" aria-hidden="true" />
           FAQ
@@ -101,6 +107,15 @@ export function Navbar() {
       >
         <BookOpen className="w-4 h-4" aria-hidden="true" />
         Blog
+      </Link>
+      <Link
+        href="/resume-examples"
+        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${pathname?.startsWith("/resume-examples") ? "bg-teal-100 text-teal-700" : "text-gray-600 hover:text-gray-900"
+          }`}
+        onClick={() => setDrawerOpen(false)}
+      >
+        <FileText className="w-4 h-4" aria-hidden="true" />
+        Resume Examples
       </Link>
       <Link
         href="/faq"

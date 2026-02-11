@@ -3,6 +3,7 @@
 import type { Metadata } from 'next'
 import ResumeCarousel from "@/components/appUI/Carausol/ResumeCarausol"
 import { FreeTemplatesSection } from "@/components/appUI/home/FreeTemplatesSection"
+import { FeaturedExamplesSection } from "@/components/appUI/home/FeaturedExamplesSection"
 import { AtsResumeGeneratorSection } from "@/components/appUI/home/AtsResumeGeneratorSection"
 import { WhyChooseUsSection } from "@/components/appUI/home/WhyChooseUsSection"
 import { TrustedBySection } from "@/components/appUI/home/TrustedBySection"
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Free ATS Resume Builder - No Sign Up | Optional AI with Free Account',
     description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download. Optional AI assistant with a free account.',
-    images: ['/twitter-image.png'], 
+    images: ['/twitter-image.png'],
   },
   robots: {
     index: true,
@@ -81,46 +82,47 @@ const jsonLd = {
 
 export default function HomePage() {
   return (
-        <div className="min-h-screen bg-linear-to-br from-white via-green-50/30 to-indigo-50/40 relative overflow-hidden">
+    <div className="min-h-screen bg-linear-to-br from-white via-green-50/30 to-indigo-50/40 relative overflow-hidden">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-transparent via-green-50/20 to-transparent pointer-events-none" />
-      
+
       <div className="absolute top-0 left-0 w-96 h-96 bg-linear-to-r from-green-200/20 to-emerald-200/20 rounded-full blur-3xl animate-pulse-slow" />
       <div className="absolute top-1/4 right-0 w-80 h-80 bg-linear-to-r from-blue-200/20 to-indigo-200/20 rounded-full blur-3xl animate-pulse-slow delay-500" />
       <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-linear-to-r from-purple-200/20 to-pink-200/20 rounded-full blur-3xl animate-pulse-slow delay-1000" />
 
-      
 
 
 
-    
+
+
 
       {/* Hero Section */}
-     <Hero/>     
-          
-     {/* Content Resources Section */}
-     <ContentResourcesSection/>
-          
+      <Hero />
+
+      {/* Content Resources Section */}
+      <ContentResourcesSection />
+
       {/* Value Props */}
-     <Values/>
+      <Values />
 
 
-     {/* <ResumeCarousel/> */}
-     <FreeTemplatesSection/>
-     <AtsResumeGeneratorSection/>
-     <WhyChooseUsSection/>
-     {/* <TrustedBySection/> */}
+      {/* <ResumeCarousel/> */}
+      <FreeTemplatesSection />
+      <FeaturedExamplesSection />
+      <AtsResumeGeneratorSection />
+      <WhyChooseUsSection />
+      {/* <TrustedBySection/> */}
 
       {/* How It Works */}
-      <HowItWorks/>
+      <HowItWorks />
 
       {/* Features Deep Dive */}
-      <AdvancedFeatures/>
-      
+      <AdvancedFeatures />
+
       {/* Testimonials + FAQ */}
       {/* <section className="py-20 px-4">
         <div className="container mx-auto grid gap-12 lg:grid-cols-2 items-start">
@@ -184,10 +186,10 @@ export default function HomePage() {
 
       {/* CTA Section */}
 
-    <FaqSection/>
-    <CTA/>
+      <FaqSection />
+      <CTA />
 
- 
+
     </div>
   )
 }

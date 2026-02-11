@@ -48,6 +48,22 @@ export function Footer() {
                   Cover Letters
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/free-ats-resume-templates"
+                  className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
+                >
+                  Resume Templates
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/resume-examples"
+                  className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
+                >
+                  Resume Examples
+                </Link>
+              </li>
 
             </ul>
           </div>
