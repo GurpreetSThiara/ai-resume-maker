@@ -28,7 +28,7 @@ export const metadata: Metadata = {
         title: "Resume Rejected Without Interview? 12 Real Reasons Recruiters Don't Call Back",
         description:
             "Discover why your resume gets rejected and learn actionable strategies to fix each issue and get more callbacks from recruiters.",
-        url: "https://www.createfreecv.com/blog/resume-rejected-without-interview",
+        url: "https://createfreecv.com/blog/resume-rejected-without-interview",
         siteName: "CreateFreeCV",
         type: "article"
     },
