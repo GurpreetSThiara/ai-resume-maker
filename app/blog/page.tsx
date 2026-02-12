@@ -14,6 +14,17 @@ export const metadata: Metadata = {
 // Actual blog posts we have
 export const blogPosts = [
   {
+    id: 'how-to-use-ai-resume-builder',
+    title: 'How to Use AI to Build a Job-Winning Resume in 2026',
+    excerpt: 'Stop using generic ChatGPT resumes. Learn the "Hybrid Method" to combine AI speed with human strategy, avoid ATS rejection, and impress recruiters.',
+    author: 'CreateFreeCV Team',
+    publishedAt: '2026-02-12',
+    readingTime: '8 min read',
+    category: 'AI Tips',
+    featured: true,
+    image: '/blog/ai-resume-guide.jpg'
+  },
+  {
     id: 'resume-for-freshers',
     title: 'Resume for Freshers: Complete Guide to Create Your First Job-Winning Resume (2026)',
     excerpt: 'Learn how to create a professional fresher resume with our step-by-step guide. Includes 25+ examples, ATS-friendly tips, and real resume samples for students and recent graduates.',
