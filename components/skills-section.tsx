@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,6 +10,57 @@ import { SectionVisibilityToggle } from "@/components/section-visibility-toggle"
 import { SectionHiddenBanner } from "@/components/section-hidden-banner"
 import type { ResumeData, SkillsSection as ISkillsSection, SkillGroup } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
+
+interface SkillGroupInputProps {
+  skills: string[]
+  onUpdate: (skills: string[]) => void
+  disabled?: boolean
+  id?: string
+  placeholder?: string
+  className?: string
+}
+
+function SkillGroupInput({
+  skills,
+  onUpdate,
+  disabled,
+  id,
+  placeholder,
+  className
+}: SkillGroupInputProps) {
+  const [value, setValue] = useState(skills.join(", "))
+
+  // Update local value when props change, but only if the data actually changed
+  // (ignores formatting differences like trailing info)
+  useEffect(() => {
+    const currentParsed = value.split(',').map(s => s.trim()).filter(s => s.length > 0)
+    if (JSON.stringify(currentParsed) !== JSON.stringify(skills)) {
+      setValue(skills.join(', '))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [skills])
+
+  return (
+    <Input
+      id={id}
+      value={value}
+      onChange={(e) => {
+        const newValue = e.target.value
+        setValue(newValue)
+
+        const newSkills = newValue.split(',').map(s => s.trim()).filter(s => s.length > 0)
+
+        // Only trigger update if the semantic value changed
+        if (JSON.stringify(newSkills) !== JSON.stringify(skills)) {
+          onUpdate(newSkills)
+        }
+      }}
+      placeholder={placeholder}
+      className={className}
+      disabled={disabled}
+    />
+  )
+}
 
 interface SkillsSectionProps {
   data: ResumeData
@@ -39,10 +90,10 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
     skillsSection.groups && skillsSection.groups.length > 0
       ? skillsSection.groups
       : [{
-          id: "general",
-          title: "General",
-          skills: skillsSection.items || [],
-        }]
+        id: "general",
+        title: "General",
+        skills: skillsSection.items || [],
+      }]
 
   const isHidden = skillsSection.hidden || false
 
@@ -191,11 +242,10 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
                 ) : (
                   <div key={`${group.id}-skills`} className="space-y-2">
                     <Label htmlFor={`skills-${group.id}`}>Skills</Label>
-                    <Input
+                    <SkillGroupInput
                       id={`skills-${group.id}`}
-                      value={group.skills.join(', ')}
-                      onChange={(e) => {
-                        const newSkills = e.target.value.split(',').map(s => s.trim()).filter(s => s.length > 0)
+                      skills={group.skills}
+                      onUpdate={(newSkills) => {
                         const updatedGroups = effectiveGroups.map(g =>
                           g.id === group.id ? { ...g, skills: newSkills } : g
                         )
@@ -250,8 +300,8 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
               </div>
 
               <div className="flex gap-2">
-                <Button 
-                  onClick={addSkillToGroup} 
+                <Button
+                  onClick={addSkillToGroup}
                   className="flex-1"
                   disabled={isHidden}
                 >
@@ -271,8 +321,8 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
               </div>
             </>
           ) : (
-            <Button 
-              onClick={() => setIsAddingNew(true)} 
+            <Button
+              onClick={() => setIsAddingNew(true)}
               className="w-full"
               disabled={isHidden}
               title={isHidden ? 'Enable section to add skills' : ''}
