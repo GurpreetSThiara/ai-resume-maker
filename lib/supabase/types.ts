@@ -88,6 +88,44 @@ export interface Database {
           updated_at?: string
         }
       }
+      portfolios: {
+        Row: {
+          id: string
+          user_id: string
+          resume_id: string | null
+          slug: string
+          title: string
+          data: any
+          theme: any
+          is_public: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          resume_id?: string | null
+          slug: string
+          title?: string
+          data?: any
+          theme?: any
+          is_public?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          resume_id?: string | null
+          slug?: string
+          title?: string
+          data?: any
+          theme?: any
+          is_public?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never

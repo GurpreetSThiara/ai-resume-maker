@@ -69,8 +69,10 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
 
   const addExperience = () => {
     if (newExperience.company && newExperience.role) {
+      let sectionExists = false
       const updatedSections = data.sections.map((section) => {
         if (section.type === SECTION_TYPES.EXPERIENCE) {
+          sectionExists = true
           return {
             ...section,
             items: [...(section.items || []), newExperience],
@@ -78,6 +80,17 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
         }
         return section
       })
+
+      if (!sectionExists) {
+        updatedSections.push({
+          id: crypto.randomUUID(),
+          title: "Professional Experience",
+          type: SECTION_TYPES.EXPERIENCE,
+          items: [newExperience],
+          order: data.sections.length
+        })
+      }
+
       onUpdate({ sections: updatedSections })
       setNewExperience({ company: "", role: "", startDate: "", endDate: "", location: "", achievements: [] })
       setIsAddingNew(false)
@@ -136,21 +149,21 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
   const updateAchievement = (index: number, value: string) => {
     setNewExperience((prev) => ({
       ...prev,
-      achievements: prev.achievements.map((ach, i) => (i === index ? value : ach)),
+      achievements: (prev.achievements || []).map((ach, i) => (i === index ? value : ach)),
     }))
   }
 
   const removeAchievement = (index: number) => {
     setNewExperience((prev) => ({
       ...prev,
-      achievements: prev.achievements.filter((_, i) => i !== index),
+      achievements: (prev.achievements || []).filter((_, i) => i !== index),
     }))
   }
 
   const updateEditAchievement = (index: number, value: string) => {
     setEditData((prev) => ({
       ...prev,
-      achievements: prev.achievements.map((ach, i) => (i === index ? value : ach)),
+      achievements: (prev.achievements || []).map((ach, i) => (i === index ? value : ach)),
     }))
   }
 
@@ -164,7 +177,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
   const removeEditAchievement = (index: number) => {
     setEditData((prev) => ({
       ...prev,
-      achievements: prev.achievements.filter((_, i) => i !== index),
+      achievements: (prev.achievements || []).filter((_, i) => i !== index),
     }))
   }
 
@@ -208,7 +221,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                     value={editData.company}
                     onChange={(e) => setEditData((prev) => ({ ...prev, company: e.target.value }))}
                     className="mt-1"
-                                      disabled={isHidden}
+                    disabled={isHidden}
                   />
                 </div>
                 <div>
@@ -217,7 +230,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                     id="edit-role"
                     value={editData.role}
                     onChange={(e) => setEditData((prev) => ({ ...prev, role: e.target.value }))}
-                                        disabled={isHidden}
+                    disabled={isHidden}
                     className="mt-1"
                   />
                 </div>
@@ -228,7 +241,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                       id="edit-start"
                       value={editData.startDate}
                       onChange={(e) => setEditData((prev) => ({ ...prev, startDate: e.target.value }))}
-                                            disabled={isHidden}
+                      disabled={isHidden}
                       className="mt-1"
                     />
                   </div>
@@ -238,7 +251,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                       id="edit-end"
                       value={editData.endDate}
                       onChange={(e) => setEditData((prev) => ({ ...prev, endDate: e.target.value }))}
-                                            disabled={isHidden}
+                      disabled={isHidden}
                       className="mt-1"
                     />
                   </div>
@@ -249,27 +262,27 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                     id="edit-location"
                     value={editData.location}
                     onChange={(e) => setEditData((prev) => ({ ...prev, location: e.target.value }))}
-                                        disabled={isHidden}
+                    disabled={isHidden}
                     className="mt-1"
                   />
                 </div>
                 <div className="space-y-3">
                   <Label>Achievements</Label>
-                  {editData.achievements?.map((ach, i) => (
+                  {(editData.achievements || []).map((ach, i) => (
                     <div key={i} className="flex gap-2">
                       <Input
                         value={ach}
                         onChange={(e) => updateEditAchievement(i, e.target.value)}
                         placeholder="Achievement or responsibility"
-                                              disabled={isHidden}
+                        disabled={isHidden}
                       />
-                      {editData.achievements.length > 1 && (
+                      {(editData.achievements?.length || 0) > 1 && (
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => removeEditAchievement(i)}
                           className="text-red-500"
-                                                  disabled={isHidden}
+                          disabled={isHidden}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -362,7 +375,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                 placeholder="e.g., Google Inc."
                 value={newExperience.company}
                 onChange={(e) => setNewExperience((prev) => ({ ...prev, company: e.target.value }))}
-                                disabled={isHidden}
+                disabled={isHidden}
                 className="mt-1"
               />
             </div>
@@ -373,7 +386,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                 placeholder="e.g., Senior Software Engineer"
                 value={newExperience.role}
                 onChange={(e) => setNewExperience((prev) => ({ ...prev, role: e.target.value }))}
-                                disabled={isHidden}
+                disabled={isHidden}
                 className="mt-1"
               />
             </div>
@@ -385,7 +398,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                   placeholder="e.g., Jan 2020"
                   value={newExperience.startDate}
                   onChange={(e) => setNewExperience((prev) => ({ ...prev, startDate: e.target.value }))}
-                                    disabled={isHidden}
+                  disabled={isHidden}
                   className="mt-1"
                 />
               </div>
@@ -396,7 +409,7 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                   placeholder="e.g., Present"
                   value={newExperience.endDate}
                   onChange={(e) => setNewExperience((prev) => ({ ...prev, endDate: e.target.value }))}
-                                    disabled={isHidden}
+                  disabled={isHidden}
                   className="mt-1"
                 />
               </div>
@@ -408,21 +421,21 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
                 placeholder="e.g., San Francisco, CA"
                 value={newExperience.location}
                 onChange={(e) => setNewExperience((prev) => ({ ...prev, location: e.target.value }))}
-                                disabled={isHidden}
+                disabled={isHidden}
                 className="mt-1"
               />
             </div>
             <div className="space-y-3">
               <Label>Achievements</Label>
-              {newExperience.achievements?.map((ach, i) => (
+              {(newExperience.achievements || []).map((ach, i) => (
                 <div key={i} className="flex gap-2">
                   <Input
                     placeholder="Achievement or responsibility"
                     value={ach}
                     onChange={(e) => updateAchievement(i, e.target.value)}
-                                      disabled={isHidden}
+                    disabled={isHidden}
                   />
-                  {newExperience.achievements.length > 1 && (
+                  {(newExperience.achievements?.length || 0) > 1 && (
                     <Button variant="ghost" size="sm" onClick={() => removeAchievement(i)} className="text-red-500" disabled={isHidden}>
                       <Trash2 className="w-4 h-4" />
                     </Button>

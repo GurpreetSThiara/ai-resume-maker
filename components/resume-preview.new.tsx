@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useRef, useEffect, forwardRef, useState } from "react"
-import type { ResumeData, ResumeTemplate, Section } from "@/types/resume"
+import type { ResumeData, ResumeTemplate } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { getResumePreview } from "./resumes"
 
@@ -12,14 +12,15 @@ interface ResumePreviewProps {
   onDataUpdate: (data: ResumeData | ((prev: ResumeData) => ResumeData)) => void
   activeSection: string
   setResumeData: any
+  readOnly?: boolean
 }
 
 const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
-  ({ resumeData, template, onDataUpdate, activeSection, setResumeData }, ref) => {
+  ({ resumeData, template, onDataUpdate, activeSection, setResumeData, readOnly = false }, ref) => {
     // Refs for each section to scroll to
     const personalInfoRef = useRef<HTMLDivElement>(null)
     const customFieldsRef = useRef<HTMLDivElement>(null)
-    const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+    const sectionRefs = useRef<{ [key: string]: HTMLElement | null }>({})
 
     const [ResumeComponent, setResumeComponent] = useState<React.ComponentType<any> | null>(null);
 
@@ -40,7 +41,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
 
       // Scroll to the element if found
       if (elementToScroll && ref && typeof ref !== "function") {
-        const container = (ref as { current: HTMLDivElement | null }).current
+        const container = (ref as React.MutableRefObject<HTMLDivElement | null>).current
         if (!container) return
 
         const containerRect = container.getBoundingClientRect()
@@ -102,7 +103,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
     const handleSectionTitleChange = (sectionId: string, newTitle: string) => {
       onDataUpdate((prev: ResumeData) => ({
         ...prev,
-        sections: prev.sections.map(section => 
+        sections: prev.sections.map(section =>
           section.id === sectionId ? { ...section, title: newTitle } : section
         )
       }))
@@ -115,7 +116,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
           <div ref={personalInfoRef} className={template.theme.layout.header}>
             <h1
               className={`${template.theme.fontSize.name} font-bold ${template.theme.colors.text}`}
-              contentEditable={true}
+              contentEditable={!readOnly}
               suppressContentEditableWarning={true}
               onBlur={handleNameChange}
             >
@@ -127,21 +128,21 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
               className={`${template.theme.fontSize.small} ${template.theme.colors.secondary} flex flex-wrap gap-4 mb-6`}
             >
               <span
-                contentEditable={true}
+                contentEditable={!readOnly}
                 suppressContentEditableWarning={true}
                 onBlur={(e) => handleContactInfoChange(e, "email")}
               >
                 {resumeData?.basics?.email}
               </span>
               <span
-                contentEditable={true}
+                contentEditable={!readOnly}
                 suppressContentEditableWarning={true}
                 onBlur={(e) => handleContactInfoChange(e, "phone")}
               >
                 {resumeData?.basics?.phone}
               </span>
               <span
-                contentEditable={true}
+                contentEditable={!readOnly}
                 suppressContentEditableWarning={true}
                 onBlur={(e) => handleContactInfoChange(e, "location")}
               >
@@ -150,7 +151,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
               <span>
                 <a href={resumeData?.basics?.linkedin}>
                   <span
-                    contentEditable={true}
+                    contentEditable={!readOnly}
                     suppressContentEditableWarning={true}
                     onBlur={(e) => handleContactInfoChange(e, "linkedin")}
                   >
@@ -168,14 +169,14 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
                 >
                   <span
                     className="font-semibold"
-                    contentEditable={true}
+                    contentEditable={!readOnly}
                     suppressContentEditableWarning={true}
                     onBlur={(e) => handleCustomItemChange(id, "title", e.currentTarget.textContent || "")}
                   >
                     {item.title}:
                   </span>
                   <span
-                    contentEditable={true}
+                    contentEditable={!readOnly}
                     suppressContentEditableWarning={true}
                     onBlur={(e) => handleCustomItemChange(id, "content", e.currentTarget.textContent || "")}
                   >
@@ -195,7 +196,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
               >
                 <h2
                   className={`${template.theme.fontSize.section} font-medium ${template.theme.colors.primary} mb-4 pb-2 border-b border-gray-200`}
-                  contentEditable={true}
+                  contentEditable={!readOnly}
                   suppressContentEditableWarning={true}
                   onBlur={(e) => handleSectionTitleChange(section.id, e.currentTarget.textContent || "")}
                 >

@@ -195,6 +195,18 @@ export function Navbar() {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
                       <Link href="/profile" className="flex items-center">
+                        <FileText className="w-4 h-4 mr-2" aria-hidden="true" />
+                        Resumes
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard/portfolios" className="flex items-center">
+                        <User className="w-4 h-4 mr-2" aria-hidden="true" />
+                        Portfolios
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile" className="flex items-center">
                         <User2 className="w-4 h-4 mr-2" aria-hidden="true" />
                         Profile
                       </Link>

@@ -29,11 +29,13 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
 
   const addEducation = () => {
     if (newEducation.institution && newEducation.degree) {
+      let sectionExists = false
       const updatedSections = data.sections.map((section) => {
         if (section.type === SECTION_TYPES.EDUCATION) {
+          sectionExists = true
           return {
             ...section,
-            items: [...section.items, { 
+            items: [...section.items, {
               ...newEducation,
               highlights: newEducation?.highlights?.filter(h => h.trim())
             }]
@@ -41,6 +43,20 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
         }
         return section
       })
+
+      if (!sectionExists) {
+        updatedSections.push({
+          id: crypto.randomUUID(),
+          title: "Education",
+          type: SECTION_TYPES.EDUCATION,
+          items: [{
+            ...newEducation,
+            highlights: newEducation?.highlights?.filter(h => h.trim())
+          }],
+          order: data.sections.length
+        })
+      }
+
       onUpdate({ sections: updatedSections })
       setNewEducation({
         institution: "",
@@ -103,15 +119,15 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
   }
 
   const toggleVisibility = () => {
-    const updatedSections = data.sections.map((section) => 
-      section.type === SECTION_TYPES.EDUCATION 
+    const updatedSections = data.sections.map((section) =>
+      section.type === SECTION_TYPES.EDUCATION
         ? { ...section, hidden: !isHidden }
         : section
     )
     onUpdate({ sections: updatedSections })
   }
 
-  
+
   return (
     <div className="space-y-6">
       {/* Header with visibility toggle */}
@@ -128,7 +144,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
 
       {/* Existing Education Entries */}
       <div className="space-y-4">
-        {educationSection.items.map((education, index) => (
+        {(educationSection?.items || []).map((education, index) => (
           <Card key={index} className="relative">
             {editingEducationId === index.toString() ? (
               <CardContent className="pt-6 space-y-4">

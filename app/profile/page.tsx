@@ -5,14 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { 
-  User, 
-  FileText, 
-  Edit, 
-  Trash2, 
-  Download, 
-  Plus, 
-  Settings, 
+import {
+  User,
+  FileText,
+  Edit,
+  Trash2,
+  Download,
+  Plus,
+  Settings,
   Calendar,
   Eye,
   EyeOff
@@ -27,6 +27,7 @@ import type { ResumeData, ResumeTemplate } from "@/types/resume"
 import { CREATE_RESUME } from "@/config/urls"
 import { loadUserResumes } from "@/services/resumeService"
 import { useAuth } from "@/contexts/auth-context"
+import { useAuthModal } from "@/contexts/auth-modal-context"
 import { LS_KEYS, setLocalStorageJSON, setLocalStorageItem } from "@/utils/localstorage"
 import DeleteConfirmModal from '@/components/appUI/modals/DeleteConfirmModal'
 import { Dialog, DialogContent } from "@/components/ui/dialog"
@@ -96,10 +97,17 @@ const defaultTemplate: ResumeTemplate = {
 
 export default function ProfilePage() {
   const { user, loading, signOut } = useAuth()
+  const { open: openAuthModal } = useAuthModal()
+
+  useEffect(() => {
+    if (!loading && !user) {
+      openAuthModal()
+    }
+  }, [user, loading, openAuthModal])
   const router = useRouter()
   //const { toast } = useToast()
   const { usage, refreshUsage } = useAi()
-  
+
   const [resumes, setResumes] = useState<ResumeItem[]>([])
   const [loadingResumes, setLoadingResumes] = useState(false)
   const [localResumes, setLocalResumes] = useState<any[]>([])
@@ -123,7 +131,7 @@ export default function ProfilePage() {
     setLocalResumes(getLocalResumes())
     // Load cloud resumes once per mount when user present
     if (user && !hasLoadedResumes) {
-      loadUserResumes({loadingResumes,setResumes,setHasLoadedResumes,setLoadingResumes})
+      loadUserResumes({ loadingResumes, setResumes, setHasLoadedResumes, setLoadingResumes })
     }
   }, [loading, user, hasLoadedResumes])
 
@@ -132,7 +140,7 @@ export default function ProfilePage() {
   const handleResumeClick = async (resume: ResumeItem) => {
     setSelectedResume(resume)
     setShowPreview(true)
-    
+
     try {
       const result = await loadResumeData(resume.id)
       if (result.success && result.data) {
@@ -202,7 +210,7 @@ export default function ProfilePage() {
           throw new Error(result.message || "Failed to sync a resume")
         }
       }
-      await loadUserResumes({loadingResumes,setResumes,setHasLoadedResumes,setLoadingResumes})
+      await loadUserResumes({ loadingResumes, setResumes, setHasLoadedResumes, setLoadingResumes })
       SHOW_SUCCESS({ title: "Sync completed", description: `Successfully synced ${toSync.length} resume(s) to your account` })
     } catch (err) {
       console.error(err)
@@ -266,7 +274,7 @@ export default function ProfilePage() {
   const handleViewLocalResume = (localResume: LocalResumeItem) => {
     // For now, just show the data in a modal or redirect to view mode
     // You could implement a read-only view modal here
-   
+
   }
 
   const openPreview = (resume: ResumeItem) => {
@@ -382,7 +390,8 @@ export default function ProfilePage() {
                                 size="sm"
                                 aria-label="Delete"
                                 className="w-10 h-10 text-red-600 hover:text-red-700"
-                                onClick={() =>{ setIsDeleteModalOpen(true) 
+                                onClick={() => {
+                                  setIsDeleteModalOpen(true)
                                   setDeleteResumeId(resume.id)
                                 }}
                                 disabled={deletingResume === resume.id}
@@ -423,20 +432,20 @@ export default function ProfilePage() {
                               </p>
                             </div>
                             <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="flex-1 sm:w-10 sm:h-10 sm:p-0 sm:flex-none" 
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1 sm:w-10 sm:h-10 sm:p-0 sm:flex-none"
                                 onClick={() => handleEditLocalResume(localResume)}
                                 title="Edit Resume"
                               >
                                 <Edit className="w-4 h-4 sm:mr-0 mr-2" />
                                 <span className="sm:hidden">Edit</span>
                               </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="flex-1 sm:w-10 sm:h-10 sm:p-0 sm:flex-none text-red-600 hover:text-red-700 hover:border-red-300" 
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1 sm:w-10 sm:h-10 sm:p-0 sm:flex-none text-red-600 hover:text-red-700 hover:border-red-300"
                                 onClick={() => handleDeleteLocalResume(localResume.id)}
                                 title="Delete Resume"
                               >
@@ -499,13 +508,13 @@ export default function ProfilePage() {
         </Dialog>
       </div>
 
-      <DeleteConfirmModal   
+      <DeleteConfirmModal
         open={isDeleteModalOpen}
         onOpenChange={setIsDeleteModalOpen}
-        onConfirm={()=>{handleDeleteResume(deleteResumeId)}} 
+        onConfirm={() => { handleDeleteResume(deleteResumeId) }}
       />
 
-      <DeleteConfirmModal   
+      <DeleteConfirmModal
         open={isLocalDeleteModalOpen}
         onOpenChange={setIsLocalDeleteModalOpen}
         onConfirm={confirmDeleteLocalResume}
@@ -515,4 +524,3 @@ export default function ProfilePage() {
     </div>
   )
 }
- 
