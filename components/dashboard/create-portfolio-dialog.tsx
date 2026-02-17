@@ -130,7 +130,9 @@ export function CreatePortfolioDialog({ children, resumeId: initialResumeId, res
         try {
             const result = await createPortfolio({
                 slug,
-                title: `${finalResumeTitle || 'My'} Portfolio`,
+                title: (finalResumeTitle || 'My').endsWith('Portfolio')
+                    ? (finalResumeTitle || 'My Portfolio')
+                    : `${finalResumeTitle || 'My'} Portfolio`,
                 data: finalResumeData,
                 resume_id: isScratch ? null : selectedResumeId,
                 is_public: true,

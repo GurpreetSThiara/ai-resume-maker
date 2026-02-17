@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Plus, Eye, Edit, Trash2, Globe, ExternalLink, RefreshCw } from "lucide-react"
+import { Plus, Eye, Edit, Trash2, Globe, ExternalLink, RefreshCw, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { CreatePortfolioDialog } from "@/components/dashboard/create-portfolio-dialog"
 import { UpdatePortfolioDialog } from "@/components/dashboard/update-portfolio-dialog"
+import { EditPortfolioDialog } from "@/components/dashboard/edit-portfolio-dialog"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { updatePortfolio } from "@/services/portfolioService"
@@ -224,6 +225,15 @@ export default function PortfoliosPage() {
                                                 <RefreshCw className="mr-2 h-4 w-4" /> Sync / Update
                                             </Button>
                                         </UpdatePortfolioDialog>
+
+                                        <EditPortfolioDialog
+                                            portfolio={portfolio}
+                                            onUpdate={loadPortfolios}
+                                        >
+                                            <Button variant="outline" className="w-full justify-start h-10">
+                                                <Settings className="mr-2 h-4 w-4" /> Settings
+                                            </Button>
+                                        </EditPortfolioDialog>
 
                                         <AlertDialog>
                                             <AlertDialogTrigger asChild>
