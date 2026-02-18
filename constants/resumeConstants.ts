@@ -13,7 +13,7 @@ export const RESUME_IMAGES = {
   ATS_YELLOW: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/atsyellow.png",
   ATS_TIMELINE: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/timeline.png",
   COMPACT_LINES: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/compact-lines.png",
-    ATS_COMPACT: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/ats-compact.png",
+  ATS_COMPACT: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/ats-compact.png",
 
 
 
@@ -32,7 +32,8 @@ export const RESUME_TEMPLATES = [
     url: RESUME_IMAGES.CLASSIC,
     category: "Professional",
     description: "Clean, minimal and highly readable. Works well for corporate and technical roles.",
-    suggestedFor: ["Engineering", "Finance", "Operations"]
+    suggestedFor: ["Engineering", "Finance", "Operations"],
+    isAtsFriendly: true
   },
   {
     id: "ats-compact-lines",
@@ -40,7 +41,8 @@ export const RESUME_TEMPLATES = [
     url: RESUME_IMAGES.COMPACT_LINES,
     category: "ATS",
     description: "Ultra-compact ATS-friendly layout with minimal line spacing. Maximizes content while staying ATS-safe.",
-    suggestedFor: ["Experienced professionals", "Technical roles", "Dense resumes"]
+    suggestedFor: ["Experienced professionals", "Technical roles", "Dense resumes"],
+    isAtsFriendly: true
   },
   {
     id: "ats-classic-compact",
@@ -48,7 +50,8 @@ export const RESUME_TEMPLATES = [
     url: RESUME_IMAGES.ATS_COMPACT,
     category: "ATS",
     description: "Compact version of ATS Classic with reduced spacing and no decorative lines for maximum content density.",
-    suggestedFor: ["Experienced professionals", "Technical roles", "Dense resumes"]
+    suggestedFor: ["Experienced professionals", "Technical roles", "Dense resumes"],
+    isAtsFriendly: true
   },
   {
     id: "ats-green",
@@ -56,7 +59,8 @@ export const RESUME_TEMPLATES = [
     url: RESUME_IMAGES.ATS_GREEN,
     category: "ATS",
     description: "Optimized for Applicant Tracking Systems — simple structure and semantic headings.",
-    suggestedFor: ["All industries - ATS aware"]
+    suggestedFor: ["All industries - ATS aware"],
+    isAtsFriendly: true
   },
   {
     id: "classic_blue",
@@ -64,7 +68,8 @@ export const RESUME_TEMPLATES = [
     url: RESUME_IMAGES.CLASSIC_BLUE,
     category: "Contemporary",
     description: "A modern layout with subtle accents and clear sectioning for creative and product roles.",
-    suggestedFor: ["Product", "Design", "Marketing"]
+    suggestedFor: ["Product", "Design", "Marketing"],
+    isAtsFriendly: true
   },
   {
     id: "ats-yellow",
@@ -72,7 +77,17 @@ export const RESUME_TEMPLATES = [
     url: RESUME_IMAGES.ATS_YELLOW,
     category: "Contemporary",
     description: "A modern layout with subtle accents and clear sectioning for creative and product roles.",
-    suggestedFor: ["Product", "Design", "Marketing"]
+    suggestedFor: ["Product", "Design", "Marketing"],
+    isAtsFriendly: true
+  },
+  {
+    id: "modern-sidebar",
+    name: "Modern Sidebar",
+    url: RESUME_IMAGES.MODERN,
+    category: "Modern",
+    description: "Two-column layout with sidebar for skills and contact info. Stylish and professional.",
+    suggestedFor: ["Designers", "Developers", "Creative roles"],
+    isAtsFriendly: false
   },
   // {
   //   id: "ats-timeline",  // Temporarily disabled

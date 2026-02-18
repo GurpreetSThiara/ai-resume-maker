@@ -6,6 +6,7 @@ import type { ResumeData, ResumeTemplate, Section } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { getResumePreview } from "./resumes"
 import { atsCompactLinesTemplate, atsClassicCompactTemplate } from "@/lib/templates"
+import { AlertTriangle, Info, X } from "lucide-react"
 
 interface ResumePreviewProps {
   resumeData: ResumeData
@@ -139,23 +140,60 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
     const handleSectionTitleChange = (sectionId: string, newTitle: string) => {
       onDataUpdate((prev: ResumeData) => ({
         ...prev,
-        sections: prev.sections.map(section => 
+        sections: prev.sections.map(section =>
           section.id === sectionId ? { ...section, title: newTitle } : section
         )
       }))
     }
 
+    const [showAtsWarning, setShowAtsWarning] = useState(true)
+
+    // Reset warning when template changes
+    useEffect(() => {
+      if (template.isAtsFriendly === false) {
+        setShowAtsWarning(true)
+      }
+    }, [template.id, template.isAtsFriendly])
+
     return (
-      <div ref={ref} className={`bg-green-50 font-serif ${className || 'min-h-screen'}`}>
-        {ResumeComponent && <ResumeComponent 
-          pdfRef={ref}
-          font={{ className: '', name: 'Helvetica, Arial, sans-serif' }}
-          theme={template.theme || {}}
-          resumeData={filteredResumeData} 
-          setResumeData={setResumeData} 
-          activeSection={activeSection} 
-          useBlackVariant={template.id === atsCompactLinesTemplate.id || template.id === atsClassicCompactTemplate.id}
-        />}
+      <div className={`bg-gray-50 font-serif ${className || 'min-h-screen'} flex flex-col items-center`}>
+        {/* ATS Warning Alert */}
+        {template.isAtsFriendly === false && showAtsWarning && (
+          <div className="w-full max-w-2xl mt-4 mb-2 px-4">
+            <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r shadow-sm relative">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <AlertTriangle className="h-5 w-5 text-amber-500" aria-hidden="true" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-amber-700">
+                    <span className="font-medium block mb-1">ATS Compatibility Warning</span>
+                    This two-column template is designed for visual appeal but may be less readable by some Applicant Tracking Systems (ATS).
+                    Use single-column templates for stricter ATS requirements.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowAtsWarning(false)}
+                  className="absolute top-2 right-2 text-amber-400 hover:text-amber-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div ref={ref} className="w-full flex justify-center pb-8">
+          {ResumeComponent && <ResumeComponent
+            pdfRef={ref}
+            font={{ className: '', name: 'Helvetica, Arial, sans-serif' }}
+            theme={template.theme || {}}
+            resumeData={filteredResumeData}
+            setResumeData={setResumeData}
+            activeSection={activeSection}
+            useBlackVariant={template.id === atsCompactLinesTemplate.id || template.id === atsClassicCompactTemplate.id}
+          />}
+        </div>
       </div>
     )
   },

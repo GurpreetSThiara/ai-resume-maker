@@ -13,7 +13,7 @@ import { setLocalStorageJSON, LS_KEYS } from "@/utils/localstorage"
 import { useRouter } from "next/navigation"
 import { SHOW_ERROR } from "@/utils/toast"
 
-export  function Templates() {
+export function Templates() {
   const [extractedText, setExtractedText] = useState<string>("")
   const [isLoading, setIsLoading] = useState(false)
   const [fileName, setFileName] = useState<string>("")
@@ -58,7 +58,7 @@ export  function Templates() {
             const { setLocalStorageItem } = await import("@/utils/localstorage")
             setLocalStorageItem(LS_KEYS.currentStep, "0")
             setLocalStorageJSON(LS_KEYS.completedSteps, [])
-          } catch {}
+          } catch { }
           setStatus("Opening editor...")
           router.push(`${CREATE_RESUME}/create?source=ai`)
           return
@@ -90,11 +90,11 @@ export  function Templates() {
         <div className="fixed inset-0 z-[100] cursor-wait" style={{ pointerEvents: 'auto' }} aria-busy="true" aria-live="polite" />
       )}
       <header className="mb-8 flex justify-between">
-       <div className="">
-         <h1 className="text-3xl font-bold">Choose a resume template</h1>
-        <p className="mt-2 text-muted-foreground">Pick a template or upload your resume to start building your resume. You can preview, customize, and export to PDF.</p>
-       </div>
-       {/* <PdfUploadModal isLoading={isLoading} status={status} onFileUpload={handleFileUpload} /> */}
+        <div className="">
+          <h1 className="text-3xl font-bold">Choose a resume template</h1>
+          <p className="mt-2 text-muted-foreground">Pick a template or upload your resume to start building your resume. You can preview, customize, and export to PDF.</p>
+        </div>
+        {/* <PdfUploadModal isLoading={isLoading} status={status} onFileUpload={handleFileUpload} /> */}
       </header>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -113,10 +113,19 @@ export  function Templates() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h3 className="text-lg font-semibold">{t.name}</h3>
-                  <p className="text-sm text-muted-foreground mt-1">{t.category} • {t.suggestedFor?.slice(0,2).join(', ')}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{t.category} • {t.suggestedFor?.slice(0, 2).join(', ')}</p>
                 </div>
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-accent text-accent-foreground">{t.id}</span>
               </div>
+
+              {!t.isAtsFriendly && (
+                <div className="mt-2 inline-flex items-center px-2 py-1 rounded bg-yellow-100 border border-yellow-200 text-yellow-800 text-xs font-medium">
+                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  Not optimal for ATS
+                </div>
+              )}
 
               <p className="mt-3 text-sm text-muted-foreground">{t.description}</p>
 
@@ -136,13 +145,13 @@ export  function Templates() {
           <div className="absolute -top-24 -right-24 h-80 w-80 rounded-full bg-linear-to-r from-blue-100 to-indigo-100 blur-3xl animate-pulse" />
           <div className="absolute top-20 left-0 h-96 w-96 rounded-full bg-linear-to-r from-green-100 to-emerald-100 blur-3xl animate-pulse delay-1000" />
         </div>
-        
+
         <div className="relative max-w-6xl mx-auto px-4 py-16 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-full mb-6 shadow-sm">
             <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
             <span className="text-sm font-medium text-blue-700">ATS Optimization Guide</span>
           </div>
-          
+
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-6 bg-linear-to-r from-slate-900 via-blue-800 to-slate-900 bg-clip-text text-transparent">
             Beat the ATS with
             <br />
@@ -150,16 +159,16 @@ export  function Templates() {
               Smart Resume Design
             </span>
           </h2>
-          
+
           <p className="text-lg md:text-xl text-slate-600 mb-8 max-w-4xl mx-auto leading-relaxed">
             <strong>75% of resumes are rejected by ATS before they reach human eyes.</strong> Our templates are engineered to pass through automated screening systems and get you noticed.
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
             <div className="group relative overflow-hidden rounded-2xl bg-linear-to-br p-8 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-white/50 backdrop-blur-sm"
-                 style={{ backgroundImage: `linear-gradient(to bottom right, #f0f9ff, #e0f2fe)` }}>
+              style={{ backgroundImage: `linear-gradient(to bottom right, #f0f9ff, #e0f2fe)` }}>
               <div className="absolute inset-0 bg-linear-to-br from-blue-50 to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              
+
               <div className="relative z-10">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-linear-to-r from-blue-500 to-indigo-600 shadow-lg mb-4 transform group-hover:scale-110 transition-transform duration-300">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,11 +179,11 @@ export  function Templates() {
                 <p className="text-slate-600">Strategically placed industry keywords that ATS systems scan for</p>
               </div>
             </div>
-            
+
             <div className="group relative overflow-hidden rounded-2xl bg-linear-to-br p-8 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-white/50 backdrop-blur-sm"
-                 style={{ backgroundImage: `linear-gradient(to bottom right, #f0fdf4, #dcfce7)` }}>
+              style={{ backgroundImage: `linear-gradient(to bottom right, #f0fdf4, #dcfce7)` }}>
               <div className="absolute inset-0 bg-linear-to-br from-green-50 to-emerald-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              
+
               <div className="relative z-10">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-linear-to-r from-green-500 to-emerald-600 shadow-lg mb-4 transform group-hover:scale-110 transition-transform duration-300">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -185,11 +194,11 @@ export  function Templates() {
                 <p className="text-slate-600">ATS-friendly layouts that parse correctly without formatting errors</p>
               </div>
             </div>
-            
+
             <div className="group relative overflow-hidden rounded-2xl bg-linear-to-br p-8 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-white/50 backdrop-blur-sm"
-                 style={{ backgroundImage: `linear-gradient(to bottom right, #faf5ff, #f3e8ff)` }}>
+              style={{ backgroundImage: `linear-gradient(to bottom right, #faf5ff, #f3e8ff)` }}>
               <div className="absolute inset-0 bg-linear-to-br from-purple-50 to-pink-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              
+
               <div className="relative z-10">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-linear-to-r from-purple-500 to-pink-600 shadow-lg mb-4 transform group-hover:scale-110 transition-transform duration-300">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -214,7 +223,7 @@ export  function Templates() {
               Our templates include everything you need to pass ATS screening and impress recruiters
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100">
               <div className="w-14 h-14 bg-linear-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
@@ -225,7 +234,7 @@ export  function Templates() {
               <h3 className="text-xl font-bold text-slate-800 mb-3">Standard Sections</h3>
               <p className="text-slate-600 leading-relaxed">Contact, Experience, Education, Skills - the sections ATS systems look for first</p>
             </div>
-            
+
             <div className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100">
               <div className="w-14 h-14 bg-linear-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,7 +244,7 @@ export  function Templates() {
               <h3 className="text-xl font-bold text-slate-800 mb-3">Simple Fonts</h3>
               <p className="text-slate-600 leading-relaxed">ATS-readable fonts like Arial, Calibri, and Georgia that parse correctly</p>
             </div>
-            
+
             <div className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100">
               <div className="w-14 h-14 bg-linear-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -245,7 +254,7 @@ export  function Templates() {
               <h3 className="text-xl font-bold text-slate-800 mb-3">No Graphics</h3>
               <p className="text-slate-600 leading-relaxed">Clean text-only designs that ATS systems can read without errors</p>
             </div>
-            
+
             <div className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100">
               <div className="w-14 h-14 bg-linear-to-r from-orange-500 to-red-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -255,7 +264,7 @@ export  function Templates() {
               <h3 className="text-xl font-bold text-slate-800 mb-3">Bullet Points</h3>
               <p className="text-slate-600 leading-relaxed">Achievement-focused bullet points that ATS systems parse as accomplishments</p>
             </div>
-            
+
             <div className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100">
               <div className="w-14 h-14 bg-linear-to-r from-teal-500 to-cyan-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -265,7 +274,7 @@ export  function Templates() {
               <h3 className="text-xl font-bold text-slate-800 mb-3">1-Page Format</h3>
               <p className="text-slate-600 leading-relaxed">Optimized length that keeps ATS attention while showcasing your value</p>
             </div>
-            
+
             <div className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100">
               <div className="w-14 h-14 bg-linear-to-r from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -276,7 +285,7 @@ export  function Templates() {
               <p className="text-slate-600 leading-relaxed">Templates tested with real ATS systems to ensure 95%+ success rate</p>
             </div>
           </div>
-          
+
           <div className="mt-12 text-center">
             <div className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-green-50 to-emerald-50 border border-green-200 rounded-full shadow-sm">
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />

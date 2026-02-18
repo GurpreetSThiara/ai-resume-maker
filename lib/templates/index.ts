@@ -4,6 +4,7 @@ export const googleTemplate: ResumeTemplate = {
   id: "classic-blue",
   name: "ATS Classic 1",
   description: "Clean, professional template inspired by Google's design principles",
+  isAtsFriendly: true,
   theme: {
     fontSize: {
       name: "text-3xl",
@@ -59,6 +60,7 @@ export const classicATSTemplate: ResumeTemplate = {
   id: "ats-classic",
   name: "ATS Classic 2",
   description: "Traditional, single-column layout optimized for parsers",
+  isAtsFriendly: true,
   theme: {
     fontSize: { name: "text-3xl", section: "text-xl", content: "text-base", small: "text-sm" },
     colors: { primary: "text-gray-800", secondary: "text-gray-500", text: "text-gray-900", accent: "text-gray-700" },
@@ -77,6 +79,7 @@ export const ATS_GREEN: ResumeTemplate = {
   id: "ats-green",
   name: "ATS Green",
   description: "Traditional, single-column layout optimized for parsers",
+  isAtsFriendly: true,
   theme: {
     fontSize: { name: "text-3xl", section: "text-xl", content: "text-base", small: "text-sm" },
     colors: { primary: "text-gray-800", secondary: "text-gray-500", text: "text-gray-900", accent: "text-gray-700" },
@@ -95,6 +98,7 @@ export const ATS_YELLOW: ResumeTemplate = {
   id: "ats-yellow",
   name: "ATS Yellow",
   description: "Traditional, single-column layout optimized for parsers",
+  isAtsFriendly: true,
   theme: {
     fontSize: { name: "text-3xl", section: "text-xl", content: "text-base", small: "text-sm" },
     colors: { primary: "text-gray-800", secondary: "text-gray-500", text: "text-gray-900", accent: "text-gray-700" },
@@ -113,6 +117,7 @@ export const atsCompactLinesTemplate: ResumeTemplate = {
   id: "ats-compact-lines",
   name: "ATS Compact Lines",
   description: "A compact ATS-friendly resume template with black lines and titles for maximum content density.",
+  isAtsFriendly: true,
   theme: {
     fontSize: {
       name: "text-3xl",
@@ -166,6 +171,7 @@ export const ATS_TIMELINE: ResumeTemplate = {
   id: "ats-timeline",
   name: "Timeline",
   description: "Modern single-column layout with visual timeline for experience and education",
+  isAtsFriendly: true,
   theme: {
     fontSize: { name: "text-3xl", section: "text-xl", content: "text-base", small: "text-sm" },
     colors: { primary: "text-gray-800", secondary: "text-gray-500", text: "text-gray-900", accent: "text-blue-500" },
@@ -185,10 +191,12 @@ export const ATS_TIMELINE: ResumeTemplate = {
 
 
 
+
 export const atsClassicCompactTemplate: ResumeTemplate = {
   id: "ats-classic-compact",
   name: "ATS Classic Compact",
   description: "Compact version of ATS Classic with reduced spacing and no decorative lines for maximum content density.",
+  isAtsFriendly: true,
   theme: {
     fontSize: {
       name: "text-3xl",
@@ -238,18 +246,68 @@ export const atsClassicCompactTemplate: ResumeTemplate = {
   },
 }
 
+export const modernSidebarTemplate: ResumeTemplate = {
+  id: "modern-sidebar",
+  name: "Modern Sidebar",
+  description: "Two-column layout with sidebar for skills and contact info. Stylish but less ATS-friendly.",
+  isAtsFriendly: false,
+  theme: {
+    fontSize: {
+      name: "text-3xl",
+      section: "text-xl",
+      content: "text-base",
+      small: "text-sm",
+    },
+    colors: {
+      primary: "text-slate-800",
+      secondary: "text-slate-600",
+      text: "text-slate-900",
+      accent: "text-blue-600",
+    },
+    spacing: {
+      section: "mb-6",
+      item: "mb-4",
+      content: "mb-2",
+    },
+    layout: {
+      container: "max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden flex",
+      header: "p-6 bg-slate-100",
+      content: "p-6 flex-1",
+    },
+  },
+  pdfConfig: {
+    fonts: {
+      regular: "Helvetica",
+      bold: "Helvetica-Bold",
+    },
+    sizes: {
+      name: 24,
+      section: 16,
+      content: 10,
+      small: 9,
+    },
+    colors: {
+      text: { r: 0.2, g: 0.2, b: 0.2 },
+      heading: { r: 0.1, g: 0.1, b: 0.3 },
+      secondary: { r: 0.4, g: 0.4, b: 0.4 },
+      linkColor: { r: 0, g: 0, b: 1 },
+    },
+    spacing: {
+      page: 20,
+      section: 15,
+      item: 8,
+    },
+  },
+}
+
 export const availableTemplates: ResumeTemplate[] = [
   googleTemplate,
- // modernTemplate,
   classicATSTemplate,
   ATS_GREEN,
   ATS_YELLOW,
-// ATS_TIMELINE,  // Temporarily disabled
   atsCompactLinesTemplate,
-  atsClassicCompactTemplate
- // elegantATSTemplate,
-// compactATSTemplate,
-  //creativeATSTemplate,
+  atsClassicCompactTemplate,
+  modernSidebarTemplate
 ]
 
 export function getTemplateById(id: string): ResumeTemplate | undefined {

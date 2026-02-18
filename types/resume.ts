@@ -7,7 +7,7 @@ export interface ResumeData {
     location: string
     linkedin: string
     summary: string
-    
+
   }
 
   // Additional links or data (DOB, gender, etc.)
@@ -201,6 +201,7 @@ export interface ResumeTemplate {
       item: number
     }
   }
+  isAtsFriendly?: boolean
 }
 
 export interface PDFGenerationOptions {

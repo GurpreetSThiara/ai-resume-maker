@@ -8,6 +8,7 @@ import { generateCompactResumePDF } from "@/lib/pdf-generators/template-compact-
 import { generateCreativeResumePDF } from "@/lib/pdf-generators/template-creative-generator"
 import { generateATSGreenResume } from "./ats-green-resume-generator"
 import { generateTimelineResumePDF } from "./timeline-resume-generator"
+import { generateModernSidebarResumePDF } from "./template-modern-sidebar-generator"
 // removed broken import twoside; not used
 // removed RESUME_NAMES unused import
 import { ATS_GREEN, ATS_YELLOW, ATS_TIMELINE } from "../templates"
@@ -86,10 +87,13 @@ export async function generateResumePDF(options: PDFGenerationOptions) {
       result = await generateATSGreenResume(filteredOptions)
       break
     case ATS_YELLOW.id:
-      result = await generateATSGreenResume({...filteredOptions , theme: "yellow"})
+      result = await generateATSGreenResume({ ...filteredOptions, theme: "yellow" })
       break
     case ATS_TIMELINE.id:
       result = await generateTimelineResumePDF(filteredOptions)
+      break
+    case "modern-sidebar":
+      result = await generateModernSidebarResumePDF(filteredOptions)
       break
     default:
       result = await generateGooglePDF(filteredOptions)
