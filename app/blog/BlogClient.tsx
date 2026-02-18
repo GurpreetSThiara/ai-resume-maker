@@ -9,7 +9,7 @@ interface BlogPost {
     id: string;
     title: string;
     excerpt: string;
-    content?: string;
+    content?: React.ReactNode | string;
     author: string;
     publishedAt: string;
     readingTime: string;
@@ -125,8 +125,8 @@ export default function BlogClient({ blogPosts }: BlogClientProps) {
                                 key={category}
                                 onClick={() => setSelectedCategory(category)}
                                 className={`px-6 py-2.5 rounded-full font-medium transition-all duration-300 ${selectedCategory === category
-                                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105'
-                                        : 'bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground'
+                                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105'
+                                    : 'bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground'
                                     }`}
                             >
                                 {category}

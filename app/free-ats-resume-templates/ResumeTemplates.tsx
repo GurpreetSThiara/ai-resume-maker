@@ -119,12 +119,12 @@ export function Templates() {
               </div>
 
               {!t.isAtsFriendly && (
-                <div className="mt-2 inline-flex items-center px-2 py-1 rounded bg-yellow-100 border border-yellow-200 text-yellow-800 text-xs font-medium">
+                <Link href="/blog/why-modern-resumes-fail-ats" className="mt-2 inline-flex items-center px-2 py-1 rounded bg-yellow-100 border border-yellow-200 text-yellow-800 text-xs font-medium hover:bg-yellow-200 transition-colors cursor-pointer">
                   <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
-                  Not optimal for ATS
-                </div>
+                  Not optimal for ATS (Tap to learn why)
+                </Link>
               )}
 
               <p className="mt-3 text-sm text-muted-foreground">{t.description}</p>
