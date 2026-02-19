@@ -39,17 +39,23 @@ export async function generateBoldProfessionalResumePDF(options: PDFGenerationOp
     }
 
     // Measure text helper
-    // Measure text helper
+    const sanitizeText = (text: string) => {
+        if (!text) return ""
+        // Replace newlines, tabs, and non-printable chars with space
+        return text.replace(/[\n\r\t]/g, " ").replace(/[^\x20-\x7E\xA0-\xFF]/g, " ").replace(/\s+/g, " ").trim()
+    }
+
     const measureText = (text: string, size: number, f: any = ctx.font) => {
+        const safeText = sanitizeText(text)
         if (!f || typeof f.widthOfTextAtSize !== 'function') {
             const safeFont = font || boldFont
             if (safeFont && typeof safeFont.widthOfTextAtSize === 'function') {
-                return safeFont.widthOfTextAtSize(text, size)
+                return safeFont.widthOfTextAtSize(safeText, size)
             }
             console.warn(`[MeasureText] Invalid font object:`, f)
-            return text.length * size * 0.5 // Fallback estimation
+            return safeText.length * size * 0.5
         }
-        return f.widthOfTextAtSize(text, size)
+        return f.widthOfTextAtSize(safeText, size)
     }
 
     // Helper to add text and update Y (optional)
@@ -57,12 +63,13 @@ export async function generateBoldProfessionalResumePDF(options: PDFGenerationOp
         if (!f || typeof f.widthOfTextAtSize !== 'function') {
             f = font || boldFont
         }
-        const width = measureText(text, size, f)
+        const safeText = sanitizeText(text)
+        const width = measureText(safeText, size, f)
         let drawX = x
         if (align === 'center') drawX -= width / 2
         if (align === 'right') drawX -= width
 
-        ctx.page.drawText(text, { x: drawX, y, size, font: f, color })
+        ctx.page.drawText(safeText, { x: drawX, y, size, font: f, color })
         return width
     }
 
@@ -71,12 +78,14 @@ export async function generateBoldProfessionalResumePDF(options: PDFGenerationOp
         if (!f || typeof f.widthOfTextAtSize !== 'function') {
             f = font || boldFont
         }
-        ctx.page.drawText(text, { x, y: ctx.y, size, font: f, color })
+        const safeText = sanitizeText(text)
+        ctx.page.drawText(safeText, { x, y: ctx.y, size, font: f, color })
     }
 
     // Helper for text wrapping
     const wrapText = (text: string, maxWidth: number, fontSize: number, fontFace: any = ctx.font) => {
-        const words = text.split(' ')
+        const safeText = sanitizeText(text)
+        const words = safeText.split(' ')
         let lines: string[] = []
         let currentLine = words[0]
 
