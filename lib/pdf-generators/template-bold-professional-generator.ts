@@ -39,10 +39,24 @@ export async function generateBoldProfessionalResumePDF(options: PDFGenerationOp
     }
 
     // Measure text helper
-    const measureText = (text: string, size: number, f: any = ctx.font) => f.widthOfTextAtSize(text, size)
+    // Measure text helper
+    const measureText = (text: string, size: number, f: any = ctx.font) => {
+        if (!f || typeof f.widthOfTextAtSize !== 'function') {
+            const safeFont = font || boldFont
+            if (safeFont && typeof safeFont.widthOfTextAtSize === 'function') {
+                return safeFont.widthOfTextAtSize(text, size)
+            }
+            console.warn(`[MeasureText] Invalid font object:`, f)
+            return text.length * size * 0.5 // Fallback estimation
+        }
+        return f.widthOfTextAtSize(text, size)
+    }
 
     // Helper to add text and update Y (optional)
     const drawText = (text: string, x: number, y: number, size: number, color: any, f: any = ctx.font, align: 'left' | 'center' | 'right' = 'left') => {
+        if (!f || typeof f.widthOfTextAtSize !== 'function') {
+            f = font || boldFont
+        }
         const width = measureText(text, size, f)
         let drawX = x
         if (align === 'center') drawX -= width / 2
@@ -54,6 +68,9 @@ export async function generateBoldProfessionalResumePDF(options: PDFGenerationOp
 
     // Helper that uses current ctx.y
     const drawTextCtx = (text: string, x: number, size: number, color: any, f: any = ctx.font) => {
+        if (!f || typeof f.widthOfTextAtSize !== 'function') {
+            f = font || boldFont
+        }
         ctx.page.drawText(text, { x, y: ctx.y, size, font: f, color })
     }
 
