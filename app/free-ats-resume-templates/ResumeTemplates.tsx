@@ -107,11 +107,6 @@ export function Templates() {
                 fill
                 className="object-cover object-top overflow-auto"
               />
-              {(t as any).badge && (
-                <div className="absolute top-3 right-3 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md z-10">
-                  {(t as any).badge}
-                </div>
-              )}
             </div>
 
             <div className="p-4">
@@ -122,6 +117,14 @@ export function Templates() {
                 </div>
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-accent text-accent-foreground">{t.id}</span>
               </div>
+
+              {/* Best for ATS Badge */}
+              {(t as any).isBestForAts && (
+                <div className="mt-2 inline-flex items-center px-2 py-1 rounded bg-green-100 border border-green-200 text-green-800 text-xs font-medium">
+                  <span className="mr-1">🏆</span>
+                  #1 Best for ATS
+                </div>
+              )}
 
               {!t.isAtsFriendly && (
                 <Link href="/blog/why-modern-resumes-fail-ats" className="mt-2 inline-flex items-center px-2 py-1 rounded bg-yellow-100 border border-yellow-200 text-yellow-800 text-xs font-medium hover:bg-yellow-200 transition-colors cursor-pointer">

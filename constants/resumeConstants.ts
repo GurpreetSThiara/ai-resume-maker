@@ -34,7 +34,7 @@ export const RESUME_TEMPLATES = [
     description: "Compact version of ATS Classic with reduced spacing and no decorative lines for maximum content density.",
     suggestedFor: ["Experienced professionals", "Technical roles", "Dense resumes"],
     isAtsFriendly: true,
-    badge: "Best #1 for ATS"
+    isBestForAts: true
   },
   {
     id: "ats-classic",
@@ -82,21 +82,21 @@ export const RESUME_TEMPLATES = [
     isAtsFriendly: true
   },
   {
-    id: "bold-professional",
-    name: "Bold Professional",
-    url: RESUME_IMAGES.MODERN, // Using Modern image as placeholder until dedicated image is available
-    category: "Professional",
-    description: "Impactful design with a dark navy header and clean single-column layout. High preview fidelity.",
-    suggestedFor: ["Executive", "Management", "Professional"],
-    isAtsFriendly: false
-  },
-  {
     id: "modern-sidebar",
     name: "Modern Sidebar",
     url: RESUME_IMAGES.MODERN,
     category: "Modern",
     description: "Two-column layout with sidebar for skills and contact info. Stylish and professional.",
     suggestedFor: ["Designers", "Developers", "Creative roles"],
+    isAtsFriendly: false
+  },
+  {
+    id: "bold-professional",
+    name: "Bold Professional",
+    url: RESUME_IMAGES.MODERN, // Using Modern image as placeholder until dedicated image is available
+    category: "Professional",
+    description: "Impactful design with a dark navy header and clean single-column layout. High preview fidelity.",
+    suggestedFor: ["Executive", "Management", "Professional"],
     isAtsFriendly: false
   },
   // {
