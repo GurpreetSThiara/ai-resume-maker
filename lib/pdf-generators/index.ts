@@ -9,6 +9,7 @@ import { generateCreativeResumePDF } from "@/lib/pdf-generators/template-creativ
 import { generateATSGreenResume } from "./ats-green-resume-generator"
 import { generateTimelineResumePDF } from "./timeline-resume-generator"
 import { generateModernSidebarResumePDF } from "./template-modern-sidebar-generator"
+import { generateBoldProfessionalResumePDF } from "./template-bold-professional-generator"
 // removed broken import twoside; not used
 // removed RESUME_NAMES unused import
 import { ATS_GREEN, ATS_YELLOW, ATS_TIMELINE } from "../templates"
@@ -94,6 +95,9 @@ export async function generateResumePDF(options: PDFGenerationOptions) {
       break
     case "modern-sidebar":
       result = await generateModernSidebarResumePDF(filteredOptions)
+      break
+    case "bold-professional":
+      result = await generateBoldProfessionalResumePDF(filteredOptions)
       break
     default:
       result = await generateGooglePDF(filteredOptions)

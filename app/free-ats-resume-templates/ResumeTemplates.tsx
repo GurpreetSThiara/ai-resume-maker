@@ -107,6 +107,11 @@ export function Templates() {
                 fill
                 className="object-cover object-top overflow-auto"
               />
+              {(t as any).badge && (
+                <div className="absolute top-3 right-3 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md z-10">
+                  {(t as any).badge}
+                </div>
+              )}
             </div>
 
             <div className="p-4">

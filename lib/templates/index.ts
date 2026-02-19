@@ -300,6 +300,61 @@ export const modernSidebarTemplate: ResumeTemplate = {
   },
 }
 
+export const boldProfessionalTemplate: ResumeTemplate = {
+  id: "bold-professional",
+  name: "Bold Professional",
+  description: "Impactful design with a dark navy header and clean single-column layout. High preview fidelity.",
+  isAtsFriendly: false,
+  theme: {
+    fontSize: {
+      name: "text-3xl",
+      section: "text-xl",
+      content: "text-base",
+      small: "text-sm",
+    },
+    colors: {
+      primary: "text-slate-800",
+      secondary: "text-slate-600",
+      text: "text-slate-900",
+      accent: "text-slate-900", // Dark text for headers
+    },
+    spacing: {
+      section: "mb-6",
+      item: "mb-4",
+      content: "mb-2",
+    },
+    layout: {
+      container: "max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden",
+      header: "bg-slate-800 text-white p-8", // distinctive header
+      content: "p-8",
+    },
+  },
+  pdfConfig: {
+    fonts: {
+      regular: "Helvetica",
+      bold: "Helvetica-Bold",
+    },
+    sizes: {
+      name: 24,
+      section: 14,
+      content: 10,
+      small: 9,
+    },
+    colors: {
+      text: { r: 0.1, g: 0.1, b: 0.1 },
+      heading: { r: 0.1, g: 0.1, b: 0.3 },
+      secondary: { r: 0.4, g: 0.4, b: 0.4 },
+      linkColor: { r: 0, g: 0, b: 1 },
+      // Custom colors for generator to use
+    },
+    spacing: {
+      page: 20,
+      section: 15,
+      item: 10,
+    },
+  },
+}
+
 export const availableTemplates: ResumeTemplate[] = [
   googleTemplate,
   classicATSTemplate,
@@ -307,7 +362,8 @@ export const availableTemplates: ResumeTemplate[] = [
   ATS_YELLOW,
   atsCompactLinesTemplate,
   atsClassicCompactTemplate,
-  modernSidebarTemplate
+  modernSidebarTemplate,
+  boldProfessionalTemplate
 ]
 
 export function getTemplateById(id: string): ResumeTemplate | undefined {

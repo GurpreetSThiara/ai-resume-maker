@@ -3,7 +3,8 @@ import { RESUME_NAMES } from '@/config/resumeConfig';
 import { ATS_GREEN_HEADERS } from './ats-green-headers';
 import { ClassicATSResume } from './ats-classic';
 import { GoogleResume } from './google-resume';
-import { ATS_GREEN, ATS_YELLOW, ATS_TIMELINE, atsCompactLinesTemplate, atsClassicCompactTemplate, modernSidebarTemplate } from '@/lib/templates';
+import { ATS_GREEN, ATS_YELLOW, ATS_TIMELINE, atsCompactLinesTemplate, atsClassicCompactTemplate, modernSidebarTemplate, boldProfessionalTemplate } from '@/lib/templates';
+import { BoldProfessionalResume } from './bold-professional';
 import { ModernSidebarResume } from './modern-sidebar';
 import { ATS_YELLOW_HEADERS } from './ats-yellow-headers';
 // import { ATS_TIMELINE as ATS_TIMELINE_COMPONENT } from './ats-timeline';  // Temporarily disabled
@@ -38,6 +39,9 @@ export async function getResumePreview(options: any) {
 
     case modernSidebarTemplate.id:
       return ModernSidebarResume;
+
+    case boldProfessionalTemplate.id:
+      return BoldProfessionalResume;
 
     default:
       return null;

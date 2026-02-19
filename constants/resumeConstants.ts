@@ -27,6 +27,16 @@ export const RESUME_IMAGES = {
 
 export const RESUME_TEMPLATES = [
   {
+    id: "ats-classic-compact",
+    name: "ATS Classic Compact",
+    url: RESUME_IMAGES.ATS_COMPACT,
+    category: "ATS",
+    description: "Compact version of ATS Classic with reduced spacing and no decorative lines for maximum content density.",
+    suggestedFor: ["Experienced professionals", "Technical roles", "Dense resumes"],
+    isAtsFriendly: true,
+    badge: "Best #1 for ATS"
+  },
+  {
     id: "ats-classic",
     name: "Classic",
     url: RESUME_IMAGES.CLASSIC,
@@ -45,12 +55,12 @@ export const RESUME_TEMPLATES = [
     isAtsFriendly: true
   },
   {
-    id: "ats-classic-compact",
-    name: "ATS Classic Compact",
-    url: RESUME_IMAGES.ATS_COMPACT,
-    category: "ATS",
-    description: "Compact version of ATS Classic with reduced spacing and no decorative lines for maximum content density.",
-    suggestedFor: ["Experienced professionals", "Technical roles", "Dense resumes"],
+    id: "classic_blue",
+    name: "Classic Blue",
+    url: RESUME_IMAGES.CLASSIC_BLUE,
+    category: "Contemporary",
+    description: "A modern layout with subtle accents and clear sectioning for creative and product roles.",
+    suggestedFor: ["Product", "Design", "Marketing"],
     isAtsFriendly: true
   },
   {
@@ -63,15 +73,6 @@ export const RESUME_TEMPLATES = [
     isAtsFriendly: true
   },
   {
-    id: "classic_blue",
-    name: "Classic Blue",
-    url: RESUME_IMAGES.CLASSIC_BLUE,
-    category: "Contemporary",
-    description: "A modern layout with subtle accents and clear sectioning for creative and product roles.",
-    suggestedFor: ["Product", "Design", "Marketing"],
-    isAtsFriendly: true
-  },
-  {
     id: "ats-yellow",
     name: "Classic Yellow",
     url: RESUME_IMAGES.ATS_YELLOW,
@@ -79,6 +80,15 @@ export const RESUME_TEMPLATES = [
     description: "A modern layout with subtle accents and clear sectioning for creative and product roles.",
     suggestedFor: ["Product", "Design", "Marketing"],
     isAtsFriendly: true
+  },
+  {
+    id: "bold-professional",
+    name: "Bold Professional",
+    url: RESUME_IMAGES.MODERN, // Using Modern image as placeholder until dedicated image is available
+    category: "Professional",
+    description: "Impactful design with a dark navy header and clean single-column layout. High preview fidelity.",
+    suggestedFor: ["Executive", "Management", "Professional"],
+    isAtsFriendly: false
   },
   {
     id: "modern-sidebar",
