@@ -15,90 +15,12 @@ import { HowItWorks } from "@/components/appUI/home/HowItWorks"
 import { Values } from "@/components/appUI/home/ValueProps"
 import { ContentResourcesSection } from "@/components/appUI/home/ContentResourcesSection"
 import Script from "next/script"
-export const metadata: Metadata = {
-  title: 'Free ATS Resume Builder - No Sign Up | Optional AI with Free Account',
-  description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download. Create a free account for AI-powered content generation.',
-  keywords: ['free resume builder no sign up', 'ats resume builder', 'free resume download', 'ai resume writer', 'live preview resume builder', 'completely free resume builder'],
-  authors: [{ name: 'CreateFreeCV Team', url: 'https://createfreecv.com' }],
-  creator: 'CreateFreeCV Team',
-  publisher: 'CreateFreeCV',
-  metadataBase: new URL('https://createfreecv.com'),
-  openGraph: {
-    title: 'Free ATS Resume Builder - No Sign Up | Optional AI with Free Account',
-    description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download. Optional AI assistant with a free account.',
-    url: 'https://createfreecv.com',
-    siteName: 'CreateFreeCV',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'Create a professional resume with CreateFreeCV.com',
-      },
-    ],
-    locale: 'en_US',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Free ATS Resume Builder - No Sign Up | Optional AI with Free Account',
-    description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download. Optional AI assistant with a free account.',
-    images: ['/twitter-image.png'],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
-  alternates: {
-    canonical: 'https://createfreecv.com',
-  },
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon-16x16.png',
-    apple: '/apple-touch-icon.png',
-  },
-  manifest: '/site.webmanifest',
-};
-
-
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  'name': 'CreateFreeCV',
-  'url': 'https://createfreecv.com',
-  'potentialAction': {
-    '@type': 'SearchAction',
-    'target': 'https://createfreecv.com/resume-builder?q={search_term_string}',
-    'query-input': 'required name=search_term_string',
-  },
-};
+import { PortfolioPromoSection } from "@/components/appUI/home/PortfolioPromoSection"
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-linear-to-br from-white via-green-50/30 to-indigo-50/40 relative overflow-hidden">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-transparent via-green-50/20 to-transparent pointer-events-none" />
-
-      <div className="absolute top-0 left-0 w-96 h-96 bg-linear-to-r from-green-200/20 to-emerald-200/20 rounded-full blur-3xl animate-pulse-slow" />
-      <div className="absolute top-1/4 right-0 w-80 h-80 bg-linear-to-r from-blue-200/20 to-indigo-200/20 rounded-full blur-3xl animate-pulse-slow delay-500" />
-      <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-linear-to-r from-purple-200/20 to-pink-200/20 rounded-full blur-3xl animate-pulse-slow delay-1000" />
-
-
-
-
-
-
+      {/* ... existing code ... */}
 
       {/* Hero Section */}
       <Hero />
@@ -109,10 +31,16 @@ export default function HomePage() {
       {/* Value Props */}
       <Values />
 
-
       {/* <ResumeCarousel/> */}
       <FreeTemplatesSection />
       <FeaturedExamplesSection />
+
+      {/* Portfolio Promo */}
+      <PortfolioPromoSection />
+
+      <AtsResumeGeneratorSection />
+      <WhyChooseUsSection />
+
       <AtsResumeGeneratorSection />
       <WhyChooseUsSection />
       {/* <TrustedBySection/> */}

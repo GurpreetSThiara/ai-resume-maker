@@ -4,24 +4,31 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 import { AuthModal } from "@/components/auth/auth-modal";
 
 interface AuthModalContextValue {
-  open: () => void;
+  open: (redirectTo?: string) => void;
   close: () => void;
 }
 
 const AuthModalContext = createContext<AuthModalContextValue | undefined>(undefined);
 
 export function AuthModalProvider({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState(false);
+  const [redirectTo, setRedirectTo] = useState<string | undefined>();
 
   const value: AuthModalContextValue = {
-    open: () => setOpen(true),
-    close: () => setOpen(false),
+    open: (url?: string) => {
+      setRedirectTo(url)
+      setOpenState(true)
+    },
+    close: () => {
+      setOpenState(false)
+      setRedirectTo(undefined)
+    },
   };
 
   return (
     <AuthModalContext.Provider value={value}>
       {children}
-      <AuthModal open={open} onOpenChange={setOpen} />
+      <AuthModal open={openState} onOpenChange={setOpenState} redirectTo={redirectTo} />
     </AuthModalContext.Provider>
   );
 }

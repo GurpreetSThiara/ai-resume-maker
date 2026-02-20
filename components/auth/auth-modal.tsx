@@ -9,14 +9,19 @@ import { useRouter } from "next/navigation"
 interface AuthModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  redirectTo?: string
 }
 
-export function AuthModal({ open, onOpenChange }: AuthModalProps) {
+export function AuthModal({ open, onOpenChange, redirectTo }: AuthModalProps) {
   const router = useRouter()
 
   const handleAuthSuccess = () => {
     onOpenChange(false)
-    router.push(CREATE_RESUME)
+    if (redirectTo) {
+      router.push(redirectTo)
+    } else {
+      router.push(CREATE_RESUME)
+    }
   }
 
   return (
