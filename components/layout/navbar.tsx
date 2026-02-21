@@ -70,10 +70,10 @@ export function Navbar() {
       matchPath: (p: string) => p.startsWith("/dashboard/portfolios"),
       colorClass: "bg-teal-100 text-teal-700",
     }] : [{
-      label: "Resume Examples",
-      href: "/resume-examples",
-      icon: FileText,
-      matchPath: (p: string) => p.startsWith("/resume-examples"),
+      label: "Portfolios",
+      href: "/dashboard/portfolios",
+      icon: User,
+      matchPath: (p: string) => p.startsWith("/dashboard/portfolios"),
       colorClass: "bg-teal-100 text-teal-700",
     }]),
     {
@@ -165,7 +165,7 @@ export function Navbar() {
           <Brand logoSize={32} asLink={true} />
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-2 lg:gap-6 flex-1 justify-center">
+          <nav className="hidden lg:flex items-center gap-2 lg:gap-6 flex-1 justify-center">
             {/* Visible links */}
             {desktopVisibleLinks}
 
@@ -233,13 +233,13 @@ export function Navbar() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="hidden md:inline-flex"
+                    className="hidden lg:inline-flex"
                     onClick={() => open()}
                   >
                     Sign In
                   </Button>
                   {pathname !== `${CREATE_RESUME}` && (
-                    <Button asChild className="hidden md:inline-flex">
+                    <Button asChild className="hidden lg:inline-flex">
                       <Link href={CREATE_RESUME}>Create Free Resume</Link>
                     </Button>
                   )}
@@ -249,7 +249,7 @@ export function Navbar() {
 
             {/* Hamburger for mobile */}
             <button
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 focus:outline-none"
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 focus:outline-none"
               onClick={() => setDrawerOpen(true)}
               aria-label="Open menu"
             >
@@ -274,7 +274,7 @@ export function Navbar() {
           </nav>
           {/* Auth buttons for mobile only */}
           {!user && (
-            <div className="flex flex-col gap-2 md:hidden">
+            <div className="flex flex-col gap-2 lg:hidden">
               <Button
                 variant="outline"
                 size="sm"
