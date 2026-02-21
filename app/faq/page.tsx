@@ -91,7 +91,7 @@ export default function FAQPage() {
                                             Is CreateFreeCV.com really free?
                                         </AccordionTrigger>
                                         <AccordionContent className="text-slate-600 leading-relaxed">
-                                            Yes! CreateFreeCV.com is completely free to use. You can create, edit, and download professional resumes without any cost. There are no hidden fees, no subscriptions, and no credit card required. While we may offer optional AI-powered enhancements in the future, the core resume building and downloading features will always remain free.
+                                            Yes! CreateFreeCV.com is completely free to use. You can create, edit, and download professional resumes without any cost. There are no hidden fees, no subscriptions, and no credit card required. The core resume building and downloading features will always remain free.
                                         </AccordionContent>
                                     </AccordionItem>
 

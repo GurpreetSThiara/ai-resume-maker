@@ -10,7 +10,7 @@ import { Analytics } from "@vercel/analytics/next"
 import Providers from "@/contexts/provider"
 import { ToastContainer } from "@/components/toast/toast-contaner"
 import Script from "next/script"
- 
+
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
   subsets: ['latin'],
@@ -19,7 +19,7 @@ const roboto = Roboto({
 
 export const metadata: Metadata = {
   title: 'Free ATS Resume Builder - No Sign Up | CreateFreeCV.com',
-  description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download, no credit card, no hidden fees. Create a free account for optional AI features.',
+  description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free PDF download, no credit card, no hidden fees.',
   keywords: ['free resume builder no sign up', 'ats resume builder', 'free resume download', 'ai resume writer', 'live preview resume builder', 'completely free resume builder', 'free resume builder no hidden fees'],
   authors: [{ name: 'CreateFreeCV Team', url: 'https://createfreecv.com' }],
   creator: 'CreateFreeCV Team',
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://createfreecv.com'),
   openGraph: {
     title: 'Free ATS Resume Builder - No Sign Up | CreateFreeCV.com',
-    description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download. Optional AI assistant with a free account.',
+    description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download.',
     url: 'https://createfreecv.com',
     siteName: 'CreateFreeCV',
     images: [
@@ -64,8 +64,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Free ATS Resume Builder - No Sign Up | CreateFreeCV.com',
-    description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download. Optional AI assistant with a free account.',
-    images: ['/twitter-image.png'], 
+    description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download.',
+    images: ['/twitter-image.png'],
   },
   robots: {
     index: true,
@@ -104,7 +104,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#15803d" />
         <meta name="msapplication-TileColor" content="#15803d" />
         <meta name="clckd" content="00dd4cecdd1f49eb435533f606ecfa5a" />
-                {/* Google Tag Manager and Google Analytics scripts (render unconditionally) */}
+        {/* Google Tag Manager and Google Analytics scripts (render unconditionally) */}
         <>
           <Script id="google-tag-manager" strategy="afterInteractive">
             {`
@@ -132,28 +132,28 @@ export default function RootLayout({
         </>
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
-      {/* GTM noscript iframe (render unconditionally) */}
-      <noscript>
-        <iframe
-          src="https://www.googletagmanager.com/ns.html?id=GTM-W6W84N5N"
-          height="0"
-          width="0"
-          style={{ display: "none", visibility: "hidden" }}
-        />
-      </noscript>
-      <Providers>
-        <AiProvider>
-         
-          {/* <DevelopmentBanner /> */}
-          <Navbar />
-          
-          <main className="flex-1">{children}</main>
-          <Footer />
-           <ToastContainer />
-          {/* <Analytics/> */}
-      
-        </AiProvider>
-      </Providers>
+        {/* GTM noscript iframe (render unconditionally) */}
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-W6W84N5N"
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
+        <Providers>
+          <AiProvider>
+
+            {/* <DevelopmentBanner /> */}
+            <Navbar />
+
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <ToastContainer />
+            {/* <Analytics/> */}
+
+          </AiProvider>
+        </Providers>
       </body>
     </html>
   )

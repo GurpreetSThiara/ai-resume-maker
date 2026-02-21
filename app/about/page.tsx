@@ -18,18 +18,18 @@ export default function AboutPage() {
           <div className="absolute top-20 right-0 h-96 w-96 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 blur-3xl animate-pulse delay-1000" />
           <div className="absolute bottom-0 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 blur-3xl animate-pulse delay-500" />
         </div>
-        
+
         <div className="container mx-auto px-4 pt-20 pb-16 relative">
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-full mb-6 shadow-sm">
               <Heart className="w-3 h-3 text-green-600" />
               <span className="text-sm font-medium text-green-700">Built with Passion for Job Seekers</span>
             </div>
-            
+
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 bg-gradient-to-r from-slate-900 via-green-800 to-slate-900 bg-clip-text text-transparent">
               About CreateFreeCV
             </h1>
-            
+
             <p className="text-xl md:text-2xl text-slate-600 mb-8 leading-relaxed">
               Empowering job seekers worldwide with professional, ATS-friendly resumes—completely free.
             </p>
@@ -80,7 +80,7 @@ export default function AboutPage() {
               </CardHeader>
               <CardContent className="relative">
                 <p className="text-slate-600 leading-relaxed">
-                  We're committed to transparency and user-centric design. Core features are free forever—no hidden fees or sign-up requirements. While we offer optional AI enhancements, you can always build and download professional resumes without paying a dime.
+                  We're committed to transparency and user-centric design. Core features are free forever—no hidden fees or sign-up requirements. You can always build and download professional resumes without paying a dime.
                 </p>
               </CardContent>
             </Card>
