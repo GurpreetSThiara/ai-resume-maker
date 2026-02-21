@@ -14,173 +14,184 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Brand } from "@/components/ui/brand"
 import { useAuthModal } from "@/contexts/auth-modal-context"
 
+import { useWindowSize } from "@/hooks/use-window-size"
+
+// Define a common type for navigation items
+type NavItem = {
+  label: string;
+  href: string;
+  icon: React.ElementType;
+  matchPath: (path: string) => boolean;
+  colorClass: string;
+  isExternal?: boolean;
+}
 
 export function Navbar() {
   const pathname = usePathname();
   const { user, signOut } = useAuth();
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const { open } = useAuthModal();
+  const { width } = useWindowSize();
 
-  // Always visible navigation items
-  const alwaysVisibleLinks = (
-    <>
-      <Link
-        href="/"
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${pathname === "/" ? "bg-green-100 text-green-700" : "text-gray-600 hover:text-gray-900"
-          }`}
-        onClick={() => setDrawerOpen(false)}
-      >
-        <Home className="w-4 h-4" aria-hidden="true" />
-        Home
-      </Link>
-      <Link
-        href={CREATE_RESUME}
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${pathname === `${CREATE_RESUME}` ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:text-gray-900"
-          }`}
-        onClick={() => setDrawerOpen(false)}
-      >
-        <Plus className="w-4 h-4" aria-hidden="true" />
-        Create Resume
-      </Link>
-      <Link
-        href="/cover-letter"
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${pathname?.startsWith("/cover-letter") ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:text-gray-900"
-          }`}
-        onClick={() => setDrawerOpen(false)}
-      >
-        <Plus className="w-4 h-4" aria-hidden="true" />
-        Cover Letter
-      </Link>
-    </>
-  );
+  // Define all navigation items in a single array
+  const allNavItems: NavItem[] = [
+    {
+      label: "Home",
+      href: "/",
+      icon: Home,
+      matchPath: (p) => p === "/",
+      colorClass: "bg-green-100 text-green-700",
+    },
+    {
+      label: "Create Resume",
+      href: CREATE_RESUME,
+      icon: Plus,
+      matchPath: (p) => p === CREATE_RESUME,
+      colorClass: "bg-blue-100 text-blue-700",
+    },
+    {
+      label: "Cover Letter",
+      href: "/cover-letter",
+      icon: Plus, // You might want to use a different icon here if available, but keeping original for now
+      matchPath: (p) => p.startsWith("/cover-letter"),
+      colorClass: "bg-blue-100 text-blue-700",
+    },
+    {
+      label: "Blog",
+      href: "/blog",
+      icon: BookOpen,
+      matchPath: (p) => p.startsWith("/blog"),
+      colorClass: "bg-purple-100 text-purple-700",
+    },
+    ...(user ? [{
+      label: "Portfolios",
+      href: "/dashboard/portfolios",
+      icon: User,
+      matchPath: (p: string) => p.startsWith("/dashboard/portfolios"),
+      colorClass: "bg-teal-100 text-teal-700",
+    }] : [{
+      label: "Resume Examples",
+      href: "/resume-examples",
+      icon: FileText,
+      matchPath: (p: string) => p.startsWith("/resume-examples"),
+      colorClass: "bg-teal-100 text-teal-700",
+    }]),
+    {
+      label: "FAQ",
+      href: "/faq",
+      icon: HelpCircle,
+      matchPath: (p) => p.startsWith("/faq"),
+      colorClass: "bg-indigo-100 text-indigo-700",
+    },
+    {
+      label: "Image Converter",
+      href: "/image-converter",
+      icon: ImageIcon,
+      matchPath: (p) => p.startsWith("/image-converter"),
+      colorClass: "bg-orange-100 text-orange-700",
+    },
+    {
+      label: "Buy Me a Coffee",
+      href: BUY_ME_COFFEE,
+      icon: Coffee,
+      matchPath: (p) => p.startsWith("/buy-me-coffee"),
+      colorClass: "bg-yellow-100 text-yellow-700",
+      isExternal: true,
+    },
+  ];
 
-  // Additional links for dropdown
-  const dropdownLinks = (
-    <>
-      <DropdownMenuItem asChild>
-        <Link href="/blog" className="flex items-center w-full">
-          <BookOpen className="w-4 h-4 mr-2" aria-hidden="true" />
-          Blog
-        </Link>
-      </DropdownMenuItem>
-      <DropdownMenuItem asChild>
-        <Link href="/resume-examples" className="flex items-center w-full">
-          <FileText className="w-4 h-4 mr-2" aria-hidden="true" />
-          Resume Examples
-        </Link>
-      </DropdownMenuItem>
-      <DropdownMenuItem asChild>
-        <Link href="/faq" className="flex items-center w-full">
-          <HelpCircle className="w-4 h-4 mr-2" aria-hidden="true" />
-          FAQ
-        </Link>
-      </DropdownMenuItem>
-      <DropdownMenuItem asChild>
-        <Link href="/image-converter" className="flex items-center w-full">
-          <ImageIcon className="w-4 h-4 mr-2" aria-hidden="true" />
-          Image Converter
-        </Link>
-      </DropdownMenuItem>
-      <DropdownMenuItem asChild>
-        <Link
-          href={BUY_ME_COFFEE}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center w-full"
-        >
-          <Coffee className="w-4 h-4 mr-2" aria-hidden="true" />
-          Buy Me a Coffee
-        </Link>
-      </DropdownMenuItem>
-    </>
-  );
+  // Determine how many items to show in the main navbar based on screen width
+  let visibleCount = 3; // Default for md screens (>= 768px && < 1024px)
+  if (width >= 1280) {
+    visibleCount = 6; // xl screens
+  } else if (width >= 1024) {
+    visibleCount = 4; // lg screens
+  }
 
-  // All navigation links for mobile drawer
-  const navLinks = (
-    <>
-      {alwaysVisibleLinks}
+  const visibleItems = allNavItems.slice(0, visibleCount);
+  const dropdownItems = allNavItems.slice(visibleCount);
+
+  // Render main navbar items (desktop)
+  const desktopVisibleLinks = visibleItems.map((item) => (
+    <Link
+      key={item.label}
+      href={item.href}
+      target={item.isExternal ? "_blank" : undefined}
+      rel={item.isExternal ? "noopener noreferrer" : undefined}
+      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors whitespace-nowrap ${item.matchPath(pathname || "") ? item.colorClass : "text-gray-600 hover:text-gray-900"
+        }`}
+      onClick={() => setDrawerOpen(false)}
+    >
+      <item.icon className="w-4 h-4" aria-hidden="true" />
+      {item.label}
+    </Link>
+  ));
+
+  // Render dropdown items (desktop)
+  const desktopDropdownLinks = dropdownItems.map((item) => (
+    <DropdownMenuItem key={item.label} asChild>
       <Link
-        href="/blog"
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${pathname?.startsWith("/blog") ? "bg-purple-100 text-purple-700" : "text-gray-600 hover:text-gray-900"
-          }`}
-        onClick={() => setDrawerOpen(false)}
+        href={item.href}
+        target={item.isExternal ? "_blank" : undefined}
+        rel={item.isExternal ? "noopener noreferrer" : undefined}
+        className="flex items-center w-full"
       >
-        <BookOpen className="w-4 h-4" aria-hidden="true" />
-        Blog
+        <item.icon className="w-4 h-4 mr-2" aria-hidden="true" />
+        {item.label}
       </Link>
-      <Link
-        href="/resume-examples"
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${pathname?.startsWith("/resume-examples") ? "bg-teal-100 text-teal-700" : "text-gray-600 hover:text-gray-900"
-          }`}
-        onClick={() => setDrawerOpen(false)}
-      >
-        <FileText className="w-4 h-4" aria-hidden="true" />
-        Resume Examples
-      </Link>
-      <Link
-        href="/faq"
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${pathname?.startsWith("/faq") ? "bg-indigo-100 text-indigo-700" : "text-gray-600 hover:text-gray-900"
-          }`}
-        onClick={() => setDrawerOpen(false)}
-      >
-        <HelpCircle className="w-4 h-4" aria-hidden="true" />
-        FAQ
-      </Link>
-      <Link
-        href="/image-converter"
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${pathname?.startsWith("/image-converter") ? "bg-orange-100 text-orange-700" : "text-gray-600 hover:text-gray-900"
-          }`}
-        onClick={() => setDrawerOpen(false)}
-      >
-        <ImageIcon className="w-4 h-4" aria-hidden="true" />
-        Image Converter
-      </Link>
-      <Link
-        href={BUY_ME_COFFEE}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${pathname?.startsWith("/buy-me-coffee") ? "bg-yellow-100 text-yellow-700" : "text-gray-600 hover:text-gray-900"
-          }`}
-        onClick={() => setDrawerOpen(false)}
-      >
-        <Coffee className="w-4 h-4" aria-hidden="true" />
-        Buy Me a Coffee
-      </Link>
-    </>
-  );
+    </DropdownMenuItem>
+  ));
+
+  // Render all items for mobile drawer
+  const mobileNavLinks = allNavItems.map((item) => (
+    <Link
+      key={item.label}
+      href={item.href}
+      target={item.isExternal ? "_blank" : undefined}
+      rel={item.isExternal ? "noopener noreferrer" : undefined}
+      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${item.matchPath(pathname || "") ? item.colorClass : "text-gray-600 hover:text-gray-900"
+        }`}
+      onClick={() => setDrawerOpen(false)}
+    >
+      <item.icon className="w-4 h-4" aria-hidden="true" />
+      {item.label}
+    </Link>
+  ));
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
       <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <Brand logoSize={32} asLink={true} />
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-6">
-            {/* Always visible links */}
-            {alwaysVisibleLinks}
+          <nav className="hidden md:flex items-center gap-2 lg:gap-6 flex-1 justify-center">
+            {/* Visible links */}
+            {desktopVisibleLinks}
 
-            {/* Dropdown for additional links on all desktop screens */}
-            <div className="hidden md:flex">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900"
-                  >
-                    More
-                    <ChevronDown className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  {dropdownLinks}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+            {/* Dropdown for additional links */}
+            {dropdownItems.length > 0 && (
+              <div className="hidden md:flex shrink-0">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900"
+                    >
+                      More
+                      <ChevronDown className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    {desktopDropdownLinks}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
           </nav>
 
 
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-center shrink-0">
             <div className="flex items-center gap-2">
               {user ? (
                 <DropdownMenu>
@@ -223,7 +234,7 @@ export function Navbar() {
                     variant="outline"
                     size="sm"
                     className="hidden md:inline-flex"
-                    onClick={open}
+                    onClick={() => open()}
                   >
                     Sign In
                   </Button>
@@ -259,7 +270,7 @@ export function Navbar() {
             </button>
           </div>
           <nav className="flex flex-col gap-2 mb-4">
-            {navLinks}
+            {mobileNavLinks}
           </nav>
           {/* Auth buttons for mobile only */}
           {!user && (

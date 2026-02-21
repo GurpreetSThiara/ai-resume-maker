@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Plus, Eye, Edit, Trash2, Globe, ExternalLink, RefreshCw, Settings } from "lucide-react"
+import { Plus, Eye, Edit, Trash2, Globe, ExternalLink, RefreshCw, Settings, Share2, Briefcase, ChevronRight, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -170,11 +170,11 @@ export default function PortfoliosPage() {
 
                             <CardContent className="p-8">
                                 <div className="flex flex-col md:flex-row gap-8 justify-between items-start">
-                                    <div className="space-y-6 flex-1 w-full md:w-auto">
+                                    <div className="space-y-6 flex-1 w-full md:w-auto min-w-0">
                                         <div className="space-y-2">
                                             <Label className="text-sm font-medium text-muted-foreground">Public URL</Label>
                                             <div className="flex items-center gap-3">
-                                                <div className="bg-slate-50 border px-4 py-2.5 rounded-md font-mono text-sm text-slate-700 min-w-[200px] select-all flex-1 md:flex-none">
+                                                <div className="bg-slate-50 border px-4 py-2.5 rounded-md font-mono text-sm text-slate-700 min-w-0 select-all flex-1 truncate" title={`${typeof window !== 'undefined' ? window.location.origin : ''}/p/${portfolio.slug}`}>
                                                     {typeof window !== 'undefined' ? window.location.origin : ''}/p/{portfolio.slug}
                                                 </div>
                                                 <Button variant="outline" size="icon" className="h-10 w-10 shrink-0" asChild>
@@ -259,6 +259,183 @@ export default function PortfoliosPage() {
                             </CardContent>
                         </Card>
                     ))}
+                </div>
+            )}
+
+            {!loading && (
+                <div className="max-w-5xl mx-auto mt-16 pt-12 border-t border-slate-200 dark:border-slate-800">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-4 cursor-default">
+                            Supercharge Your Career with an Online Portfolio
+                        </h2>
+                        <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto cursor-default">
+                            Turn your static resume into a dynamic, interactive web presence. A digital portfolio helps you stand out to hiring managers and get discovered in a crowded job market.
+                        </p>
+                    </div>
+
+                    <div className="grid lg:grid-cols-2 gap-6">
+                        <Card className="border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300 group hover:-translate-y-1 bg-white/50 dark:bg-slate-950/50 backdrop-blur-sm">
+                            <CardHeader className="pb-3">
+                                <div className="h-12 w-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex flex-col items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 transition-all duration-300">
+                                    <Globe className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <CardTitle className="text-xl">SEO-Optimized & Discoverable</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                                    A public portfolio acts as your personal landing page. It increases your online footprint, making it easier for recruiters to find your profile through search engines like Google when hunting for top industry talent.
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300 group hover:-translate-y-1 bg-white/50 dark:bg-slate-950/50 backdrop-blur-sm">
+                            <CardHeader className="pb-3">
+                                <div className="h-12 w-12 rounded-xl bg-purple-50 dark:bg-purple-900/20 flex flex-col items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-purple-100 dark:group-hover:bg-purple-900/40 transition-all duration-300">
+                                    <Share2 className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                                </div>
+                                <CardTitle className="text-xl">Frictionless Sharing</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                                    Say goodbye to attaching bulky PDFs. Get a clean, professional custom URL (e.g., <code className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-sm">/p/your-name</code>) that you can instantly drop into LinkedIn, Twitter, email signatures, and directly into online job applications.
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300 group hover:-translate-y-1 bg-white/50 dark:bg-slate-950/50 backdrop-blur-sm">
+                            <CardHeader className="pb-3">
+                                <div className="h-12 w-12 rounded-xl bg-green-50 dark:bg-green-900/20 flex flex-col items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-green-100 dark:group-hover:bg-green-900/40 transition-all duration-300">
+                                    <RefreshCw className="h-6 w-6 text-green-600 dark:text-green-400" />
+                                </div>
+                                <CardTitle className="text-xl">Always Up-to-Date</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                                    Your portfolio is directly synced with your ATS-friendly resume data. Completed a new project or learned a new skill? Update it once in the builder, and your live portfolio reflects it immediately.
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300 group hover:-translate-y-1 bg-white/50 dark:bg-slate-950/50 backdrop-blur-sm">
+                            <CardHeader className="pb-3">
+                                <div className="h-12 w-12 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex flex-col items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-amber-100 dark:group-hover:bg-amber-900/40 transition-all duration-300">
+                                    <Briefcase className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                                </div>
+                                <CardTitle className="text-xl">Elevate Your Personal Brand</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                                    A resume summarizes your work, but a personalized portfolio brings it to life. Demonstrate your attention to detail and professionalism with a modern, responsive design that works flawlessly on any device.
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Best Practices Section */}
+                    <div className="mt-20 pt-16 border-t border-slate-200 dark:border-slate-800">
+                        <div className="text-center mb-12">
+                            <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-4 cursor-default">
+                                Best Practices for Your Digital Portfolio
+                            </h2>
+                            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto cursor-default">
+                                Maximize your chances of landing that dream job by following these simple, proven strategies for your online presence.
+                            </p>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-8 items-center bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-8 lg:p-12 border border-slate-100 dark:border-slate-800">
+                            <div className="space-y-6">
+                                <div className="flex gap-4">
+                                    <div className="mt-1 bg-green-100 dark:bg-green-900/30 p-1 rounded-full text-green-600 dark:text-green-400 shrink-0">
+                                        <CheckCircle2 className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">Tailor Your Headline</h3>
+                                        <p className="text-slate-600 dark:text-slate-400">Ensure your portfolio's main headline reflects the exact role you are targeting. Keywords matter both for ATS and human recruiters.</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-4">
+                                    <div className="mt-1 bg-green-100 dark:bg-green-900/30 p-1 rounded-full text-green-600 dark:text-green-400 shrink-0">
+                                        <CheckCircle2 className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">Keep It Visual</h3>
+                                        <p className="text-slate-600 dark:text-slate-400">Add links to live projects, GitHub repositories, or visual case studies. A portfolio thrives on showing, not just telling.</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-4">
+                                    <div className="mt-1 bg-green-100 dark:bg-green-900/30 p-1 rounded-full text-green-600 dark:text-green-400 shrink-0">
+                                        <CheckCircle2 className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">Provide Clear Contact Info</h3>
+                                        <p className="text-slate-600 dark:text-slate-400">Don't make recruiters search for a way to reach you. Ensure your email, LinkedIn, and primary links are highly visible.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="relative rounded-xl overflow-hidden shadow-2xl border border-slate-200/50 dark:border-slate-800 hidden md:block aspect-video bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center p-8">
+                                <div className="w-full h-full bg-white dark:bg-slate-950 rounded-lg shadow-sm border border-slate-100 dark:border-slate-800 p-6 flex flex-col gap-4">
+                                    <div className="w-24 h-4 bg-slate-200 dark:bg-slate-800 rounded-full animate-pulse"></div>
+                                    <div className="w-48 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-md"></div>
+                                    <div className="space-y-2 mt-4">
+                                        <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
+                                        <div className="w-[90%] h-3 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
+                                        <div className="w-[80%] h-3 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* FAQ Section */}
+                    <div className="mt-20 pt-16 border-t border-slate-200 dark:border-slate-800 pb-16">
+                        <div className="text-center mb-12">
+                            <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-4 cursor-default">
+                                Portfolio Frequently Asked Questions
+                            </h2>
+                            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto cursor-default">
+                                Everything you need to know about setting up and managing your professional web presence.
+                            </p>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-x-12 gap-y-8 max-w-4xl mx-auto">
+                            <div>
+                                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-2">
+                                    <ChevronRight className="h-4 w-4 text-blue-500" />
+                                    Why do I need a portfolio if I have a resume?
+                                </h3>
+                                <p className="text-slate-600 dark:text-slate-400 ml-6">
+                                    A resume is a summarized document, while a portfolio allows you to expand on your experience with interactive links, media, and a stronger personal design identity. It offers proof of work.
+                                </p>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-2">
+                                    <ChevronRight className="h-4 w-4 text-blue-500" />
+                                    Is the portfolio link mobile-friendly?
+                                </h3>
+                                <p className="text-slate-600 dark:text-slate-400 ml-6">
+                                    Yes, absolutely. Our portfolio templates are fully responsive, meaning they look perfect whether viewed on a desktop monitor, tablet, or smartphone.
+                                </p>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-2">
+                                    <ChevronRight className="h-4 w-4 text-blue-500" />
+                                    Can I hide my portfolio from public view?
+                                </h3>
+                                <p className="text-slate-600 dark:text-slate-400 ml-6">
+                                    Yes. You have full control over your privacy. You can easily toggle your portfolio between 'Live' and 'Draft Mode' right here in the dashboard instantly.
+                                </p>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-2">
+                                    <ChevronRight className="h-4 w-4 text-blue-500" />
+                                    Will my portfolio help with SEO?
+                                </h3>
+                                <p className="text-slate-600 dark:text-slate-400 ml-6">
+                                    Yes! Creating a public portfolio page creates an indexable webpage for search engines. This increases the chance of your profile appearing when recruiters search for your skills and location.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

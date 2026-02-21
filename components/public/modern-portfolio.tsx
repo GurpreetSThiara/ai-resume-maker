@@ -61,7 +61,7 @@ export function ModernPortfolio({ data, onDownload, isDownloading }: ModernPortf
                                 variant="ghost"
                                 size="sm"
                                 disabled={isDownloading}
-                                className="rounded-l-full rounded-r-none border-r px-4 hover:bg-slate-100"
+                                className="rounded-l-full rounded-r-none border-r px-4 "
                                 onClick={() => onDownload('ats-classic-compact')}
                             >
                                 {isDownloading ? (
@@ -77,7 +77,7 @@ export function ModernPortfolio({ data, onDownload, isDownloading }: ModernPortf
                                         variant="ghost"
                                         size="sm"
                                         disabled={isDownloading}
-                                        className="rounded-l-none rounded-r-full px-2 hover:bg-slate-100"
+                                        className="rounded-l-none rounded-r-full px-2"
                                     >
                                         <ChevronDown className="h-4 w-4" />
                                     </Button>
