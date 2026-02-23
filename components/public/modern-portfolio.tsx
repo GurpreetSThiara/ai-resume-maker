@@ -313,19 +313,42 @@ export function ModernPortfolio({ data, onDownload, isDownloading }: ModernPortf
                 <div className="md:col-span-4 space-y-4">
 
                     {/* Skills Card */}
-                    {skillsSection && !skillsSection.hidden && skillsSection.items.length > 0 && (
+                    {skillsSection && !skillsSection.hidden && ((skillsSection.groups && skillsSection.groups.length > 0) || (skillsSection.items && skillsSection.items.length > 0)) && (
                         <Card className="border-none shadow-sm">
                             <CardHeader>
                                 <CardTitle className="text-lg">Skills</CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <div className="flex flex-wrap gap-2">
-                                    {skillsSection.items.map((skill, index) => (
-                                        <Badge key={index} variant="secondary" className="bg-slate-100 text-slate-700 hover:bg-slate-200 font-normal px-3 py-1">
-                                            {skill}
-                                        </Badge>
-                                    ))}
-                                </div>
+                            <CardContent className="space-y-4">
+                                {skillsSection.groups && skillsSection.groups.length > 0 ? (
+                                    skillsSection.groups.map((group) => (
+                                        <div key={group.id} className="space-y-2">
+                                            {group.title && <h3 className="text-sm font-semibold text-slate-800">{group.title}</h3>}
+                                            <div className="flex flex-wrap gap-2">
+                                                {group.skills
+                                                    .flatMap((item: string) => item.split(/[,\n]/))
+                                                    .map((s: string) => s.trim())
+                                                    .filter(Boolean)
+                                                    .map((skill: string, index: number) => (
+                                                        <Badge key={index} variant="secondary" className="bg-slate-100 text-slate-700 hover:bg-slate-200 font-normal px-3 py-1 whitespace-normal text-left max-w-full break-words">
+                                                            {skill}
+                                                        </Badge>
+                                                    ))}
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="flex flex-wrap gap-2">
+                                        {skillsSection.items
+                                            .flatMap((item: string) => item.split(/[,\n]/))
+                                            .map((s: string) => s.trim())
+                                            .filter(Boolean)
+                                            .map((skill: string, index: number) => (
+                                                <Badge key={index} variant="secondary" className="bg-slate-100 text-slate-700 hover:bg-slate-200 font-normal px-3 py-1 whitespace-normal text-left max-w-full break-words">
+                                                    {skill}
+                                                </Badge>
+                                            ))}
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 

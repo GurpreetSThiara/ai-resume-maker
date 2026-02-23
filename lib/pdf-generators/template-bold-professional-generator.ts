@@ -84,22 +84,23 @@ export async function generateBoldProfessionalResumePDF(options: PDFGenerationOp
 
     // Helper for text wrapping
     const wrapText = (text: string, maxWidth: number, fontSize: number, fontFace: any = ctx.font) => {
+        const f = fontFace || ctx.font || font
         const safeText = sanitizeText(text)
         const words = safeText.split(' ')
         let lines: string[] = []
-        let currentLine = words[0]
+        let currentLine = words[0] || ""
 
         for (let i = 1; i < words.length; i++) {
             const word = words[i]
-            const width = measureText(currentLine + " " + word, fontSize, fontFace)
+            const width = measureText(currentLine + " " + word, fontSize, f)
             if (width < maxWidth) {
-                currentLine += " " + word
+                currentLine += (currentLine ? " " : "") + word
             } else {
-                lines.push(currentLine)
+                if (currentLine) lines.push(currentLine)
                 currentLine = word
             }
         }
-        lines.push(currentLine)
+        if (currentLine) lines.push(currentLine)
         return lines
     }
 
@@ -301,12 +302,15 @@ export async function generateBoldProfessionalResumePDF(options: PDFGenerationOp
             const fullWidth = ctx.width - (margin * 2) // Full width for subsequent lines
 
             // Let's try to fit what we can on the first line
-            const words = skillsText.split(' ')
+            const words = skillsText.split(/[\s,]+/).filter(Boolean) // Better splitting for skills
             let firstLine = ''
             let remainingWords: string[] = []
 
             for (let i = 0; i < words.length; i++) {
-                const test = firstLine + words[i] + ' '
+                // Add comma safely if not the first word
+                const separator = firstLine ? ", " : ""
+                const test = firstLine + separator + words[i]
+
                 if (measureText(test, 11, ctx.font) < availableWidth) {
                     firstLine = test
                 } else {
@@ -315,13 +319,15 @@ export async function generateBoldProfessionalResumePDF(options: PDFGenerationOp
                 }
             }
 
-            // Draw first line
-            ctx.page.drawText(firstLine, { x: currentX, y: ctx.y, size: 11, font: ctx.font, color: colors.text })
+            // Draw first line safely
+            if (firstLine) {
+                ctx.page.drawText(firstLine, { x: currentX, y: ctx.y, size: 11, font: ctx.font, color: colors.text })
+            }
             ctx.y -= 16 // Move down
 
             // Draw remaining lines (full width)
             if (remainingWords.length > 0) {
-                const remainingText = remainingWords.join(' ')
+                const remainingText = remainingWords.join(', ')
                 const remainingLines = wrapText(remainingText, fullWidth, 11, ctx.font)
                 for (const line of remainingLines) {
                     ensureSpace(16)
@@ -356,9 +362,16 @@ export async function generateBoldProfessionalResumePDF(options: PDFGenerationOp
 
             if (proj.description) {
                 for (const d of proj.description) {
+                    const maxWidth = ctx.width - (margin * 2) - 15
+                    const lines = wrapText(d, maxWidth, 11, ctx.font)
+
                     ensureSpace(14)
-                    ctx.page.drawText("• " + d, { x: margin + 15, y: ctx.y, size: 11, font: ctx.font, color: colors.text })
-                    ctx.y -= 14
+                    ctx.page.drawText("•", { x: margin + 5, y: ctx.y, size: 11, font: ctx.font, color: colors.text })
+                    for (let i = 0; i < lines.length; i++) {
+                        if (i > 0) ensureSpace(14)
+                        drawTextCtx(lines[i], margin + 15, 11, colors.text, ctx.font)
+                        ctx.y -= 14
+                    }
                 }
             }
             ctx.y -= 10

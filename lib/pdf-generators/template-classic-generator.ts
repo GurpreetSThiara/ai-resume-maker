@@ -5,8 +5,8 @@ import { drawProjectsSection } from '@/lib/pdf/sections/projects'
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import { getEffectiveSkillGroupsFromSection, formatGroupedSkillsLine } from "@/utils/skills"
 
-export async function generateClassic2ResumePDF({ 
-  resumeData, 
+export async function generateClassic2ResumePDF({
+  resumeData,
   filename = "resume.pdf",
   variant = "default"
 }: PDFGenerationOptions & { variant?: "default" | "compact" }) {
@@ -31,6 +31,7 @@ export async function generateClassic2ResumePDF({
   }
 
   // Utility: Page break when space runs out
+  // Use a larger bottom margin to prevent A4 vs US Letter clipping and hardware margins
   const ensureSpace = (spaceNeeded: number) => {
     if (yOffset - spaceNeeded < margin) {
       currentPage = pdfDoc.addPage([595.276, 841.89])
@@ -105,7 +106,7 @@ export async function generateClassic2ResumePDF({
 
   // === SECTIONS (including additional links or data in order) ===
   const orderedSections = getSectionsForRendering(resumeData.sections, resumeData.custom)
-  
+
   for (const section of orderedSections) {
     // Handle Additional Links or Data Section
     if (section.type === 'custom-fields') {
@@ -167,7 +168,7 @@ export async function generateClassic2ResumePDF({
       }
       continue; // Skip to next section
     }
-    
+
     // Regular sections
     ensureSpace(isCompact ? 20 : 30)
 
@@ -178,7 +179,7 @@ export async function generateClassic2ResumePDF({
     switch (section.type) {
       case "experience":
         for (const exp of section.items) {
-          ensureSpace(isCompact ? 35 : 50)
+          ensureSpace(isCompact ? 15 : 20)
 
           // Company + dates
           draw(exp.company, margin, isCompact ? 10 : 12, boldFont, textColor)
@@ -202,9 +203,9 @@ export async function generateClassic2ResumePDF({
           // Achievements
           if (exp.achievements?.length) {
             for (const achievement of exp.achievements) {
-              ensureSpace(isCompact ? 8 : 12)
               const lines = wrapText(`- ${achievement}`, pageWidth - 20, regularFont, isCompact ? 8 : 10)
               for (const line of lines) {
+                ensureSpace(isCompact ? 14 : 18)
                 draw(line, margin + 15, isCompact ? 8 : 10, regularFont, textColor)
                 yOffset -= isCompact ? 8 : 12
               }
@@ -216,7 +217,7 @@ export async function generateClassic2ResumePDF({
 
       case "education":
         for (const edu of section.items) {
-          ensureSpace(isCompact ? 35 : 50)
+          ensureSpace(isCompact ? 15 : 20)
 
           draw(edu.institution, margin, isCompact ? 10 : 12, boldFont, textColor)
           const dateText = `${edu.startDate} - ${edu.endDate}`
@@ -235,9 +236,9 @@ export async function generateClassic2ResumePDF({
 
           if (edu.highlights?.length) {
             for (const highlight of edu.highlights) {
-              ensureSpace(isCompact ? 8 : 12)
               const lines = wrapText(`- ${highlight}`, pageWidth - 20, regularFont, isCompact ? 8 : 10)
               for (const line of lines) {
+                ensureSpace(isCompact ? 14 : 18)
                 draw(line, margin + 15, isCompact ? 8 : 10, regularFont, textColor)
                 yOffset -= isCompact ? 8 : 12
               }
@@ -250,19 +251,20 @@ export async function generateClassic2ResumePDF({
       case "skills": {
         const groups = getEffectiveSkillGroupsFromSection(section as any)
         const visibleGroups = groups.filter(g => g.skills.length > 0)
-        
+
         if (visibleGroups.length > 0) {
           for (const group of visibleGroups) {
+            ensureSpace(isCompact ? 10 : 12)
             // Draw bold title
             const titleText = `${group.title}: ` // Add space after colon
             const titleWidth = boldFont.widthOfTextAtSize(titleText, isCompact ? 8 : 10)
-            
+
             draw(titleText, margin + 15, isCompact ? 8 : 10, boldFont, textColor)
 
             // Draw skills on same line
             const skillsText = group.skills.join(', ')
             const skillsLines = wrapText(skillsText, pageWidth - 20 - titleWidth, regularFont, isCompact ? 8 : 10)
-            
+
             if (skillsLines.length > 0) {
               // Draw first line of skills on same line as title
               draw(skillsLines[0], margin + 15 + titleWidth, isCompact ? 8 : 10, regularFont, textColor)
@@ -270,13 +272,14 @@ export async function generateClassic2ResumePDF({
 
               // Draw subsequent lines indented
               for (let i = 1; i < skillsLines.length; i++) {
+                ensureSpace(isCompact ? 14 : 18)
                 draw(skillsLines[i], margin + 15 + titleWidth, isCompact ? 8 : 10, regularFont, textColor)
                 yOffset -= isCompact ? 8 : 12
               }
             } else {
               yOffset -= isCompact ? 8 : 12 // If no skills, still move down one line
             }
-            
+
             yOffset -= isCompact ? 4 : 8
           }
           yOffset -= isCompact ? 12 : 16
@@ -289,6 +292,7 @@ export async function generateClassic2ResumePDF({
         if (section.items?.length) {
           const lines = wrapText(section.items.join(", "), pageWidth - 20, regularFont, isCompact ? 8 : 10)
           for (const l of lines) {
+            ensureSpace(isCompact ? 14 : 18)
             draw(l, margin + 15, isCompact ? 8 : 10, regularFont, textColor)
             yOffset -= isCompact ? 8 : 12
           }
@@ -301,6 +305,7 @@ export async function generateClassic2ResumePDF({
           for (const text of section.content) {
             const lines = wrapText(`- ${text}`, pageWidth - 20, regularFont, 10)
             for (const line of lines) {
+              ensureSpace(12)
               draw(line, margin + 15, 10, regularFont, textColor)
               yOffset -= 12
             }
@@ -332,43 +337,43 @@ export async function generateClassic2ResumePDF({
               const links = [];
               if (proj.link) links.push({ label: "Live demo:", url: proj.link });
               if (proj.repo) links.push({ label: "Github:", url: proj.repo });
-              
+
               if (links.length) {
                 let linkY = itemStartY - (isCompact ? 11 : 13) - (isCompact ? 6 : 8); // Match Google: itemStartY - (titleSize + 6)
                 let linkX = margin + 8; // Add 8px indent
                 let minLinkY = linkY; // Track the lowest Y position used
-                
+
                 // Helper function to wrap long URLs
                 const wrapUrl = (url: string, maxWidth: number): string[] => {
                   const lines: string[] = [];
                   let remaining = sanitizeTextForPdf(url);
-                  
+
                   while (remaining.length > 0) {
                     let chunk = remaining;
                     let width = regularFont.widthOfTextAtSize(chunk, isCompact ? 8 : 9);
-                    
+
                     while (width > maxWidth && chunk.length > 1) {
                       chunk = chunk.substring(0, chunk.length - 1);
                       width = regularFont.widthOfTextAtSize(chunk, isCompact ? 8 : 9);
                     }
-                    
+
                     lines.push(chunk);
                     remaining = remaining.substring(chunk.length);
                   }
-                  
+
                   return lines;
                 };
-                
+
                 for (let i = 0; i < links.length; i++) {
                   const link = links[i];
                   const safeLabel = sanitizeTextForPdf(link.label);
-                  
+
                   const labelWidth = regularFont.widthOfTextAtSize(safeLabel, isCompact ? 8 : 9);
-                  
+
                   // Check available width for URL on current line
                   const availableWidth = pageWidth - linkX - labelWidth - 8;
                   const urlLines = wrapUrl(link.url, availableWidth);
-                  
+
                   // Draw label
                   currentPage.drawText(safeLabel, {
                     x: linkX,
@@ -377,24 +382,24 @@ export async function generateClassic2ResumePDF({
                     font: boldFont,
                     color: textColor,
                   });
-                  
+
                   // Draw URL line by line
                   let currentUrlY = linkY;
                   let firstLineUrlX = linkX + labelWidth + 8;
-                  
+
                   for (let j = 0; j < urlLines.length; j++) {
                     const urlLine = urlLines[j];
                     const safeUrl = sanitizeTextForPdf(urlLine);
                     const urlLineX = j === 0 ? firstLineUrlX : margin + 8; // Maintain 8px indent for wrapped lines
-                    
+
                     currentPage.drawText(safeUrl, {
                       x: urlLineX,
                       y: currentUrlY,
                       size: isCompact ? 8 : 9,
                       font: regularFont,
-                      color: rgb(0,0,0.66),
+                      color: rgb(0, 0, 0.66),
                     });
-                    
+
                     // Add clickable annotation for this line
                     const urlWidth = regularFont.widthOfTextAtSize(safeUrl, isCompact ? 8 : 9);
                     const linkHeight = (isCompact ? 8 : 9) * 1.2;
@@ -421,14 +426,14 @@ export async function generateClassic2ResumePDF({
                     } else {
                       currentPage.node.set(PDFName.of('Annots'), context.obj([linkAnnotationRef]));
                     }
-                    
+
                     if (j < urlLines.length - 1) {
                       currentUrlY -= (isCompact ? 10 : 11); // Match Google template spacing
                     }
                   }
-                  
+
                   minLinkY = Math.min(minLinkY, currentUrlY);
-                  
+
                   // Position for next link (if any)
                   if (i < links.length - 1) {
                     linkY = currentUrlY - (isCompact ? 11 : 13); // Match Google template spacing
@@ -436,7 +441,7 @@ export async function generateClassic2ResumePDF({
                     minLinkY = Math.min(minLinkY, linkY);
                   }
                 }
-                
+
                 // Update yOffset with minimal spacing (just 6px gap to match Google)
                 yOffset = minLinkY - 13;
               }
@@ -450,7 +455,7 @@ export async function generateClassic2ResumePDF({
                 const maxWidth = pageWidth - 20; // Match other sections' width
                 const lines = wrapText(`${bullet}${d}`, maxWidth, regularFont, isCompact ? 8 : 10); // Match font sizes
                 for (const line of lines) {
-                  ensureSpace(isCompact ? 8 : 12); // Match spacing
+                  ensureSpace(isCompact ? 14 : 18); // Match spacing
                   currentPage.drawText(sanitizeForFont(line, regularFont), {
                     x: indentX,
                     y: yOffset,

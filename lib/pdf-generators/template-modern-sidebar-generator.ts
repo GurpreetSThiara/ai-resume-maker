@@ -395,14 +395,23 @@ export async function generateModernSidebarResumePDF({
                     checkMainSpace(40)
                     const p = pages[mainPageIndex]
 
-                    p.drawText(sanitizeForFont(exp.role, boldFont), { x: mainContentX, y: mainY, size: 11, font: boldFont, color: textColor })
+                    const roleLines = wrapText(exp.role, mainContentWidth - 80, boldFont, 11)
+                    for (const line of roleLines) {
+                        p.drawText(sanitizeForFont(line, boldFont), { x: mainContentX, y: mainY, size: 11, font: boldFont, color: textColor })
+                        mainY -= 14
+                    }
+                    mainY += 14 // Reset for date positioning
 
                     const dateText = `${exp.startDate} - ${exp.endDate}`
                     const dateWidth = regularFont.widthOfTextAtSize(dateText, 9)
                     p.drawText(dateText, { x: mainContentX + mainContentWidth - dateWidth, y: mainY, size: 9, font: regularFont, color: sidebarTextColor })
 
                     mainY -= 12
-                    p.drawText(sanitizeForFont(exp.company, regularFont), { x: mainContentX, y: mainY, size: 10, font: regularFont, color: accentColor })
+                    const companyLines = wrapText(exp.company, mainContentWidth - 80, regularFont, 10)
+                    for (let i = 0; i < companyLines.length; i++) {
+                        p.drawText(sanitizeForFont(companyLines[i], regularFont), { x: mainContentX, y: mainY, size: 10, font: regularFont, color: accentColor })
+                        if (i < companyLines.length - 1) mainY -= 12
+                    }
 
                     if (exp.location) {
                         const locText = sanitizeForFont(exp.location, regularFont)
@@ -439,15 +448,24 @@ export async function generateModernSidebarResumePDF({
                     checkMainSpace(40)
                     const p = pages[mainPageIndex]
 
-                    p.drawText(sanitizeForFont(edu.institution, boldFont), { x: mainContentX, y: mainY, size: 11, font: boldFont, color: textColor })
+                    const instLines = wrapText(edu.institution, mainContentWidth - 80, boldFont, 11)
+                    for (const line of instLines) {
+                        p.drawText(sanitizeForFont(line, boldFont), { x: mainContentX, y: mainY, size: 11, font: boldFont, color: textColor })
+                        mainY -= 14
+                    }
+                    mainY += 14 // Reset for date positioning
 
                     const dateText = `${edu.startDate} - ${edu.endDate}`
                     const dateWidth = regularFont.widthOfTextAtSize(dateText, 9)
                     p.drawText(dateText, { x: mainContentX + mainContentWidth - dateWidth, y: mainY, size: 9, font: regularFont, color: sidebarTextColor })
 
                     mainY -= 12
-                    p.drawText(sanitizeForFont(edu.degree, regularFont), { x: mainContentX, y: mainY, size: 10, font: regularFont, color: accentColor })
-                    mainY -= 15
+                    const degreeLines = wrapText(edu.degree, mainContentWidth, regularFont, 10)
+                    for (const line of degreeLines) {
+                        p.drawText(sanitizeForFont(line, regularFont), { x: mainContentX, y: mainY, size: 10, font: regularFont, color: accentColor })
+                        mainY -= 12
+                    }
+                    mainY -= 3
 
                     if (edu.highlights) {
                         for (const high of edu.highlights) {
@@ -469,8 +487,11 @@ export async function generateModernSidebarResumePDF({
                     checkMainSpace(40)
                     const p = pages[mainPageIndex]
 
-                    p.drawText(sanitizeForFont(proj.name, boldFont), { x: mainContentX, y: mainY, size: 11, font: boldFont, color: textColor })
-                    mainY -= 13
+                    const projLines = wrapText(proj.name, mainContentWidth, boldFont, 11)
+                    for (const line of projLines) {
+                        p.drawText(sanitizeForFont(line, boldFont), { x: mainContentX, y: mainY, size: 11, font: boldFont, color: textColor })
+                        mainY -= 13
+                    }
 
                     if (proj.link) {
                         const shrink = getTextWithShrink(proj.link, mainContentWidth, regularFont, 9)

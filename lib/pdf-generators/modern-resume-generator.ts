@@ -81,7 +81,7 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
       const wrappedLines = wrapText(content, Math.floor(maxContentWidth / (fontRegular.widthOfTextAtSize('a', 9))));
       const actualContentWidth = Math.max(...wrappedLines.map(line => fontRegular.widthOfTextAtSize(line, 9)));
       return {
-        key, item, 
+        key, item,
         width: keyWidth + actualContentWidth + 10,
         height: wrappedLines.length * lineHeight,
         keyWidth,
@@ -214,7 +214,7 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
       case "skills": {
         const groups = getEffectiveSkillGroupsFromSection(section)
         const visibleGroups = groups.filter(g => g.skills.length > 0)
-        
+
         if (visibleGroups.length > 0) {
           for (const group of visibleGroups) {
             // Draw bold title
@@ -225,7 +225,7 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
             const skillsText = group.skills.join(', ')
             const skillsX = margin + fontBold.widthOfTextAtSize(titleText, 9)
             const skillsWrapped = wrapText(skillsText, 80 - fontBold.widthOfTextAtSize(titleText, 9))
-            
+
             if (skillsWrapped.length > 0) {
               // Draw the first line of skills on the same line as the title
               drawText(skillsWrapped[0], skillsX, fontRegular, 9)
@@ -239,7 +239,7 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
             } else {
               y -= lineHeight // If no skills, still move down one line for consistency
             }
-            
+
             y -= lineHeight * 0.5 // Small spacing between groups
           }
         }
@@ -285,7 +285,7 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
             if (linksRow) {
               const linkLines = wrapText(linksRow, 80)
               for (const line of linkLines) {
-                page.drawText(line, { x: margin, y, size: 9, font: fontRegular, color: rgb(0,0,0.7) })
+                page.drawText(line, { x: margin, y, size: 9, font: fontRegular, color: rgb(0, 0, 0.7) })
                 y -= 12
               }
             }
