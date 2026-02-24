@@ -14,23 +14,30 @@ import { generateResumePDF } from "@/lib/pdf-generators"
 import { generateResumeDOCX } from "@/lib/docx-generators";
 import { SHOW_ERROR, SHOW_SUCCESS } from "@/utils/toast";
 import { usePostDownloadReview } from "@/hooks/use-post-download-review";
+import { trackResumeDownloadToSheets } from "@/lib/google-sheets-tracker";
 
 
-const DownloadDropDown = ({data}: any) => {
+import { useAuth } from "@/contexts/auth-context";
+
+const DownloadDropDown = ({ data }: any) => {
   const { triggerReviewModal, ReviewModalComponent } = usePostDownloadReview();
+  const { user } = useAuth();
 
   const handleDownload = async (downloadFunction: () => Promise<void>) => {
     try {
       await downloadFunction();
-      SHOW_SUCCESS({title: "Resume downloaded successfully!"});
-      
+      SHOW_SUCCESS({ title: "Resume downloaded successfully!" });
+
+      // Track the download in Google Sheets
+      trackResumeDownloadToSheets(data, !!user);
+
       // Trigger review modal after successful download
       setTimeout(() => {
         triggerReviewModal();
       }, 1000);
     } catch (error) {
       console.error('Error downloading resume:', error);
-      SHOW_ERROR({title: "Failed to download resume."});
+      SHOW_ERROR({ title: "Failed to download resume." });
     }
   };
 
@@ -44,10 +51,10 @@ const DownloadDropDown = ({data}: any) => {
         <DropdownMenuContent align="start" className="w-40">
           <DropdownMenuLabel>Format</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem 
-            className="capitalize cursor-pointer" 
+          <DropdownMenuItem
+            className="capitalize cursor-pointer"
             onClick={() => handleDownload(async () => {
-              await generateResumePDF({...data, filename:`${data.filename}.pdf`});
+              await generateResumePDF({ ...data, filename: `${data.filename}.pdf` });
             })}
           >
             PDF

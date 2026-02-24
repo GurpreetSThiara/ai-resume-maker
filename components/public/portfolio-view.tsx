@@ -7,6 +7,7 @@ import { generateResumePDF } from "@/lib/pdf-generators"
 import { getTemplateById } from "@/lib/templates" // Adjust import path if needed
 import { ResumeData } from "@/types/resume"
 import { toast } from "sonner"
+import { trackResumeDownloadToSheets } from "@/lib/google-sheets-tracker"
 
 interface PortfolioViewProps {
     portfolio: any // Typed properly in real app
@@ -42,6 +43,11 @@ export function PortfolioView({ portfolio }: PortfolioViewProps) {
             })
 
             toast.success("Resume downloaded successfully")
+
+            // Track the download in Google Sheets
+            // Assuming we don't know the exact user state in public portfolio without useAuth,
+            // we will pass false or add useAuth if needed. Currently passing false.
+            trackResumeDownloadToSheets({ ...resumeData, template: selectedTemplate }, false);
         } catch (error) {
             console.error("Download error:", error)
             toast.error("Failed to download resume")

@@ -19,9 +19,9 @@ import { CustomFieldsSection } from "@/components/custom-fields-section"
 import { ReviewSection } from "@/components/review-section"
 import { saveResumeData, getUserResumeCount, loadResumeData, deleteResume } from "@/lib/supabase-functions"
 import ResumePreview from "@/components/resume-preview"
-import type { 
-  ResumeData, 
-  ResumeTemplate, 
+import type {
+  ResumeData,
+  ResumeTemplate,
   EducationSection,
   ExperienceSection,
   SkillsSection,
@@ -38,7 +38,7 @@ import SaveResumeModal from '@/components/save-resume-modal';
 import type { FC } from 'react'
 import { CustomSection as CustomSectionComponent } from "@/components/custom-section"
 import { useAuth } from "@/contexts/auth-context"
-import {  CREATE_RESUME_STEPS } from "@/app/constants/global"
+import { CREATE_RESUME_STEPS } from "@/app/constants/global"
 import { LS_KEYS, setLocalStorageJSON, setLocalStorageItem, removeLocalStorageItems, getLocalStorageJSON, getLocalStorageItem, getValidResumeFromLocalStorage } from "@/utils/localstorage"
 import { initializeSectionOrder, getSectionsWithCustomFields, separateSectionsAndCustomFields, generateDynamicSteps } from "@/utils/sectionOrdering"
 import { CreateResumeHeader } from "@/components/CreateResumeHeader"
@@ -47,13 +47,14 @@ import { useHotkeys } from "@/hooks/use-hotkeys";
 import { generateResumePDF } from "@/lib/pdf-generators"
 import { sanitizeResumeData } from "@/utils/createResume"
 import { createLocalResume, updateLocalResume, getLocalResumeById } from "@/lib/local-storage"
+import { trackResumeDownloadToSheets } from "@/lib/google-sheets-tracker"
 import { SHOW_ERROR, SHOW_SUCCESS } from "@/utils/toast"
 import { sampleResume } from "@/lib/examples/resume-example"
 
 const initialData: ResumeData = sampleResume //sampleResumeData
 
 const CreateResumeContent: FC = () => {
-  const { loading } = useAuth()
+  const { loading, user } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { triggerReviewModal, ReviewModalComponent } = usePostDownloadReview({ actionType: 'download' })
@@ -72,7 +73,7 @@ const CreateResumeContent: FC = () => {
   const [limitModalOpen, setLimitModalOpen] = useState(false)
   const [limitModalBusy, setLimitModalBusy] = useState(false)
   const [saveModalOpen, setSaveModalOpen] = useState(false)
-  
+
   // Generate dynamic steps based on current section order
   const steps = generateDynamicSteps(resumeData.sections, resumeData.custom);
 
@@ -82,7 +83,7 @@ const CreateResumeContent: FC = () => {
     1: 'professional-summary', // Professional Summary
     10: 'review'             // Review
   }
-  
+
   // Map section types to their step indices in the dynamic steps
   const sectionTypeToStepIndex: Record<string, number> = {}
   steps.forEach((step, index) => {
@@ -129,7 +130,7 @@ const CreateResumeContent: FC = () => {
   // Load data from localStorage on component mount (only if no cloud resume ID)
   useEffect(() => {
     const resumeId = searchParams.get('id')
-    
+
     // Only load localStorage data if we're not editing a cloud resume
     if (!resumeId) {
       const savedResumeData = getValidResumeFromLocalStorage()
@@ -148,7 +149,7 @@ const CreateResumeContent: FC = () => {
       }
       if (savedResumeId) {
         setCurrentResumeId(savedResumeId)
-        
+
         // If it's a local resume ID, load the actual data from the new system
         if (savedResumeId.startsWith('local_')) {
           const localResume = getLocalResumeById(savedResumeId)
@@ -179,11 +180,11 @@ const CreateResumeContent: FC = () => {
     }
   }, [searchParams, loading])
 
-   useEffect(() => {
+  useEffect(() => {
     setSelectedTemplate(template)
   }, [searchParams, availableTemplates, template])
 
-  
+
   // Auto-save functionality
   useEffect(() => {
     const autoSaveInterval = setInterval(() => {
@@ -218,15 +219,18 @@ const CreateResumeContent: FC = () => {
         template: selectedTemplate,
         filename
       })
-      SHOW_SUCCESS({title: "Resume downloaded successfully!"})
-      
+      SHOW_SUCCESS({ title: "Resume downloaded successfully!" })
+
+      // Track the download in Google Sheets
+      trackResumeDownloadToSheets({ ...resumeData, template: selectedTemplate }, !!user);
+
       // Trigger review modal after successful download
       setTimeout(() => {
         triggerReviewModal()
       }, 1000) // Small delay to let the success toast show
     } catch (error) {
       console.error('Error downloading resume:', error)
-      SHOW_ERROR({title: "Failed to download resume."})
+      SHOW_ERROR({ title: "Failed to download resume." })
     }
   }
 
@@ -234,7 +238,7 @@ const CreateResumeContent: FC = () => {
   const onChooseLocal = async () => {
     try {
       let savedResume
-      
+
       if (currentResumeId && currentResumeId.startsWith('local_')) {
         // Update existing local resume
         savedResume = updateLocalResume(currentResumeId, resumeData)
@@ -245,15 +249,15 @@ const CreateResumeContent: FC = () => {
         // Create new local resume
         savedResume = createLocalResume(resumeData)
       }
-      
+
       setCurrentResumeId(savedResume.id)
-      
+
       // Also save to localStorage for immediate access
       await saveToLocal()
-      
+
       // Auto-download after successful save
       await downloadResume()
-      
+
       setSaveModalOpen(false)
       // Don't redirect to profile, let user stay on page
     } catch (error) {
@@ -267,12 +271,12 @@ const CreateResumeContent: FC = () => {
     try {
       const res = await saveResumeData(resumeData)
       if (res.success && res.data) {
-        setCurrentResumeId(res.data.id)
+        setCurrentResumeId((res.data as any).id)
         removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps, LS_KEYS.currentResumeId)
-        
+
         // Auto-download after successful save
         await downloadResume()
-        
+
         setSaveModalOpen(false)
         // Don't redirect to profile, let user stay on page
       } else {
@@ -288,12 +292,12 @@ const CreateResumeContent: FC = () => {
     try {
       const res = await saveResumeData(resumeData, resumeId)
       if (res.success && res.data) {
-        setCurrentResumeId(res.data.id)
+        setCurrentResumeId((res.data as any).id)
         removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps, LS_KEYS.currentResumeId)
-        
+
         // Auto-download after successful save
         await downloadResume()
-        
+
         setSaveModalOpen(false)
         // Don't redirect to profile, let user stay on page
       } else {
@@ -324,7 +328,7 @@ const CreateResumeContent: FC = () => {
       const res = await saveResumeData(resumeData, currentResumeId || undefined)
       if (res.success && res.data) {
         setLimitModalOpen(false)
-        setCurrentResumeId(res.data.id)
+        setCurrentResumeId((res.data as any).id)
         removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps, LS_KEYS.currentResumeId)
         router.push('/profile')
       } else {
@@ -419,12 +423,12 @@ const CreateResumeContent: FC = () => {
 
     // Update data and mark completed steps
     setResumeData(sanitizeResumeData(updatedData));
-    
+
     // Mark completed steps based on dynamic step order
     const newCompletedSteps = new Set<number>();
     if (updatedData.basics.name && updatedData.basics.email) newCompletedSteps.add(0); // Personal info (always step 0)
     if (updatedData.basics.summary) newCompletedSteps.add(1); // Summary (always step 1)
-    
+
     // Find dynamic step indices for sections
     const educationStepIndex = steps.findIndex(s => s.id === 2);
     const experienceStepIndex = steps.findIndex(s => s.id === 3);
@@ -432,17 +436,17 @@ const CreateResumeContent: FC = () => {
     const skillsStepIndex = steps.findIndex(s => s.id === 5);
     const languagesStepIndex = steps.findIndex(s => s.id === 6);
     const certificationsStepIndex = steps.findIndex(s => s.id === 7);
-    
+
     const educationSection = updatedData.sections.find(s => s.type === SECTION_TYPES.EDUCATION) as EducationSection | undefined;
     if (educationSection?.items && educationSection.items.length > 0 && educationStepIndex >= 0) {
       newCompletedSteps.add(educationStepIndex);
     }
-    
+
     const experienceSection = updatedData.sections.find(s => s.type === SECTION_TYPES.EXPERIENCE) as ExperienceSection | undefined;
     if (experienceSection?.items && experienceSection.items.length > 0 && experienceStepIndex >= 0) {
       newCompletedSteps.add(experienceStepIndex);
     }
-    
+
     const projectsSection = updatedData.sections.find(s => s.type === SECTION_TYPES.PROJECTS) as any;
     if (projectsSection?.items && projectsSection.items.length > 0 && projectsStepIndex >= 0) {
       newCompletedSteps.add(projectsStepIndex);
@@ -457,20 +461,20 @@ const CreateResumeContent: FC = () => {
     if (certsSection?.items && certsSection.items.length > 0 && certificationsStepIndex >= 0) {
       newCompletedSteps.add(certificationsStepIndex);
     }
-    
+
     const languagesSection = updatedData.sections.find(s => s.type === SECTION_TYPES.LANGUAGES) as any;
     if (languagesSection?.items && languagesSection.items.length > 0 && languagesStepIndex >= 0) {
       newCompletedSteps.add(languagesStepIndex);
     }
-    
+
     setCompletedSteps(newCompletedSteps);
-    
+
 
   };
 
   const renderCurrentSection = () => {
     const currentStepId = steps[currentStep]?.id
-    
+
     switch (currentStepId) {
       case 0:
         return <PersonalInfoSection data={resumeData} onUpdate={handleResumeDataUpdate} />
@@ -528,10 +532,10 @@ const CreateResumeContent: FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-green-50 to-indigo-100">
- 
+
 
       <div className="container mx-auto px-4 py-6">
-       <CreateResumeHeader
+        <CreateResumeHeader
           sectionsWithOrder={sectionsWithCustomFields}
           handleSectionReorder={handleSectionReorder}
           showPreview={showPreview}
@@ -562,13 +566,12 @@ const CreateResumeContent: FC = () => {
                       <button
                         key={step.id}
                         onClick={() => setCurrentStep(index)}
-                        className={`w-full text-left p-3 rounded-lg transition-all ${
-                          currentStep === index
-                            ? "bg-primary text-primary-foreground"
-                            : completedSteps.has(index)
-                              ? "bg-green-100 text-green-800 hover:bg-green-200"
-                              : "hover:bg-gray-100"
-                        } `}
+                        className={`w-full text-left p-3 rounded-lg transition-all ${currentStep === index
+                          ? "bg-primary text-primary-foreground"
+                          : completedSteps.has(index)
+                            ? "bg-green-100 text-green-800 hover:bg-green-200"
+                            : "hover:bg-gray-100"
+                          } `}
                       //  disabled={index > Math.max(...Array.from(completedSteps)) + 1}
                       >
                         <div className="flex items-center gap-3">
@@ -651,9 +654,9 @@ const CreateResumeContent: FC = () => {
                         </DialogTitle>
                       </DialogHeader>
                       <div className="grow overflow-y-auto">
-                        <ResumePreview 
-                          resumeData={resumeData} 
-                          template={selectedTemplate} 
+                        <ResumePreview
+                          resumeData={resumeData}
+                          template={selectedTemplate}
                           onDataUpdate={handleResumeDataUpdate}
                           activeSection=""
                           setResumeData={setResumeData}
@@ -668,9 +671,9 @@ const CreateResumeContent: FC = () => {
                       <CardTitle className="text-lg text-center">Preview (you can click/tap on any line and edit directly in preview)</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ResumePreview 
-                        resumeData={resumeData} 
-                        template={selectedTemplate} 
+                      <ResumePreview
+                        resumeData={resumeData}
+                        template={selectedTemplate}
                         onDataUpdate={handleResumeDataUpdate}
                         activeSection=""
                         setResumeData={setResumeData}
@@ -683,7 +686,7 @@ const CreateResumeContent: FC = () => {
           </div>
         </div>
       </div>
-      
+
       <AIResumeModal open={modalOpen} onOpenChange={setModalOpen} onResumeDataGenerated={handleAIResumeData} />
       <SaveResumeModal
         open={saveModalOpen}
