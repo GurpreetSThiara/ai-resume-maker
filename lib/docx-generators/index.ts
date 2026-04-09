@@ -1,22 +1,46 @@
 import type { PDFGenerationOptions } from "@/types/resume"
-import { generateClassic1ResumeDOCX } from "./generate-classic1-docx"
-import { generateClassic2ResumeDOCX } from "./generate-classic2-docx"
-import { generateTimelineResumeDOCX } from "./generate-timeline-docx";
-import { generateATSCompactLinesDOCX } from './ats-compact-lines-docx';
-import { ATS_TIMELINE, atsCompactLinesTemplate } from "../templates";
-
+import { generateGoogleDOCX } from "./google-resume-docx"
+import { generateClassicDOCX } from "./classic-resume-docx"
+import { generateATSGreenDOCX } from "./ats-green-docx"
+import { generateTimelineDOCX } from "./timeline-resume-docx"
+import { generateModernSidebarDOCX } from "./modern-sidebar-docx"
+import { generateBoldDOCX } from "./bold-professional-docx"
 
 export async function generateResumeDOCX(options: PDFGenerationOptions) {
   const { template } = options
 
   let result
   switch (template.id) {
-    case "ats_compact_lines":
-      result = await generateATSCompactLinesDOCX(options as any)
+    case "classic-blue":
+      result = await generateGoogleDOCX({ ...options, variant: "default" })
+      break
+    case "ats-compact-lines":
+      result = await generateGoogleDOCX({ ...options, variant: "black_compact" })
+      break
+    case "ats-classic":
+      result = await generateClassicDOCX({ ...options, variant: "default" })
+      break
+    case "ats-classic-compact":
+      result = await generateClassicDOCX({ ...options, variant: "compact" })
+      break
+    case "ats-green":
+      result = await generateATSGreenDOCX({ ...options, theme: "green" })
+      break
+    case "ats-yellow":
+      result = await generateATSGreenDOCX({ ...options, theme: "yellow" })
+      break
+    case "ats-timeline":
+      result = await generateTimelineDOCX(options)
+      break
+    case "modern-sidebar":
+      result = await generateModernSidebarDOCX(options)
+      break
+    case "bold-professional":
+      result = await generateBoldDOCX(options)
       break
     default:
-      // DOCX download is only supported for ATS Compact Lines template
-      throw new Error("DOCX download is only available for the ATS Compact Lines template.")
+      // Fallback for unknown templates
+      result = await generateClassicDOCX({ ...options, variant: "default" })
   }
 
   // Track download for DOCX generators
@@ -35,8 +59,18 @@ export async function generateResumeDOCX(options: PDFGenerationOptions) {
     console.error('Failed to track DOCX download:', error)
   }
 
+  // Trigger file download in browser
+  if (typeof window !== 'undefined' && result) {
+    const blob = new Blob([result as unknown as ArrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = options.filename || 'resume.docx'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   return result
 }
-
-
-
