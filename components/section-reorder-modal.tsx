@@ -6,16 +6,19 @@ import { Switch } from '@/components/ui/switch'
 import { reorderSections, getSectionTypeDisplayName, getSectionTypeIcon } from '@/utils/sectionOrdering'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { GripVertical, Settings, ChevronUp, ChevronDown, X } from 'lucide-react'
 
 interface SectionReorderModalProps {
   sections: Section[]
   onReorder: (sections: Section[]) => void
+  templateId?: string
 }
 
 export const SectionReorderModal: React.FC<SectionReorderModalProps> = ({
   sections,
-  onReorder
+  onReorder,
+  templateId
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [localSections, setLocalSections] = useState<Section[]>(sections)
@@ -97,12 +100,10 @@ export const SectionReorderModal: React.FC<SectionReorderModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <div className="">
-        <Button variant="outline" className="hover:bg-gray-50">
+        <Button variant="outline" className="hover:bg-gray-50 flex items-center gap-2">
           <GripVertical className="w-4 h-4" />
           Reorder Sections
         </Button>
-        </div>
       </DialogTrigger>
       
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
@@ -192,6 +193,8 @@ export const SectionReorderModal: React.FC<SectionReorderModalProps> = ({
                     }}
                   />
                 </div>
+
+
 
                 {/* Position Number */}
                 <div className="flex-shrink-0 text-sm text-gray-400 font-mono bg-gray-100 px-2 py-1 rounded">

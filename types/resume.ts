@@ -25,6 +25,7 @@ export interface CustomField {
   id: string
   link: boolean
   order?: number // Order for reordering additional links or data
+  column?: 1 | 2 // 1 for left sidebar, 2 for main content
 }
 
 // 🔹 Base Section Type
@@ -34,6 +35,7 @@ export interface BaseSection {
   type: SectionType
   order?: number // Add order field for reordering
   hidden?: boolean
+  column?: 1 | 2 // 1 for left sidebar, 2 for main content
 }
 
 // 🔹 Centralized Section Type constants

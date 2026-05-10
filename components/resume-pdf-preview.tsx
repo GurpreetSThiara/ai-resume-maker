@@ -8,8 +8,10 @@ import type { ResumeData, ResumeTemplate } from "@/types/resume"
 import { Button } from "@/components/ui/button"
 
 if (typeof window !== "undefined") {
-  pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs"
+  pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
 }
+
+console.log("Forcing Turbopack cache refresh")
 
 const DEBOUNCE_MS = 450
 const MIN_SCALE = 0.6

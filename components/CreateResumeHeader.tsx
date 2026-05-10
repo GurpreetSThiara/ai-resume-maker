@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select"
 import { Eye, Star, Menu } from "lucide-react"
 import { SectionManagement } from "@/components/section-management"
+import { ColumnManagementModal } from "@/components/column-management-modal"
 import DownloadDropDown from "@/components/global/DropDown/DropDown"
 import type { ResumeData, ResumeTemplate, Section } from "@/types/resume"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -57,6 +58,15 @@ const renderControls = () => (
       onReorder={handleSectionReorder}
       className="h-10 px-4 rounded-md text-sm flex items-center"
     />
+
+    {selectedTemplate.id === 'modern-sidebar' && (
+      <div className="h-10 flex items-center">
+        <ColumnManagementModal
+          sections={sectionsWithOrder}
+          onUpdate={handleSectionReorder}
+        />
+      </div>
+    )}
 
     <Button
       variant="outline"
@@ -103,6 +113,7 @@ const renderControls = () => (
 
     <Button
       disabled
+      hidden={true}
       title="Coming soon"
       className="h-10 px-4 rounded-md text-sm flex items-center gap-2"
     >

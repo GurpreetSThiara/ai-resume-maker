@@ -186,6 +186,293 @@ export const ModernSidebarResume: React.FC<ResumeProps> = ({
         })
     }
 
+    // Helper to render a section's content generically
+    const renderSectionContent = (section: any) => {
+        if (section.hidden) return null
+
+        // Basic empty check
+        if (section.type === 'experience' && !(section as any).items?.length) return null
+        if (section.type === 'education' && !(section as any).items?.length) return null
+        if (section.type === 'projects' && !(section as any).items?.length) return null
+        if (section.type === 'custom' && !(section as any).content?.length) return null
+        if (section.type === 'languages' && !(section as any).items?.length) return null
+
+        return (
+            <div key={section.id} className="flex flex-col gap-3">
+                <div
+                    className="font-bold text-sm text-gray-800 border-b border-gray-300 pb-1 uppercase"
+                    contentEditable
+                    suppressContentEditableWarning
+                    onBlur={(e) => handleSectionTitleChange(section.id, e.currentTarget.textContent || "")}
+                >
+                    {section.title}
+                </div>
+
+                {section.type === 'skills' && (() => {
+                    const groups = getEffectiveSkillGroupsFromSection(section as any)
+                    return groups.filter(g => g.skills.length > 0).map((group, groupIdx) => (
+                        <div key={group.title} className="mb-2">
+                            {group.title !== 'General' && <div className="text-xs font-bold text-gray-700 break-words">{group.title}</div>}
+                            <ul className="list-disc ml-3 text-xs text-gray-600">
+                                {group.skills.map((skill, skillIdx) => (
+                                    <li
+                                        key={skillIdx}
+                                        className="break-words"
+                                        contentEditable
+                                        suppressContentEditableWarning
+                                        onBlur={(e) => {
+                                            const newValue = e.currentTarget.textContent || ""
+                                            setResumeData((prev) => {
+                                                const updated = structuredClone(prev)
+                                                const s = updated.sections.find(sec => sec.id === section.id)
+                                                if (!s) return prev
+
+                                                if ('groups' in s && (s as any).groups) {
+                                                    const targetGroup = (s as any).groups.find((g: any) => g.title === group.title)
+                                                    if (targetGroup && targetGroup.skills[skillIdx] !== undefined) {
+                                                        targetGroup.skills[skillIdx] = newValue
+                                                    }
+                                                } else if ('items' in s && Array.isArray(s.items)) {
+                                                    if (group.title === 'General') {
+                                                        if (s.items[skillIdx]) s.items[skillIdx] = newValue
+                                                    }
+                                                }
+                                                return updated
+                                            })
+                                        }}
+                                    >
+                                        {skill}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))
+                })()}
+
+                {section.type === 'languages' && (
+                    <ul className="text-xs text-gray-600 flex flex-col gap-1 w-full">
+                        {(section as any).items.map((lang: string, i: number) => (
+                            <li
+                                key={i}
+                                className="break-words"
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => {
+                                    const val = e.currentTarget.textContent || ""
+                                    setResumeData(prev => {
+                                        const updated = structuredClone(prev)
+                                        const s = updated.sections.find(sec => sec.type === 'languages')
+                                        if (s && 'items' in s && Array.isArray((s as any).items)) {
+                                            (s as any).items[i] = val
+                                        }
+                                        return updated
+                                    })
+                                }}
+                            >
+                                {lang}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+
+                {section.type === 'experience' && (section as any).items.map((exp: any, i: number) => (
+                    <div key={i} className="flex flex-col gap-1">
+                        <div className="flex justify-between items-baseline">
+                            <div
+                                className="font-bold text-sm text-gray-800"
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => handleSectionItemChange(section.id, i, 'role', e.currentTarget.textContent || '')}
+                            >
+                                {exp.role}
+                            </div>
+                            <div className="text-[10px] text-gray-500 whitespace-nowrap">
+                                <span
+                                    contentEditable
+                                    suppressContentEditableWarning
+                                    onBlur={(e) => handleSectionItemChange(section.id, i, 'startDate', e.currentTarget.textContent || '')}
+                                >
+                                    {exp.startDate}
+                                </span>
+                                {' - '}
+                                <span
+                                    contentEditable
+                                    suppressContentEditableWarning
+                                    onBlur={(e) => handleSectionItemChange(section.id, i, 'endDate', e.currentTarget.textContent || '')}
+                                >
+                                    {exp.endDate}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex justify-between items-baseline mb-1">
+                            <div
+                                className="text-xs text-blue-700 font-semibold"
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => handleSectionItemChange(section.id, i, 'company', e.currentTarget.textContent || '')}
+                            >
+                                {exp.company}
+                            </div>
+                            {exp.location && (
+                                <div
+                                    className="text-[10px] text-gray-500"
+                                    contentEditable
+                                    suppressContentEditableWarning
+                                    onBlur={(e) => handleSectionItemChange(section.id, i, 'location', e.currentTarget.textContent || '')}
+                                >
+                                    {exp.location}
+                                </div>
+                            )}
+                        </div>
+                        {exp.achievements && (
+                            <ul className="list-disc ml-4 text-xs text-gray-600 space-y-0.5">
+                                {exp.achievements.map((ach: string, j: number) => (
+                                    <li
+                                        key={j}
+                                        contentEditable
+                                        suppressContentEditableWarning
+                                        onBlur={(e) => handleAchievementChange(section.id, i, j, e.currentTarget.textContent || '')}
+                                    >
+                                        {ach}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                ))}
+
+                {section.type === 'education' && (section as any).items.map((edu: any, i: number) => (
+                    <div key={i} className="flex flex-col gap-1">
+                        <div className="flex justify-between items-baseline">
+                            <div
+                                className="font-bold text-sm text-gray-800"
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => handleSectionItemChange(section.id, i, 'institution', e.currentTarget.textContent || '')}
+                            >
+                                {edu.institution}
+                            </div>
+                            <div className="text-[10px] text-gray-500 whitespace-nowrap">
+                                <span
+                                    contentEditable
+                                    suppressContentEditableWarning
+                                    onBlur={(e) => handleSectionItemChange(section.id, i, 'startDate', e.currentTarget.textContent || '')}
+                                >
+                                    {edu.startDate}
+                                </span>
+                                {' - '}
+                                <span
+                                    contentEditable
+                                    suppressContentEditableWarning
+                                    onBlur={(e) => handleSectionItemChange(section.id, i, 'endDate', e.currentTarget.textContent || '')}
+                                >
+                                    {edu.endDate}
+                                </span>
+                            </div>
+                        </div>
+                        <div
+                            className="text-xs text-blue-700 mb-1"
+                            contentEditable
+                            suppressContentEditableWarning
+                            onBlur={(e) => handleSectionItemChange(section.id, i, 'degree', e.currentTarget.textContent || '')}
+                        >
+                            {edu.degree}
+                        </div>
+                        {edu.highlights && (
+                            <ul className="list-disc ml-4 text-xs text-gray-600 space-y-0.5">
+                                {edu.highlights.map((h: string, j: number) => (
+                                    <li
+                                        key={j}
+                                        contentEditable
+                                        suppressContentEditableWarning
+                                        onBlur={(e) => handleHighlightChange(section.id, i, j, e.currentTarget.textContent || '')}
+                                    >
+                                        {h}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                ))}
+
+                {section.type === 'projects' && (section as any).items.map((proj: any, i: number) => (
+                    <div key={i} className="flex flex-col gap-1">
+                        <div className="flex justify-between items-baseline">
+                            <div
+                                className="font-bold text-sm text-gray-800"
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => handleProjectFieldChange(section.id, i, 'name', e.currentTarget.textContent || '')}
+                            >
+                                {proj.name}
+                            </div>
+                        </div>
+                        {(proj.link || proj.repo) && (
+                            <div className="text-[10px] text-blue-600 flex flex-col gap-1 mb-1">
+                                {proj.link && (
+                                    <span
+                                        className="break-all"
+                                        contentEditable
+                                        suppressContentEditableWarning
+                                        onBlur={(e) => handleProjectFieldChange(section.id, i, 'link', e.currentTarget.textContent || '')}
+                                    >
+                                        {proj.link}
+                                    </span>
+                                )}
+                                {proj.repo && (
+                                    <span
+                                        className="break-all"
+                                        contentEditable
+                                        suppressContentEditableWarning
+                                        onBlur={(e) => handleProjectFieldChange(section.id, i, 'repo', e.currentTarget.textContent || '')}
+                                    >
+                                        {proj.repo}
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                        {proj.description && (
+                            <ul className="list-disc ml-4 text-xs text-gray-600 space-y-0.5">
+                                {proj.description.map((d: string, j: number) => (
+                                    <li
+                                        key={j}
+                                        contentEditable
+                                        suppressContentEditableWarning
+                                        onBlur={(e) => handleProjectDescriptionChange(section.id, i, j, e.currentTarget.textContent || '')}
+                                    >
+                                        {d}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                ))}
+
+                {section.type === 'custom' && (section as any).content.map((item: string, i: number) => (
+                    <ul key={i} className="list-disc ml-4 text-xs text-gray-600 space-y-0.5">
+                        <li
+                            contentEditable
+                            suppressContentEditableWarning
+                            onBlur={(e) => handleCustomContentChange(section.id, i, e.currentTarget.textContent || '')}
+                        >
+                            {item}
+                        </li>
+                    </ul>
+                ))}
+            </div>
+        )
+    }
+
+    const allSections = getSectionsForRendering(resumeData.sections, resumeData.custom)
+
+    const leftSections = allSections.filter(s => {
+        return s.column === 1 || (!s.column && ['skills', 'languages'].includes(s.type))
+    })
+
+    const rightSections = allSections.filter(s => {
+        return s.column === 2 || (!s.column && !['skills', 'languages'].includes(s.type))
+    })
+
     // Render logic
     return (
         <div className="border w-full h-full flex justify-center items-start overflow-auto bg-gray-50">
@@ -257,103 +544,11 @@ export const ModernSidebarResume: React.FC<ResumeProps> = ({
                             </div>
                         </div>
 
-                        {/* Skills */}
-                        {resumeData.sections.find(s => s.type === 'skills' && !s.hidden) && (
-                            <div className="flex flex-col gap-2">
-                                <div className="font-bold text-sm text-gray-800 border-b border-gray-300 pb-1">SKILLS</div>
-                                {(() => {
-                                    const section = resumeData.sections.find(s => s.type === 'skills')
-                                    const groups = getEffectiveSkillGroupsFromSection(section as any)
-                                    return groups.filter(g => g.skills.length > 0).map((group, groupIdx) => (
-                                        <div key={group.title} className="mb-2">
-                                            {group.title !== 'General' && <div className="text-xs font-bold text-gray-700 break-words">{group.title}</div>}
-                                            <ul className="list-disc ml-3 text-xs text-gray-600">
-                                                {group.skills.map((skill, skillIdx) => (
-                                                    <li
-                                                        key={skillIdx}
-                                                        className="break-words"
-                                                        contentEditable
-                                                        suppressContentEditableWarning
-                                                        onBlur={(e) => {
-                                                            const newValue = e.currentTarget.textContent || ""
-                                                            // We need to find the original index in the flat items array if possible, 
-                                                            // or if it's groups, update the group. 
-                                                            // Since `handleSkillChange` assumes a specific structure, let's inline a simple update 
-                                                            // that works with the `getEffectiveSkillGroupsFromSection` output if possible, 
-                                                            // OR just rely on the fact that `getEffectiveSkillGroupsFromSection` might return a view.
-                                                            // Actually, let's try to update the main section items if it's flat.
-
-                                                            setResumeData((prev) => {
-                                                                const updated = structuredClone(prev)
-                                                                const s = updated.sections.find(sec => sec.id === section?.id)
-                                                                if (!s) return prev
-
-                                                                // If we rely on groups:
-                                                                if ('groups' in s && (s as any).groups) {
-                                                                    // Find the group by title
-                                                                    const targetGroup = (s as any).groups.find((g: any) => g.title === group.title)
-                                                                    if (targetGroup && targetGroup.skills[skillIdx] !== undefined) {
-                                                                        targetGroup.skills[skillIdx] = newValue
-                                                                    }
-                                                                } else if ('items' in s && Array.isArray(s.items)) {
-                                                                    // Fallback: If it's a flat list (General), we need to correct index.
-                                                                    // This is hard without exact mapping. 
-                                                                    // For now, let's assume if it's flat 'General' group, it maps directly 1-to-1 if order is preserved.
-                                                                    if (group.title === 'General') {
-                                                                        if (s.items[skillIdx]) s.items[skillIdx] = newValue
-                                                                    } else {
-                                                                        // If it's not general but stored as items, we can't easily map back without more logic.
-                                                                        // Let's assume standard group structure is used if title != General.
-                                                                    }
-                                                                }
-                                                                return updated
-                                                            })
-                                                        }}
-                                                    >
-                                                        {skill}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    ))
-                                })()}
-                            </div>
-                        )}
-
-                        {/* Languages */}
-                        {resumeData.sections.find(s => s.type === 'languages' && !s.hidden) && (
-                            <div className="flex flex-col gap-2">
-                                <div className="font-bold text-sm text-gray-800 border-b border-gray-300 pb-1">LANGUAGES</div>
-                                <ul className="text-xs text-gray-600 flex flex-col gap-1">
-                                    {(resumeData.sections.find(s => s.type === 'languages') as any).items.map((lang: string, i: number) => (
-                                        <li
-                                            key={i}
-                                            className="break-words"
-                                            contentEditable
-                                            suppressContentEditableWarning
-                                            onBlur={(e) => {
-                                                const val = e.currentTarget.textContent || ""
-                                                setResumeData(prev => {
-                                                    const updated = structuredClone(prev)
-                                                    const s = updated.sections.find(sec => sec.type === 'languages')
-                                                    if (s && 'items' in s && Array.isArray((s as any).items)) {
-                                                        (s as any).items[i] = val
-                                                    }
-                                                    return updated
-                                                })
-                                            }}
-                                        >
-                                            {lang}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
+                        {leftSections.map(s => renderSectionContent(s))}
                     </div>
 
                     {/* MAIN CONTENT */}
                     <div className="flex-1 p-8 flex flex-col gap-6">
-
                         {/* Summary */}
                         {resumeData.basics.summary && (
                             <div className="flex flex-col gap-2">
@@ -369,215 +564,7 @@ export const ModernSidebarResume: React.FC<ResumeProps> = ({
                             </div>
                         )}
 
-                        {/* Main Sections */}
-                        {getSectionsForRendering(resumeData.sections, resumeData.custom)
-                            .filter(s => ['experience', 'education', 'projects', 'custom'].includes(s.type))
-                            .map(section => {
-                                if (section.hidden) return null
-                                // Basic empty check
-                                if (section.type === 'experience' && !(section as any).items?.length) return null
-                                if (section.type === 'education' && !(section as any).items?.length) return null
-                                if (section.type === 'projects' && !(section as any).items?.length) return null
-                                if (section.type === 'custom' && !(section as any).content?.length) return null
-
-                                return (
-                                    <div key={section.id} className="flex flex-col gap-3">
-                                        <div
-                                            className="font-bold text-sm text-gray-800 border-b border-gray-300 pb-1 uppercase"
-                                            contentEditable
-                                            suppressContentEditableWarning
-                                            onBlur={(e) => handleSectionTitleChange(section.id, e.currentTarget.textContent || "")}
-                                        >
-                                            {section.title}
-                                        </div>
-
-                                        {section.type === 'experience' && (section as any).items.map((exp: any, i: number) => (
-                                            <div key={i} className="flex flex-col gap-1">
-                                                <div className="flex justify-between items-baseline">
-                                                    <div
-                                                        className="font-bold text-sm text-gray-800"
-                                                        contentEditable
-                                                        suppressContentEditableWarning
-                                                        onBlur={(e) => handleSectionItemChange(section.id, i, 'role', e.currentTarget.textContent || '')}
-                                                    >
-                                                        {exp.role}
-                                                    </div>
-                                                    <div className="text-[10px] text-gray-500 whitespace-nowrap">
-                                                        <span
-                                                            contentEditable
-                                                            suppressContentEditableWarning
-                                                            onBlur={(e) => handleSectionItemChange(section.id, i, 'startDate', e.currentTarget.textContent || '')}
-                                                        >
-                                                            {exp.startDate}
-                                                        </span>
-                                                        {' - '}
-                                                        <span
-                                                            contentEditable
-                                                            suppressContentEditableWarning
-                                                            onBlur={(e) => handleSectionItemChange(section.id, i, 'endDate', e.currentTarget.textContent || '')}
-                                                        >
-                                                            {exp.endDate}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div className="flex justify-between items-baseline mb-1">
-                                                    <div
-                                                        className="text-xs text-blue-700 font-semibold"
-                                                        contentEditable
-                                                        suppressContentEditableWarning
-                                                        onBlur={(e) => handleSectionItemChange(section.id, i, 'company', e.currentTarget.textContent || '')}
-                                                    >
-                                                        {exp.company}
-                                                    </div>
-                                                    {exp.location && (
-                                                        <div
-                                                            className="text-[10px] text-gray-500"
-                                                            contentEditable
-                                                            suppressContentEditableWarning
-                                                            onBlur={(e) => handleSectionItemChange(section.id, i, 'location', e.currentTarget.textContent || '')}
-                                                        >
-                                                            {exp.location}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                {exp.achievements && (
-                                                    <ul className="list-disc ml-4 text-xs text-gray-600 space-y-0.5">
-                                                        {exp.achievements.map((ach: string, j: number) => (
-                                                            <li
-                                                                key={j}
-                                                                contentEditable
-                                                                suppressContentEditableWarning
-                                                                onBlur={(e) => handleAchievementChange(section.id, i, j, e.currentTarget.textContent || '')}
-                                                            >
-                                                                {ach}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                )}
-                                            </div>
-                                        ))}
-
-                                        {section.type === 'education' && (section as any).items.map((edu: any, i: number) => (
-                                            <div key={i} className="flex flex-col gap-1">
-                                                <div className="flex justify-between items-baseline">
-                                                    <div
-                                                        className="font-bold text-sm text-gray-800"
-                                                        contentEditable
-                                                        suppressContentEditableWarning
-                                                        onBlur={(e) => handleSectionItemChange(section.id, i, 'institution', e.currentTarget.textContent || '')}
-                                                    >
-                                                        {edu.institution}
-                                                    </div>
-                                                    <div className="text-[10px] text-gray-500 whitespace-nowrap">
-                                                        <span
-                                                            contentEditable
-                                                            suppressContentEditableWarning
-                                                            onBlur={(e) => handleSectionItemChange(section.id, i, 'startDate', e.currentTarget.textContent || '')}
-                                                        >
-                                                            {edu.startDate}
-                                                        </span>
-                                                        {' - '}
-                                                        <span
-                                                            contentEditable
-                                                            suppressContentEditableWarning
-                                                            onBlur={(e) => handleSectionItemChange(section.id, i, 'endDate', e.currentTarget.textContent || '')}
-                                                        >
-                                                            {edu.endDate}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div
-                                                    className="text-xs text-blue-700 mb-1"
-                                                    contentEditable
-                                                    suppressContentEditableWarning
-                                                    onBlur={(e) => handleSectionItemChange(section.id, i, 'degree', e.currentTarget.textContent || '')}
-                                                >
-                                                    {edu.degree}
-                                                </div>
-                                                {edu.highlights && (
-                                                    <ul className="list-disc ml-4 text-xs text-gray-600 space-y-0.5">
-                                                        {edu.highlights.map((h: string, j: number) => (
-                                                            <li
-                                                                key={j}
-                                                                contentEditable
-                                                                suppressContentEditableWarning
-                                                                onBlur={(e) => handleHighlightChange(section.id, i, j, e.currentTarget.textContent || '')}
-                                                            >
-                                                                {h}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                )}
-                                            </div>
-                                        ))}
-
-                                        {section.type === 'projects' && (section as any).items.map((proj: any, i: number) => (
-                                            <div key={i} className="flex flex-col gap-1">
-                                                <div className="flex justify-between items-baseline">
-                                                    <div
-                                                        className="font-bold text-sm text-gray-800"
-                                                        contentEditable
-                                                        suppressContentEditableWarning
-                                                        onBlur={(e) => handleProjectFieldChange(section.id, i, 'name', e.currentTarget.textContent || '')}
-                                                    >
-                                                        {proj.name}
-                                                    </div>
-                                                </div>
-                                                {(proj.link || proj.repo) && (
-                                                    <div className="text-[10px] text-blue-600 flex flex-col gap-1 mb-1">
-                                                        {proj.link && (
-                                                            <span
-                                                                className="break-all"
-                                                                contentEditable
-                                                                suppressContentEditableWarning
-                                                                onBlur={(e) => handleProjectFieldChange(section.id, i, 'link', e.currentTarget.textContent || '')}
-                                                            >
-                                                                {proj.link}
-                                                            </span>
-                                                        )}
-                                                        {proj.repo && (
-                                                            <span
-                                                                className="break-all"
-                                                                contentEditable
-                                                                suppressContentEditableWarning
-                                                                onBlur={(e) => handleProjectFieldChange(section.id, i, 'repo', e.currentTarget.textContent || '')}
-                                                            >
-                                                                {proj.repo}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                )}
-                                                {proj.description && (
-                                                    <ul className="list-disc ml-4 text-xs text-gray-600 space-y-0.5">
-                                                        {proj.description.map((d: string, j: number) => (
-                                                            <li
-                                                                key={j}
-                                                                contentEditable
-                                                                suppressContentEditableWarning
-                                                                onBlur={(e) => handleProjectDescriptionChange(section.id, i, j, e.currentTarget.textContent || '')}
-                                                            >
-                                                                {d}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                )}
-                                            </div>
-                                        ))}
-
-                                        {section.type === 'custom' && (section as any).content.map((item: string, i: number) => (
-                                            <ul key={i} className="list-disc ml-4 text-xs text-gray-600 space-y-0.5">
-                                                <li
-                                                    contentEditable
-                                                    suppressContentEditableWarning
-                                                    onBlur={(e) => handleCustomContentChange(section.id, i, e.currentTarget.textContent || '')}
-                                                >
-                                                    {item}
-                                                </li>
-                                            </ul>
-                                        ))}
-                                    </div>
-                                )
-                            })}
+                        {rightSections.map(s => renderSectionContent(s))}
                     </div>
                 </div>
             </div>

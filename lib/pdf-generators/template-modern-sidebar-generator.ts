@@ -100,6 +100,18 @@ export async function generateModernSidebarResumePDF({
         }
     }
 
+    const checkMainSpace = (space: number) => {
+        if (mainY - space < margin) {
+            mainPageIndex++
+            if (mainPageIndex >= pages.length) {
+                const newPage = pdfDoc.addPage([pageWidth, pageHeight])
+                drawSidebarBackground(newPage)
+                pages.push(newPage)
+            }
+            mainY = pageHeight - margin
+        }
+    }
+
     // Helper to add link annotation
     const addLink = (page: any, text: string, x: number, y: number, size: number, font: any, url: string) => {
         const width = font.widthOfTextAtSize(text, size)
@@ -211,91 +223,277 @@ export async function generateModernSidebarResumePDF({
     }
     sidebarY -= 20
 
-    // Skills
-    const skillsSection = resumeData.sections.find(s => s.type === 'skills' && !s.hidden)
-    if (skillsSection) {
-        checkSidebarSpace(40)
-        pages[sidebarPageIndex].drawText("SKILLS", { x: margin, y: sidebarY, size: 12, font: boldFont, color: headingColor })
-        sidebarY -= 15
-        pages[sidebarPageIndex].drawLine({
-            start: { x: margin, y: sidebarY + 5 },
-            end: { x: sidebarWidth - margin, y: sidebarY + 5 },
+    const renderSectionPdf = (section: any, isSidebar: boolean) => {
+        if (section.hidden) return
+
+        let hasContent = false
+        if (['experience', 'education', 'projects'].includes(section.type)) {
+            hasContent = section.items && Array.isArray(section.items) && section.items.length > 0
+        } else if (section.type === 'custom') {
+            hasContent = section.content && Array.isArray(section.content) && section.content.length > 0
+        } else if (section.type === 'languages') {
+            hasContent = section.items && Array.isArray(section.items) && section.items.length > 0
+        } else if (section.type === 'skills') {
+            const groups = getEffectiveSkillGroupsFromSection(section)
+            hasContent = groups.some(g => g.skills.length > 0)
+        }
+        if (!hasContent) return
+
+        const currentX = isSidebar ? margin : mainContentX
+        const currentWidth = isSidebar ? (sidebarWidth - 2 * margin) : mainContentWidth
+        const getPage = () => pages[isSidebar ? sidebarPageIndex : mainPageIndex]
+        
+        let y = isSidebar ? sidebarY : mainY
+        const updateY = (newY: number) => {
+            if (isSidebar) sidebarY = newY
+            else mainY = newY
+            y = newY
+        }
+
+        const checkSpace = (space: number) => {
+            if (isSidebar) checkSidebarSpace(space)
+            else checkMainSpace(space)
+            y = isSidebar ? sidebarY : mainY
+        }
+
+        const titleSize = 12
+        const titleColor = headingColor
+        
+        // Header
+        checkSpace(40)
+        getPage().drawText(section.title.toUpperCase(), {
+            x: currentX, y: y, size: titleSize, font: boldFont, color: titleColor
+        })
+        updateY(y - 15)
+        getPage().drawLine({
+            start: { x: currentX, y: y + 5 },
+            end: { x: currentX + currentWidth, y: y + 5 },
             thickness: dividerThickness,
             color: dividerColor
         })
-        sidebarY -= 10
+        updateY(y - (isSidebar ? 10 : 15))
 
-        const groups = getEffectiveSkillGroupsFromSection(skillsSection as any)
-        for (const group of groups.filter(g => g.skills.length > 0)) {
-            checkSidebarSpace(20)
-            if (group.title !== "General") {
-                pages[sidebarPageIndex].drawText(sanitizeForFont(group.title, boldFont), {
-                    x: margin, y: sidebarY, size: 10, font: boldFont, color: textColor
-                })
-                sidebarY -= 12
-            }
-
-            for (const skill of group.skills) {
-                const lines = wrapText(skill, sidebarWidth - 2 * margin - 10, regularFont, 9)
-                checkSidebarSpace(lines.length * 11 + 5)
-
-                pages[sidebarPageIndex].drawText("•", { x: margin, y: sidebarY, size: 10, color: accentColor })
-                for (const line of lines) {
-                    pages[sidebarPageIndex].drawText(line, { x: margin + 10, y: sidebarY, size: 9, font: regularFont, color: sidebarTextColor })
-                    sidebarY -= 11
+        // Content
+        if (section.type === 'skills') {
+            const groups = getEffectiveSkillGroupsFromSection(section as any)
+            for (const group of groups.filter(g => g.skills.length > 0)) {
+                checkSpace(20)
+                if (group.title !== "General") {
+                    getPage().drawText(sanitizeForFont(group.title, boldFont), {
+                        x: currentX, y: y, size: 10, font: boldFont, color: textColor
+                    })
+                    updateY(y - 12)
                 }
+
+                for (const skill of group.skills) {
+                    const lines = wrapText(skill, currentWidth - 10, regularFont, 9)
+                    checkSpace(lines.length * 11 + 5)
+
+                    getPage().drawText("•", { x: currentX, y: y, size: 10, color: accentColor })
+                    for (const line of lines) {
+                        getPage().drawText(line, { x: currentX + 10, y: y, size: 9, font: regularFont, color: sidebarTextColor })
+                        updateY(y - 11)
+                    }
+                }
+                updateY(y - 8)
             }
-            sidebarY -= 8
-        }
-    }
-
-    // Languages
-    const languagesSection = resumeData.sections.find(s => s.type === 'languages' && !s.hidden)
-    if (languagesSection) {
-        const langItems = (languagesSection as any).items
-        if (langItems && Array.isArray(langItems) && langItems.length > 0) {
-            sidebarY -= 15
-            checkSidebarSpace(40)
-            pages[sidebarPageIndex].drawText("LANGUAGES", { x: margin, y: sidebarY, size: 12, font: boldFont, color: headingColor })
-            sidebarY -= 15
-            pages[sidebarPageIndex].drawLine({
-                start: { x: margin, y: sidebarY + 5 },
-                end: { x: sidebarWidth - margin, y: sidebarY + 5 },
-                thickness: dividerThickness,
-                color: dividerColor
-            })
-            sidebarY -= 10
-
+        } else if (section.type === 'languages') {
+            const langItems = (section as any).items
             for (const lang of langItems) {
-                const lines = wrapText(lang, sidebarWidth - 2 * margin, regularFont, 9)
-                checkSidebarSpace(lines.length * 11)
+                const lines = wrapText(lang, currentWidth, regularFont, 9)
+                checkSpace(lines.length * 11)
                 for (const line of lines) {
-                    pages[sidebarPageIndex].drawText(line, { x: margin, y: sidebarY, size: 9, font: regularFont, color: sidebarTextColor })
-                    sidebarY -= 11
+                    getPage().drawText(line, { x: currentX, y: y, size: 9, font: regularFont, color: sidebarTextColor })
+                    updateY(y - 11)
                 }
             }
-        }
-    }
+        } else if (section.type === 'experience') {
+            for (const exp of (section as ExperienceSection).items) {
+                checkSpace(40)
+                let p = getPage()
 
-    // --- MAIN CONTENT RENDERER ---
+                const roleLines = wrapText(exp.role, currentWidth - (isSidebar ? 0 : 80), boldFont, 11)
+                for (const line of roleLines) {
+                    p.drawText(sanitizeForFont(line, boldFont), { x: currentX, y: y, size: 11, font: boldFont, color: textColor })
+                    updateY(y - 14)
+                }
+                
+                const dateText = `${exp.startDate} - ${exp.endDate}`
+                if (!isSidebar) {
+                    updateY(y + 14 * roleLines.length) // Reset for date positioning if not sidebar
+                    const dateWidth = regularFont.widthOfTextAtSize(dateText, 9)
+                    p.drawText(dateText, { x: currentX + currentWidth - dateWidth, y: y, size: 9, font: regularFont, color: sidebarTextColor })
+                    updateY(y - 14 * roleLines.length)
+                } else {
+                    p.drawText(dateText, { x: currentX, y: y + 2, size: 9, font: regularFont, color: sidebarTextColor })
+                    updateY(y - 12)
+                }
 
-    const checkMainSpace = (space: number) => {
-        if (mainY - space < margin) {
-            mainPageIndex++
-            if (mainPageIndex >= pages.length) {
-                // Determine if we need to add a page (sidebar didn't go this far)
-                const newPage = pdfDoc.addPage([pageWidth, pageHeight])
-                // We must draw sidebar bg even if empty, to keep consistency?
-                // Or just white? Modern Sidebar usually full height bg.
-                drawSidebarBackground(newPage)
-                pages.push(newPage)
+                if (!isSidebar) updateY(y + 2) // alignment correction
+                
+                const companyLines = wrapText(exp.company, currentWidth - (isSidebar ? 0 : 80), regularFont, 10)
+                for (let i = 0; i < companyLines.length; i++) {
+                    p.drawText(sanitizeForFont(companyLines[i], regularFont), { x: currentX, y: y, size: 10, font: regularFont, color: accentColor })
+                    if (i < companyLines.length - 1) updateY(y - 12)
+                }
+
+                if (exp.location) {
+                    const locText = sanitizeForFont(exp.location, regularFont)
+                    if (!isSidebar) {
+                        const locWidth = regularFont.widthOfTextAtSize(locText, 9)
+                        p.drawText(locText, {
+                            x: currentX + currentWidth - locWidth,
+                            y: y,
+                            size: 9,
+                            font: regularFont,
+                            color: sidebarTextColor
+                        })
+                    } else {
+                        updateY(y - 12)
+                        p.drawText(locText, { x: currentX, y: y, size: 9, font: regularFont, color: sidebarTextColor })
+                    }
+                }
+                updateY(y - 15)
+
+                if (exp.achievements) {
+                    for (const ach of exp.achievements) {
+                        const lines = wrapText(`• ${ach}`, currentWidth - 10, regularFont, 10)
+                        checkSpace(lines.length * 12)
+                        for (const line of lines) {
+                            getPage().drawText(line, { x: currentX + 10, y: y, size: 10, font: regularFont, color: textColor })
+                            updateY(y - 12)
+                        }
+                    }
+                }
+                updateY(y - 10)
             }
-            // Even if page existed (from sidebar), we reset mainY for the new Main column
-            mainY = pageHeight - margin
+        } else if (section.type === 'education') {
+            for (const edu of (section as EducationSection).items) {
+                checkSpace(40)
+                let p = getPage()
+
+                const instLines = wrapText(edu.institution, currentWidth - (isSidebar ? 0 : 80), boldFont, 11)
+                for (const line of instLines) {
+                    p.drawText(sanitizeForFont(line, boldFont), { x: currentX, y: y, size: 11, font: boldFont, color: textColor })
+                    updateY(y - 14)
+                }
+                
+                const dateText = `${edu.startDate} - ${edu.endDate}`
+                if (!isSidebar) {
+                    updateY(y + 14 * instLines.length) // Reset for date positioning
+                    const dateWidth = regularFont.widthOfTextAtSize(dateText, 9)
+                    p.drawText(dateText, { x: currentX + currentWidth - dateWidth, y: y, size: 9, font: regularFont, color: sidebarTextColor })
+                    updateY(y - 14 * instLines.length)
+                } else {
+                    p.drawText(dateText, { x: currentX, y: y + 2, size: 9, font: regularFont, color: sidebarTextColor })
+                    updateY(y - 12)
+                }
+                
+                if (!isSidebar) updateY(y + 2)
+
+                const degreeLines = wrapText(edu.degree, currentWidth, regularFont, 10)
+                for (const line of degreeLines) {
+                    p.drawText(sanitizeForFont(line, regularFont), { x: currentX, y: y, size: 10, font: regularFont, color: accentColor })
+                    updateY(y - 12)
+                }
+                updateY(y - 3)
+
+                if (edu.highlights) {
+                    for (const high of edu.highlights) {
+                        const lines = wrapText(`• ${high}`, currentWidth - 10, regularFont, 10)
+                        checkSpace(lines.length * 12)
+                        for (const line of lines) {
+                            getPage().drawText(line, { x: currentX + 10, y: y, size: 10, font: regularFont, color: textColor })
+                            updateY(y - 12)
+                        }
+                    }
+                }
+                updateY(y - 10)
+            }
+        } else if (section.type === 'projects') {
+            for (const proj of (section as ProjectsSection).items) {
+                checkSpace(40)
+                let p = getPage()
+
+                const projLines = wrapText(proj.name, currentWidth, boldFont, 11)
+                for (const line of projLines) {
+                    p.drawText(sanitizeForFont(line, boldFont), { x: currentX, y: y, size: 11, font: boldFont, color: textColor })
+                    updateY(y - 13)
+                }
+
+                if (proj.link) {
+                    const shrink = getTextWithShrink(proj.link, currentWidth, regularFont, 9)
+                    if ((shrink as any).wrap) {
+                        const lines = wrapText(proj.link, currentWidth, regularFont, 6)
+                        for (const line of lines) {
+                            p.drawText(line, { x: currentX, y: y, size: 6, font: regularFont, color: accentColor })
+                            addLink(getPage(), line, currentX, y, 6, regularFont, proj.link)
+                            updateY(y - 8)
+                        }
+                    } else {
+                        p.drawText(shrink.text, { x: currentX, y: y, size: shrink.size, font: regularFont, color: accentColor })
+                        addLink(getPage(), shrink.text, currentX, y, shrink.size, regularFont, proj.link)
+                        updateY(y - (shrink.size + 2))
+                    }
+                }
+                if (proj.repo) {
+                    const shrink = getTextWithShrink(proj.repo, currentWidth, regularFont, 9)
+                    if ((shrink as any).wrap) {
+                        const lines = wrapText(proj.repo, currentWidth, regularFont, 6)
+                        for (const line of lines) {
+                            p.drawText(line, { x: currentX, y: y, size: 6, font: regularFont, color: accentColor })
+                            addLink(getPage(), line, currentX, y, 6, regularFont, proj.repo)
+                            updateY(y - 8)
+                        }
+                    } else {
+                        p.drawText(shrink.text, { x: currentX, y: y, size: shrink.size, font: regularFont, color: accentColor })
+                        addLink(getPage(), shrink.text, currentX, y, shrink.size, regularFont, proj.repo)
+                        updateY(y - (shrink.size + 2))
+                    }
+                }
+                updateY(y - 2)
+
+                if (proj.description) {
+                    for (const desc of proj.description) {
+                        const lines = wrapText(`• ${desc}`, currentWidth - 10, regularFont, 10)
+                        checkSpace(lines.length * 12)
+                        for (const line of lines) {
+                            getPage().drawText(line, { x: currentX + 10, y: y, size: 10, font: regularFont, color: textColor })
+                            updateY(y - 12)
+                        }
+                    }
+                }
+                updateY(y - 10)
+            }
+        } else if (section.type === 'custom') {
+            for (const item of (section as CustomSection).content) {
+                const lines = wrapText(`• ${item}`, currentWidth - 10, regularFont, 10)
+                checkSpace(lines.length * 12)
+                for (const line of lines) {
+                    getPage().drawText(line, { x: currentX + 10, y: y, size: 10, font: regularFont, color: textColor })
+                    updateY(y - 12)
+                }
+            }
+            updateY(y - 10)
         }
     }
 
-    // Summary
+    const allSections = getSectionsForRendering(resumeData.sections, resumeData.custom)
+
+    const leftSections = allSections.filter(s => {
+        return s.column === 1 || (!s.column && ['skills', 'languages'].includes(s.type))
+    })
+
+    const rightSections = allSections.filter(s => {
+        return s.column === 2 || (!s.column && !['skills', 'languages'].includes(s.type))
+    })
+
+    // Render left sections
+    for (const section of leftSections) {
+        renderSectionPdf(section, true)
+    }
+
+    // Summary (Main content)
     if (resumeData.basics.summary) {
         const lines = wrapText(resumeData.basics.summary, mainContentWidth, regularFont, 10)
         checkMainSpace(lines.length * 12 + 40)
@@ -318,203 +516,9 @@ export async function generateModernSidebarResumePDF({
         mainY -= 20
     }
 
-    // Main Sections
-    const mainSections = getSectionsForRendering(resumeData.sections, resumeData.custom)
-        .filter(s => ['experience', 'education', 'projects', 'custom'].includes(s.type))
-
-    for (const section of mainSections) {
-        if (section.hidden) continue
-
-        // Content Check
-        let hasContent = false
-        if (section.type === 'experience' || section.type === 'education' || section.type === 'projects') {
-            const s = section as any
-            hasContent = s.items && Array.isArray(s.items) && s.items.length > 0
-        } else if (section.type === 'custom') {
-            const s = section as any
-            hasContent = s.content && Array.isArray(s.content) && s.content.length > 0
-        }
-        if (!hasContent) continue
-
-        // Header
-        checkMainSpace(50)
-        pages[mainPageIndex].drawText(section.title.toUpperCase(), {
-            x: mainContentX, y: mainY, size: 12, font: boldFont, color: headingColor
-        })
-        mainY -= 15
-        pages[mainPageIndex].drawLine({
-            start: { x: mainContentX, y: mainY + 5 },
-            end: { x: mainContentWidth + mainContentX, y: mainY + 5 },
-            thickness: dividerThickness,
-            color: dividerColor
-        })
-        mainY -= 15
-
-        // Items
-        if (section.type === 'experience') {
-            const expSection = section as ExperienceSection
-            if (expSection.items) {
-                for (const exp of expSection.items) {
-                    checkMainSpace(40)
-                    const p = pages[mainPageIndex]
-
-                    const roleLines = wrapText(exp.role, mainContentWidth - 80, boldFont, 11)
-                    for (const line of roleLines) {
-                        p.drawText(sanitizeForFont(line, boldFont), { x: mainContentX, y: mainY, size: 11, font: boldFont, color: textColor })
-                        mainY -= 14
-                    }
-                    mainY += 14 // Reset for date positioning
-
-                    const dateText = `${exp.startDate} - ${exp.endDate}`
-                    const dateWidth = regularFont.widthOfTextAtSize(dateText, 9)
-                    p.drawText(dateText, { x: mainContentX + mainContentWidth - dateWidth, y: mainY, size: 9, font: regularFont, color: sidebarTextColor })
-
-                    mainY -= 12
-                    const companyLines = wrapText(exp.company, mainContentWidth - 80, regularFont, 10)
-                    for (let i = 0; i < companyLines.length; i++) {
-                        p.drawText(sanitizeForFont(companyLines[i], regularFont), { x: mainContentX, y: mainY, size: 10, font: regularFont, color: accentColor })
-                        if (i < companyLines.length - 1) mainY -= 12
-                    }
-
-                    if (exp.location) {
-                        const locText = sanitizeForFont(exp.location, regularFont)
-                        const locWidth = regularFont.widthOfTextAtSize(locText, 9) // Using slightly smaller font for location maybe? Or keeping 10. Preview uses 10px vs 12px for company (10px gray).
-                        // In preview: text-xs (12px) blue for Company, text-[10px] gray for Location.
-                        // Here: Company size 10, Location size 10. Let's make Location 9 to match "text-[10px]" relative difference.
-                        p.drawText(locText, {
-                            x: mainContentX + mainContentWidth - locWidth,
-                            y: mainY,
-                            size: 9,
-                            font: regularFont,
-                            color: sidebarTextColor
-                        })
-                    }
-                    mainY -= 15
-
-                    if (exp.achievements) {
-                        for (const ach of exp.achievements) {
-                            const lines = wrapText(`• ${ach}`, mainContentWidth - 10, regularFont, 10)
-                            checkMainSpace(lines.length * 12)
-                            for (const line of lines) {
-                                pages[mainPageIndex].drawText(line, { x: mainContentX + 10, y: mainY, size: 10, font: regularFont, color: textColor })
-                                mainY -= 12
-                            }
-                        }
-                    }
-                    mainY -= 10
-                }
-            }
-        } else if (section.type === 'education') {
-            const eduSection = section as EducationSection
-            if (eduSection.items) {
-                for (const edu of eduSection.items) {
-                    checkMainSpace(40)
-                    const p = pages[mainPageIndex]
-
-                    const instLines = wrapText(edu.institution, mainContentWidth - 80, boldFont, 11)
-                    for (const line of instLines) {
-                        p.drawText(sanitizeForFont(line, boldFont), { x: mainContentX, y: mainY, size: 11, font: boldFont, color: textColor })
-                        mainY -= 14
-                    }
-                    mainY += 14 // Reset for date positioning
-
-                    const dateText = `${edu.startDate} - ${edu.endDate}`
-                    const dateWidth = regularFont.widthOfTextAtSize(dateText, 9)
-                    p.drawText(dateText, { x: mainContentX + mainContentWidth - dateWidth, y: mainY, size: 9, font: regularFont, color: sidebarTextColor })
-
-                    mainY -= 12
-                    const degreeLines = wrapText(edu.degree, mainContentWidth, regularFont, 10)
-                    for (const line of degreeLines) {
-                        p.drawText(sanitizeForFont(line, regularFont), { x: mainContentX, y: mainY, size: 10, font: regularFont, color: accentColor })
-                        mainY -= 12
-                    }
-                    mainY -= 3
-
-                    if (edu.highlights) {
-                        for (const high of edu.highlights) {
-                            const lines = wrapText(`• ${high}`, mainContentWidth - 10, regularFont, 10)
-                            checkMainSpace(lines.length * 12)
-                            for (const line of lines) {
-                                pages[mainPageIndex].drawText(line, { x: mainContentX + 10, y: mainY, size: 10, font: regularFont, color: textColor })
-                                mainY -= 12
-                            }
-                        }
-                    }
-                    mainY -= 10
-                }
-            }
-        } else if (section.type === 'projects') {
-            const projSection = section as ProjectsSection
-            if (projSection.items) {
-                for (const proj of projSection.items) {
-                    checkMainSpace(40)
-                    const p = pages[mainPageIndex]
-
-                    const projLines = wrapText(proj.name, mainContentWidth, boldFont, 11)
-                    for (const line of projLines) {
-                        p.drawText(sanitizeForFont(line, boldFont), { x: mainContentX, y: mainY, size: 11, font: boldFont, color: textColor })
-                        mainY -= 13
-                    }
-
-                    if (proj.link) {
-                        const shrink = getTextWithShrink(proj.link, mainContentWidth, regularFont, 9)
-                        if ((shrink as any).wrap) {
-                            const lines = wrapText(proj.link, mainContentWidth, regularFont, 6)
-                            for (const line of lines) {
-                                p.drawText(line, { x: mainContentX, y: mainY, size: 6, font: regularFont, color: accentColor })
-                                addLink(pages[mainPageIndex], line, mainContentX, mainY, 6, regularFont, proj.link)
-                                mainY -= 8
-                            }
-                        } else {
-                            p.drawText(shrink.text, { x: mainContentX, y: mainY, size: shrink.size, font: regularFont, color: accentColor })
-                            addLink(pages[mainPageIndex], shrink.text, mainContentX, mainY, shrink.size, regularFont, proj.link)
-                            mainY -= (shrink.size + 2)
-                        }
-                    }
-                    if (proj.repo) {
-                        const shrink = getTextWithShrink(proj.repo, mainContentWidth, regularFont, 9)
-                        if ((shrink as any).wrap) {
-                            const lines = wrapText(proj.repo, mainContentWidth, regularFont, 6)
-                            for (const line of lines) {
-                                p.drawText(line, { x: mainContentX, y: mainY, size: 6, font: regularFont, color: accentColor })
-                                addLink(pages[mainPageIndex], line, mainContentX, mainY, 6, regularFont, proj.repo)
-                                mainY -= 8
-                            }
-                        } else {
-                            p.drawText(shrink.text, { x: mainContentX, y: mainY, size: shrink.size, font: regularFont, color: accentColor })
-                            addLink(pages[mainPageIndex], shrink.text, mainContentX, mainY, shrink.size, regularFont, proj.repo)
-                            mainY -= (shrink.size + 2)
-                        }
-                    }
-                    mainY -= 2
-
-                    if (proj.description) {
-                        for (const desc of proj.description) {
-                            const lines = wrapText(`• ${desc}`, mainContentWidth - 10, regularFont, 10)
-                            checkMainSpace(lines.length * 12)
-                            for (const line of lines) {
-                                pages[mainPageIndex].drawText(line, { x: mainContentX + 10, y: mainY, size: 10, font: regularFont, color: textColor })
-                                mainY -= 12
-                            }
-                        }
-                    }
-                    mainY -= 10
-                }
-            }
-        } else if (section.type === 'custom') {
-            const customSection = section as CustomSection
-            if (customSection.content) {
-                for (const item of customSection.content) {
-                    const lines = wrapText(`• ${item}`, mainContentWidth - 10, regularFont, 10)
-                    checkMainSpace(lines.length * 12)
-                    for (const line of lines) {
-                        pages[mainPageIndex].drawText(line, { x: mainContentX + 10, y: mainY, size: 10, font: regularFont, color: textColor })
-                        mainY -= 12
-                    }
-                }
-            }
-            mainY -= 10
-        }
+    // Render right sections
+    for (const section of rightSections) {
+        renderSectionPdf(section, false)
     }
 
     const pdfBytes = await pdfDoc.save()
