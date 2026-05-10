@@ -808,19 +808,13 @@ export async function generateTimelineResumePDF({
     }
   }
 
-  // Save PDF
   const pdfBytes = await pdfDoc.save();
-  const blob = new Blob([pdfBytes.buffer as ArrayBuffer], { type: 'application/pdf' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(link.href);
-
   return pdfBytes;
 }
 
 // Usage function to download the PDF
 export async function downloadATSTimelinePDF(options: GeneratePDFOptions) {
-  await generateTimelineResumePDF(options);
+  const { triggerPdfDownload } = await import("@/lib/pdf-generators/trigger-pdf-download");
+  const bytes = await generateTimelineResumePDF(options);
+  triggerPdfDownload(bytes, options.filename ?? "resume.pdf");
 }

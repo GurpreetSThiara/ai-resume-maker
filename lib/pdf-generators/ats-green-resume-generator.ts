@@ -748,19 +748,7 @@ export async function generateATSGreenResume({
     yPosition -= spacing.afterSection;
   }
 
-  // Save the PDF
   const pdfBytes = await pdfDoc.save();
-
-  // Create download in browser
-  const blob = new Blob([pdfBytes as unknown as ArrayBuffer], { type: "application/pdf" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-  
-  // Clean up
-  setTimeout(() => URL.revokeObjectURL(link.href), 100);
-  
   return pdfBytes;
 }
 
@@ -768,16 +756,17 @@ export async function generateATSGreenResume({
 export async function saveResumeToFile({
   resumeData,
   filename = "resume.pdf",
-  theme = 'green'
-}: GenerateResumeProps): Promise<void> {
-  await generateATSGreenResume({ resumeData, filename, theme });
+  theme = "green",
+}: GenerateResumeProps): Promise<Uint8Array> {
+  return generateATSGreenResume({ resumeData, filename, theme });
 }
 
-// Export function for browser environment (download)
 export async function downloadResume({
   resumeData,
   filename = "resume.pdf",
-  theme = 'green'
+  theme = "green",
 }: GenerateResumeProps): Promise<void> {
-  await generateATSGreenResume({ resumeData, filename, theme });
+  const { triggerPdfDownload } = await import("@/lib/pdf-generators/trigger-pdf-download");
+  const bytes = await generateATSGreenResume({ resumeData, filename, theme });
+  triggerPdfDownload(bytes, filename);
 }

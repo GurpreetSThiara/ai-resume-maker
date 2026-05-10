@@ -134,11 +134,7 @@ export async function generateElegantResumePDF({ resumeData, filename = "resume.
   }
 
   const bytes = await pdfDoc.save()
-  const blob = new Blob([bytes], { type: "application/pdf" })
-  const link = document.createElement("a")
-  link.href = URL.createObjectURL(blob)
-  link.download = filename
-  link.click()
+  return bytes
 }
 
 function wrapText(text: string, maxChars: number) {

@@ -666,7 +666,10 @@ const CreateResumeContent: FC = () => {
                 ) : (
                   <Card className="sticky top-32 h-screen overflow-auto">
                     <CardHeader>
-                      <CardTitle className="text-lg text-center">Preview (you can click/tap on any line and edit directly in preview)</CardTitle>
+                      <CardTitle className="text-lg text-center">Resume preview</CardTitle>
+                      <CardDescription className="text-center">
+                        Switch between editable layout and the real PDF from pdf-lib.
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <ResumePreview

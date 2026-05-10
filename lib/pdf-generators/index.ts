@@ -1,5 +1,6 @@
 import type { PDFGenerationOptions } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
+import { triggerPdfDownload } from "@/lib/pdf-generators/trigger-pdf-download"
 import { generateResumePDF as generateGooglePDF } from "@/lib/pdf-generators/google-resume-generator"
 import { generateModernResumePDF } from "@/lib/pdf-generators/modern-resume-generator"
 import { generateClassic2ResumePDF } from "@/lib/pdf-generators/template-classic-generator"
@@ -34,92 +35,81 @@ function hasSectionContent(section: any): boolean {
   }
 }
 
-export async function generateResumePDF(options: PDFGenerationOptions) {
-  const { template } = options
-
-  const filteredOptions: PDFGenerationOptions = {
+function getFilteredPdfOptions(options: PDFGenerationOptions): PDFGenerationOptions {
+  return {
     ...options,
     resumeData: {
       ...options.resumeData,
-      // Keep sections intact (including projects). Individual generators
-      // will decide how to render each section. Previously projects were
-      // flattened into `custom` which caused mismatch between preview and PDF.
-      // Keep custom-fields section so generators can use its order for rendering
-      // Filter out sections without content (but keep custom-fields even if empty)
-      sections: (options.resumeData.sections || [])
-        .filter((s: any) => s.id === 'custom-fields' || hasSectionContent(s)),
+      sections: (options.resumeData.sections || []).filter(
+        (s: any) => s.id === "custom-fields" || hasSectionContent(s),
+      ),
     },
   }
+}
 
+/** Build the same PDF as download, without triggering a file save or analytics. */
+export async function generateResumePDFBytes(options: PDFGenerationOptions): Promise<Uint8Array> {
+  const { template } = options
+  const filteredOptions = getFilteredPdfOptions(options)
 
-  let result
   switch (template.id) {
     case "classic-blue":
-      result = await generateGooglePDF(filteredOptions)
-      break
+      return generateGooglePDF(filteredOptions)
     case "ats-compact-lines":
-      result = await generateGooglePDF({
+      return generateGooglePDF({
         ...filteredOptions,
         variant: "black_compact",
       } as any)
-      break
     case "modern":
-      result = await generateModernResumePDF(filteredOptions)
-      break
+      return generateModernResumePDF(filteredOptions)
     case "ats-classic":
-      result = await generateClassic2ResumePDF(filteredOptions)
-      break
+      return generateClassic2ResumePDF(filteredOptions)
     case "ats-classic-compact":
-      result = await generateClassic2ResumePDF({
+      return generateClassic2ResumePDF({
         ...filteredOptions,
         variant: "compact",
       } as any)
-      break
     case "ats-elegant":
-      result = await generateElegantResumePDF(filteredOptions)
-      break
+      return generateElegantResumePDF(filteredOptions)
     case "ats-compact":
-      result = await generateCompactResumePDF(filteredOptions)
-      break
+      return generateCompactResumePDF(filteredOptions)
     case "ats-creative":
-      result = await generateCreativeResumePDF(filteredOptions)
-      break
+      return generateCreativeResumePDF(filteredOptions)
     case ATS_GREEN.id:
-      result = await generateATSGreenResume(filteredOptions)
-      break
+      return generateATSGreenResume(filteredOptions)
     case ATS_YELLOW.id:
-      result = await generateATSGreenResume({ ...filteredOptions, theme: "yellow" })
-      break
+      return generateATSGreenResume({ ...filteredOptions, theme: "yellow" })
     case ATS_TIMELINE.id:
-      result = await generateTimelineResumePDF(filteredOptions)
-      break
+      return generateTimelineResumePDF(filteredOptions)
     case "modern-sidebar":
-      result = await generateModernSidebarResumePDF(filteredOptions)
-      break
+      return generateModernSidebarResumePDF(filteredOptions)
     case "bold-professional":
-      result = await generateBoldProfessionalResumePDF(filteredOptions)
-      break
+      return generateBoldProfessionalResumePDF(filteredOptions)
     default:
-      result = await generateGooglePDF(filteredOptions)
+      return generateGooglePDF(filteredOptions)
   }
+}
 
-  // Track download for all PDF generators
+export async function generateResumePDF(options: PDFGenerationOptions) {
+  const { template } = options
+  const filename = options.filename ?? "resume.pdf"
+  const bytes = await generateResumePDFBytes(options)
+  triggerPdfDownload(bytes, filename)
+
   try {
-    await fetch('/api/track-download', {
-      method: 'POST',
+    await fetch("/api/track-download", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        format: 'pdf',
+        format: "pdf",
         template: template.id,
       }),
     })
   } catch (error) {
-    console.error('Failed to track PDF download:', error)
+    console.error("Failed to track PDF download:", error)
   }
-
-  return result
 }
 
 

@@ -812,11 +812,6 @@ export async function generateResumePDF({
     yOffset -= 10
   }
 
-  // Save PDF
   const pdfBytes = await pdfDoc.save()
-  const blob = new Blob([pdfBytes as unknown as ArrayBuffer], { type: "application/pdf" })
-  const link = document.createElement("a")
-  link.href = URL.createObjectURL(blob)
-  link.download = filename
-  link.click()
+  return pdfBytes
 }
