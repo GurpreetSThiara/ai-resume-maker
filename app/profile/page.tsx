@@ -15,7 +15,8 @@ import {
   Settings,
   Calendar,
   Eye,
-  EyeOff
+  EyeOff,
+  Lock
 } from "lucide-react"
 import { getUserResumes, deleteResume, loadResumeData } from "@/lib/supabase-functions"
 import { getLocalResumes, deleteLocalResume as removeLocalResume, getLocalResumeById, LocalResumeItem, duplicateLocalResume } from "@/lib/local-storage"
@@ -98,12 +99,6 @@ const defaultTemplate: ResumeTemplate = {
 export default function ProfilePage() {
   const { user, loading, signOut } = useAuth()
   const { open: openAuthModal } = useAuthModal()
-
-  useEffect(() => {
-    if (!loading && !user) {
-      openAuthModal()
-    }
-  }, [user, loading, openAuthModal])
   const router = useRouter()
   //const { toast } = useToast()
   const { usage, refreshUsage } = useAi()
@@ -296,8 +291,26 @@ export default function ProfilePage() {
   }
 
   if (!user) {
-    // While redirecting, render nothing to avoid updating Router during render
-    return null
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
+        <Card className="w-full max-w-md border-dashed">
+          <CardHeader className="text-center">
+            <div className="h-16 w-16 bg-purple-50 dark:bg-purple-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Lock className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+            </div>
+            <CardTitle className="text-2xl font-bold">Sign in Required</CardTitle>
+            <CardDescription className="text-base mt-2">
+              Your profile contains your saved resumes and settings. Please sign in to access them.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center pb-8">
+            <Button size="lg" onClick={() => openAuthModal('/profile')} className="px-8 bg-purple-600 hover:bg-purple-700">
+              Sign In / Register
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
