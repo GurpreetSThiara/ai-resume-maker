@@ -1,6 +1,7 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 import type { PDFGenerationOptions } from "@/types/resume"
-import { sanitizeTextForPdf } from '@/lib/utils'
+import { sanitizeTextForPdf, wrapText } from '@/lib/utils'
+
 
 export async function generateCompactResumePDF({ resumeData, filename = "resume.pdf" }: PDFGenerationOptions) {
   const pdfDoc = await PDFDocument.create()
@@ -25,9 +26,17 @@ export async function generateCompactResumePDF({ resumeData, filename = "resume.
   y -= 18
 
   // Contact Info
-  const contactInfo = [resumeData.email, resumeData.phone, resumeData.location, resumeData.linkedin].filter(Boolean).join(" | ")
-  draw(contactInfo, margin, 9, regular, secondary)
-  y -= 20
+  const contactParts = [resumeData.email, resumeData.phone, resumeData.location, resumeData.linkedin].filter(Boolean).map(s => String(s))
+  if (contactParts.length > 0) {
+    const contactInfo = contactParts.join(" | ")
+    const contactLines = wrapTextLocal(contactInfo, width - 2 * margin, regular, 9)
+    for (const line of contactLines) {
+      draw(line, margin, 9, regular, secondary)
+      y -= 11
+    }
+  }
+  y -= 9
+
 
   // Additional Links or Data
   Object.values(resumeData.custom).forEach((item) => {
@@ -87,7 +96,8 @@ export async function generateCompactResumePDF({ resumeData, filename = "resume.
           continue
         }
 
-        const lines = wrapText(`• ${b}`, 85)
+        const lines = wrapTextLocal(`• ${b}`, width - 2 * margin - 10, regular, 9)
+
         for (const line of lines) {
           draw(line, margin + 10, 9, regular)
           y -= 12
@@ -102,18 +112,7 @@ export async function generateCompactResumePDF({ resumeData, filename = "resume.
   return bytes
 }
 
-function wrapText(text: string, maxChars: number) {
-  const words = text.split(" ")
-  const lines: string[] = []
-  let current = ""
-  for (const w of words) {
-    if ((current + w).length > maxChars) {
-      lines.push(current.trim())
-      current = w + " "
-    } else {
-      current += w + " "
-    }
-  }
-  if (current.trim()) lines.push(current.trim())
-  return lines
+function wrapTextLocal(text: string, maxWidth: number, font: any, fontSize: number) {
+  return wrapText(text, maxWidth, font, fontSize)
 }
+

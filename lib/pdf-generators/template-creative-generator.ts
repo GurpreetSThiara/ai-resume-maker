@@ -1,7 +1,8 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
 import type { PDFGenerationOptions } from "@/types/resume"
 import { ResumeData } from '@/types/resume'
-import { sanitizeTextForPdf } from '@/lib/utils'
+import { sanitizeTextForPdf, wrapText } from '@/lib/utils'
+
 
 export async function generateCreativeResumePDF({ resumeData, filename = "resume.pdf" }: PDFGenerationOptions) {
   const pdfDoc = await PDFDocument.create()
@@ -26,8 +27,17 @@ export async function generateCreativeResumePDF({ resumeData, filename = "resume
   y -= 10
   draw(resumeData.basics.name, margin, 22, bold, text)
   y -= 16
-  draw([resumeData.basics.email, resumeData.basics.phone, resumeData.basics.location].filter(Boolean).join(" | "), margin, 9, regular, secondary)
-  y -= 18
+  const contactParts = [resumeData.basics.email, resumeData.basics.phone, resumeData.basics.location, resumeData.basics.linkedin].filter(Boolean).map(s => String(s))
+  if (contactParts.length > 0) {
+    const contactInfo = contactParts.join(" | ")
+    const contactLines = wrapTextLocal(contactInfo, width - 2 * margin, regular, 9)
+    for (const line of contactLines) {
+      draw(line, margin, 9, regular, secondary)
+      y -= 11
+    }
+  }
+  y -= 7
+
 
   for (const section of resumeData.sections) {
     if (y < 70) {
@@ -51,7 +61,8 @@ export async function generateCreativeResumePDF({ resumeData, filename = "resume
 
           if (edu.highlights) {
             edu.highlights.forEach((highlight) => {
-              const lines = wrapText(`• ${highlight}`, 86)
+              const lines = wrapTextLocal(`• ${highlight}`, width - 2 * margin - 10, regular, 9)
+
               for (const line of lines) {
                 draw(line, margin + 10, 9)
                 y -= 12
@@ -75,7 +86,8 @@ export async function generateCreativeResumePDF({ resumeData, filename = "resume
 
           if (exp.achievements) {
             exp.achievements.forEach((achievement) => {
-              const lines = wrapText(`• ${achievement}`, 86)
+              const lines = wrapTextLocal(`• ${achievement}`, width - 2 * margin - 10, regular, 9)
+
               for (const line of lines) {
                 draw(line, margin + 10, 9)
                 y -= 12
@@ -90,7 +102,8 @@ export async function generateCreativeResumePDF({ resumeData, filename = "resume
       case "languages":
       case "certifications":
         const itemsText = section.items.join(", ")
-        const lines = wrapText(itemsText, 86)
+        const lines = wrapTextLocal(itemsText, width - 2 * margin, regular, 9)
+
         for (const line of lines) {
           draw(line, margin, 9)
           y -= 12
@@ -111,7 +124,8 @@ export async function generateCreativeResumePDF({ resumeData, filename = "resume
             if (proj.repo) linksRow += 'GitHub:'
             if (proj.repo) linksRow += ` ${proj.repo}`
             if (linksRow) {
-              const linkLines = wrapText(linksRow, 95)
+              const linkLines = wrapTextLocal(linksRow, width - 2 * margin, regular, 9)
+
               for (const line of linkLines) {
                 draw(line, margin, 9, regular, accent)
                 y -= 11
@@ -120,7 +134,8 @@ export async function generateCreativeResumePDF({ resumeData, filename = "resume
             // Descriptions
             if (Array.isArray(proj.description) && proj.description.length) {
               for (const d of proj.description) {
-                const descLines = wrapText(`- ${d}`, 85)
+                  const descLines = wrapTextLocal(`- ${d}`, width - 2 * margin - 14, regular, 9)
+
                 for (const line of descLines) {
                   draw(line, margin + 14, 9, regular, secondary)
                   y -= 12
@@ -134,7 +149,8 @@ export async function generateCreativeResumePDF({ resumeData, filename = "resume
 
       case "custom":
         section.content.forEach((item) => {
-          const lines = wrapText(`• ${item}`, 86)
+          const lines = wrapTextLocal(`• ${item}`, width - 2 * margin - 10, regular, 9)
+
           for (const line of lines) {
             draw(line, margin + 10, 9)
             y -= 12
@@ -157,7 +173,8 @@ export async function generateCreativeResumePDF({ resumeData, filename = "resume
 
     for (const [key, item] of customEntries) {
       if (item.hidden) continue
-      const lines = wrapText(`${item.title}: ${item.content}`, 86)
+      const lines = wrapTextLocal(`${item.title}: ${item.content}`, width - 2 * margin, regular, 9)
+
       for (const line of lines) {
         draw(line, margin, 9, regular, text)
         y -= 12
@@ -170,20 +187,9 @@ export async function generateCreativeResumePDF({ resumeData, filename = "resume
   return bytes
 }
 
-function wrapText(text: string, maxChars: number) {
-  const words = text.split(" ")
-  const lines: string[] = []
-  let current = ""
-  for (const w of words) {
-    if ((current + w).length > maxChars) {
-      lines.push(current.trim())
-      current = w + " "
-    } else {
-      current += w + " "
-    }
-  }
-  if (current.trim()) lines.push(current.trim())
-  return lines
+function wrapTextLocal(text: string, maxWidth: number, font: any, fontSize: number) {
+  return wrapText(text, maxWidth, font, fontSize)
 }
+
 
 

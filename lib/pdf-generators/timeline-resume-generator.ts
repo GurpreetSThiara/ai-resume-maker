@@ -1,6 +1,7 @@
 import { PDFDocument, rgb, StandardFonts, PDFName, PDFString } from 'pdf-lib';
 import type { ResumeData } from '@/types/resume';
-import { sanitizeTextForPdf, sanitizeTextForPdfWithFont } from '@/lib/utils';
+import { sanitizeTextForPdf, sanitizeTextForPdfWithFont, wrapText } from '@/lib/utils';
+
 
 interface GeneratePDFOptions {
   resumeData: ResumeData;
@@ -93,26 +94,10 @@ export async function generateTimelineResumePDF({
   };
 
   // Helper function to wrap text
-  const wrapText = (text: string, maxWidth: number, font: any, size: number): string[] => {
-    const words = sanitizeTextForPdf(text || '').split(' ');
-    const lines: string[] = [];
-    let currentLine = '';
-
-    for (const word of words) {
-      const testLine = currentLine ? `${currentLine} ${word}` : word;
-      const testWidth = font.widthOfTextAtSize(testLine, size);
-
-      if (testWidth > maxWidth && currentLine) {
-        lines.push(currentLine);
-        currentLine = word;
-      } else {
-        currentLine = testLine;
-      }
-    }
-
-    if (currentLine) lines.push(currentLine);
-    return lines;
+  const wrapTextLocal = (text: string, maxWidth: number, font: any, size: number): string[] => {
+    return wrapText(text, maxWidth, font, size);
   };
+
 
   const sanitizeForFont = (text: string, font: any): string => {
     return sanitizeTextForPdfWithFont(text || '', font);
@@ -156,66 +141,21 @@ export async function generateTimelineResumePDF({
   if (resumeData.basics.location) contactParts.push(sanitizeForFont(resumeData.basics.location, helvetica));
   if (resumeData.basics.linkedin) contactParts.push(sanitizeForFont(resumeData.basics.linkedin, helvetica));
 
-  // Build contact line with wrapping support
-  const maxContactWidth = width - (SPACING.pageMargin * 2);
-  let contactLine: string[] = [];
-  const contactLineGroups: string[][] = [];
+  // Build contact line with robust wrapping support
+  const contactText = contactParts.join(' • ');
+  const contactLines = wrapTextLocal(contactText, maxContactWidth, helvetica, SIZES.contact);
 
-  for (let i = 0; i < contactParts.length; i++) {
-    const part = contactParts[i];
-    const testLine = [...contactLine, part];
-    const testText = testLine.join(' • ');
-    const testWidth = helvetica.widthOfTextAtSize(testText, SIZES.contact);
-
-    if (testWidth > maxContactWidth && contactLine.length > 0) {
-      contactLineGroups.push([...contactLine]);
-      contactLine = [part];
-    } else {
-      contactLine.push(part);
-    }
-  }
-  if (contactLine.length > 0) contactLineGroups.push(contactLine);
-
-  // Draw contact lines with justification for wrapped lines
-  for (let lineIdx = 0; lineIdx < contactLineGroups.length; lineIdx++) {
-    const parts = contactLineGroups[lineIdx];
-    const isFirstLine = lineIdx === 0;
-    const isWrapped = contactLineGroups.length > 1;
-
-    if (isFirstLine && isWrapped && parts.length > 1) {
-      // First line with wrapping: justify between
-      const totalPartsWidth = parts.reduce((sum, part) => 
-        sum + helvetica.widthOfTextAtSize(part, SIZES.contact), 0
-      );
-      const availableSpace = maxContactWidth - totalPartsWidth;
-      const gapBetween = availableSpace / (parts.length - 1);
-
-      let currentX = SPACING.pageMargin;
-      for (let i = 0; i < parts.length; i++) {
-        const part = parts[i];
-        page.drawText(part, {
-          x: currentX,
-          y: yPosition,
-          size: SIZES.contact,
-          font: helvetica,
-          color: COLORS.secondary,
-        });
-        currentX += helvetica.widthOfTextAtSize(part, SIZES.contact) + gapBetween;
-      }
-    } else {
-      // Regular line or single item: normal spacing with bullets
-      const lineText = parts.join(' • ');
-      page.drawText(sanitizeForFont(lineText, helvetica), {
-        x: SPACING.pageMargin,
-        y: yPosition,
-        size: SIZES.contact,
-        font: helvetica,
-        color: COLORS.secondary,
-      });
-    }
-    
+  for (const line of contactLines) {
+    page.drawText(line, {
+      x: SPACING.pageMargin,
+      y: yPosition,
+      size: SIZES.contact,
+      font: helvetica,
+      color: COLORS.secondary,
+    });
     yPosition -= SIZES.contact * 1.4;
   }
+
   yPosition -= 4;
 
   // 3. Draw Summary

@@ -1,5 +1,7 @@
 import { PDFDocument, PDFPage, rgb, StandardFonts } from "pdf-lib"
-import { ResumeData, PDFGenerationOptions } from "@/types/resume" // Import PDFGenerationOptions
+import { ResumeData, PDFGenerationOptions } from "@/types/resume"
+import { wrapText } from "@/lib/utils"
+ // Import PDFGenerationOptions
 
 export async function generateBoldProfessionalResumePDF(options: PDFGenerationOptions): Promise<Uint8Array> {
     const { resumeData, filename } = options
@@ -83,26 +85,11 @@ export async function generateBoldProfessionalResumePDF(options: PDFGenerationOp
     }
 
     // Helper for text wrapping
-    const wrapText = (text: string, maxWidth: number, fontSize: number, fontFace: any = ctx.font) => {
+    const wrapTextLocal = (text: string, maxWidth: number, fontSize: number, fontFace: any = ctx.font) => {
         const f = fontFace || ctx.font || font
-        const safeText = sanitizeText(text)
-        const words = safeText.split(' ')
-        let lines: string[] = []
-        let currentLine = words[0] || ""
-
-        for (let i = 1; i < words.length; i++) {
-            const word = words[i]
-            const width = measureText(currentLine + " " + word, fontSize, f)
-            if (width < maxWidth) {
-                currentLine += (currentLine ? " " : "") + word
-            } else {
-                if (currentLine) lines.push(currentLine)
-                currentLine = word
-            }
-        }
-        if (currentLine) lines.push(currentLine)
-        return lines
+        return wrapText(text, maxWidth, f, fontSize)
     }
+
 
     // --- HEADER ---
     // Full width colored background
@@ -133,13 +120,15 @@ export async function generateBoldProfessionalResumePDF(options: PDFGenerationOp
 
     if (contactParts.length > 0) {
         const contactLine = contactParts.join(" | ")
-        const contactLines = wrapText(contactLine, ctx.width - (margin * 2), 10, ctx.font)
+        const contactLines = wrapTextLocal(contactLine, ctx.width - (margin * 2), 10, ctx.font)
 
         for (const line of contactLines) {
             drawText(line, margin, textY, 10, rgb(0.9, 0.9, 0.9), ctx.font)
             textY -= 12
         }
     }
+
+
 
     // --- CONTENT ---
     ctx.y = headerY - 30 // Start content below header
@@ -170,7 +159,8 @@ export async function generateBoldProfessionalResumePDF(options: PDFGenerationOp
 
         // Content
         const maxWidth = ctx.width - (margin * 2)
-        const summaryLines = wrapText(resumeData.basics.summary, maxWidth, 11, ctx.font)
+        const summaryLines = wrapTextLocal(resumeData.basics.summary, maxWidth, 11, ctx.font)
+
         const lineHeight = 15
 
         for (const line of summaryLines) {
@@ -215,7 +205,8 @@ export async function generateBoldProfessionalResumePDF(options: PDFGenerationOp
                     const fontSize = 11
                     const lineHeight = 14
 
-                    const achLines = wrapText(ach, maxWidth, fontSize, ctx.font)
+                    const achLines = wrapTextLocal(ach, maxWidth, fontSize, ctx.font)
+
 
                     // Draw bullet + first line
                     ensureSpace(lineHeight)
@@ -257,7 +248,8 @@ export async function generateBoldProfessionalResumePDF(options: PDFGenerationOp
             if (edu.highlights) {
                 for (const h of edu.highlights) {
                     const maxWidth = ctx.width - (margin * 2) - 15
-                    const highlightLines = wrapText(h, maxWidth, 11, ctx.font)
+                    const highlightLines = wrapTextLocal(h, maxWidth, 11, ctx.font)
+
 
                     ensureSpace(14)
                     ctx.page.drawText("•", { x: margin + 5, y: ctx.y, size: 11, font: ctx.font, color: colors.text })
@@ -328,7 +320,8 @@ export async function generateBoldProfessionalResumePDF(options: PDFGenerationOp
             // Draw remaining lines (full width)
             if (remainingWords.length > 0) {
                 const remainingText = remainingWords.join(', ')
-                const remainingLines = wrapText(remainingText, fullWidth, 11, ctx.font)
+                const remainingLines = wrapTextLocal(remainingText, fullWidth, 11, ctx.font)
+
                 for (const line of remainingLines) {
                     ensureSpace(16)
                     drawTextCtx(line, margin, 11, colors.text, ctx.font)
@@ -363,7 +356,8 @@ export async function generateBoldProfessionalResumePDF(options: PDFGenerationOp
             if (proj.description) {
                 for (const d of proj.description) {
                     const maxWidth = ctx.width - (margin * 2) - 15
-                    const lines = wrapText(d, maxWidth, 11, ctx.font)
+                    const lines = wrapTextLocal(d, maxWidth, 11, ctx.font)
+
 
                     ensureSpace(14)
                     ctx.page.drawText("•", { x: margin + 5, y: ctx.y, size: 11, font: ctx.font, color: colors.text })
@@ -399,7 +393,8 @@ export async function generateBoldProfessionalResumePDF(options: PDFGenerationOp
         if (section.type === 'languages') {
             const languagesText = contentItems.join(", ")
             const maxWidth = ctx.width - (margin * 2)
-            const lines = wrapText(languagesText, maxWidth, 11, ctx.font)
+            const lines = wrapTextLocal(languagesText, maxWidth, 11, ctx.font)
+
 
             for (const line of lines) {
                 ensureSpace(14)
@@ -424,7 +419,8 @@ export async function generateBoldProfessionalResumePDF(options: PDFGenerationOp
 
             // Wrap text for list items
             const maxWidth = ctx.width - (margin * 2) - 15
-            const lines = wrapText(textToDraw, maxWidth, 11, ctx.font)
+            const lines = wrapTextLocal(textToDraw, maxWidth, 11, ctx.font)
+
 
             ensureSpace(14)
             ctx.page.drawText("•", { x: margin + 5, y: ctx.y, size: 11, font: ctx.font, color: colors.text })

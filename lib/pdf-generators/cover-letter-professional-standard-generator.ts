@@ -1,6 +1,8 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
 import type { CoverLetter } from "@/types/cover-letter"
 import { format } from "date-fns"
+import { wrapText } from "@/lib/utils"
+
 
 export async function generateProfessionalStandardPDF(coverLetter: CoverLetter): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create()
@@ -63,16 +65,21 @@ export async function generateProfessionalStandardPDF(coverLetter: CoverLetter):
   
   if (contactInfoParts.length > 0) {
     const contactInfo = contactInfoParts.join(' | ')
-    const contactWidth = helvetica.widthOfTextAtSize(contactInfo, 10)
-    page.drawText(contactInfo, {
-      x: (612 - contactWidth) / 2,
-      y: yPosition,
-      size: 10,
-      font: helvetica,
-      color: rgb(0, 0, 0),
-    })
-    yPosition -= 15
+    const contactLines = wrapText(contactInfo, 500, helvetica, 10)
+    for (const line of contactLines) {
+      const contactWidth = helvetica.widthOfTextAtSize(line, 10)
+      checkAndCreateNewPage(15)
+      page.drawText(line, {
+        x: (612 - contactWidth) / 2,
+        y: yPosition,
+        size: 10,
+        font: helvetica,
+        color: rgb(0, 0, 0),
+      })
+      yPosition -= 15
+    }
   }
+
 
   // Date
   checkAndCreateNewPage(35)
@@ -144,47 +151,21 @@ export async function generateProfessionalStandardPDF(coverLetter: CoverLetter):
   // Content paragraphs
   const paragraphs = [opening, body, closing]
   paragraphs.forEach((paragraph) => {
-    const lines = paragraph.split("\n")
-    lines.forEach((line) => {
-      const words = line.split(" ")
-      let currentLine = ""
-
-      words.forEach((word) => {
-        const testLine = currentLine + (currentLine ? " " : "") + word
-        const textWidth = helvetica.widthOfTextAtSize(testLine, 11)
-
-        if (textWidth > 468) {
-          if (currentLine) {
-            checkAndCreateNewPage(lineHeight)
-            page.drawText(currentLine, {
-              x: 72,
-              y: yPosition,
-              size: 11,
-              font: helvetica,
-              color: rgb(0, 0, 0),
-            })
-            yPosition -= lineHeight
-          }
-          currentLine = word
-        } else {
-          currentLine = testLine
-        }
+    const lines = wrapText(paragraph, 468, helvetica, 11)
+    for (const line of lines) {
+      checkAndCreateNewPage(lineHeight)
+      page.drawText(line, {
+        x: 72,
+        y: yPosition,
+        size: 11,
+        font: helvetica,
+        color: rgb(0, 0, 0),
       })
-
-      if (currentLine) {
-        checkAndCreateNewPage(lineHeight)
-        page.drawText(currentLine, {
-          x: 72,
-          y: yPosition,
-          size: 11,
-          font: helvetica,
-          color: rgb(0, 0, 0),
-        })
-        yPosition -= lineHeight
-      }
-    })
+      yPosition -= lineHeight
+    }
     yPosition -= 8
   })
+
 
   // Signature
   checkAndCreateNewPage(45)

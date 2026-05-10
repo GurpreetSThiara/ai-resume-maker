@@ -1,6 +1,8 @@
 import { PDFDocument, StandardFonts, rgb, PDFName, PDFString } from "pdf-lib"
 import type { PDFGenerationOptions, ExperienceSection, EducationSection, ProjectsSection, CustomSection } from "@/types/resume"
-import { sanitizeTextForPdf, sanitizeTextForPdfWithFont } from "@/lib/utils"
+import { sanitizeTextForPdf, sanitizeTextForPdfWithFont, wrapText as baseWrapText } from "@/lib/utils"
+
+
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
 
@@ -61,49 +63,10 @@ export async function generateModernSidebarResumePDF({
 
     // Utility: Text wrapping (enhanced with word breaking)
     const wrapText = (text: string, maxWidth: number, font = regularFont, size = 10): string[] => {
-        const words = sanitizeTextForPdf(text).split(" ")
-        const lines: string[] = []
-        let currentLine = ""
-
-        for (const word of words) {
-            const testText = currentLine + (currentLine ? " " : "") + word
-            const safeTestText = sanitizeForFont(testText, font)
-            const width = font.widthOfTextAtSize(safeTestText, size)
-
-            if (width <= maxWidth) {
-                currentLine = testText
-            } else {
-                if (currentLine) {
-                    lines.push(sanitizeForFont(currentLine, font))
-                    currentLine = ""
-                }
-                const wordWidth = font.widthOfTextAtSize(sanitizeForFont(word, font), size)
-                if (wordWidth <= maxWidth) {
-                    currentLine = word
-                } else {
-                    // Word split logic
-                    let currentWordPart = ""
-                    for (const char of word) {
-                        const testPart = currentWordPart + char
-                        if (font.widthOfTextAtSize(sanitizeForFont(testPart, font), size) <= maxWidth) {
-                            currentWordPart = testPart
-                        } else {
-                            if (currentWordPart) lines.push(sanitizeForFont(currentWordPart, font))
-                            currentWordPart = char
-                            // Safety for extremely narrow width (single char overflow)
-                            if (font.widthOfTextAtSize(char, size) > maxWidth) {
-                                lines.push(sanitizeForFont(currentWordPart, font))
-                                currentWordPart = ""
-                            }
-                        }
-                    }
-                    currentLine = currentWordPart
-                }
-            }
-        }
-        if (currentLine) lines.push(sanitizeForFont(currentLine, font))
-        return lines
+        return baseWrapText(text, maxWidth, font, size)
     }
+
+
 
     // Utility: Shrink to fit (for links/emails)
     // Returns { text, size }

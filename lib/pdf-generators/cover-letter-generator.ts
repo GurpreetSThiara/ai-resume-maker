@@ -1,6 +1,8 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
 import type { CoverLetter } from "@/types/cover-letter"
 import { format } from "date-fns"
+import { wrapText } from "@/lib/utils"
+
 
 export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create()
@@ -61,40 +63,12 @@ export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<
     yPosition -= 15
   }
 
-  // Helper function to wrap text
-  const wrapText = (text: string, maxWidth: number) => {
-    const words = text.split(' ')
-    const lines = []
-    let currentLine = ''
-    
-    for (const word of words) {
-      const testLine = currentLine + (currentLine ? ' ' : '') + word
-      const textWidth = helvetica.widthOfTextAtSize(testLine, 11)
-      
-      if (textWidth > maxWidth) {
-        if (currentLine) {
-          lines.push(currentLine)
-          currentLine = word
-        } else {
-          // Word is too long, break it
-          lines.push(word)
-          currentLine = ''
-        }
-      } else {
-        currentLine = testLine
-      }
-    }
-    
-    if (currentLine) {
-      lines.push(currentLine)
-    }
-    
-    return lines
-  }
+
   
   // Address with proper wrapping - only if address exists
   if (yourAddress) {
-    const applicantAddressLines = wrapText(yourAddress, 468) // 468 points max width (612 - 72 - 72)
+    const applicantAddressLines = wrapText(yourAddress, 468, helvetica, 11) // 468 points max width (612 - 72 - 72)
+
     applicantAddressLines.forEach((line) => {
       checkAndCreateNewPage(15)
       page.drawText(line, {
@@ -114,16 +88,21 @@ export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<
   if (yourEmail) contactInfoParts.push(yourEmail)
   
   if (contactInfoParts.length > 0) {
-    checkAndCreateNewPage(15)
-    page.drawText(contactInfoParts.join(' | '), {
-      x: 72,
-      y: yPosition,
-      size: 11,
-      font: helvetica,
-      color: rgb(0, 0, 0),
-    })
-    yPosition -= 15
+    const contactText = contactInfoParts.join(' | ')
+    const contactLines = wrapText(contactText, 468, helvetica, 11)
+    for (const line of contactLines) {
+      checkAndCreateNewPage(15)
+      page.drawText(line, {
+        x: 72,
+        y: yPosition,
+        size: 11,
+        font: helvetica,
+        color: rgb(0, 0, 0),
+      })
+      yPosition -= 15
+    }
   }
+
 
   // Social links if any exist - with proper text wrapping keeping complete links together
   const socialLinks = []
@@ -132,33 +111,11 @@ export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<
   // if (yourGithub) socialLinks.push(`GitHub: ${yourGithub}`)
   
   if (socialLinks.length > 0) {
-    let currentLine = ''
-    
-    socialLinks.forEach((socialLink, index) => {
-      const testLine = currentLine + (currentLine ? ' | ' : '') + socialLink
-      const textWidth = helvetica.widthOfTextAtSize(testLine, 11)
-      
-      if (textWidth > 468) {
-        if (currentLine) {
-          checkAndCreateNewPage(lineHeight)
-          page.drawText(currentLine, {
-            x: 72,
-            y: yPosition,
-            size: 11,
-            font: helvetica,
-            color: rgb(0, 0, 0),
-          })
-          yPosition -= lineHeight
-        }
-        currentLine = socialLink
-      } else {
-        currentLine = testLine
-      }
-    })
-    
-    if (currentLine) {
+    const socialText = socialLinks.join(' | ')
+    const socialLines = wrapText(socialText, 468, helvetica, 11)
+    for (const line of socialLines) {
       checkAndCreateNewPage(lineHeight)
-      page.drawText(currentLine, {
+      page.drawText(line, {
         x: 72,
         y: yPosition,
         size: 11,
@@ -168,6 +125,7 @@ export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<
       yPosition -= lineHeight
     }
   }
+
   yPosition -= 20
 
   // Date
@@ -252,47 +210,21 @@ export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<
   // Content paragraphs
   const paragraphs = [opening, body, closing]
   paragraphs.forEach((paragraph) => {
-    const lines = paragraph.split("\n")
-    lines.forEach((line) => {
-      const words = line.split(" ")
-      let currentLine = ""
-
-      words.forEach((word) => {
-        const testLine = currentLine + (currentLine ? " " : "") + word
-        const textWidth = helvetica.widthOfTextAtSize(testLine, 11)
-
-        if (textWidth > 468) {
-          if (currentLine) {
-            checkAndCreateNewPage(lineHeight)
-            page.drawText(currentLine, {
-              x: 72,
-              y: yPosition,
-              size: 11,
-              font: helvetica,
-              color: rgb(0, 0, 0),
-            })
-            yPosition -= lineHeight
-          }
-          currentLine = word
-        } else {
-          currentLine = testLine
-        }
+    const lines = wrapText(paragraph, 468, helvetica, 11)
+    for (const line of lines) {
+      checkAndCreateNewPage(lineHeight)
+      page.drawText(line, {
+        x: 72,
+        y: yPosition,
+        size: 11,
+        font: helvetica,
+        color: rgb(0, 0, 0),
       })
-
-      if (currentLine) {
-        checkAndCreateNewPage(lineHeight)
-        page.drawText(currentLine, {
-          x: 72,
-          y: yPosition,
-          size: 11,
-          font: helvetica,
-          color: rgb(0, 0, 0),
-        })
-        yPosition -= lineHeight
-      }
-    })
+      yPosition -= lineHeight
+    }
     yPosition -= 12
   })
+
 
   // Signature
   checkAndCreateNewPage(45)

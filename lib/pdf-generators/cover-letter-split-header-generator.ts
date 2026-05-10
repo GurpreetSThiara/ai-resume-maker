@@ -1,6 +1,8 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
 import type { CoverLetter } from "@/types/cover-letter"
 import { format } from "date-fns"
+import { wrapText } from "@/lib/utils"
+
 
 export async function generateSplitHeaderPDF(coverLetter: CoverLetter): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create()
@@ -67,39 +69,11 @@ export async function generateSplitHeaderPDF(coverLetter: CoverLetter): Promise<
   // Right Side - Contact Info (top right)
   let rightYPosition = 720
   
-  // Helper function to wrap text for right side
-  const wrapTextForRightSide = (text: string, maxWidth: number) => {
-    const words = text.split(' ')
-    const lines = []
-    let currentLine = ''
-    
-    for (const word of words) {
-      const testLine = currentLine + (currentLine ? ' ' : '') + word
-      const textWidth = helvetica.widthOfTextAtSize(testLine, 11)
-      
-      if (textWidth > maxWidth) {
-        if (currentLine) {
-          lines.push(currentLine)
-          currentLine = word
-        } else {
-          // Word is too long, break it
-          lines.push(word)
-          currentLine = ''
-        }
-      } else {
-        currentLine = testLine
-      }
-    }
-    
-    if (currentLine) {
-      lines.push(currentLine)
-    }
-    
-    return lines
-  }
+
   
   // Address with proper wrapping
-  const applicantAddressLines = wrapTextForRightSide(yourAddress, 200) // 200 points max width
+  const applicantAddressLines = wrapText(yourAddress, 200, helvetica, 11) // 200 points max width
+
   applicantAddressLines.forEach((line) => {
     checkAndCreateNewPage(15)
     const textWidth = helvetica.widthOfTextAtSize(line, 11)
@@ -113,27 +87,39 @@ export async function generateSplitHeaderPDF(coverLetter: CoverLetter): Promise<
     rightYPosition -= 15
   })
 
-  checkAndCreateNewPage(15)
-  const phoneTextWidth = helvetica.widthOfTextAtSize(yourPhone, 11)
-  page.drawText(yourPhone, {
-    x: 540 - phoneTextWidth, // Right align
-    y: rightYPosition,
-    size: 11,
-    font: helvetica,
-    color: rgb(0.4, 0.4, 0.4),
-  })
-  rightYPosition -= 15
+  if (yourPhone) {
+    const phoneLines = wrapText(yourPhone, 200, helvetica, 11)
+    for (const line of phoneLines) {
+      checkAndCreateNewPage(15)
+      const textWidth = helvetica.widthOfTextAtSize(line, 11)
+      page.drawText(line, {
+        x: 540 - textWidth,
+        y: rightYPosition,
+        size: 11,
+        font: helvetica,
+        color: rgb(0.4, 0.4, 0.4),
+      })
+      rightYPosition -= 15
+    }
+  }
 
-  checkAndCreateNewPage(15)
-  const emailTextWidth = helvetica.widthOfTextAtSize(yourEmail, 11)
-  page.drawText(yourEmail, {
-    x: 540 - emailTextWidth, // Right align
-    y: rightYPosition,
-    size: 11,
-    font: helvetica,
-    color: rgb(0.4, 0.4, 0.4),
-  })
-  rightYPosition -= 15
+
+  if (yourEmail) {
+    const emailLines = wrapText(yourEmail, 200, helvetica, 11)
+    for (const line of emailLines) {
+      checkAndCreateNewPage(15)
+      const textWidth = helvetica.widthOfTextAtSize(line, 11)
+      page.drawText(line, {
+        x: 540 - textWidth,
+        y: rightYPosition,
+        size: 11,
+        font: helvetica,
+        color: rgb(0.4, 0.4, 0.4),
+      })
+      rightYPosition -= 15
+    }
+  }
+
 
   // Social links if any exist
   const socialLinks = []
@@ -142,19 +128,23 @@ export async function generateSplitHeaderPDF(coverLetter: CoverLetter): Promise<
   // if (yourGithub) socialLinks.push(`GitHub: ${yourGithub}`)
   
   if (socialLinks.length > 0) {
-    socialLinks.forEach((socialLink) => {
-      checkAndCreateNewPage(15)
-      const socialTextWidth = helvetica.widthOfTextAtSize(socialLink, 11)
-      page.drawText(socialLink, {
-        x: 540 - socialTextWidth, // Right align
-        y: rightYPosition,
-        size: 11,
-        font: helvetica,
-        color: rgb(0.4, 0.4, 0.4),
-      })
-      rightYPosition -= 15
-    })
+    for (const socialLink of socialLinks) {
+      const socialLines = wrapText(socialLink, 200, helvetica, 11)
+      for (const line of socialLines) {
+        checkAndCreateNewPage(15)
+        const socialTextWidth = helvetica.widthOfTextAtSize(line, 11)
+        page.drawText(line, {
+          x: 540 - socialTextWidth,
+          y: rightYPosition,
+          size: 11,
+          font: helvetica,
+          color: rgb(0.4, 0.4, 0.4),
+        })
+        rightYPosition -= 15
+      }
+    }
   }
+
 
   // Reset yPosition to account for the right side content
   yPosition = Math.min(yPosition, rightYPosition) - 30
@@ -231,47 +221,21 @@ export async function generateSplitHeaderPDF(coverLetter: CoverLetter): Promise<
   // Content paragraphs
   const paragraphs = [opening, body, closing]
   paragraphs.forEach((paragraph) => {
-    const lines = paragraph.split("\n")
-    lines.forEach((line) => {
-      const words = line.split(" ")
-      let currentLine = ""
-
-      words.forEach((word) => {
-        const testLine = currentLine + (currentLine ? " " : "") + word
-        const textWidth = helvetica.widthOfTextAtSize(testLine, 11)
-
-        if (textWidth > 468) {
-          if (currentLine) {
-            checkAndCreateNewPage(lineHeight)
-            page.drawText(currentLine, {
-              x: 72,
-              y: yPosition,
-              size: 11,
-              font: helvetica,
-              color: rgb(0, 0, 0),
-            })
-            yPosition -= lineHeight
-          }
-          currentLine = word
-        } else {
-          currentLine = testLine
-        }
+    const lines = wrapText(paragraph, 468, helvetica, 11)
+    for (const line of lines) {
+      checkAndCreateNewPage(lineHeight)
+      page.drawText(line, {
+        x: 72,
+        y: yPosition,
+        size: 11,
+        font: helvetica,
+        color: rgb(0, 0, 0),
       })
-
-      if (currentLine) {
-        checkAndCreateNewPage(lineHeight)
-        page.drawText(currentLine, {
-          x: 72,
-          y: yPosition,
-          size: 11,
-          font: helvetica,
-          color: rgb(0, 0, 0),
-        })
-        yPosition -= lineHeight
-      }
-    })
+      yPosition -= lineHeight
+    }
     yPosition -= 12
   })
+
 
   // Signature
   checkAndCreateNewPage(45)

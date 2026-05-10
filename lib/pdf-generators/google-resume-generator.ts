@@ -3,7 +3,8 @@ import type { PDFPage, PDFFont } from "pdf-lib"
 import type { PDFGenerationOptions, ProjectsSection } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { getEffectiveSkillGroupsFromSection, formatGroupedSkillsLine } from "@/utils/skills"
-import { sanitizeTextForPdf, sanitizeTextForPdfWithFont } from '@/lib/utils'
+import { sanitizeTextForPdf, sanitizeTextForPdfWithFont, wrapText } from '@/lib/utils'
+
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
 
 // ============================================================================
@@ -52,26 +53,9 @@ const defaultWrapText = (
   font: PDFFont,
   size: number
 ): string[] => {
-  const words = sanitizeTextForPdf(text || '').split(' ')
-
-  const lines: string[] = []
-  let currentLine = ''
-
-  words.forEach((word) => {
-    const testLine = currentLine ? `${currentLine} ${word}` : word
-    const width = measureText(testLine, font, size)
-    
-    if (width < maxWidth) {
-      currentLine = testLine
-    } else {
-      if (currentLine) lines.push(currentLine)
-      currentLine = word
-    }
-  })
-  
-  if (currentLine) lines.push(currentLine)
-  return lines
+  return wrapText(text, maxWidth, font, size)
 }
+
 
 const sanitizeForFont = (text: string, font: PDFFont): string => {
   return sanitizeTextForPdfWithFont(text || '', font)
@@ -375,28 +359,10 @@ export async function generateResumePDF({
     }
   }
 
-  const wrapText = (text: string, maxWidth: number, font = regularFont, size = 10): string[] => {
-    const words = sanitizeTextForPdf(text).split(" ")
-
-    const lines: string[] = []
-    let currentLine = ""
-
-    words.forEach((word) => {
-      const width = font.widthOfTextAtSize(
-        sanitizeTextForPdf(currentLine + " " + word),
-        size
-      )
-      
-      if (width < maxWidth) {
-        currentLine += (currentLine ? " " : "") + word
-      } else {
-        lines.push(currentLine)
-        currentLine = word
-      }
-    })
-    if (currentLine) lines.push(currentLine)
-    return lines
+  const localWrapText = (text: string, maxWidth: number, font = regularFont, size = 10): string[] => {
+    return wrapText(text, maxWidth, font, size)
   }
+
 
   const draw = (t: string, x: number, size: number, font = regularFont, color = textColor) => {
     const safe = sanitizeForFont(t || "", font)
@@ -419,7 +385,8 @@ export async function generateResumePDF({
   if (contactItems.length > 0) {
     const contactText = contactItems.join(" | ")
     const contactFontSize = isBlackCompact ? 9 : 10
-    const contactLines = wrapText(contactText, pageWidth - 20, regularFont, contactFontSize)
+    const contactLines = localWrapText(contactText, pageWidth - 20, regularFont, contactFontSize)
+
 
     for (const line of contactLines) {
       const safeLine = sanitizeForFont(line, regularFont)
@@ -441,7 +408,8 @@ export async function generateResumePDF({
   // Summary
   if (resumeData.basics.summary) {
     const summaryFontSize = isBlackCompact ? 9 : 10
-    const summaryLines = wrapText(resumeData.basics.summary, pageWidth - 20, regularFont, summaryFontSize)
+    const summaryLines = localWrapText(resumeData.basics.summary, pageWidth - 20, regularFont, summaryFontSize)
+
     for (const line of summaryLines) {
       draw(line, margin, summaryFontSize, regularFont, textColor)
       yOffset -= isBlackCompact ? 10 : 12
@@ -478,7 +446,8 @@ export async function generateResumePDF({
           const label = sanitizeTextForPdf(`${item.title}:`)
           const value = sanitizeTextForPdf(item.content || "")
           const text = value ? `${label} ${value}` : label
-          const lines = wrapText(text, columnWidth, regularFont, fontSize)
+          const lines = localWrapText(text, columnWidth, regularFont, fontSize)
+
           rowLines.push(lines)
           const height = lines.length * (fontSize + 2)
           if (height > rowHeight) rowHeight = height
@@ -530,7 +499,8 @@ export async function generateResumePDF({
         
         const maxContentWidth = Math.min(300, pageWidth - keyWidth - 20)
         const wrappedLines = contentFontWidth > maxContentWidth 
-          ? wrapText(content, maxContentWidth, regularFont, 10)
+          ? localWrapText(content, maxContentWidth, regularFont, 10)
+
           : [content]
         
         const actualContentWidth = Math.max(...wrappedLines.map(line => 
@@ -666,7 +636,8 @@ export async function generateResumePDF({
           if (edu.highlights?.length) {
             for (const highlight of edu.highlights) {
               ensureSpace(isBlackCompact ? 10 : 12)
-              const lines = wrapText(`• ${highlight}`, pageWidth - 20, regularFont, isBlackCompact ? 9 : 10)
+              const lines = localWrapText(`• ${highlight}`, pageWidth - 20, regularFont, isBlackCompact ? 9 : 10)
+
               for (const line of lines) {
                 draw(line, margin + 12, isBlackCompact ? 9 : 10, regularFont, textColor)
                 yOffset -= isBlackCompact ? 10 : 12
@@ -693,7 +664,8 @@ export async function generateResumePDF({
           if (exp.achievements?.length) {
             for (const achievement of exp.achievements) {
               ensureSpace(isBlackCompact ? 10 : 12)
-              const lines = wrapText(`• ${achievement}`, pageWidth - 20, regularFont, isBlackCompact ? 9 : 10)
+              const lines = localWrapText(`• ${achievement}`, pageWidth - 20, regularFont, isBlackCompact ? 9 : 10)
+
               for (const line of lines) {
                 draw(line, margin + 12, isBlackCompact ? 9 : 10, regularFont, textColor)
                 yOffset -= isBlackCompact ? 10 : 12
@@ -720,7 +692,8 @@ export async function generateResumePDF({
 
             // Draw skills on same line
             const skillsText = group.skills.join(', ')
-            const skillsLines = wrapText(skillsText, pageWidth - 20 - titleWidth, regularFont, isBlackCompact ? 9 : 10)
+            const skillsLines = localWrapText(skillsText, pageWidth - 20 - titleWidth, regularFont, isBlackCompact ? 9 : 10)
+
             
             if (skillsLines.length > 0) {
               // Draw first line of skills on same line as title
@@ -749,7 +722,8 @@ export async function generateResumePDF({
       case SECTION_TYPES.CERTIFICATIONS:
         if (section.items?.length) {
           ensureSpace(isBlackCompact ? 10 : 12)
-          const lines = wrapText(section.items.join(" • "), pageWidth - 20, regularFont, isBlackCompact ? 9 : 10)
+          const lines = localWrapText(section.items.join(" • "), pageWidth - 20, regularFont, isBlackCompact ? 9 : 10)
+
           for (const l of lines) {
             draw(l, margin, isBlackCompact ? 9 : 10, regularFont, textColor)
             yOffset -= isBlackCompact ? 10 : 12
