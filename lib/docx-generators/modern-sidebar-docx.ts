@@ -43,24 +43,8 @@ export async function generateModernSidebarDOCX({
 
   // ================= LEFT COLUMN =================
 
-  // Name
-  if (resumeData.basics.name) {
-    leftColumnChildren.push(
-      new Paragraph({
-        alignment: AlignmentType.LEFT,
-        spacing: { after: 200 },
-        children: [
-          new TextRun({
-            text: resumeData.basics.name,
-            bold: true,
-            size: nameSize,
-            color: sidebarHeadingColor,
-            font: "Helvetica",
-          }),
-        ],
-      })
-    );
-  }
+  // Name rendering moved to right column
+
 
   // Contact Info
   const { email, phone, location, linkedin } = resumeData.basics;
@@ -103,8 +87,7 @@ export async function generateModernSidebarDOCX({
   // ================= SECTIONS DISTRIBUTION =================
   const orderedSections = getSectionsForRendering(resumeData.sections, resumeData.custom);
 
-  const sidebarSections = [SECTION_TYPES.SKILLS, SECTION_TYPES.LANGUAGES, SECTION_TYPES.CERTIFICATIONS];
-  const mainSections = [SECTION_TYPES.EXPERIENCE, SECTION_TYPES.EDUCATION, SECTION_TYPES.PROJECTS, SECTION_TYPES.CUSTOM];
+  const sidebarSectionTypes = [SECTION_TYPES.SKILLS, SECTION_TYPES.LANGUAGES, SECTION_TYPES.CERTIFICATIONS];
 
   // Helper to render section title for left col
   const renderSidebarTitle = (title: string) => {
@@ -144,6 +127,28 @@ export async function generateModernSidebarDOCX({
       );
   };
 
+  // ================= RIGHT COLUMN =================
+  
+  // Name
+  if (resumeData.basics.name) {
+    rightColumnChildren.push(
+      new Paragraph({
+        alignment: AlignmentType.LEFT,
+        spacing: { before: 400, after: 240 },
+        children: [
+          new TextRun({
+            text: resumeData.basics.name,
+            bold: true,
+            size: 56, // Increased from 48 for main column prominence
+            color: headingColor,
+            font: "Helvetica",
+          }),
+        ],
+        border: { bottom: { color: "E2E8F0", space: 1, style: BorderStyle.SINGLE, size: 12 } },
+      })
+    );
+  }
+
   // Summary goes to top of right column
   if (resumeData.basics.summary) {
     renderMainTitle("Professional Summary");
@@ -167,18 +172,24 @@ export async function generateModernSidebarDOCX({
       const customEntries = Object.entries(resumeData.custom || {}).filter(([_, item]: any) => !item?.hidden);
 
       if (customEntries.length > 0) {
-        // Render custom fields in the main column
         for (const [key, item] of customEntries) {
+             const isCustomSidebar = (item as any).column === 1;
+             const targetCol = isCustomSidebar ? leftColumnChildren : rightColumnChildren;
+             
+             if (isCustomSidebar) {
+                 renderSidebarTitle((item as any).title);
+             }
+
              const paragraphChildren = [
-                new TextRun({ text: `${item.title}: `, bold: true, size: contentSize, color: headingColor, font: "Helvetica" }),
+                new TextRun({ text: isCustomSidebar ? "" : `${item.title}: `, bold: true, size: contentSize, color: headingColor, font: "Helvetica" }),
              ];
              if (item.link) {
                  paragraphChildren.push(createLink(item.content || "", item.content || "", contentSize, linkColor) as any);
              } else {
-                 paragraphChildren.push(new TextRun({ text: item.content || "", size: contentSize, color: textColor, font: "Helvetica" }));
+                 paragraphChildren.push(new TextRun({ text: item.content || "", size: contentSize, color: isCustomSidebar ? sidebarTextColor : textColor, font: "Helvetica" }));
              }
 
-             rightColumnChildren.push(new Paragraph({
+             targetCol.push(new Paragraph({
                 children: paragraphChildren,
                 spacing: { after: 120 }
              }));
@@ -189,7 +200,7 @@ export async function generateModernSidebarDOCX({
 
     if (!hasSectionContent(section)) continue;
 
-    const isSidebar = sidebarSections.includes(section.type as any);
+    const isSidebar = section.column === 1 || (!section.column && sidebarSectionTypes.includes(section.type as any));
     const targetArray = isSidebar ? leftColumnChildren : rightColumnChildren;
 
     if (isSidebar) {

@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select"
 import { Eye, Star, Menu } from "lucide-react"
 import { SectionManagement } from "@/components/section-management"
-import { ColumnManagementModal } from "@/components/column-management-modal"
+import { ModernSidebarLayoutModal } from "@/components/modern-sidebar-layout-modal"
 import DownloadDropDown from "@/components/global/DropDown/DropDown"
 import type { ResumeData, ResumeTemplate, Section } from "@/types/resume"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -53,19 +53,17 @@ export function CreateResumeHeader({
 const renderControls = () => (
   <div className="w-full flex flex-wrap items-center gap-3">
 
-    <SectionManagement
-      sections={sectionsWithOrder}
-      onReorder={handleSectionReorder}
-      className="h-10 px-4 rounded-md text-sm flex items-center"
-    />
-
-    {selectedTemplate.id === 'modern-sidebar' && (
-      <div className="h-10 flex items-center">
-        <ColumnManagementModal
-          sections={sectionsWithOrder}
-          onUpdate={handleSectionReorder}
-        />
-      </div>
+    {selectedTemplate.id === 'modern-sidebar' ? (
+      <ModernSidebarLayoutModal
+        sections={sectionsWithOrder}
+        onUpdate={handleSectionReorder}
+      />
+    ) : (
+      <SectionManagement
+        sections={sectionsWithOrder}
+        onReorder={handleSectionReorder}
+        className="h-10 px-4 rounded-md text-sm flex items-center"
+      />
     )}
 
     <Button

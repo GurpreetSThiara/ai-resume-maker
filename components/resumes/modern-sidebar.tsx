@@ -490,16 +490,8 @@ export const ModernSidebarResume: React.FC<ResumeProps> = ({
                 >
                     {/* LEFT SIDEBAR */}
                     <div className="w-[180px] bg-gray-100 p-6 flex flex-col gap-6 border-r border-gray-200">
-                        {/* Name & Contact */}
+                        {/* Contact Info */}
                         <div className="flex flex-col gap-4">
-                            <h1
-                                className="text-2xl font-bold text-gray-800 leading-tight break-words"
-                                contentEditable
-                                suppressContentEditableWarning
-                                onBlur={handleNameChange}
-                            >
-                                {resumeData.basics.name}
-                            </h1>
 
                             <div className="text-xs text-gray-600 flex flex-col gap-1">
                                 {['email', 'phone', 'location', 'linkedin'].map(key => {
@@ -549,6 +541,15 @@ export const ModernSidebarResume: React.FC<ResumeProps> = ({
 
                     {/* MAIN CONTENT */}
                     <div className="flex-1 p-8 flex flex-col gap-6">
+                        {/* Name */}
+                        <h1
+                            className="text-4xl font-bold text-gray-800 leading-tight break-words border-b-2 border-gray-100 pb-4 mb-2 mt-4"
+                            contentEditable
+                            suppressContentEditableWarning
+                            onBlur={handleNameChange}
+                        >
+                            {resumeData.basics.name}
+                        </h1>
                         {/* Summary */}
                         {resumeData.basics.summary && (
                             <div className="flex flex-col gap-2">

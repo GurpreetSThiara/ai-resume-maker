@@ -198,17 +198,7 @@ export async function generateModernSidebarResumePDF({
         sidebarY -= 10
     }
 
-    // Name & Title
-    // Sidebar Header
-    const nameLines = wrapText(resumeData.basics.name, sidebarWidth - 2 * margin, boldFont, 24)
-    checkSidebarSpace(nameLines.length * 28 + 20)
-    for (const line of nameLines) {
-        pages[sidebarPageIndex].drawText(line, {
-            x: margin, y: sidebarY, size: 24, font: boldFont, color: headingColor
-        })
-        sidebarY -= 28
-    }
-    sidebarY -= 20
+    sidebarY -= 10
 
     // Contact Logic
     drawSidebarItem("Email", resumeData.basics.email, true, "mailto:")
@@ -492,6 +482,22 @@ export async function generateModernSidebarResumePDF({
     for (const section of leftSections) {
         renderSectionPdf(section, true)
     }
+
+    // Render Name at the top of the main content (vertically offset)
+    mainY -= 20 // Top margin
+    const nameLinesMain = wrapText(resumeData.basics.name, mainContentWidth, boldFont, 28)
+    checkMainSpace(nameLinesMain.length * 32 + 20)
+    for (const line of nameLinesMain) {
+        pages[mainPageIndex].drawText(sanitizeForFont(line, boldFont), {
+            x: mainContentX,
+            y: mainY,
+            size: 28,
+            font: boldFont,
+            color: headingColor
+        })
+        mainY -= 32
+    }
+    mainY -= 15
 
     // Summary (Main content)
     if (resumeData.basics.summary) {
