@@ -10,7 +10,10 @@ import { generateCreativeResumePDF } from "@/lib/pdf-generators/template-creativ
 import { generateATSGreenResume } from "./ats-green-resume-generator"
 import { generateTimelineResumePDF } from "./timeline-resume-generator"
 import { generateModernSidebarResumePDF } from "./template-modern-sidebar-generator"
+import { generateModernSplitResumePDF } from "./template-modern-split-generator"
 import { generateBoldProfessionalResumePDF } from "./template-bold-professional-generator"
+import { generateDesignPDF } from "./design-pdf-engine"
+import { getResumeDesign } from "../resume-designs"
 // removed broken import twoside; not used
 // removed RESUME_NAMES unused import
 import { ATS_GREEN, ATS_YELLOW, ATS_TIMELINE } from "../templates"
@@ -85,8 +88,13 @@ export async function generateResumePDFBytes(options: PDFGenerationOptions): Pro
       return generateModernSidebarResumePDF(filteredOptions)
     case "bold-professional":
       return generateBoldProfessionalResumePDF(filteredOptions)
-    default:
+    case "modern-split":
+      return generateModernSplitResumePDF(filteredOptions)
+    default: {
+      const design = getResumeDesign(template.id)
+      if (design) return generateDesignPDF(filteredOptions, design)
       return generateGooglePDF(filteredOptions)
+    }
   }
 }
 

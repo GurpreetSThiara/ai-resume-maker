@@ -1,6 +1,7 @@
 import { PDFDocument, StandardFonts, rgb, PDFName, PDFString } from "pdf-lib"
 import type { PDFGenerationOptions } from "@/types/resume"
-import { sanitizeTextForPdf, sanitizeTextForPdfWithFont, wrapText } from "@/lib/utils"
+import { sanitizeTextForPdf, sanitizeTextForPdfWithFont } from "../utils"
+import { wrapText } from "../pdf-utils"
 
 import { drawProjectsSection } from '@/lib/pdf/sections/projects'
 import { getSectionsForRendering } from "@/utils/sectionOrdering"

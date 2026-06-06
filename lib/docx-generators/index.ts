@@ -5,6 +5,8 @@ import { generateATSGreenDOCX } from "./ats-green-docx"
 import { generateTimelineDOCX } from "./timeline-resume-docx"
 import { generateModernSidebarDOCX } from "./modern-sidebar-docx"
 import { generateBoldDOCX } from "./bold-professional-docx"
+import { generateDesignDOCX } from "./design-docx-engine"
+import { getResumeDesign } from "../resume-designs"
 
 export async function generateResumeDOCX(options: PDFGenerationOptions) {
   const { template } = options
@@ -38,9 +40,15 @@ export async function generateResumeDOCX(options: PDFGenerationOptions) {
     case "bold-professional":
       result = await generateBoldDOCX(options)
       break
-    default:
-      // Fallback for unknown templates
-      result = await generateClassicDOCX({ ...options, variant: "default" })
+    default: {
+      const design = getResumeDesign(template.id)
+      if (design) {
+        result = await generateDesignDOCX(options, design)
+      } else {
+        // Fallback for unknown templates
+        result = await generateClassicDOCX({ ...options, variant: "default" })
+      }
+    }
   }
 
   // Track download for DOCX generators

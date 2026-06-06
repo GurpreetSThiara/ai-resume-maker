@@ -1,6 +1,6 @@
 import { PDFDocument, PDFPage, rgb, StandardFonts } from "pdf-lib"
 import { ResumeData, PDFGenerationOptions } from "@/types/resume"
-import { wrapText } from "@/lib/utils"
+import { wrapText } from "../utils"
  // Import PDFGenerationOptions
 
 export async function generateBoldProfessionalResumePDF(options: PDFGenerationOptions): Promise<Uint8Array> {

@@ -1,7 +1,7 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
 import type { CoverLetter } from "@/types/cover-letter"
 import { format } from "date-fns"
-import { wrapText } from "@/lib/utils"
+import { wrapText } from "../pdf-utils"
 
 
 export async function generateCoverLetterPDF(coverLetter: CoverLetter): Promise<Uint8Array> {

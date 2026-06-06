@@ -1,6 +1,7 @@
 import { PDFDocument, rgb, StandardFonts, PDFName, PDFString } from 'pdf-lib';
 import type { ResumeData } from '@/types/resume';
-import { sanitizeTextForPdf, sanitizeTextForPdfWithFont, wrapText } from '@/lib/utils';
+import { sanitizeTextForPdf, sanitizeTextForPdfWithFont } from '../utils';
+import { wrapText } from '../pdf-utils';
 
 
 interface GeneratePDFOptions {

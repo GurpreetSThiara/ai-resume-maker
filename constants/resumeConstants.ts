@@ -1,3 +1,5 @@
+import { RESUME_DESIGNS } from "@/lib/resume-designs"
+
 export const DEFAULT_EDUCATION = {
   institution: "",
   degree: "",
@@ -23,6 +25,7 @@ export const RESUME_IMAGES = {
   ELEGANT: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/elegant.png",
   GOOGLE_STYLE: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/google-resume.png",
   TIMELINE_1: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/timeline_1.png",
+  MODERN_SPLIT: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/modern.png", // Placeholder
 }
 
 export const RESUME_TEMPLATES = [
@@ -99,6 +102,25 @@ export const RESUME_TEMPLATES = [
     suggestedFor: ["Executive", "Management", "Professional"],
     isAtsFriendly: false
   },
+  {
+    id: "modern-split",
+    name: "Modern Split",
+    url: RESUME_IMAGES.MODERN_SPLIT,
+    category: "Modern",
+    description: "Premium two-column layout with a dark sidebar and clean typography. Perfect for a modern, professional look.",
+    suggestedFor: ["Executives", "Product Managers", "Senior Professionals"],
+    isAtsFriendly: false
+  },
+  // ── Premium config-driven designs ──────────────────────────────────────
+  ...RESUME_DESIGNS.map((d) => ({
+    id: d.id,
+    name: d.name,
+    url: d.image,
+    category: d.category,
+    description: d.description,
+    suggestedFor: d.suggestedFor,
+    isAtsFriendly: d.isAtsFriendly,
+  })),
   // {
   //   id: "ats-timeline",  // Temporarily disabled
   //   name: "Timeline",

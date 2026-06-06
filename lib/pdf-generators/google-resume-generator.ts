@@ -3,7 +3,7 @@ import type { PDFPage, PDFFont } from "pdf-lib"
 import type { PDFGenerationOptions, ProjectsSection } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { getEffectiveSkillGroupsFromSection, formatGroupedSkillsLine } from "@/utils/skills"
-import { sanitizeTextForPdf, sanitizeTextForPdfWithFont, wrapText } from '@/lib/utils'
+import { sanitizeTextForPdf, sanitizeTextForPdfWithFont, wrapText } from '../utils'
 
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
 

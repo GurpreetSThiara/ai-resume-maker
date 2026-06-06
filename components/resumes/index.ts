@@ -6,7 +6,9 @@ import { GoogleResume } from './google-resume';
 import { ATS_GREEN, ATS_YELLOW, ATS_TIMELINE, atsCompactLinesTemplate, atsClassicCompactTemplate, modernSidebarTemplate, boldProfessionalTemplate } from '@/lib/templates';
 import { BoldProfessionalResume } from './bold-professional';
 import { ModernSidebarResume } from './modern-sidebar';
+import { ModernSplitResume } from './modern-split';
 import { ATS_YELLOW_HEADERS } from './ats-yellow-headers';
+import { DESIGN_RESUME_COMPONENTS } from './design-resumes';
 // import { ATS_TIMELINE as ATS_TIMELINE_COMPONENT } from './ats-timeline';  // Temporarily disabled
 
 export async function getResumePreview(options: any) {
@@ -43,7 +45,14 @@ export async function getResumePreview(options: any) {
     case boldProfessionalTemplate.id:
       return BoldProfessionalResume;
 
+    case "modern-split":
+      return ModernSplitResume;
+
     default:
+      // New premium config-driven designs
+      if (DESIGN_RESUME_COMPONENTS[template.id]) {
+        return DESIGN_RESUME_COMPONENTS[template.id];
+      }
       return null;
   }
 }

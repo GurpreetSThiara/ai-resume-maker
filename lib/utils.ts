@@ -53,6 +53,10 @@ export function sanitizeTextForPdfWithFont(text: string, font: PDFFont): string 
     return out
   }
 }
+
+/**
+ * wrapText - wraps text for pdf-lib rendering
+ */
 export function wrapText(text: string, maxWidth: number, font: PDFFont, fontSize: number): string[] {
   if (!text) return ['']
   
@@ -96,3 +100,6 @@ export function wrapText(text: string, maxWidth: number, font: PDFFont, fontSize
   if (currentLine) lines.push(currentLine)
   return lines.length > 0 ? lines : ['']
 }
+
+// Also export as pdfWrapText for those who started using it
+export const pdfWrapText = wrapText;

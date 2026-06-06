@@ -1,7 +1,7 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
 import type { PDFGenerationOptions } from "@/types/resume"
 import { ResumeData } from '@/types/resume'
-import { sanitizeTextForPdf, wrapText } from '@/lib/utils'
+import { sanitizeTextForPdf, wrapText } from '../utils'
 
 import { getEffectiveSkillGroupsFromSection } from '@/utils/skills'
 
