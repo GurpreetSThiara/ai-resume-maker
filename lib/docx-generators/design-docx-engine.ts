@@ -60,6 +60,8 @@ export async function generateDesignDOCX(
     target.push(
       new Paragraph({
         spacing: { before: 220, after: 110 },
+        keepNext: true,
+        keepLines: true,
         children: [
           new TextRun({
             text,

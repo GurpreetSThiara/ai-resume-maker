@@ -157,7 +157,9 @@ export async function generateDesignPDF(
     const title = design.uppercaseTitles ? rawTitle.toUpperCase() : rawTitle
     const size = cur.isSidebar ? s.section - 1 : s.section
     const tracking = design.letterSpacingTitles ? 0.8 : 0
-    ensure(cur, size + 14)
+    // Reserve room for the heading PLUS the first ~2.5 lines of its content so a
+    // section title never lands orphaned at the very bottom of a page.
+    ensure(cur, size + 48)
     const style = design.sectionTitle
 
     if (style === "left-bar" && !cur.isSidebar) {
@@ -184,7 +186,7 @@ export async function generateDesignPDF(
         thickness: 1,
         color: cur.isSidebar ? accentColorFor(cur) : colors.divider,
       })
-      cur.y -= 9
+      cur.y -= 11
     } else if (style === "underline") {
       pageOf(cur).drawLine({
         start: { x: cur.x, y: cur.y + 1 },
@@ -192,7 +194,7 @@ export async function generateDesignPDF(
         thickness: 1.4,
         color: accentColorFor(cur),
       })
-      cur.y -= 9
+      cur.y -= 11
     } else {
       // plain
       cur.y -= 4
