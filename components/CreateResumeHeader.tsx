@@ -8,13 +8,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { TemplatePickerDrawer } from "@/components/template-picker-drawer"
 import { Eye, Star, Menu } from "lucide-react"
 import { SectionManagement } from "@/components/section-management"
 import { ModernSidebarLayoutModal } from "@/components/modern-sidebar-layout-modal"
@@ -84,9 +78,9 @@ const renderControls = () => (
       className="h-10 px-4 rounded-md text-sm flex items-center"
     />
 
-    <Select
-      value={selectedTemplate.id}
-      onValueChange={(value) => {
+    <TemplatePickerDrawer
+      selectedId={selectedTemplate.id}
+      onSelect={(value) => {
         const t = availableTemplates.find((t) => t.id === value)
         if (t) {
           setSelectedTemplate(t)
@@ -96,18 +90,7 @@ const renderControls = () => (
           router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false })
         }
       }}
-    >
-      <SelectTrigger className="h-10 px-4 rounded-md text-sm w-48 flex items-center">
-        <SelectValue placeholder="Select Template" />
-      </SelectTrigger>
-      <SelectContent>
-        {availableTemplates.map((t) => (
-          <SelectItem key={t.id} value={t.id}>
-            {t.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    />
 
     <Button
       disabled

@@ -11,6 +11,7 @@ import {
   DEFAULT_FILTERS,
   categoryCounts,
   filterAndSort,
+  groupFamilies,
   type Filters,
   type MarketplaceTemplate,
 } from "./_marketplace/data"
@@ -41,6 +42,8 @@ export function Templates() {
 
   const counts = useMemo(() => categoryCounts(), [])
   const results = useMemo(() => filterAndSort(TEMPLATES, filters), [filters])
+  // Club color-only variants of the same layout into a single design family.
+  const families = useMemo(() => groupFamilies(results), [results])
 
   // Reset pagination whenever the result set changes.
   useEffect(() => {
@@ -79,16 +82,16 @@ export function Templates() {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
-          setVisible((v) => (v < results.length ? v + PAGE_SIZE : v))
+          setVisible((v) => (v < families.length ? v + PAGE_SIZE : v))
         }
       },
       { rootMargin: "600px" },
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [results.length])
+  }, [families.length])
 
-  const shown = results.slice(0, visible)
+  const shownFamilies = families.slice(0, visible)
   const activeCategory = filters.category !== "all" ? CATEGORY_MAP[filters.category] : null
 
   return (
@@ -144,22 +147,31 @@ export function Templates() {
                     {activeCategory ? activeCategory.name : isBrowsing ? "All Templates" : "Search Results"}
                   </h2>
                   <p className="mt-1 text-sm text-slate-500">
-                    {activeCategory ? activeCategory.description : `${results.length} templates available`}
+                    {activeCategory
+                      ? activeCategory.description
+                      : `${families.length} designs · ${results.length} color styles`}
                   </p>
                 </div>
               </div>
 
-              {results.length === 0 ? (
+              {families.length === 0 ? (
                 <EmptyState query={filters.query} onReset={resetAll} />
               ) : (
                 <>
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                    {shown.map((t, i) => (
-                      <TemplateCard key={t.id} template={t} onPreview={openPreview} query={filters.query} priority={i < 5} />
+                    {shownFamilies.map((fam, i) => (
+                      <TemplateCard
+                        key={fam.familyId}
+                        template={fam.variants[0]}
+                        variants={fam.variants}
+                        onPreview={openPreview}
+                        query={filters.query}
+                        priority={i < 5}
+                      />
                     ))}
                   </div>
 
-                  {visible < results.length && (
+                  {visible < families.length && (
                     <div ref={sentinelRef} className="pt-4" aria-hidden>
                       <LoadingState />
                     </div>

@@ -1,5 +1,5 @@
 import { ResumeData, SECTION_TYPES } from '@/types/resume';
-import { PDFDocument, rgb, StandardFonts, PDFFont, PDFPage, RGB } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts, PDFFont, PDFPage, RGB } from '@pdfme/pdf-lib';
 import { getSectionsForRendering } from "@/utils/sectionOrdering";
 import { getEffectiveSkillGroupsFromSection, formatGroupedSkillsLine } from "@/utils/skills";
 import { wrapText } from '../pdf-utils';

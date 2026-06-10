@@ -1,5 +1,5 @@
-import { PDFDocument, StandardFonts, rgb, PDFName, PDFString } from "pdf-lib"
-import type { PDFPage, PDFFont } from "pdf-lib"
+import { PDFDocument, StandardFonts, rgb, PDFName, PDFString } from "@pdfme/pdf-lib"
+import type { PDFPage, PDFFont } from "@pdfme/pdf-lib"
 import type { PDFGenerationOptions, ProjectsSection } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { getEffectiveSkillGroupsFromSection, formatGroupedSkillsLine } from "@/utils/skills"

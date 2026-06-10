@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
+import { PDFDocument, rgb, StandardFonts } from '@pdfme/pdf-lib'
 import type { PDFGenerationOptions } from "@/types/resume"
 import { sanitizeTextForPdf } from '../utils'
 import { wrapText } from '../pdf-utils'

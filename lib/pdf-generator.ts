@@ -1,5 +1,5 @@
 import type React from "react"
-import { PDFDocument, StandardFonts, rgb, PDFName, PDFArray } from "pdf-lib"
+import { PDFDocument, StandardFonts, rgb, PDFName, PDFArray } from "@pdfme/pdf-lib"
 import { ResumeData, SECTION_TYPES } from "@/types/resume"
 import { SECTION_LABEL_CUSTOM_FIELDS } from '@/app/constants/global'
 

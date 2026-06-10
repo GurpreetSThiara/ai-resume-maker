@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib"
+import { PDFDocument, StandardFonts, rgb } from "@pdfme/pdf-lib"
 import type { PDFGenerationOptions } from "@/types/resume"
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
@@ -54,15 +54,18 @@ export async function generateDesignPDF(
   }
   const s = design.sizes
 
-  const margin = design.layout === "sidebar-left" ? 28 : design.id === "compact-pro" ? 36 : 44
+  const isSidebarLayout = design.layout === "sidebar-left" || design.layout === "sidebar-right"
+  const sidebarRight = design.layout === "sidebar-right"
+  const margin = isSidebarLayout ? 28 : design.id === "compact-pro" ? 36 : 44
   const stripeW = design.accentStripe ? 8 : 0
   const sidebarW = 188
+  const sidebarX0 = sidebarRight ? PAGE_W - sidebarW : 0 // left edge of the sidebar band
 
   const pages: any[] = []
 
   const paintPageChrome = (page: any) => {
-    if (design.layout === "sidebar-left" && colors.sidebarBg) {
-      page.drawRectangle({ x: 0, y: 0, width: sidebarW, height: PAGE_H, color: colors.sidebarBg })
+    if (isSidebarLayout && colors.sidebarBg) {
+      page.drawRectangle({ x: sidebarX0, y: 0, width: sidebarW, height: PAGE_H, color: colors.sidebarBg })
     }
     if (design.accentStripe) {
       page.drawRectangle({ x: 0, y: 0, width: stripeW, height: PAGE_H, color: colors.accent })
@@ -176,28 +179,52 @@ export async function generateDesignPDF(
       return
     }
 
-    drawTracked(pageOf(cur), title, cur.x, cur.y, size, bold, titleColorFor(cur), tracking)
-    cur.y -= size + 3
+    if (style === "boxed") {
+      // Filled accent bar behind the heading text (chip), with light text.
+      const padX = 8
+      const padV = 4
+      const tw = trackedWidth(title, size, bold, tracking)
+      const boxH = size + 2 * padV
+      const boxBottom = cur.y - 0.25 * size - padV
+      const chipColor = accentColorFor(cur)
+      const chipText = cur.isSidebar ? colors.sidebarBg || rgb(1, 1, 1) : rgb(1, 1, 1)
+      roundedRect(pageOf(cur), cur.x, boxBottom, tw + 2 * padX, boxH, 3, chipColor)
+      drawTracked(pageOf(cur), title, cur.x + padX, cur.y, size, bold, chipText, tracking)
+      cur.y = boxBottom - 12
+      return
+    }
 
-    if (style === "rule-full") {
+    if (style === "centered") {
+      const w = trackedWidth(title, size, bold, tracking)
+      drawTracked(pageOf(cur), title, cur.x + (cur.width - w) / 2, cur.y, size, bold, titleColorFor(cur), tracking)
+      const lineY = cur.y - (size * 0.4 + 3)
       pageOf(cur).drawLine({
-        start: { x: cur.x, y: cur.y + 1 },
-        end: { x: cur.x + cur.width, y: cur.y + 1 },
-        thickness: 1,
+        start: { x: cur.x, y: lineY },
+        end: { x: cur.x + cur.width, y: lineY },
+        thickness: 0.75,
         color: cur.isSidebar ? accentColorFor(cur) : colors.divider,
       })
-      cur.y -= 11
-    } else if (style === "underline") {
+      cur.y = lineY - 13
+      return
+    }
+
+    drawTracked(pageOf(cur), title, cur.x, cur.y, size, bold, titleColorFor(cur), tracking)
+    const baseline = cur.y
+
+    if (style === "rule-full" || style === "underline") {
+      // Place the rule just below the heading text (small gap above), then leave
+      // a comfortable gap before the content. Keep the rule thin and crisp.
+      const lineY = baseline - (size * 0.4 + 2)
       pageOf(cur).drawLine({
-        start: { x: cur.x, y: cur.y + 1 },
-        end: { x: cur.x + cur.width, y: cur.y + 1 },
-        thickness: 1.4,
-        color: accentColorFor(cur),
+        start: { x: cur.x, y: lineY },
+        end: { x: cur.x + cur.width, y: lineY },
+        thickness: style === "underline" ? 1 : 0.75,
+        color: style === "underline" ? accentColorFor(cur) : cur.isSidebar ? accentColorFor(cur) : colors.divider,
       })
-      cur.y -= 11
+      cur.y = lineY - 13
     } else {
       // plain
-      cur.y -= 4
+      cur.y -= size + 2
     }
   }
 
@@ -208,42 +235,53 @@ export async function generateDesignPDF(
     }
   }
 
+  // Filled rounded rectangle (pdf-lib has no native corner radius) — composed
+  // from two rects + four corner circles.
+  const roundedRect = (page: any, x: number, y: number, w: number, h: number, r: number, color: RGB) => {
+    const rr = Math.max(0, Math.min(r, h / 2, w / 2))
+    if (rr <= 0.5) {
+      page.drawRectangle({ x, y, width: w, height: h, color })
+      return
+    }
+    page.drawRectangle({ x: x + rr, y, width: w - 2 * rr, height: h, color })
+    page.drawRectangle({ x, y: y + rr, width: w, height: h - 2 * rr, color })
+    page.drawCircle({ x: x + rr, y: y + rr, size: rr, color })
+    page.drawCircle({ x: x + w - rr, y: y + rr, size: rr, color })
+    page.drawCircle({ x: x + rr, y: y + h - rr, size: rr, color })
+    page.drawCircle({ x: x + w - rr, y: y + h - rr, size: rr, color })
+  }
+
   const skillPills = (cur: Cursor, groups: { title: string; skills: string[] }[]) => {
     const pillBg = cur.isSidebar ? colors.sidebarAccent || colors.accent : col(c.divider)
     const pillText = cur.isSidebar ? colors.sidebarBg || rgb(1, 1, 1) : colors.text
+    const S = s.content
+    const padH = 9 // horizontal padding (text appears centered)
+    const padV = 4 // vertical padding
+    const pillH = S + 2 * padV
+    const rowStep = pillH + 5
+    cur.y -= 6 // extra breathing room between the section rule and the pills
     for (const g of groups) {
       if (g.title && g.title !== "General") {
         para(cur, g.title, { size: s.small, font: bold, color: secondaryColorFor(cur), lineGap: s.small + 4 })
       }
       let px = cur.x
-      const pillH = s.content + 6
-      ensure(cur, pillH + 4)
+      ensure(cur, rowStep)
       for (const skill of g.skills) {
         const safe = sanitizeWithFont(skill, regular)
-        const tw = regular.widthOfTextAtSize(safe, s.content)
-        const pw = tw + 12
+        const tw = regular.widthOfTextAtSize(safe, S)
+        const pw = tw + 2 * padH
         if (px + pw > cur.x + cur.width) {
           px = cur.x
-          cur.y -= pillH + 4
-          ensure(cur, pillH + 4)
+          cur.y -= rowStep
+          ensure(cur, rowStep)
         }
-        pageOf(cur).drawRectangle({
-          x: px,
-          y: cur.y - 3,
-          width: pw,
-          height: pillH,
-          color: pillBg,
-        })
-        pageOf(cur).drawText(safe, {
-          x: px + 6,
-          y: cur.y,
-          size: s.content,
-          font: regular,
-          color: pillText,
-        })
-        px += pw + 5
+        const by = cur.y // text baseline
+        const pillBottom = by - 0.25 * S - padV // vertically centers the text in the pill
+        roundedRect(pageOf(cur), px, pillBottom, pw, pillH, pillH / 2, pillBg)
+        pageOf(cur).drawText(safe, { x: px + padH, y: by, size: S, font: regular, color: pillText })
+        px += pw + 6
       }
-      cur.y -= pillH + 8
+      cur.y -= pillH + 6
     }
   }
 
@@ -335,25 +373,31 @@ export async function generateDesignPDF(
 
     // subtitle (company/degree) + optional right (location)
     if (subtitle || rightOfSub) {
-      ensure(cur, s.content + 2)
-      pageOf(cur).drawText(sanitizeWithFont(subtitle, bold), {
-        x: cur.x + tlIndent,
-        y: cur.y,
-        size: s.content,
-        font: bold,
-        color: accentColorFor(cur),
-      })
-      if (rightOfSub) {
-        const rw = regular.widthOfTextAtSize(rightOfSub, s.small)
-        pageOf(cur).drawText(sanitizeWithFont(rightOfSub, regular), {
-          x: cur.x + cur.width - rw,
+      const rw = rightOfSub ? regular.widthOfTextAtSize(rightOfSub, s.small) : 0
+      // Constrain the subtitle so a long degree/company never collides with the
+      // right-aligned location; overflow wraps onto its own lines.
+      const subMax = cur.width - tlIndent - (rw ? rw + 10 : 0)
+      const subLines = subtitle ? wrapText(subtitle, subMax, bold, s.content) : [""]
+      subLines.forEach((line, i) => {
+        ensure(cur, s.content + 2)
+        pageOf(cur).drawText(sanitizeWithFont(line, bold), {
+          x: cur.x + tlIndent,
           y: cur.y,
-          size: s.small,
-          font: regular,
-          color: secondaryColorFor(cur),
+          size: s.content,
+          font: bold,
+          color: accentColorFor(cur),
         })
-      }
-      cur.y -= s.content + 4
+        if (i === 0 && rightOfSub) {
+          pageOf(cur).drawText(sanitizeWithFont(rightOfSub, regular), {
+            x: cur.x + cur.width - rw,
+            y: cur.y,
+            size: s.small,
+            font: regular,
+            color: secondaryColorFor(cur),
+          })
+        }
+        cur.y -= s.content + (i === subLines.length - 1 ? 4 : 2)
+      })
     }
 
     if (items && items.length) {
@@ -512,60 +556,92 @@ export async function generateDesignPDF(
         font: bold,
         color: titleColorFor(cur),
       })
-      const safe = sanitizeWithFont(f.content, regular)
-      pageOf(cur).drawText(safe, {
-        x: cur.x + lw + 2,
-        y: cur.y,
-        size: s.content,
-        font: regular,
-        color: f.link ? accentColorFor(cur) : textColorFor(cur),
+      const contentColor = f.link ? accentColorFor(cur) : textColorFor(cur)
+      // Wrap long content (e.g. URLs) so it never clips at the column edge.
+      const lines = wrapText(String(f.content), cur.width - lw - 2, regular, s.content)
+      lines.forEach((line, i) => {
+        if (i > 0) ensure(cur, s.content + 2)
+        const lx = i === 0 ? cur.x + lw + 2 : cur.x
+        const safe = sanitizeWithFont(line, regular)
+        pageOf(cur).drawText(safe, { x: lx, y: cur.y, size: s.content, font: regular, color: contentColor })
+        if (f.link) {
+          const w = regular.widthOfTextAtSize(safe, s.content)
+          addLinkAnnotation(pdf, pageOf(cur), lx, cur.y, w, s.content, f.content)
+        }
+        cur.y -= s.content + (i === lines.length - 1 ? 4 : 2)
       })
-      if (f.link) {
-        const w = regular.widthOfTextAtSize(safe, s.content)
-        addLinkAnnotation(pdf, pageOf(cur), cur.x + lw + 2, cur.y, w, s.content, f.content)
-      }
-      cur.y -= s.content + 4
     }
     cur.y -= 4
   }
 
-  // contact line (single layouts)
-  const drawContactRow = (page: any, centerY: number, centered: boolean, color: RGB, textColorOverride?: RGB) => {
+  // contact helpers (single-column layouts) — wrap so long emails/URLs never
+  // overflow the page width.
+  type Seg = { text: string; link?: string; w: number }
+  const CONTACT_SEP = "  |  "
+  const contactParts = (): { text: string; link?: string }[] => {
     const b = resumeData.basics
     const parts: { text: string; link?: string }[] = []
     if (b.email) parts.push({ text: b.email, link: `mailto:${b.email}` })
     if (b.phone) parts.push({ text: b.phone })
     if (b.location) parts.push({ text: b.location })
     if (b.linkedin) parts.push({ text: b.linkedin, link: b.linkedin })
-    if (!parts.length) return centerY
-    const sep = "   |   "
+    return parts
+  }
+  const groupContact = (maxWidth: number): Seg[][] => {
     const sz = s.small
-    const segs: string[] = []
-    parts.forEach((p, i) => {
-      if (i > 0) segs.push(sep)
-      segs.push(p.text)
-    })
-    const totalW = segs.reduce((w, t) => w + regular.widthOfTextAtSize(t, sz), 0)
-    let x = centered ? (PAGE_W - totalW) / 2 : margin + stripeW
-    const usecolor = textColorOverride || color
-    for (let i = 0; i < parts.length; i++) {
-      if (i > 0) {
-        page.drawText(sep, { x, y: centerY, size: sz, font: regular, color: usecolor })
-        x += regular.widthOfTextAtSize(sep, sz)
+    const sepW = regular.widthOfTextAtSize(CONTACT_SEP, sz)
+    const lines: Seg[][] = []
+    let line: Seg[] = []
+    let lineW = 0
+    for (const p of contactParts()) {
+      const text = sanitizeWithFont(p.text, regular)
+      const w = regular.widthOfTextAtSize(text, sz)
+      const addW = (line.length ? sepW : 0) + w
+      if (line.length && lineW + addW > maxWidth) {
+        lines.push(line)
+        line = []
+        lineW = 0
       }
-      const safe = sanitizeWithFont(parts[i].text, regular)
-      page.drawText(safe, { x, y: centerY, size: sz, font: regular, color: usecolor })
-      const w = regular.widthOfTextAtSize(safe, sz)
-      if (parts[i].link) addLinkAnnotation(pdf, page, x, centerY, w, sz, parts[i].link!)
-      x += w
+      line.push({ text, link: p.link, w })
+      lineW += (line.length > 1 ? sepW : 0) + w
     }
-    return centerY
+    if (line.length) lines.push(line)
+    return lines
+  }
+  const drawContactLine = (page: any, segs: Seg[], baseline: number, centered: boolean, color: RGB, leftX: number) => {
+    const sz = s.small
+    const sepW = regular.widthOfTextAtSize(CONTACT_SEP, sz)
+    const lineW = segs.reduce((acc, sg, i) => acc + (i ? sepW : 0) + sg.w, 0)
+    let x = centered ? (PAGE_W - lineW) / 2 : leftX
+    segs.forEach((sg, i) => {
+      if (i > 0) {
+        page.drawText(CONTACT_SEP, { x, y: baseline, size: sz, font: regular, color })
+        x += sepW
+      }
+      page.drawText(sg.text, { x, y: baseline, size: sz, font: regular, color })
+      if (sg.link) addLinkAnnotation(pdf, page, x, baseline, sg.w, sz, sg.link)
+      x += sg.w
+    })
+  }
+  // Draw a (possibly multi-line) wrapped name. `topY` is the top of the first
+  // line; returns the y just below the last line.
+  const drawNameLines = (page: any, lines: string[], topY: number, centered: boolean, color: RGB, leftX: number) => {
+    let top = topY
+    const lh = s.name + 5
+    for (const line of lines) {
+      const baseline = top - s.name * 0.8
+      const w = bold.widthOfTextAtSize(sanitizeWithFont(line, bold), s.name)
+      const x = centered ? (PAGE_W - w) / 2 : leftX
+      page.drawText(sanitizeWithFont(line, bold), { x, y: baseline, size: s.name, font: bold, color })
+      top -= lh
+    }
+    return top
   }
 
   // =========================================================================
-  // LAYOUT: SIDEBAR-LEFT
+  // LAYOUT: SIDEBAR (left or right)
   // =========================================================================
-  if (design.layout === "sidebar-left") {
+  if (isSidebarLayout) {
     const allSections = getSectionsForRendering(resumeData.sections, resumeData.custom)
     const sidebarTypes = ["skills", "languages", "certifications"]
     const sideSections = allSections.filter(
@@ -575,9 +651,9 @@ export async function generateDesignPDF(
       (sec: any) => !(sec.column === 1 || (!sec.column && sidebarTypes.includes(sec.type))),
     )
 
-    const side: Cursor = { x: margin, width: sidebarW - 2 * margin, isSidebar: true, y: PAGE_H - margin, pageIndex: 0 }
+    const side: Cursor = { x: sidebarX0 + margin, width: sidebarW - 2 * margin, isSidebar: true, y: PAGE_H - margin, pageIndex: 0 }
     const main: Cursor = {
-      x: sidebarW + margin,
+      x: sidebarRight ? margin : sidebarW + margin,
       width: PAGE_W - sidebarW - 2 * margin,
       isSidebar: false,
       y: PAGE_H - margin,
@@ -672,25 +748,45 @@ export async function generateDesignPDF(
   const firstPage = pages[0]
 
   const nameText = design.uppercaseName ? resumeData.basics.name.toUpperCase() : resumeData.basics.name
+  const nameLH = s.name + 5
+  const contLH = s.small + 5
 
   if (design.header === "band" && colors.headerBg) {
-    const bandH = 96
+    const headerText = colors.headerText || rgb(1, 1, 1)
+    const innerPad = 40
+    const innerW = PAGE_W - 2 * innerPad
+    const nameLines = wrapText(nameText, innerW, bold, s.name)
+    const contactLines = groupContact(innerW)
+    const topPad = 24
+    const midGap = 10
+    const botPad = 20
+    const bandH =
+      topPad +
+      nameLines.length * nameLH +
+      (contactLines.length ? midGap + contactLines.length * contLH : 0) +
+      botPad
     firstPage.drawRectangle({ x: 0, y: PAGE_H - bandH, width: PAGE_W, height: bandH, color: colors.headerBg })
     if (design.accentStripe) {
       firstPage.drawRectangle({ x: 0, y: PAGE_H - bandH, width: stripeW, height: bandH, color: colors.accent })
     }
-    const nameY = PAGE_H - 42
-    const nw = trackedWidth(nameText, s.name, bold, 0.5)
-    drawTracked(firstPage, nameText, (PAGE_W - nw) / 2, nameY, s.name, bold, colors.headerText || rgb(1, 1, 1), 0.5)
-    drawContactRow(firstPage, PAGE_H - 66, true, colors.headerText || rgb(1, 1, 1))
-    cur.y = PAGE_H - bandH - 24
+    let top = drawNameLines(firstPage, nameLines, PAGE_H - topPad, true, headerText, innerPad)
+    if (contactLines.length) {
+      top -= midGap
+      for (const ln of contactLines) {
+        drawContactLine(firstPage, ln, top - s.small * 0.8, true, headerText, innerPad)
+        top -= contLH
+      }
+    }
+    cur.y = PAGE_H - bandH - 22
   } else if (design.header === "centered") {
-    const nw = trackedWidth(nameText, s.name, bold, 0.5)
-    ensure(cur, s.name + 10)
-    drawTracked(firstPage, nameText, (PAGE_W - nw) / 2, cur.y, s.name, bold, colors.name, 0.5)
-    cur.y -= s.name + 8
-    drawContactRow(firstPage, cur.y, true, colors.secondary)
-    cur.y -= s.small + 8
+    const nameLines = wrapText(nameText, cur.width, bold, s.name)
+    ensure(cur, nameLines.length * nameLH + 10)
+    cur.y = drawNameLines(firstPage, nameLines, cur.y, true, colors.name, cur.x) - 4
+    for (const ln of groupContact(cur.width)) {
+      drawContactLine(firstPage, ln, cur.y - s.small * 0.8, true, colors.secondary, cur.x)
+      cur.y -= contLH
+    }
+    cur.y -= 6
     firstPage.drawLine({
       start: { x: cur.x, y: cur.y + 4 },
       end: { x: cur.x + cur.width, y: cur.y + 4 },
@@ -700,17 +796,14 @@ export async function generateDesignPDF(
     cur.y -= 14
   } else {
     // left header
-    ensure(cur, s.name + 10)
-    firstPage.drawText(sanitizeWithFont(nameText, bold), {
-      x: cur.x,
-      y: cur.y,
-      size: s.name,
-      font: bold,
-      color: colors.name,
-    })
-    cur.y -= s.name + 6
-    drawContactRow(firstPage, cur.y, false, colors.secondary)
-    cur.y -= s.small + 8
+    const nameLines = wrapText(nameText, cur.width, bold, s.name)
+    ensure(cur, nameLines.length * nameLH + 10)
+    cur.y = drawNameLines(firstPage, nameLines, cur.y, false, colors.name, cur.x) - 2
+    for (const ln of groupContact(cur.width)) {
+      drawContactLine(firstPage, ln, cur.y - s.small * 0.8, false, colors.secondary, cur.x)
+      cur.y -= contLH
+    }
+    cur.y -= 6
     firstPage.drawLine({
       start: { x: cur.x, y: cur.y + 4 },
       end: { x: cur.x + cur.width, y: cur.y + 4 },

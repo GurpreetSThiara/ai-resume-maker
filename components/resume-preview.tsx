@@ -6,8 +6,9 @@ import dynamic from "next/dynamic"
 import type { ResumeData, ResumeTemplate, Section } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { getResumePreview } from "./resumes"
+import { PdfPreviewErrorBoundary } from "./pdf-preview-boundary"
 import { atsCompactLinesTemplate, atsClassicCompactTemplate } from "@/lib/templates"
-import { AlertTriangle, FileText, Loader2, PencilLine, X } from "lucide-react"
+import { AlertTriangle, FileText, FileType2, Loader2, PencilLine, X } from "lucide-react"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 const ResumePdfPreview = dynamic(
@@ -17,6 +18,18 @@ const ResumePdfPreview = dynamic(
     loading: () => (
       <div className="flex min-h-[40vh] items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50/80">
         <Loader2 className="h-8 w-8 animate-spin text-gray-400" aria-label="Loading PDF viewer" />
+      </div>
+    ),
+  },
+)
+
+const ResumeDocxPreview = dynamic(
+  () => import("@/components/resume-docx-preview").then((m) => m.ResumeDocxPreview),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex min-h-[40vh] items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50/80">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" aria-label="Loading DOCX viewer" />
       </div>
     ),
   },
@@ -161,7 +174,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
     }
 
     const [showAtsWarning, setShowAtsWarning] = useState(true)
-    const [previewSurface, setPreviewSurface] = useState<"editable" | "pdf">("editable")
+    const [previewSurface, setPreviewSurface] = useState<"editable" | "pdf" | "docx">("editable")
 
     // Reset warning when template changes
     useEffect(() => {
@@ -204,7 +217,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
             variant="outline"
             value={previewSurface}
             onValueChange={(v) => {
-              if (v === "editable" || v === "pdf") setPreviewSurface(v)
+              if (v === "editable" || v === "pdf" || v === "docx") setPreviewSurface(v)
             }}
             className="w-full max-w-md flex"
             aria-label="Preview mode"
@@ -225,12 +238,28 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
               <FileText className="h-4 w-4 shrink-0" aria-hidden />
               <span className="truncate">PDF</span>
             </ToggleGroupItem>
+            <ToggleGroupItem
+              value="docx"
+              className="gap-1.5 text-xs sm:text-sm px-2 py-2 h-auto"
+              aria-label="Word DOCX preview"
+            >
+              <FileType2 className="h-4 w-4 shrink-0" aria-hidden />
+              <span className="truncate">DOCX</span>
+            </ToggleGroupItem>
           </ToggleGroup>
         </div>
 
         {previewSurface === "pdf" ? (
           <div ref={ref} className="w-full flex justify-center pb-8 overflow-y-auto">
-            <ResumePdfPreview resumeData={filteredResumeData} template={template} />
+            <PdfPreviewErrorBoundary label="PDF">
+              <ResumePdfPreview resumeData={filteredResumeData} template={template} />
+            </PdfPreviewErrorBoundary>
+          </div>
+        ) : previewSurface === "docx" ? (
+          <div ref={ref} className="w-full flex justify-center px-3 sm:px-4 pb-8 overflow-y-auto">
+            <PdfPreviewErrorBoundary label="DOCX">
+              <ResumeDocxPreview resumeData={filteredResumeData} template={template} />
+            </PdfPreviewErrorBoundary>
           </div>
         ) : (
           <div ref={ref} className="w-full flex justify-center pb-8">

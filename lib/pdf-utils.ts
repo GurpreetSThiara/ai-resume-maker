@@ -1,4 +1,4 @@
-import type { PDFFont } from "pdf-lib"
+import type { PDFFont } from "@pdfme/pdf-lib"
 
 /**
  * wrapText - wraps text for pdf-lib rendering

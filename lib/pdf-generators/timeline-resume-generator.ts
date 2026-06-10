@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, StandardFonts, PDFName, PDFString } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts, PDFName, PDFString } from '@pdfme/pdf-lib';
 import type { ResumeData } from '@/types/resume';
 import { sanitizeTextForPdf, sanitizeTextForPdfWithFont } from '../utils';
 import { wrapText } from '../pdf-utils';
