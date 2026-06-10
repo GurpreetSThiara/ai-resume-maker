@@ -1,4 +1,5 @@
 import type { ResumeTemplate } from "@/types/resume"
+import { RESUME_DESIGNS, type ResumeDesign } from "@/lib/resume-designs"
 
 export const googleTemplate: ResumeTemplate = {
   id: "classic-blue",
@@ -355,6 +356,114 @@ export const boldProfessionalTemplate: ResumeTemplate = {
   },
 }
 
+export const modernSplitTemplate: ResumeTemplate = {
+  id: "modern-split",
+  name: "Modern Split",
+  description: "Premium two-column layout with a dark sidebar and clean typography.",
+  isAtsFriendly: false,
+  theme: {
+    fontSize: {
+      name: "text-4xl",
+      section: "text-xl",
+      content: "text-base",
+      small: "text-sm",
+    },
+    colors: {
+      primary: "text-slate-900",
+      secondary: "text-slate-600",
+      text: "text-slate-800",
+      accent: "text-blue-600",
+    },
+    spacing: {
+      section: "mb-8",
+      item: "mb-4",
+      content: "mb-2",
+    },
+    layout: {
+      container: "max-w-4xl mx-auto bg-white shadow-xl rounded-lg overflow-hidden flex",
+      header: "p-8 bg-slate-900 text-white",
+      content: "p-8 flex-1",
+    },
+  },
+  pdfConfig: {
+    fonts: {
+      regular: "Helvetica",
+      bold: "Helvetica-Bold",
+    },
+    sizes: {
+      name: 28,
+      section: 16,
+      content: 10,
+      small: 9,
+    },
+    colors: {
+      text: { r: 0.15, g: 0.15, b: 0.15 },
+      heading: { r: 0.1, g: 0.1, b: 0.2 },
+      secondary: { r: 0.4, g: 0.4, b: 0.4 },
+      linkColor: { r: 0, g: 0.3, b: 0.7 },
+    },
+    spacing: {
+      page: 25,
+      section: 20,
+      item: 10,
+    },
+  },
+}
+
+/** Build a ResumeTemplate descriptor from a premium design spec. */
+function designToTemplate(d: ResumeDesign): ResumeTemplate {
+  const hexToRgb = (hex: string) => {
+    const clean = hex.replace("#", "")
+    return {
+      r: parseInt(clean.slice(0, 2), 16) / 255,
+      g: parseInt(clean.slice(2, 4), 16) / 255,
+      b: parseInt(clean.slice(4, 6), 16) / 255,
+    }
+  }
+  return {
+    id: d.id,
+    name: d.name,
+    description: d.description,
+    isAtsFriendly: d.isAtsFriendly,
+    theme: {
+      fontSize: { name: "text-3xl", section: "text-xl", content: "text-base", small: "text-sm" },
+      colors: {
+        primary: `#${d.colors.heading}`,
+        secondary: `#${d.colors.secondary}`,
+        text: `#${d.colors.text}`,
+        accent: `#${d.colors.accent}`,
+      },
+      spacing: { section: "mb-6", item: "mb-4", content: "mb-2" },
+      layout: {
+        container: "max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden",
+        header: "p-6",
+        content: "p-6",
+      },
+    },
+    pdfConfig: {
+      fonts:
+        d.font === "serif"
+          ? { regular: "TimesRoman", bold: "TimesRomanBold" }
+          : { regular: "Helvetica", bold: "Helvetica-Bold" },
+      sizes: {
+        name: d.sizes.name,
+        section: d.sizes.section,
+        content: d.sizes.content,
+        small: d.sizes.small,
+      },
+      colors: {
+        text: hexToRgb(d.colors.text),
+        heading: hexToRgb(d.colors.heading),
+        secondary: hexToRgb(d.colors.secondary),
+        linkColor: hexToRgb(d.colors.accent),
+      },
+      spacing: { page: 20, section: 16, item: 10 },
+    },
+  }
+}
+
+export const designTemplates: ResumeTemplate[] = RESUME_DESIGNS.map(designToTemplate)
+
 export const availableTemplates: ResumeTemplate[] = [
   googleTemplate,
   classicATSTemplate,
@@ -363,7 +472,9 @@ export const availableTemplates: ResumeTemplate[] = [
   atsCompactLinesTemplate,
   atsClassicCompactTemplate,
   modernSidebarTemplate,
-  boldProfessionalTemplate
+  boldProfessionalTemplate,
+  modernSplitTemplate,
+  ...designTemplates,
 ]
 
 export function getTemplateById(id: string): ResumeTemplate | undefined {

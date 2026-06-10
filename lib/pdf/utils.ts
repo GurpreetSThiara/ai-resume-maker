@@ -1,5 +1,5 @@
 
-import { PDFArray, PDFName, PDFFont, PDFPage, RGB } from 'pdf-lib'
+import { PDFArray, PDFName, PDFFont, PDFPage, RGB } from '@pdfme/pdf-lib'
 
 export type LinkDisplay = 'short' | 'full'
 

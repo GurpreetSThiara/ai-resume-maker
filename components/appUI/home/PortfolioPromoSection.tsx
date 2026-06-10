@@ -14,7 +14,7 @@ export function PortfolioPromoSection() {
     return (
         <section className="relative py-24 px-4 overflow-hidden bg-slate-900 text-white">
             {/* Background Effects */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-indigo-900/40 via-slate-900 to-slate-900 pointer-events-none" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-emerald-900/40 via-slate-900 to-slate-900 pointer-events-none" />
             <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
 
             <div className="container mx-auto max-w-7xl relative z-10">
@@ -22,14 +22,14 @@ export function PortfolioPromoSection() {
 
                     {/* Content */}
                     <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 ease-in-out fill-mode-both">
-                        <Badge className="mb-6 px-4 py-1.5 bg-indigo-500/20 text-indigo-300 border-indigo-500/30 hover:bg-indigo-500/30">
+                        <Badge className="mb-6 px-4 py-1.5 bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/30">
                             <Sparkles className="w-4 h-4 mr-2 inline" />
                             Free Online Portfolio
                         </Badge>
 
                         <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
                             Your Personal Website, <br className="hidden md:block" />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Ready in Seconds</span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Ready in Seconds</span>
                         </h2>
 
                         <p className="text-lg text-slate-300 mb-8 max-w-xl leading-relaxed">
@@ -48,8 +48,8 @@ export function PortfolioPromoSection() {
                                 { icon: Globe, title: "Get Discovered", desc: "Showcase your work to recruiters online." }
                             ].map((item, i) => (
                                 <div key={i} className="flex gap-4 group">
-                                    <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center shrink-0 group-hover:bg-indigo-500/20 transition-colors">
-                                        <item.icon className="w-6 h-6 text-indigo-400" />
+                                    <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0 group-hover:bg-emerald-500/20 transition-colors">
+                                        <item.icon className="w-6 h-6 text-emerald-400" />
                                     </div>
                                     <div>
                                         <h3 className="font-semibold text-white mb-1">{item.title}</h3>
@@ -64,7 +64,7 @@ export function PortfolioPromoSection() {
                                 <Button
                                     size="lg"
                                     onClick={() => open("/dashboard/portfolios")}
-                                    className="bg-indigo-600 hover:bg-indigo-500 text-white border-0 shadow-lg shadow-indigo-900/20 w-full sm:w-auto h-12 text-base font-medium group transition-all"
+                                    className="bg-emerald-600 hover:bg-emerald-500 text-white border-0 shadow-lg shadow-emerald-900/20 w-full sm:w-auto h-12 text-base font-medium group transition-all"
                                 >
                                     <LogIn className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
                                     Log In to Create
@@ -74,7 +74,7 @@ export function PortfolioPromoSection() {
                                 <Link href="/dashboard/portfolios">
                                     <Button
                                         size="lg"
-                                        className="bg-indigo-600 hover:bg-indigo-500 text-white border-0 shadow-lg shadow-indigo-900/20 w-full sm:w-auto h-12 text-base font-medium group transition-all"
+                                        className="bg-emerald-600 hover:bg-emerald-500 text-white border-0 shadow-lg shadow-emerald-900/20 w-full sm:w-auto h-12 text-base font-medium group transition-all"
                                     >
                                         Create Your Portfolio
                                         <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -86,7 +86,7 @@ export function PortfolioPromoSection() {
 
                     {/* Visual/Preview */}
                     <div className="relative hidden lg:block animate-in fade-in zoom-in-95 duration-700 delay-200 ease-in-out fill-mode-both">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-cyan-500/20 rounded-2xl blur-3xl transform rotate-3 scale-95" />
+                        <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 rounded-2xl blur-3xl transform rotate-3 scale-95" />
                         <div className="relative bg-slate-800 border border-slate-700 rounded-2xl p-2 shadow-2xl transform rotate-2 hover:rotate-0 hover:scale-[1.02] transition-all duration-500 ease-out">
                             {/* Browser Frame */}
                             <div className="h-8 bg-slate-900 rounded-t-xl flex items-center px-4 gap-2 border-b border-slate-700">
@@ -104,14 +104,14 @@ export function PortfolioPromoSection() {
                             <div className="bg-slate-900 rounded-b-xl overflow-hidden aspect-[4/3] relative group">
                                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8 bg-slate-900 text-center pattern-isometric pattern-slate-800 pattern-bg-transparent pattern-size-4 pattern-opacity-100">
                                     <div className="relative mb-6">
-                                        <div className="absolute inset-0 bg-indigo-500 rounded-full blur-md opacity-30 animate-pulse-slow" />
-                                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-400 mx-auto relative z-10 ring-4 ring-slate-800 shadow-xl" />
+                                        <div className="absolute inset-0 bg-emerald-500 rounded-full blur-md opacity-30 animate-pulse-slow" />
+                                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400 mx-auto relative z-10 ring-4 ring-slate-800 shadow-xl" />
                                     </div>
                                     <div className="h-6 w-40 bg-slate-700 rounded-full mb-3 mx-auto" />
                                     <div className="h-3 w-56 bg-slate-800 rounded-full mb-6 mx-auto" />
 
                                     <div className="flex gap-3 mt-2">
-                                        <div className="h-8 w-24 bg-indigo-600/30 rounded border border-indigo-500/50" />
+                                        <div className="h-8 w-24 bg-emerald-600/30 rounded border border-emerald-500/50" />
                                         <div className="h-8 w-8 bg-slate-800 rounded border border-slate-700" />
                                     </div>
 

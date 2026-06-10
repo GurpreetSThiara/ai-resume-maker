@@ -57,6 +57,7 @@ const CreateResumeContent: FC = () => {
   const { loading, user } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const resumeIdFromUrl = searchParams.get('id')
   const { triggerReviewModal, ReviewModalComponent } = usePostDownloadReview({ actionType: 'download' })
   // const { effectiveAiEnabled } = useAi()
 
@@ -127,62 +128,59 @@ const CreateResumeContent: FC = () => {
   ]);
 
 
-  // Load data from localStorage on component mount (only if no cloud resume ID)
+  // Load data from localStorage when not editing a cloud resume (`id` in URL).
+  // Depend only on `resumeIdFromUrl` so changing other query params (e.g. `template`) does not
+  // re-apply stale localStorage over the user's current edits.
   useEffect(() => {
-    const resumeId = searchParams.get('id')
+    if (resumeIdFromUrl) return
 
-    // Only load localStorage data if we're not editing a cloud resume
-    if (!resumeId) {
-      const savedResumeData = getValidResumeFromLocalStorage()
-      const savedCurrentStep = getLocalStorageItem(LS_KEYS.currentStep)
-      const savedCompletedSteps = getLocalStorageJSON<number[]>(LS_KEYS.completedSteps, [])
-      const savedResumeId = getLocalStorageItem(LS_KEYS.currentResumeId)
+    const savedResumeData = getValidResumeFromLocalStorage()
+    const savedCurrentStep = getLocalStorageItem(LS_KEYS.currentStep)
+    const savedCompletedSteps = getLocalStorageJSON<number[]>(LS_KEYS.completedSteps, [])
+    const savedResumeId = getLocalStorageItem(LS_KEYS.currentResumeId)
 
-      if (savedResumeData) {
-        setResumeData(savedResumeData)
-      }
-      if (savedCurrentStep) {
-        setCurrentStep(parseInt(savedCurrentStep, 10))
-      }
-      if (savedCompletedSteps) {
-        setCompletedSteps(new Set(savedCompletedSteps))
-      }
-      if (savedResumeId) {
-        setCurrentResumeId(savedResumeId)
+    if (savedResumeData) {
+      setResumeData(savedResumeData)
+    }
+    if (savedCurrentStep) {
+      setCurrentStep(parseInt(savedCurrentStep, 10))
+    }
+    if (savedCompletedSteps) {
+      setCompletedSteps(new Set(savedCompletedSteps))
+    }
+    if (savedResumeId) {
+      setCurrentResumeId(savedResumeId)
 
-        // If it's a local resume ID, load the actual data from the new system
-        if (savedResumeId.startsWith('local_')) {
-          const localResume = getLocalResumeById(savedResumeId)
-          if (localResume) {
-            setResumeData(localResume.data)
-          }
+      if (savedResumeId.startsWith('local_')) {
+        const localResume = getLocalResumeById(savedResumeId)
+        if (localResume) {
+          setResumeData(localResume.data)
         }
       }
     }
-  }, [searchParams])
+  }, [resumeIdFromUrl])
 
-  // Load cloud resume data if id query parameter is present
+  // Load cloud resume when `id` is present. Depend on resume id (not full searchParams) so
+  // updating `template` in the URL does not refetch and wipe unsaved edits.
   useEffect(() => {
-    const resumeId = searchParams.get('id')
-    if (resumeId && !loading) {
-      loadResumeData(resumeId).then((result) => {
-        if (result.success && result.data) {
-          setResumeData(result.data)
-          setCurrentResumeId(resumeId)
-          // Clear localStorage when loading cloud resume
-          removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps, LS_KEYS.currentResumeId)
-        } else {
-          console.error('Failed to load cloud resume:', result)
-        }
-      }).catch((error) => {
-        console.error('Error loading cloud resume:', error)
-      })
-    }
-  }, [searchParams, loading])
+    if (!resumeIdFromUrl || loading) return
+
+    loadResumeData(resumeIdFromUrl).then((result) => {
+      if (result.success && result.data) {
+        setResumeData(result.data)
+        setCurrentResumeId(resumeIdFromUrl)
+        removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps, LS_KEYS.currentResumeId)
+      } else {
+        console.error('Failed to load cloud resume:', result)
+      }
+    }).catch((error) => {
+      console.error('Error loading cloud resume:', error)
+    })
+  }, [resumeIdFromUrl, loading])
 
   useEffect(() => {
     setSelectedTemplate(template)
-  }, [searchParams, availableTemplates, template])
+  }, [template])
 
 
   // Auto-save functionality
@@ -668,7 +666,10 @@ const CreateResumeContent: FC = () => {
                 ) : (
                   <Card className="sticky top-32 h-screen overflow-auto">
                     <CardHeader>
-                      <CardTitle className="text-lg text-center">Preview (you can click/tap on any line and edit directly in preview)</CardTitle>
+                      <CardTitle className="text-lg text-center">Resume preview</CardTitle>
+                      <CardDescription className="text-center">
+                        Switch between editable layout and the real PDF from pdf-lib.
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <ResumePreview

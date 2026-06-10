@@ -1,7 +1,9 @@
 import { ResumeData, SECTION_TYPES } from '@/types/resume';
-import { PDFDocument, rgb, StandardFonts, PDFFont, PDFPage, RGB } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts, PDFFont, PDFPage, RGB } from '@pdfme/pdf-lib';
 import { getSectionsForRendering } from "@/utils/sectionOrdering";
 import { getEffectiveSkillGroupsFromSection, formatGroupedSkillsLine } from "@/utils/skills";
+import { wrapText } from '../pdf-utils';
+
 
 interface GenerateResumeProps {
   resumeData: ResumeData;
@@ -138,67 +140,7 @@ export async function generateATSGreenResume({
     return false;
   };
 
-  // Helper function to wrap text, handling long words and newlines
-  const wrapText = (text: string, maxWidth: number, font: PDFFont, fontSize: number): string[] => {
-    const safeFullText = sanitizeForFont(text, font);
-    const lines: string[] = [];
-    
-    // Split by newlines first
-    const paragraphs = safeFullText.split(/\r?\n/);
-    
-    for (const paragraph of paragraphs) {
-      if (!paragraph.trim()) {
-        lines.push('');
-        continue;
-      }
-      
-      const words = paragraph.split(' ');
-      let currentLine = '';
 
-      for (const word of words) {
-        const testLine = currentLine ? `${currentLine} ${word}` : word;
-        const textWidth = font.widthOfTextAtSize(testLine, fontSize);
-
-        if (textWidth <= maxWidth) {
-          currentLine = testLine;
-        } else {
-          // Check if single word is too long
-          const wordWidth = font.widthOfTextAtSize(word, fontSize);
-          if (wordWidth > maxWidth) {
-            // Break long word
-            if (currentLine) {
-              lines.push(currentLine);
-              currentLine = '';
-            }
-            // Split the long word character by character
-            let partialWord = '';
-            for (const char of word) {
-              const testPartial = partialWord + char;
-              const partialWidth = font.widthOfTextAtSize(testPartial, fontSize);
-              if (partialWidth <= maxWidth) {
-                partialWord = testPartial;
-              } else {
-                if (partialWord) lines.push(partialWord);
-                partialWord = char;
-              }
-            }
-            currentLine = partialWord;
-          } else {
-            if (currentLine) {
-              lines.push(currentLine);
-            }
-            currentLine = word;
-          }
-        }
-      }
-
-      if (currentLine) {
-        lines.push(currentLine);
-      }
-    }
-
-    return lines.length > 0 ? lines : [''];
-  };
 
   // Helper function to draw text
   const drawText = (
@@ -296,8 +238,11 @@ export async function generateATSGreenResume({
   if (phone || email) {
     const contactParts = [phone, email].filter(Boolean);
     const contactInfo = contactParts.join(' • ');
-    checkNewPage(spacing.afterContact);
-    drawText(contactInfo, margins.left, yPosition, {
+    const maxWidth = pageSize[0] - margins.left - margins.right;
+    const contactLines = wrapText(contactInfo, maxWidth, regularFont, fontSizes.contact);
+    
+    checkNewPage(spacing.afterContact * contactLines.length);
+    drawWrappedLines(contactLines, margins.left, spacing.lineHeight, {
       size: fontSizes.contact,
     });
     yPosition -= spacing.afterContact;
@@ -309,12 +254,16 @@ export async function generateATSGreenResume({
   if (location || linkedin) {
     const locationParts = [location, linkedin].filter(Boolean);
     const locationInfo = locationParts.join(' • ');
-    checkNewPage(spacing.afterContact);
-    drawText(locationInfo, margins.left, yPosition, {
+    const maxWidth = pageSize[0] - margins.left - margins.right;
+    const locationLines = wrapText(locationInfo, maxWidth, regularFont, fontSizes.contact);
+
+    checkNewPage(spacing.afterContact * locationLines.length);
+    drawWrappedLines(locationLines, margins.left, spacing.lineHeight, {
       size: fontSizes.contact,
     });
     yPosition -= spacing.afterContact + spacing.paragraphGap;
   }
+
 
   // 2. SUMMARY SECTION
   const summary = safeString(resumeData.basics?.summary);
@@ -748,19 +697,7 @@ export async function generateATSGreenResume({
     yPosition -= spacing.afterSection;
   }
 
-  // Save the PDF
   const pdfBytes = await pdfDoc.save();
-
-  // Create download in browser
-  const blob = new Blob([pdfBytes as unknown as ArrayBuffer], { type: "application/pdf" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-  
-  // Clean up
-  setTimeout(() => URL.revokeObjectURL(link.href), 100);
-  
   return pdfBytes;
 }
 
@@ -768,16 +705,17 @@ export async function generateATSGreenResume({
 export async function saveResumeToFile({
   resumeData,
   filename = "resume.pdf",
-  theme = 'green'
-}: GenerateResumeProps): Promise<void> {
-  await generateATSGreenResume({ resumeData, filename, theme });
+  theme = "green",
+}: GenerateResumeProps): Promise<Uint8Array> {
+  return generateATSGreenResume({ resumeData, filename, theme });
 }
 
-// Export function for browser environment (download)
 export async function downloadResume({
   resumeData,
   filename = "resume.pdf",
-  theme = 'green'
+  theme = "green",
 }: GenerateResumeProps): Promise<void> {
-  await generateATSGreenResume({ resumeData, filename, theme });
+  const { triggerPdfDownload } = await import("@/lib/pdf-generators/trigger-pdf-download");
+  const bytes = await generateATSGreenResume({ resumeData, filename, theme });
+  triggerPdfDownload(bytes, filename);
 }

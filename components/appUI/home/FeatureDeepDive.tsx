@@ -12,7 +12,7 @@ interface Feature {
 const features: Feature[] = [
   {
     icon: Target,
-    bgColor: "bg-purple-100",
+    bgColor: "bg-emerald-100",
     iconColor: "text-primary",
     title: "ATS-Optimized Resumes",
     description:
@@ -20,8 +20,8 @@ const features: Feature[] = [
   },
   {
     icon: Clock,
-    bgColor: "bg-blue-100",
-    iconColor: "text-blue-600",
+    bgColor: "bg-emerald-100",
+    iconColor: "text-emerald-600",
     title: "Create a Resume in Minutes",
     description:
       "With our intuitive builder, you can create an ATS-optimized resume in under 5 minutes. No watermarks, no locked features, and no surprise charges—just a professional resume, fast.",

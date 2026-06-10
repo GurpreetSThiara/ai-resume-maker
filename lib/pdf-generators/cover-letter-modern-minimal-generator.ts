@@ -1,6 +1,8 @@
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
+import { PDFDocument, rgb, StandardFonts } from "@pdfme/pdf-lib"
 import type { CoverLetter } from "@/types/cover-letter"
 import { format } from "date-fns"
+import { wrapText } from "../pdf-utils"
+
 
 export async function generateModernMinimalPDF(coverLetter: CoverLetter): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create()
@@ -139,48 +141,21 @@ export async function generateModernMinimalPDF(coverLetter: CoverLetter): Promis
   // Content paragraphs
   const paragraphs = [opening, body, closing]
   paragraphs.forEach((paragraph) => {
-    const lines = paragraph.split("\n")
-    lines.forEach((line) => {
-      const words = line.split(" ")
-      let currentLine = ""
-
-      words.forEach((word) => {
-        const testLine = currentLine + (currentLine ? " " : "") + word
-        const textWidth = helvetica.widthOfTextAtSize(testLine, 11)
-
-        if (textWidth > 484) {
-          // Max width
-          if (currentLine) {
-            checkAndCreateNewPage(lineHeight)
-            page.drawText(currentLine, {
-              x: 64,
-              y: yPosition,
-              size: 11,
-              font: helvetica,
-              color: rgb(0.1, 0.1, 0.1),
-            })
-            yPosition -= lineHeight
-          }
-          currentLine = word
-        } else {
-          currentLine = testLine
-        }
+    const lines = wrapText(paragraph, 484, helvetica, 11)
+    for (const line of lines) {
+      checkAndCreateNewPage(lineHeight)
+      page.drawText(line, {
+        x: 64,
+        y: yPosition,
+        size: 11,
+        font: helvetica,
+        color: rgb(0.1, 0.1, 0.1),
       })
-
-      if (currentLine) {
-        checkAndCreateNewPage(lineHeight)
-        page.drawText(currentLine, {
-          x: 64,
-          y: yPosition,
-          size: 11,
-          font: helvetica,
-          color: rgb(0.1, 0.1, 0.1),
-        })
-        yPosition -= lineHeight
-      }
-    })
+      yPosition -= lineHeight
+    }
     yPosition -= 8
   })
+
 
   // Signature
   checkAndCreateNewPage(15)

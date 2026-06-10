@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Plus, Eye, Edit, Trash2, Globe, ExternalLink, RefreshCw, Settings, Share2, Briefcase, ChevronRight, CheckCircle2 } from "lucide-react"
+import { Plus, Eye, Edit, Trash2, Globe, ExternalLink, RefreshCw, Settings, Share2, Briefcase, ChevronRight, CheckCircle2, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -38,14 +38,12 @@ export default function PortfoliosPage() {
     const router = useRouter()
 
     useEffect(() => {
-        loadPortfolios()
-    }, [])
-
-    useEffect(() => {
-        if (!authLoading && !user) {
-            openAuthModal()
+        if (user) {
+            loadPortfolios()
+        } else if (!authLoading) {
+            setLoading(false)
         }
-    }, [user, authLoading, openAuthModal])
+    }, [user, authLoading])
 
     async function loadPortfolios() {
         setLoading(true)
@@ -128,8 +126,7 @@ export default function PortfoliosPage() {
     return (
         <div className="container py-8 space-y-8">
             <div className="flex justify-between items-center">
-
-                {portfolios.length === 0 && !loading && (
+                {user && portfolios.length === 0 && !loading && (
                     <CreatePortfolioDialog>
                         <Button>
                             <Plus className="mr-2 h-4 w-4" /> New Portfolio
@@ -138,7 +135,24 @@ export default function PortfoliosPage() {
                 )}
             </div>
 
-            {loading ? (
+            {!user && !authLoading ? (
+                <div className="max-w-3xl mx-auto py-12">
+                    <Card className="border-dashed">
+                        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                            <div className="h-16 w-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
+                                <Lock className="h-8 w-8 text-slate-400" />
+                            </div>
+                            <h3 className="text-2xl font-bold mb-2">Sign in Required</h3>
+                            <p className="text-muted-foreground max-w-sm mb-8">
+                                You need to be signed in to view and manage your professional portfolios.
+                            </p>
+                            <Button size="lg" onClick={() => openAuthModal('/dashboard/portfolios')} className="px-8">
+                                Sign In to Portfolio Dashboard
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
+            ) : loading ? (
                 <div className="max-w-3xl mx-auto">
                     <Skeleton className="h-[300px] w-full rounded-xl" />
                 </div>

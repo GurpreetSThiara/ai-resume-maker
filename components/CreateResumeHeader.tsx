@@ -8,15 +8,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { TemplatePickerDrawer } from "@/components/template-picker-drawer"
 import { Eye, Star, Menu } from "lucide-react"
 import { SectionManagement } from "@/components/section-management"
+import { ModernSidebarLayoutModal } from "@/components/modern-sidebar-layout-modal"
 import DownloadDropDown from "@/components/global/DropDown/DropDown"
 import type { ResumeData, ResumeTemplate, Section } from "@/types/resume"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -52,11 +47,18 @@ export function CreateResumeHeader({
 const renderControls = () => (
   <div className="w-full flex flex-wrap items-center gap-3">
 
-    <SectionManagement
-      sections={sectionsWithOrder}
-      onReorder={handleSectionReorder}
-      className="h-10 px-4 rounded-md text-sm flex items-center"
-    />
+    {selectedTemplate.id === 'modern-sidebar' ? (
+      <ModernSidebarLayoutModal
+        sections={sectionsWithOrder}
+        onUpdate={handleSectionReorder}
+      />
+    ) : (
+      <SectionManagement
+        sections={sectionsWithOrder}
+        onReorder={handleSectionReorder}
+        className="h-10 px-4 rounded-md text-sm flex items-center"
+      />
+    )}
 
     <Button
       variant="outline"
@@ -76,9 +78,9 @@ const renderControls = () => (
       className="h-10 px-4 rounded-md text-sm flex items-center"
     />
 
-    <Select
-      value={selectedTemplate.id}
-      onValueChange={(value) => {
+    <TemplatePickerDrawer
+      selectedId={selectedTemplate.id}
+      onSelect={(value) => {
         const t = availableTemplates.find((t) => t.id === value)
         if (t) {
           setSelectedTemplate(t)
@@ -88,21 +90,11 @@ const renderControls = () => (
           router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false })
         }
       }}
-    >
-      <SelectTrigger className="h-10 px-4 rounded-md text-sm w-48 flex items-center">
-        <SelectValue placeholder="Select Template" />
-      </SelectTrigger>
-      <SelectContent>
-        {availableTemplates.map((t) => (
-          <SelectItem key={t.id} value={t.id}>
-            {t.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    />
 
     <Button
       disabled
+      hidden={true}
       title="Coming soon"
       className="h-10 px-4 rounded-md text-sm flex items-center gap-2"
     >

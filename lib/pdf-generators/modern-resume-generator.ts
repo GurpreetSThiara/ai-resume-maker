@@ -1,7 +1,8 @@
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
+import { PDFDocument, rgb, StandardFonts } from "@pdfme/pdf-lib"
 import type { PDFGenerationOptions } from "@/types/resume"
 import { ResumeData } from '@/types/resume'
-import { sanitizeTextForPdf } from '@/lib/utils'
+import { sanitizeTextForPdf, wrapText } from '../utils'
+
 import { getEffectiveSkillGroupsFromSection } from '@/utils/skills'
 
 export async function generateModernResumePDF({ resumeData, filename = "resume.pdf" }: PDFGenerationOptions) {
@@ -34,14 +35,23 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
     .filter(Boolean)
     .join(" | ")
 
-  const contactWidth = fontRegular.widthOfTextAtSize(contactText, 10)
-  page.drawText(contactText, {
-    x: page.getWidth() - margin - contactWidth,
-    y,
-    size: 10,
-    font: fontRegular,
-    color: gray
+  const contactFontSize = 10
+  const maxContactWidth = page.getWidth() - (margin * 2) - 150 // Leave space for name
+  const contactLines = wrapText(contactText, maxContactWidth, fontRegular, contactFontSize)
+
+  contactLines.forEach((line, index) => {
+    const lineWidth = fontRegular.widthOfTextAtSize(line, contactFontSize)
+    page.drawText(line, {
+      x: page.getWidth() - margin - lineWidth,
+      y: y - (index * 12),
+      size: contactFontSize,
+      font: fontRegular,
+      color: gray
+    })
   })
+
+  y -= (contactLines.length - 1) * 12
+
 
   y -= 30
 
@@ -169,7 +179,8 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
           if (edu.highlights) {
             edu.highlights.forEach((highlight) => {
               const bulletText = `• ${highlight}`
-              const wrapped = wrapText(bulletText, 80)
+              const wrapped = wrapText(bulletText, page.getWidth() - 2 * margin - 20, fontRegular, 9)
+
               wrapped.forEach((line) => {
                 drawText(line, margin + 10, fontRegular, 9)
                 y -= lineHeight
@@ -200,7 +211,8 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
           if (exp.achievements) {
             exp.achievements.forEach((achievement) => {
               const bulletText = `• ${achievement}`
-              const wrapped = wrapText(bulletText, 80)
+              const wrapped = wrapText(bulletText, page.getWidth() - 2 * margin - 20, fontRegular, 9)
+
               wrapped.forEach((line) => {
                 drawText(line, margin + 10, fontRegular, 9)
                 y -= lineHeight
@@ -224,7 +236,8 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
             // Draw skills on the same line with regular font
             const skillsText = group.skills.join(', ')
             const skillsX = margin + fontBold.widthOfTextAtSize(titleText, 9)
-            const skillsWrapped = wrapText(skillsText, 80 - fontBold.widthOfTextAtSize(titleText, 9))
+            const skillsWrapped = wrapText(skillsText, page.getWidth() - 2 * margin - fontBold.widthOfTextAtSize(titleText, 9), fontRegular, 9)
+
 
             if (skillsWrapped.length > 0) {
               // Draw the first line of skills on the same line as the title
@@ -249,7 +262,8 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
       case "languages":
       case "certifications":
         const itemsText = section.items.join(", ")
-        const wrapped = wrapText(itemsText, 80)
+        const wrapped = wrapText(itemsText, page.getWidth() - 2 * margin, fontRegular, 9)
+
         wrapped.forEach((line) => {
           drawText(line, margin, fontRegular, 9)
           y -= lineHeight
@@ -259,7 +273,8 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
       case "custom":
         section.content.forEach((item) => {
           const bulletText = `• ${item}`
-          const wrapped = wrapText(bulletText, 80)
+          const wrapped = wrapText(bulletText, page.getWidth() - 2 * margin - 20, fontRegular, 9)
+
           wrapped.forEach((line) => {
             drawText(line, margin + 10, fontRegular, 9)
             y -= lineHeight
@@ -283,7 +298,8 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
             if (proj.repo) linksRow += 'GitHub:'
             if (proj.repo) linksRow += ` ${proj.repo}`
             if (linksRow) {
-              const linkLines = wrapText(linksRow, 80)
+              const linkLines = wrapText(linksRow, page.getWidth() - 2 * margin, fontRegular, 9)
+
               for (const line of linkLines) {
                 page.drawText(line, { x: margin, y, size: 9, font: fontRegular, color: rgb(0, 0, 0.7) })
                 y -= 12
@@ -293,7 +309,8 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
             // Descriptions (dashes, gray, indented)
             if (Array.isArray(proj.description) && proj.description.length) {
               for (const d of proj.description) {
-                const descLines = wrapText(`- ${d}`, 76)
+                const descLines = wrapText(`- ${d}`, page.getWidth() - 2 * margin - 30, fontRegular, 9)
+
                 for (const line of descLines) {
                   page.drawText(line, { x: margin + 15, y, size: 9, font: fontRegular, color: lightGray })
                   y -= 12
@@ -309,27 +326,8 @@ export async function generateModernResumePDF({ resumeData, filename = "resume.p
     y -= 8
   })
 
-  // Save & Download PDF
   const pdfBytes = await pdfDoc.save()
-  const blob = new Blob([pdfBytes as unknown as ArrayBuffer], { type: "application/pdf" })
-  const link = document.createElement("a")
-  link.href = URL.createObjectURL(blob)
-  link.download = filename
-  link.click()
+  return pdfBytes
 }
 
-function wrapText(text: string, maxChars: number) {
-  const words = text.split(" ")
-  const lines: string[] = []
-  let current = ""
-  words.forEach((word) => {
-    if ((current + word).length > maxChars) {
-      lines.push(current.trim())
-      current = word + " "
-    } else {
-      current += word + " "
-    }
-  })
-  if (current.trim()) lines.push(current.trim())
-  return lines
-}
+

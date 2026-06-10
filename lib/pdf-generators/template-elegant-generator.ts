@@ -1,6 +1,8 @@
-import { PDFDocument, PDFPage, rgb, StandardFonts } from "pdf-lib"
+import { PDFDocument, PDFPage, rgb, StandardFonts } from "@pdfme/pdf-lib"
 import type { PDFGenerationOptions } from "@/types/resume"
-import { sanitizeTextForPdf } from '@/lib/utils'
+import { sanitizeTextForPdf } from '../utils'
+import { wrapText } from '../pdf-utils'
+
 
 export async function generateElegantResumePDF({ resumeData, filename = "resume.pdf" }: PDFGenerationOptions) {
   const pdfDoc = await PDFDocument.create()
@@ -22,10 +24,19 @@ export async function generateElegantResumePDF({ resumeData, filename = "resume.
 
   // Name & contact
   draw(resumeData.name, margin, 24, bold, accent)
-  const contact = [resumeData.email, resumeData.phone, resumeData.location, resumeData.linkedin].filter(Boolean).join(" | ")
-  const w = regular.widthOfTextAtSize(contact, 10)
-  page.drawText(contact, { x: width - margin - w, y, size: 10, font: regular, color: secondary })
+  const contactParts = [resumeData.email, resumeData.phone, resumeData.location, resumeData.linkedin].filter(Boolean).map(s => String(s))
+  if (contactParts.length > 0) {
+    const contactText = contactParts.join(" | ")
+    const contactLines = wrapText(contactText, width - 2 * margin - 200, regular, 10) // Leave space for name
+    for (let i = 0; i < contactLines.length; i++) {
+      const line = contactLines[i]
+      const lw = regular.widthOfTextAtSize(line, 10)
+      page.drawText(line, { x: width - margin - lw, y: y - (i * 12), size: 10, font: regular, color: secondary })
+    }
+    y -= (contactLines.length - 1) * 12
+  }
   y -= 24
+
 
   // custom
   for (const item of Object.values(resumeData.custom)) {
@@ -93,7 +104,8 @@ export async function generateElegantResumePDF({ resumeData, filename = "resume.
               if (proj.repo) linksRow += 'GitHub:'
               if (proj.repo) linksRow += ` ${proj.repo}`
               if (linksRow) {
-                const linkLines = wrapText(linksRow, 84)
+                const linkLines = wrapTextLocal(linksRow, width - 2 * margin, regular, 9)
+
                 for (const line of linkLines) {
                   draw(line, margin, 9, regular, rgb(0.22,0.3,0.75))
                   y -= 10
@@ -102,7 +114,8 @@ export async function generateElegantResumePDF({ resumeData, filename = "resume.
               // Descriptions
               if (Array.isArray(proj.description) && proj.description.length) {
                 for (const d of proj.description) {
-                  const descLines = wrapText(`- ${d}`, 78)
+                  const descLines = wrapTextLocal(`- ${d}`, width - 2 * margin - 20, regular, 9)
+
                   for (const line of descLines) {
                     draw(line, margin + 14, 9, regular, secondary)
                     y -= 12
@@ -120,7 +133,8 @@ export async function generateElegantResumePDF({ resumeData, filename = "resume.
               continue
             }
 
-            const lines = wrapText(`• ${b}`, 84)
+            const lines = wrapTextLocal(`• ${b}`, width - 2 * margin - 10, regular, 9)
+
             for (const line of lines) {
               draw(line, margin + 10, 9)
               y -= 12
@@ -134,27 +148,12 @@ export async function generateElegantResumePDF({ resumeData, filename = "resume.
   }
 
   const bytes = await pdfDoc.save()
-  const blob = new Blob([bytes], { type: "application/pdf" })
-  const link = document.createElement("a")
-  link.href = URL.createObjectURL(blob)
-  link.download = filename
-  link.click()
+  return bytes
 }
 
-function wrapText(text: string, maxChars: number) {
-  const words = text.split(" ")
-  const lines: string[] = []
-  let current = ""
-  for (const w of words) {
-    if ((current + w).length > maxChars) {
-      lines.push(current.trim())
-      current = w + " "
-    } else {
-      current += w + " "
-    }
-  }
-  if (current.trim()) lines.push(current.trim())
-  return lines
+function wrapTextLocal(text: string, maxWidth: number, font: any, fontSize: number) {
+  return wrapText(text, maxWidth, font, fontSize)
 }
+
 
 

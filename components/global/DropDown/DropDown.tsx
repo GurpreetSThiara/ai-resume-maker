@@ -61,16 +61,10 @@ const DownloadDropDown = ({ data }: any) => {
           </DropdownMenuItem>
           <DropdownMenuItem
             className="capitalize cursor-pointer"
-            disabled={!['ats-classic', 'google-docs'].includes(data.template.name)}
-            style={{
-              cursor: !['ats-classic', 'google-docs'].includes(data.template.name) ? 'not-allowed' : 'pointer'
-            }}
             onClick={() => {
-              if (['ats-classic', 'google-docs'].includes(data.template.name)) {
-                handleDownload(async () => {
-                  await generateResumeDOCX({ ...data, filename: `${data.filename}.docx` });
-                });
-              }
+              handleDownload(async () => {
+                await generateResumeDOCX({ ...data, filename: `${data.filename}.docx` });
+              });
             }}
           >
             DOCX
