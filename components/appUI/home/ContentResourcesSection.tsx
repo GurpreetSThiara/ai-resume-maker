@@ -25,16 +25,16 @@ export function ContentResourcesSection() {
             className="group block bg-white rounded-lg shadow-md border border-gray-200 p-8 hover:shadow-lg transition-shadow duration-200"
           >
             <div className="flex items-center justify-center mb-6">
-              <div className="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                <FileText className="w-8 h-8 text-blue-600" />
+              <div className="p-3 bg-emerald-100 rounded-lg group-hover:bg-emerald-200 transition-colors">
+                <FileText className="w-8 h-8 text-emerald-600" />
               </div>
             </div>
             
-            <div className="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 text-sm font-medium rounded-full mb-4">
+            <div className="inline-flex items-center px-3 py-1 bg-emerald-50 text-emerald-700 text-sm font-medium rounded-full mb-4">
               Featured Guide
             </div>
             
-            <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors">
+            <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-emerald-600 transition-colors">
               How to Write a Resume
             </h3>
             
@@ -42,7 +42,7 @@ export function ContentResourcesSection() {
               Complete guide to creating ATS-friendly resumes that get noticed by recruiters and pass automated screening.
             </p>
             
-            <div className="flex items-center justify-center text-blue-600 font-medium group-hover:text-blue-700">
+            <div className="flex items-center justify-center text-emerald-600 font-medium group-hover:text-emerald-700">
               <span>Read Complete Guide</span>
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </div>
@@ -83,16 +83,16 @@ export function ContentResourcesSection() {
             className="group block bg-white rounded-lg shadow-md border border-gray-200 p-8 hover:shadow-lg transition-shadow duration-200"
           >
             <div className="flex items-center justify-center mb-6">
-              <div className="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                <FileText className="w-8 h-8 text-purple-600" />
+              <div className="p-3 bg-emerald-100 rounded-lg group-hover:bg-emerald-200 transition-colors">
+                <FileText className="w-8 h-8 text-emerald-600" />
               </div>
             </div>
 
-            <div className="inline-flex items-center px-3 py-1 bg-purple-50 text-purple-700 text-sm font-medium rounded-full mb-4">
+            <div className="inline-flex items-center px-3 py-1 bg-emerald-50 text-emerald-700 text-sm font-medium rounded-full mb-4">
               New in 2026
             </div>
 
-            <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-purple-600 transition-colors">
+            <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-emerald-600 transition-colors">
               ATS Resume Explained
             </h3>
 
@@ -100,7 +100,7 @@ export function ContentResourcesSection() {
               Learn what Applicant Tracking Systems (ATS) are, how they scan your resume, and how to create an ATS-friendly resume that reaches recruiters in 2026.
             </p>
 
-            <div className="flex items-center justify-center text-purple-600 font-medium group-hover:text-purple-700">
+            <div className="flex items-center justify-center text-emerald-600 font-medium group-hover:text-emerald-700">
               <span>Read ATS Guide</span>
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </div>

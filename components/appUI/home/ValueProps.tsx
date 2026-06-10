@@ -47,9 +47,9 @@ export const Values = () => {
                   </div>
 {/* 
                   <div className="text-center mb-16">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-full mb-6">
-                      <Badge className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
-                      <span className="text-sm font-medium text-purple-700">Coming Soon</span>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-emerald-50 to-amber-50 border border-emerald-200 rounded-full mb-6">
+                      <Badge className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                      <span className="text-sm font-medium text-emerald-700">Coming Soon</span>
                     </div>
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 mb-6">
                       Supercharge Your Resume with AI
@@ -76,7 +76,7 @@ export const Values = () => {
                                 <Icon className={`w-8 h-8 ${feature.iconColor}`} />
                               </div>
                               <div className="absolute -top-1 -right-1">
-                                <Badge className="bg-linear-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full">
+                                <Badge className="bg-linear-to-r from-emerald-500 to-amber-500 text-white text-xs px-2 py-1 rounded-full">
                                   Soon
                                 </Badge>
                               </div>
