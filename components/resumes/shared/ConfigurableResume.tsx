@@ -194,11 +194,22 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     }
     const style = { ...base }
     if (design.sectionTitle === "rule-full")
-      Object.assign(style, { borderBottom: `1.5px solid ${color}`, paddingBottom: 3 })
+      Object.assign(style, { borderBottom: `1px solid ${color}`, paddingBottom: 4, marginBottom: 8 })
     else if (design.sectionTitle === "underline")
-      Object.assign(style, { borderBottom: `2px solid ${accent}`, paddingBottom: 3 })
+      Object.assign(style, { borderBottom: `1.5px solid ${accent}`, paddingBottom: 4, marginBottom: 8 })
     else if (design.sectionTitle === "left-bar")
       Object.assign(style, { borderLeft: `3px solid ${accent}`, paddingLeft: 8 })
+    else if (design.sectionTitle === "centered")
+      Object.assign(style, { textAlign: "center", borderBottom: `1px solid ${palette.divider}`, paddingBottom: 4, marginBottom: 8 })
+    else if (design.sectionTitle === "boxed")
+      Object.assign(style, {
+        background: accent,
+        color: sidebar ? palette.sidebarBg || "#fff" : "#fff",
+        borderRadius: 4,
+        padding: "4px 9px",
+        marginBottom: 8,
+        display: "inline-block",
+      })
     return (
       <div
         style={style}
@@ -344,7 +355,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
         }
         if (design.skillStyle === "pills" && !sidebar) {
           return (
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
               {groups.map((g) => (
                 <div key={g.title}>
                   {g.title !== "General" && (
@@ -354,7 +365,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
                     {g.skills.map((sk, j) => (
                       <span
                         key={j}
-                        style={{ background: palette.divider, color: palette.text, padding: "2px 8px", borderRadius: 4, fontSize: contentFont, fontFamily: fam }}
+                        style={{ background: palette.divider, color: palette.text, padding: "3px 11px", borderRadius: 9999, fontSize: contentFont, fontFamily: fam, display: "inline-block", lineHeight: 1.2 }}
                         contentEditable
                         suppressContentEditableWarning
                         onBlur={(e) => {
@@ -518,41 +529,47 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     </div>
   )
 
-  // ===== SIDEBAR-LEFT =====
-  if (design.layout === "sidebar-left") {
+  // ===== SIDEBAR (left or right) =====
+  if (design.layout === "sidebar-left" || design.layout === "sidebar-right") {
+    const sidebarRight = design.layout === "sidebar-right"
     const left = allSections.filter((s: any) => s.column === 1 || (!s.column && sidebarTypes.includes(s.type)))
     const right = allSections.filter((s: any) => !(s.column === 1 || (!s.column && sidebarTypes.includes(s.type))))
+    const sidebarPanel = (
+      <div key="sidebar" style={{ width: 188, flexShrink: 0, background: palette.sidebarBg, padding: "28px 22px", color: palette.sidebarText }}>
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: px(design.sizes.section - 1), fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: palette.sidebarHeading, borderBottom: `1.5px solid ${palette.sidebarAccent}`, paddingBottom: 3, marginBottom: 8, fontFamily: fam }}>
+            Contact
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {contactPairs
+              .filter((p) => p.val)
+              .map((p) => (
+                <span key={p.key} style={{ fontSize: px(design.sizes.content), color: palette.sidebarText, fontFamily: fam, wordBreak: "break-word" }} contentEditable suppressContentEditableWarning onBlur={(e) => handleContactInfoChange(e, p.key)}>
+                  {p.val}
+                </span>
+              ))}
+          </div>
+        </div>
+        {left.map((s: any) => renderSectionBlock(s, true))}
+      </div>
+    )
+    const mainPanel = (
+      <div key="main" style={{ flex: 1, padding: "28px 30px" }}>
+        <h1
+          style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.name, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.01em", borderBottom: `2px solid ${palette.accent}`, paddingBottom: 8, marginBottom: 14, lineHeight: 1.1 }}
+          contentEditable
+          suppressContentEditableWarning
+          onBlur={handleNameChange}
+        >
+          {resumeData.basics.name}
+        </h1>
+        {summaryEl}
+        {right.map((s: any) => renderSectionBlock(s, false))}
+      </div>
+    )
     return page(
       <div style={{ display: "flex", minHeight: 842 }}>
-        <div style={{ width: 188, background: palette.sidebarBg, padding: "28px 22px", color: palette.sidebarText }}>
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: px(design.sizes.section - 1), fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: palette.sidebarHeading, borderBottom: `1.5px solid ${palette.sidebarAccent}`, paddingBottom: 3, marginBottom: 8, fontFamily: fam }}>
-              Contact
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {contactPairs
-                .filter((p) => p.val)
-                .map((p) => (
-                  <span key={p.key} style={{ fontSize: px(design.sizes.content), color: palette.sidebarText, fontFamily: fam, wordBreak: "break-word" }} contentEditable suppressContentEditableWarning onBlur={(e) => handleContactInfoChange(e, p.key)}>
-                    {p.val}
-                  </span>
-                ))}
-            </div>
-          </div>
-          {left.map((s: any) => renderSectionBlock(s, true))}
-        </div>
-        <div style={{ flex: 1, padding: "28px 30px" }}>
-          <h1
-            style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.name, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.01em", borderBottom: `2px solid ${palette.accent}`, paddingBottom: 8, marginBottom: 14, lineHeight: 1.1 }}
-            contentEditable
-            suppressContentEditableWarning
-            onBlur={handleNameChange}
-          >
-            {resumeData.basics.name}
-          </h1>
-          {summaryEl}
-          {right.map((s: any) => renderSectionBlock(s, false))}
-        </div>
+        {sidebarRight ? [mainPanel, sidebarPanel] : [sidebarPanel, mainPanel]}
       </div>,
     )
   }

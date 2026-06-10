@@ -17,10 +17,10 @@
  * Colours are stored as 6-digit hex strings WITHOUT a leading "#".
  */
 
-export type DesignLayout = "single" | "sidebar-left"
+export type DesignLayout = "single" | "sidebar-left" | "sidebar-right"
 export type DesignHeader = "centered" | "left" | "band"
 export type DesignFont = "serif" | "sans"
-export type SectionTitleStyle = "rule-full" | "underline" | "left-bar" | "plain"
+export type SectionTitleStyle = "rule-full" | "underline" | "left-bar" | "plain" | "boxed" | "centered"
 export type SkillStyle = "pills" | "grouped-line" | "bullets"
 
 /** Marketplace category ids (kept in sync with the marketplace CATEGORIES list). */
@@ -99,10 +99,22 @@ export interface ResumeDesign {
   atsScore: number
   popularityScore: number
   isPremium: boolean
+
+  // ── design family ────────────────────────────────────────────────────────
+  // Designs that share the same structural layout and differ only by colour
+  // belong to the same `family`, so the marketplace can club them into one
+  // card with selectable colour swatches.
+  family: string
+  familyName: string
+  colorName: string
 }
 
-const PLACEHOLDER_IMG =
-  "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/modern.png"
+// Per-template preview screenshots hosted on the jsdelivr CDN. The file name is
+// `<NN>-<id>.png`, where NN is the 1-based position of the design below.
+const THUMB_BASE =
+  "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/images"
+const thumbUrl = (id: string, index: number) =>
+  `${THUMB_BASE}/${String(index + 1).padStart(2, "0")}-${id}.png`
 
 /* ────────────────────────────────────────────────────────────────────────
  * Category labels
@@ -134,6 +146,59 @@ const CATEGORY_LABEL: Record<DesignCategory, string> = {
 /* ────────────────────────────────────────────────────────────────────────
  * Sizes
  * ──────────────────────────────────────────────────────────────────────── */
+
+/** Human-friendly name for each design family (a layout/typography recipe). */
+const FAMILY_LABEL: Record<string, string> = {
+  execSerif: "Executive Serif",
+  bandSerif: "Serif Banner",
+  classicSerif: "Classic Serif",
+  minimal: "Minimalist",
+  modernLeft: "Modern Clean",
+  band: "Corporate Banner",
+  bandPills: "Banner Pills",
+  pills: "Modern Pills",
+  stripe: "Accent Stripe",
+  stripeGrouped: "Accent Edge",
+  timeline: "Career Timeline",
+  leftbar: "Accent Bar",
+  compact: "Compact Pro",
+  centeredSans: "Centered",
+  sidebar: "Two-Column Sidebar",
+  sidebarSerif: "Serif Sidebar",
+  boxedModern: "Boxed Modern",
+  boxedPills: "Boxed Pills",
+  boxedSidebar: "Boxed Sidebar",
+  rightSidebar: "Right Sidebar",
+  rightSidebarBoxed: "Right Sidebar Pro",
+  centeredModern: "Centered Modern",
+  centeredSerifP: "Centered Serif",
+  timelineSerifP: "Serif Timeline",
+  centeredPillsP: "Centered Pills",
+}
+
+/** Display name for each colour palette. */
+const PALETTE_LABEL: Record<string, string> = {
+  ink: "Ink",
+  slate: "Slate",
+  navy: "Navy",
+  teal: "Teal",
+  indigo: "Indigo",
+  blue: "Blue",
+  maroon: "Maroon",
+  emerald: "Emerald",
+  burgundy: "Burgundy",
+  steel: "Steel Blue",
+  charcoal: "Charcoal",
+  royal: "Royal",
+  forest: "Forest",
+  plum: "Plum",
+  crimson: "Crimson",
+  ocean: "Ocean",
+  bronze: "Bronze",
+  graphite: "Graphite",
+  sky: "Sky",
+  rose: "Rose",
+}
 
 const SIZE_DEFAULT: DesignSizes = { name: 24, section: 11, item: 11, content: 10, small: 9 }
 const SIZE_SERIF: DesignSizes = { name: 26, section: 12, item: 11.5, content: 10.5, small: 9.5 }
@@ -175,6 +240,15 @@ type PresetKey =
   | "centeredSans"
   | "sidebar"
   | "sidebarSerif"
+  | "boxedModern"
+  | "boxedPills"
+  | "boxedSidebar"
+  | "rightSidebar"
+  | "rightSidebarBoxed"
+  | "centeredModern"
+  | "centeredSerifP"
+  | "timelineSerifP"
+  | "centeredPillsP"
 
 const PRESETS: Record<PresetKey, Preset> = {
   execSerif: { layout: "single", header: "centered", font: "serif", sectionTitle: "rule-full", skillStyle: "grouped-line", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: true, sizes: SIZE_SERIF },
@@ -193,6 +267,16 @@ const PRESETS: Record<PresetKey, Preset> = {
   centeredSans: { layout: "single", header: "centered", font: "sans", sectionTitle: "rule-full", skillStyle: "grouped-line", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: true, sizes: SIZE_DEFAULT },
   sidebar: { layout: "sidebar-left", header: "left", font: "sans", sectionTitle: "underline", skillStyle: "bullets", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: true, sizes: SIZE_SIDEBAR },
   sidebarSerif: { layout: "sidebar-left", header: "left", font: "serif", sectionTitle: "underline", skillStyle: "bullets", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: true, sizes: SIZE_SIDEBAR },
+  // ── new families ──────────────────────────────────────────────────────────
+  boxedModern: { layout: "single", header: "left", font: "sans", sectionTitle: "boxed", skillStyle: "grouped-line", uppercaseName: false, uppercaseTitles: true, letterSpacingTitles: false, sizes: SIZE_DEFAULT },
+  boxedPills: { layout: "single", header: "left", font: "sans", sectionTitle: "boxed", skillStyle: "pills", uppercaseName: false, uppercaseTitles: true, letterSpacingTitles: false, sizes: SIZE_DEFAULT },
+  boxedSidebar: { layout: "sidebar-left", header: "left", font: "sans", sectionTitle: "boxed", skillStyle: "bullets", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, sizes: SIZE_SIDEBAR },
+  rightSidebar: { layout: "sidebar-right", header: "left", font: "sans", sectionTitle: "underline", skillStyle: "bullets", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: true, sizes: SIZE_SIDEBAR },
+  rightSidebarBoxed: { layout: "sidebar-right", header: "left", font: "sans", sectionTitle: "boxed", skillStyle: "bullets", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, sizes: SIZE_SIDEBAR },
+  centeredModern: { layout: "single", header: "centered", font: "sans", sectionTitle: "centered", skillStyle: "grouped-line", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: true, sizes: SIZE_DEFAULT },
+  centeredSerifP: { layout: "single", header: "centered", font: "serif", sectionTitle: "centered", skillStyle: "grouped-line", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: true, sizes: SIZE_SERIF },
+  timelineSerifP: { layout: "single", header: "left", font: "serif", sectionTitle: "underline", skillStyle: "grouped-line", uppercaseName: false, uppercaseTitles: true, letterSpacingTitles: true, timeline: true, sizes: SIZE_SERIF },
+  centeredPillsP: { layout: "single", header: "centered", font: "sans", sectionTitle: "centered", skillStyle: "pills", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: true, sizes: SIZE_DEFAULT },
 }
 
 /* ────────────────────────────────────────────────────────────────────────
@@ -290,7 +374,7 @@ function buildColors(preset: Preset, base: DesignColors): DesignColors {
   return c
 }
 
-function build(row: Row): ResumeDesign {
+function build(row: Row, index: number): ResumeDesign {
   const [id, name, categoryId, presetKey, paletteKey, atsScore, popularityScore, isPremium, tags] = row
   const preset = PRESETS[presetKey]
   const colors = buildColors(preset, PALETTES[paletteKey])
@@ -302,7 +386,7 @@ function build(row: Row): ResumeDesign {
     categoryId,
     suggestedFor: tags,
     isAtsFriendly: atsScore >= 92,
-    image: PLACEHOLDER_IMG,
+    image: thumbUrl(id, index),
     layout: preset.layout,
     header: preset.header,
     font: preset.font,
@@ -319,6 +403,9 @@ function build(row: Row): ResumeDesign {
     atsScore,
     popularityScore,
     isPremium,
+    family: presetKey,
+    familyName: FAMILY_LABEL[presetKey] ?? presetKey,
+    colorName: PALETTE_LABEL[paletteKey] ?? paletteKey,
   }
 }
 
@@ -435,6 +522,18 @@ const CATALOG: Row[] = [
 
   // ── Government ───────────────────────────────────────────────────────────
   ["federal-resume", "Federal Resume", "government", "classicSerif", "navy", 99, 74, false, ["Government", "Federal", "ATS"]],
+
+  // ── New design families (appended so existing numbering stays stable) ──────
+  ["boxed-cobalt", "Cobalt Boxed", "modern", "boxedModern", "blue", 93, 89, false, ["Modern", "Bold", "Headers"]],
+  ["boxed-teal-dev", "Teal Boxed", "developer", "boxedPills", "teal", 92, 87, false, ["Developer", "Pills", "Bold"]],
+  ["right-sidebar-navy", "Navy Right Sidebar", "professional", "rightSidebar", "navy", 87, 85, false, ["Professional", "Two Column", "Right Sidebar"]],
+  ["right-sidebar-emerald", "Emerald Right Sidebar", "designer", "rightSidebarBoxed", "emerald", 86, 84, true, ["Designer", "Two Column", "Bold"]],
+  ["centered-slate", "Centered Slate", "minimalist", "centeredModern", "slate", 95, 83, false, ["Minimalist", "Centered", "Clean"]],
+  ["centered-executive", "Centered Executive", "executive", "centeredSerifP", "ink", 96, 85, false, ["Executive", "Centered", "Serif"]],
+  ["serif-sidebar-charcoal", "Charcoal Serif Sidebar", "academic", "sidebarSerif", "charcoal", 88, 76, true, ["Academic", "Serif", "Sidebar"]],
+  ["serif-timeline-burgundy", "Burgundy Serif Timeline", "executive", "timelineSerifP", "burgundy", 91, 80, true, ["Executive", "Timeline", "Serif"]],
+  ["boxed-sidebar-plum", "Plum Boxed Sidebar", "creative", "boxedSidebar", "plum", 85, 82, true, ["Creative", "Boxed", "Sidebar"]],
+  ["centered-pills-indigo", "Indigo Centered Pills", "marketing", "centeredPillsP", "indigo", 90, 84, true, ["Marketing", "Centered", "Pills"]],
 ]
 
 export const RESUME_DESIGNS: ResumeDesign[] = CATALOG.map(build)

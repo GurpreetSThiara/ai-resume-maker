@@ -1,4 +1,4 @@
-import { PDFPage, PDFFont, rgb, PDFString, PDFName } from 'pdf-lib'
+import { PDFPage, PDFFont, rgb, PDFString, PDFName } from '@pdfme/pdf-lib'
 import { ProjectsSection } from '@/types/resume'
 import { addLinkAnnotation, defaultWrapText, LinkDisplay, measureText, normalizeUrl } from '../utils'
 

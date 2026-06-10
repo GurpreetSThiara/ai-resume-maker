@@ -1,4 +1,4 @@
-import { PDFDocument, PDFPage, rgb, StandardFonts } from "pdf-lib"
+import { PDFDocument, PDFPage, rgb, StandardFonts } from "@pdfme/pdf-lib"
 import { ResumeData, PDFGenerationOptions } from "@/types/resume"
 import { wrapText } from "../utils"
  // Import PDFGenerationOptions

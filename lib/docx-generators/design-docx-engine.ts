@@ -56,29 +56,41 @@ export async function generateDesignDOCX(
 
   const sectionTitle = (target: any[], title: string, ctx: Ctx, sidebar: boolean) => {
     const text = design.uppercaseTitles ? title.toUpperCase() : title
-    const useBorder = design.sectionTitle === "rule-full" || design.sectionTitle === "underline"
+    const style = design.sectionTitle
+    const size = sidebar ? sz.section - 2 : sz.section
+    const spacing = design.letterSpacingTitles ? 14 : 0
+
+    // Boxed: filled accent heading band with light text.
+    if (style === "boxed") {
+      target.push(
+        new Paragraph({
+          spacing: { before: 200, after: 110 },
+          keepNext: true,
+          keepLines: true,
+          shading: { type: ShadingType.CLEAR, color: "auto", fill: ctx.accent },
+          indent: { left: 60, right: 60 },
+          children: [new TextRun({ text, bold: true, size, color: "FFFFFF", font: f, characterSpacing: spacing })],
+        }),
+      )
+      return
+    }
+
+    const centered = style === "centered"
+    const useBorder = style === "rule-full" || style === "underline" || centered
     target.push(
       new Paragraph({
+        alignment: centered ? AlignmentType.CENTER : undefined,
         spacing: { before: 220, after: 110 },
         keepNext: true,
         keepLines: true,
-        children: [
-          new TextRun({
-            text,
-            bold: true,
-            size: sidebar ? sz.section - 2 : sz.section,
-            color: ctx.heading,
-            font: f,
-            characterSpacing: design.letterSpacingTitles ? 14 : 0,
-          }),
-        ],
+        children: [new TextRun({ text, bold: true, size, color: ctx.heading, font: f, characterSpacing: spacing })],
         border: useBorder
           ? {
               bottom: {
-                color: design.sectionTitle === "underline" ? ctx.accent : ctx.titleBorder,
+                color: style === "underline" ? ctx.accent : ctx.titleBorder,
                 space: 2,
                 style: BorderStyle.SINGLE,
-                size: design.sectionTitle === "underline" ? 10 : 8,
+                size: style === "underline" ? 10 : 8,
               },
             }
           : undefined,
@@ -254,7 +266,8 @@ export async function generateDesignDOCX(
   // =========================================================================
   // SIDEBAR-LEFT
   // =========================================================================
-  if (design.layout === "sidebar-left") {
+  if (design.layout === "sidebar-left" || design.layout === "sidebar-right") {
+    const sidebarRight = design.layout === "sidebar-right"
     const sideCtx: Ctx = {
       heading: c.sidebarHeading || c.heading,
       text: c.sidebarText || c.text,
@@ -318,26 +331,21 @@ export async function generateDesignDOCX(
       }))
     }
 
+    const sideCell = new TableCell({
+      width: { size: 32, type: WidthType.PERCENTAGE },
+      margins: { top: 500, bottom: 500, left: sidebarRight ? 300 : 400, right: sidebarRight ? 400 : 300 },
+      shading: c.sidebarBg ? { type: ShadingType.CLEAR, color: "auto", fill: c.sidebarBg } : undefined,
+      borders: noBorders,
+      children: left,
+    })
+    const mainCell = new TableCell({
+      width: { size: 68, type: WidthType.PERCENTAGE },
+      margins: { top: 400, bottom: 500, left: sidebarRight ? 400 : 400, right: 400 },
+      borders: noBorders,
+      children: right,
+    })
     const outer = new Table({
-      rows: [
-        new TableRow({
-          children: [
-            new TableCell({
-              width: { size: 32, type: WidthType.PERCENTAGE },
-              margins: { top: 500, bottom: 500, left: 400, right: 300 },
-              shading: c.sidebarBg ? { type: ShadingType.CLEAR, color: "auto", fill: c.sidebarBg } : undefined,
-              borders: noBorders,
-              children: left,
-            }),
-            new TableCell({
-              width: { size: 68, type: WidthType.PERCENTAGE },
-              margins: { top: 400, bottom: 500, left: 400, right: 400 },
-              borders: noBorders,
-              children: right,
-            }),
-          ],
-        }),
-      ],
+      rows: [new TableRow({ children: sidebarRight ? [mainCell, sideCell] : [sideCell, mainCell] })],
       width: { size: 100, type: WidthType.PERCENTAGE },
       borders: noBorders,
     })

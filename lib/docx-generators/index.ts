@@ -8,48 +8,40 @@ import { generateBoldDOCX } from "./bold-professional-docx"
 import { generateDesignDOCX } from "./design-docx-engine"
 import { getResumeDesign } from "../resume-designs"
 
-export async function generateResumeDOCX(options: PDFGenerationOptions) {
+/** Build the DOCX bytes for the given template, without downloading or tracking. */
+export async function generateResumeDOCXBytes(options: PDFGenerationOptions) {
   const { template } = options
-
-  let result
   switch (template.id) {
     case "classic-blue":
-      result = await generateGoogleDOCX({ ...options, variant: "default" })
-      break
+      return generateGoogleDOCX({ ...options, variant: "default" } as any)
     case "ats-compact-lines":
-      result = await generateGoogleDOCX({ ...options, variant: "black_compact" })
-      break
+      return generateGoogleDOCX({ ...options, variant: "black_compact" } as any)
     case "ats-classic":
-      result = await generateClassicDOCX({ ...options, variant: "default" })
-      break
+      return generateClassicDOCX({ ...options, variant: "default" } as any)
     case "ats-classic-compact":
-      result = await generateClassicDOCX({ ...options, variant: "compact" })
-      break
+      return generateClassicDOCX({ ...options, variant: "compact" } as any)
     case "ats-green":
-      result = await generateATSGreenDOCX({ ...options, theme: "green" })
-      break
+      return generateATSGreenDOCX({ ...options, theme: "green" } as any)
     case "ats-yellow":
-      result = await generateATSGreenDOCX({ ...options, theme: "yellow" })
-      break
+      return generateATSGreenDOCX({ ...options, theme: "yellow" } as any)
     case "ats-timeline":
-      result = await generateTimelineDOCX(options)
-      break
+      return generateTimelineDOCX(options)
     case "modern-sidebar":
-      result = await generateModernSidebarDOCX(options)
-      break
+      return generateModernSidebarDOCX(options)
     case "bold-professional":
-      result = await generateBoldDOCX(options)
-      break
+      return generateBoldDOCX(options)
     default: {
       const design = getResumeDesign(template.id)
-      if (design) {
-        result = await generateDesignDOCX(options, design)
-      } else {
-        // Fallback for unknown templates
-        result = await generateClassicDOCX({ ...options, variant: "default" })
-      }
+      if (design) return generateDesignDOCX(options, design)
+      // Fallback for unknown templates
+      return generateClassicDOCX({ ...options, variant: "default" } as any)
     }
   }
+}
+
+export async function generateResumeDOCX(options: PDFGenerationOptions) {
+  const { template } = options
+  const result = await generateResumeDOCXBytes(options)
 
   // Track download for DOCX generators
   try {

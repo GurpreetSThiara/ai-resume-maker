@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { PDFFont } from "pdf-lib"
+import type { PDFFont } from "@pdfme/pdf-lib"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

@@ -7,11 +7,13 @@ import { generateResumePDFBytes } from "@/lib/pdf-generators"
 import type { ResumeData, ResumeTemplate } from "@/types/resume"
 import { Button } from "@/components/ui/button"
 
+// Load the PDF.js worker from the local copy in /public (copied from react-pdf's
+// own pdfjs-dist by scripts/copy-pdf-worker.cjs, so the version always matches).
+// Using a static public URL avoids the Turbopack/HMR "worker module factory is
+// not available" error and removes the runtime dependency on a CDN.
 if (typeof window !== "undefined") {
-  pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
+  pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs"
 }
-
-console.log("Forcing Turbopack cache refresh")
 
 const DEBOUNCE_MS = 450
 const MIN_SCALE = 0.6
