@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import { LayoutGrid, Search, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet"
@@ -17,6 +17,18 @@ interface TemplatePickerDrawerProps {
 export function TemplatePickerDrawer({ selectedId, onSelect, triggerClassName }: TemplatePickerDrawerProps) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
+  const selectedRef = useRef<HTMLButtonElement | null>(null)
+
+  // When the drawer opens, clear any stale search and scroll the currently
+  // selected template into view so it opens positioned at the active design.
+  useEffect(() => {
+    if (!open) return
+    setQuery("")
+    const id = window.setTimeout(() => {
+      selectedRef.current?.scrollIntoView({ block: "center" })
+    }, 150)
+    return () => window.clearTimeout(id)
+  }, [open])
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -82,6 +94,7 @@ export function TemplatePickerDrawer({ selectedId, onSelect, triggerClassName }:
                   <button
                     key={t.id}
                     type="button"
+                    ref={isActive ? selectedRef : undefined}
                     onClick={() => choose(t)}
                     aria-pressed={isActive}
                     aria-label={`Use ${t.name} template`}

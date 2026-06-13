@@ -17,6 +17,11 @@ const nextConfig = {
   },
   reactStrictMode: false,
 async headers() {
+  // Next.js already serves content-hashed build assets under /_next/static with
+  // long-lived immutable caching in production. Applying that header ourselves in
+  // development pins the browser to stale chunks (breaks HMR/reload), so only add
+  // it for production builds.
+  if (process.env.NODE_ENV !== 'production') return []
   return [
     {
       source: '/_next/static/(.*)',

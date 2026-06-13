@@ -30,6 +30,7 @@ import type {
 } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { availableTemplates, googleTemplate } from "@/lib/templates"
+import { getResumeDesign } from "@/lib/resume-designs"
 import { useRouter } from "next/navigation"
 import AIResumeModal from '../../../components/ai-resume-modal';
 import { usePostDownloadReview } from "@/hooks/use-post-download-review";
@@ -484,8 +485,11 @@ const CreateResumeContent: FC = () => {
         return <ExperienceSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
       case 4:
         return <ProjectsSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
-      case 5:
-        return <SkillsSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
+      case 5: {
+        const d = getResumeDesign(selectedTemplate.id)
+        const supportsLevels = !!d && (d.skillStyle === "bars" || d.skillStyle === "dots")
+        return <SkillsSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} supportsLevels={supportsLevels} />
+      }
       case 6:
         return <LanguagesSectionComponent data={resumeData} onUpdate={handleResumeDataUpdate} />
       case 7:

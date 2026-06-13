@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { ConfigurableResume } from "./shared/ConfigurableResume"
-import { RESUME_DESIGNS, type ResumeDesign } from "@/lib/resume-designs"
+import { RESUME_DESIGNS, LEGACY_DESIGNS, type ResumeDesign } from "@/lib/resume-designs"
 
 type PreviewProps = Omit<React.ComponentProps<typeof ConfigurableResume>, "design">
 
@@ -13,7 +13,10 @@ const makeDesignResume = (design: ResumeDesign): React.FC<PreviewProps> => {
   return Comp
 }
 
-export const DESIGN_RESUME_COMPONENTS: Record<string, React.FC<PreviewProps>> = RESUME_DESIGNS.reduce(
+export const DESIGN_RESUME_COMPONENTS: Record<string, React.FC<PreviewProps>> = [
+  ...RESUME_DESIGNS,
+  ...LEGACY_DESIGNS,
+].reduce(
   (acc, design) => {
     acc[design.id] = makeDesignResume(design)
     return acc

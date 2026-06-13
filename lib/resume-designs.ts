@@ -18,10 +18,36 @@
  */
 
 export type DesignLayout = "single" | "sidebar-left" | "sidebar-right"
-export type DesignHeader = "centered" | "left" | "band"
+export type DesignHeader = "centered" | "left" | "band" | "geometric"
 export type DesignFont = "serif" | "sans"
-export type SectionTitleStyle = "rule-full" | "underline" | "left-bar" | "plain" | "boxed" | "centered"
-export type SkillStyle = "pills" | "grouped-line" | "bullets"
+export type SectionTitleStyle = "rule-full" | "underline" | "left-bar" | "plain" | "boxed" | "centered" | "pill"
+export type SkillStyle = "pills" | "grouped-line" | "bullets" | "bars" | "dots"
+
+/**
+ * Deterministic, auto-derived proficiency level (0..1) for skill bars/dots.
+ * Skills carry no level in the data model, so we taper by position within a
+ * group — the first listed skill reads as strongest. Shared by all renderers.
+ */
+export const skillLevel = (index: number): number => Math.max(0.5, 0.95 - index * 0.12)
+
+/** Out of 5 filled dots, for the "dots" skill/language style. */
+export const skillDotsFilled = (index: number): number =>
+  Math.max(3, Math.round(skillLevel(index) * 5))
+
+/**
+ * The proficiency level (1–5) used to draw a skill's bar/dots. A user-set value
+ * in the `skillLevels` map wins; otherwise we fall back to an auto starting
+ * value derived from list order. Shared by the editor and all three renderers.
+ */
+export const effectiveSkillLevel = (
+  levels: Record<string, number> | undefined,
+  name: string,
+  index: number,
+): number => {
+  const v = levels ? levels[name] : undefined
+  if (typeof v === "number" && v >= 1 && v <= 5) return Math.round(v)
+  return skillDotsFilled(index)
+}
 
 /** Marketplace category ids (kept in sync with the marketplace CATEGORIES list). */
 export type DesignCategory =
@@ -93,6 +119,12 @@ export interface ResumeDesign {
   accentStripe?: boolean
   timeline?: boolean
   skillStyle: SkillStyle
+  /** Draw an initials monogram circle in the header (single) / sidebar top (two-column). */
+  monogram?: boolean
+  /** Two-column: put name + role (+ monogram) in an accent block at the top of the sidebar. */
+  sidebarNameBlock?: boolean
+  /** Show a role/headline line under the name (derived from the most recent experience role). */
+  showRole?: boolean
 
   // ── marketplace metadata ────────────────────────────────────────────────
   tags: string[]
@@ -174,6 +206,16 @@ const FAMILY_LABEL: Record<string, string> = {
   centeredSerifP: "Centered Serif",
   timelineSerifP: "Serif Timeline",
   centeredPillsP: "Centered Pills",
+  studioMono: "Studio Mono",
+  cascade: "Cascade",
+  portfolioRight: "Portfolio",
+  twoToneStudio: "Two-Tone Studio",
+  accentEdgePro: "Accent Edge",
+  timelineCraft: "Timeline Craft",
+  monoMinimal: "Mono Minimal",
+  creativePrism: "Creative Prism",
+  boldPrism: "Bold Prism",
+  vividPills: "Vivid Pills",
 }
 
 /** Display name for each colour palette. */
@@ -198,6 +240,11 @@ const PALETTE_LABEL: Record<string, string> = {
   graphite: "Graphite",
   sky: "Sky",
   rose: "Rose",
+  lime: "Lime",
+  tealVivid: "Teal",
+  coral: "Coral",
+  amberIndigo: "Amber",
+  goldPlum: "Gold",
 }
 
 const SIZE_DEFAULT: DesignSizes = { name: 24, section: 11, item: 11, content: 10, small: 9 }
@@ -220,6 +267,9 @@ interface Preset {
   letterSpacingTitles: boolean
   accentStripe?: boolean
   timeline?: boolean
+  monogram?: boolean
+  sidebarNameBlock?: boolean
+  showRole?: boolean
   sizes: DesignSizes
 }
 
@@ -249,6 +299,17 @@ type PresetKey =
   | "centeredSerifP"
   | "timelineSerifP"
   | "centeredPillsP"
+  // ── graphic-designer families ──────────────────────────────────────────────
+  | "studioMono"
+  | "cascade"
+  | "portfolioRight"
+  | "twoToneStudio"
+  | "accentEdgePro"
+  | "timelineCraft"
+  | "monoMinimal"
+  | "creativePrism"
+  | "boldPrism"
+  | "vividPills"
 
 const PRESETS: Record<PresetKey, Preset> = {
   execSerif: { layout: "single", header: "centered", font: "serif", sectionTitle: "rule-full", skillStyle: "grouped-line", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: true, sizes: SIZE_SERIF },
@@ -277,6 +338,19 @@ const PRESETS: Record<PresetKey, Preset> = {
   centeredSerifP: { layout: "single", header: "centered", font: "serif", sectionTitle: "centered", skillStyle: "grouped-line", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: true, sizes: SIZE_SERIF },
   timelineSerifP: { layout: "single", header: "left", font: "serif", sectionTitle: "underline", skillStyle: "grouped-line", uppercaseName: false, uppercaseTitles: true, letterSpacingTitles: true, timeline: true, sizes: SIZE_SERIF },
   centeredPillsP: { layout: "single", header: "centered", font: "sans", sectionTitle: "centered", skillStyle: "pills", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: true, sizes: SIZE_DEFAULT },
+  // ── graphic-designer families (visual-first; flagged non-ATS via low atsScore) ──
+  // Two-column designs put name+role in a sidebar accent block, use pill section
+  // headers, and a dotted timeline for experience — the recurring designer look.
+  studioMono: { layout: "sidebar-left", header: "left", font: "sans", sectionTitle: "pill", skillStyle: "bars", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, monogram: true, sidebarNameBlock: true, timeline: true, sizes: SIZE_SIDEBAR },
+  cascade: { layout: "sidebar-left", header: "left", font: "sans", sectionTitle: "pill", skillStyle: "bars", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, monogram: true, sidebarNameBlock: true, timeline: true, sizes: SIZE_SIDEBAR },
+  portfolioRight: { layout: "sidebar-right", header: "left", font: "sans", sectionTitle: "pill", skillStyle: "dots", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, monogram: true, sidebarNameBlock: true, timeline: true, sizes: SIZE_SIDEBAR },
+  twoToneStudio: { layout: "sidebar-left", header: "left", font: "sans", sectionTitle: "pill", skillStyle: "bars", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, monogram: true, sidebarNameBlock: true, timeline: true, sizes: SIZE_SIDEBAR },
+  accentEdgePro: { layout: "single", header: "left", font: "sans", sectionTitle: "pill", skillStyle: "bars", uppercaseName: false, uppercaseTitles: true, letterSpacingTitles: false, accentStripe: true, monogram: true, showRole: true, timeline: true, sizes: SIZE_DEFAULT },
+  timelineCraft: { layout: "single", header: "left", font: "sans", sectionTitle: "pill", skillStyle: "bars", uppercaseName: false, uppercaseTitles: true, letterSpacingTitles: false, timeline: true, monogram: true, showRole: true, sizes: SIZE_DEFAULT },
+  monoMinimal: { layout: "single", header: "left", font: "sans", sectionTitle: "underline", skillStyle: "dots", uppercaseName: false, uppercaseTitles: true, letterSpacingTitles: true, monogram: true, showRole: true, sizes: SIZE_DEFAULT },
+  creativePrism: { layout: "single", header: "geometric", font: "sans", sectionTitle: "pill", skillStyle: "pills", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, showRole: true, timeline: true, sizes: SIZE_DEFAULT },
+  boldPrism: { layout: "single", header: "geometric", font: "sans", sectionTitle: "pill", skillStyle: "pills", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, showRole: true, timeline: true, sizes: SIZE_DEFAULT },
+  vividPills: { layout: "single", header: "band", font: "sans", sectionTitle: "pill", skillStyle: "pills", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, showRole: true, sizes: SIZE_DEFAULT },
 }
 
 /* ────────────────────────────────────────────────────────────────────────
@@ -304,6 +378,12 @@ type PaletteKey =
   | "graphite"
   | "sky"
   | "rose"
+  // ── vivid designer duotones ─────────────────────────────────────────────────
+  | "lime"
+  | "tealVivid"
+  | "coral"
+  | "amberIndigo"
+  | "goldPlum"
 
 const PALETTES: Record<PaletteKey, DesignColors> = {
   ink: { name: "1a1a1a", heading: "1a1a1a", accent: "1a1a1a", text: "2b2b2b", secondary: "595959", divider: "1a1a1a" },
@@ -326,6 +406,16 @@ const PALETTES: Record<PaletteKey, DesignColors> = {
   graphite: { name: "18181b", heading: "27272a", accent: "3f3f46", text: "3f3f46", secondary: "71717a", divider: "e4e4e7", sidebarBg: "27272a", sidebarText: "d4d4d8", sidebarHeading: "fafafa", sidebarAccent: "a1a1aa" },
   sky: { name: "0c4a6e", heading: "0369a1", accent: "0284c7", text: "1f2937", secondary: "6b7280", divider: "e0f2fe" },
   rose: { name: "881337", heading: "9f1239", accent: "e11d48", text: "3f3f46", secondary: "71717a", divider: "ffe4e6", headerBg: "9f1239", headerText: "fff1f2" },
+  // Charcoal canvas + lime accent — bars pop on a dark sidebar.
+  lime: { name: "171717", heading: "3f6212", accent: "65a30d", text: "262626", secondary: "525252", divider: "e5e5e5", sidebarBg: "171717", sidebarText: "d4d4d4", sidebarHeading: "ffffff", sidebarAccent: "a3e635" },
+  // Vivid teal sidebar.
+  tealVivid: { name: "042f2e", heading: "0f766e", accent: "0d9488", text: "1f2937", secondary: "6b7280", divider: "ccfbf1", sidebarBg: "0f766e", sidebarText: "ccfbf1", sidebarHeading: "ffffff", sidebarAccent: "5eead4" },
+  // Dark slate sidebar with a coral accent.
+  coral: { name: "0f172a", heading: "1e293b", accent: "f43f5e", text: "334155", secondary: "64748b", divider: "ffe4e6", sidebarBg: "1e293b", sidebarText: "e2e8f0", sidebarHeading: "ffffff", sidebarAccent: "fb7185" },
+  // Indigo header block + amber accent (geometric header).
+  amberIndigo: { name: "312e81", heading: "3730a3", accent: "d97706", text: "374151", secondary: "6b7280", divider: "e0e7ff", headerBg: "3730a3", headerText: "ffffff" },
+  // Deep violet header + gold accent (dark geometric header).
+  goldPlum: { name: "3b0764", heading: "6b21a8", accent: "b45309", text: "3f3f46", secondary: "71717a", divider: "ede9fe", headerBg: "4c1d95", headerText: "faf5ff" },
 }
 
 /* ────────────────────────────────────────────────────────────────────────
@@ -360,12 +450,12 @@ function describe(name: string, categoryId: DesignCategory, ats: number): string
 
 function buildColors(preset: Preset, base: DesignColors): DesignColors {
   const c: DesignColors = { ...base }
-  if (preset.header === "band") {
+  if (preset.header === "band" || preset.header === "geometric") {
     c.headerBg = c.headerBg ?? c.accent
     c.headerText = c.headerText ?? "ffffff"
     c.name = c.headerText
   }
-  if (preset.layout === "sidebar-left") {
+  if (preset.layout === "sidebar-left" || preset.layout === "sidebar-right") {
     c.sidebarBg = c.sidebarBg ?? c.heading
     c.sidebarText = c.sidebarText ?? "d1d5db"
     c.sidebarHeading = c.sidebarHeading ?? "ffffff"
@@ -399,6 +489,9 @@ function build(row: Row, index: number): ResumeDesign {
     accentStripe: preset.accentStripe,
     timeline: preset.timeline,
     skillStyle: preset.skillStyle,
+    monogram: preset.monogram,
+    sidebarNameBlock: preset.sidebarNameBlock,
+    showRole: preset.showRole,
     tags,
     atsScore,
     popularityScore,
@@ -534,6 +627,18 @@ const CATALOG: Row[] = [
   ["serif-timeline-burgundy", "Burgundy Serif Timeline", "executive", "timelineSerifP", "burgundy", 91, 80, true, ["Executive", "Timeline", "Serif"]],
   ["boxed-sidebar-plum", "Plum Boxed Sidebar", "creative", "boxedSidebar", "plum", 85, 82, true, ["Creative", "Boxed", "Sidebar"]],
   ["centered-pills-indigo", "Indigo Centered Pills", "marketing", "centeredPillsP", "indigo", 90, 84, true, ["Marketing", "Centered", "Pills"]],
+
+  // ── Graphic-designer templates (visual-first; atsScore < 92 ⇒ non-ATS) ─────
+  ["studio-mono", "Studio Mono", "designer", "studioMono", "lime", 86, 93, true, ["Designer", "Two Column", "Skill Bars"]],
+  ["designer-cascade", "Designer Cascade", "designer", "cascade", "tealVivid", 87, 95, true, ["Designer", "Sidebar", "Skill Bars"]],
+  ["portfolio-coral", "Portfolio Coral", "designer", "portfolioRight", "coral", 86, 90, true, ["Designer", "Right Sidebar", "Skill Dots"]],
+  ["two-tone-studio", "Two-Tone Studio", "designer", "twoToneStudio", "ocean", 86, 88, true, ["Designer", "Two Column", "Bold"]],
+  ["accent-edge-pro", "Accent Edge Pro", "designer", "accentEdgePro", "blue", 88, 89, false, ["Designer", "Accent", "Skill Bars"]],
+  ["timeline-craft", "Timeline Craft", "designer", "timelineCraft", "emerald", 88, 87, false, ["Designer", "Timeline", "Skill Bars"]],
+  ["mono-minimal", "Mono Minimal", "minimalist", "monoMinimal", "graphite", 89, 85, false, ["Minimalist", "Monogram", "Clean"]],
+  ["creative-prism", "Creative Prism", "creative", "creativePrism", "amberIndigo", 85, 86, true, ["Creative", "Geometric", "Bold"]],
+  ["bold-prism", "Bold Prism", "creative", "boldPrism", "goldPlum", 85, 84, true, ["Creative", "Geometric", "Dark"]],
+  ["vivid-pills", "Vivid Pills", "creative", "vividPills", "rose", 86, 85, true, ["Creative", "Pills", "Header"]],
 ]
 
 export const RESUME_DESIGNS: ResumeDesign[] = CATALOG.map(build)
@@ -546,6 +651,226 @@ export const RESUME_DESIGN_MAP: Record<string, ResumeDesign> = RESUME_DESIGNS.re
   {} as Record<string, ResumeDesign>,
 )
 
+/* ────────────────────────────────────────────────────────────────────────
+ * Legacy templates — bridged onto the design engine.
+ *
+ * The original hand-rolled templates (classic-blue, ats-classic, …) each had
+ * their own bespoke PDF/DOCX generator and React preview, every one with its
+ * own ad-hoc spacing + pagination logic (and the bugs that come with that).
+ * We express each as a `ResumeDesign` here so the PDF engine, DOCX engine and
+ * `ConfigurableResume` preview all render them through the single, properly
+ * paginated design pipeline.
+ *
+ * These live in a SEPARATE map (not `RESUME_DESIGNS`) so they remain resolvable
+ * by `getResumeDesign(id)` WITHOUT appearing as extra cards in the marketplace
+ * gallery — the legacy templates keep their existing `availableTemplates`
+ * descriptors.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+interface LegacySpec {
+  id: string
+  name: string
+  presetKey: PresetKey
+  colors: DesignColors
+  /** Per-template overrides on top of the chosen preset. */
+  font?: DesignFont
+  sizes?: DesignSizes
+  sectionTitle?: SectionTitleStyle
+  header?: DesignHeader
+  isAtsFriendly?: boolean
+}
+
+function legacyDesign(spec: LegacySpec): ResumeDesign {
+  const preset = PRESETS[spec.presetKey]
+  return {
+    id: spec.id,
+    name: spec.name,
+    description: spec.name,
+    category: CATEGORY_LABEL.professional,
+    categoryId: "professional",
+    suggestedFor: [],
+    isAtsFriendly: spec.isAtsFriendly ?? true,
+    image: "",
+    layout: preset.layout,
+    header: spec.header ?? preset.header,
+    font: spec.font ?? preset.font,
+    sizes: spec.sizes ?? preset.sizes,
+    colors: spec.colors,
+    sectionTitle: spec.sectionTitle ?? preset.sectionTitle,
+    uppercaseTitles: preset.uppercaseTitles,
+    uppercaseName: preset.uppercaseName,
+    letterSpacingTitles: preset.letterSpacingTitles,
+    accentStripe: preset.accentStripe,
+    timeline: preset.timeline,
+    skillStyle: preset.skillStyle,
+    tags: [],
+    atsScore: spec.isAtsFriendly === false ? 85 : 96,
+    popularityScore: 80,
+    isPremium: false,
+    family: "legacy",
+    familyName: "Legacy",
+    colorName: "",
+  }
+}
+
+const LEGACY_SPECS: LegacySpec[] = [
+  // ATS Classic 1 — serif, blue headings, left-aligned header, ruled sections.
+  {
+    id: "classic-blue",
+    name: "ATS Classic 1",
+    presetKey: "classicSerif",
+    colors: {
+      name: "1a4db3",
+      heading: "1a4db3",
+      accent: "1d4ed8",
+      text: "2b2b2b",
+      secondary: "595959",
+      divider: "dbeafe",
+    },
+  },
+  // ATS Classic 2 — traditional serif, near-black ink, ruled sections.
+  {
+    id: "ats-classic",
+    name: "ATS Classic 2",
+    presetKey: "classicSerif",
+    colors: {
+      name: "1a1a1a",
+      heading: "1a1a1a",
+      accent: "1a1a1a",
+      text: "2b2b2b",
+      secondary: "595959",
+      divider: "9ca3af",
+    },
+  },
+  // ATS Classic Compact — dense serif, no decorative rules.
+  {
+    id: "ats-classic-compact",
+    name: "ATS Classic Compact",
+    presetKey: "compact",
+    font: "serif",
+    sectionTitle: "plain",
+    colors: {
+      name: "1a1a1a",
+      heading: "1a1a1a",
+      accent: "1a1a1a",
+      text: "2b2b2b",
+      secondary: "595959",
+      divider: "9ca3af",
+    },
+  },
+  // ATS Compact Lines — dense serif with crisp black section rules.
+  {
+    id: "ats-compact-lines",
+    name: "ATS Compact Lines",
+    presetKey: "compact",
+    font: "serif",
+    sectionTitle: "rule-full",
+    colors: {
+      name: "1a1a1a",
+      heading: "1a1a1a",
+      accent: "1a1a1a",
+      text: "2b2b2b",
+      secondary: "595959",
+      divider: "1a1a1a",
+    },
+  },
+  // ATS Green — boxed green section header bars (light text on deep green).
+  {
+    id: "ats-green",
+    name: "ATS Green",
+    presetKey: "boxedModern",
+    colors: {
+      name: "14532d",
+      heading: "166534",
+      accent: "166534",
+      text: "1f2937",
+      secondary: "6b7280",
+      divider: "166534",
+    },
+  },
+  // ATS Yellow — boxed amber/gold header bars (light text stays readable).
+  {
+    id: "ats-yellow",
+    name: "ATS Yellow",
+    presetKey: "boxedModern",
+    colors: {
+      name: "7c2d12",
+      heading: "9a3412",
+      accent: "b45309",
+      text: "44403c",
+      secondary: "78716c",
+      divider: "b45309",
+    },
+  },
+  // Modern Sidebar — slate two-column layout with a dark left sidebar.
+  {
+    id: "modern-sidebar",
+    name: "Modern Sidebar",
+    presetKey: "sidebar",
+    isAtsFriendly: false,
+    colors: {
+      name: "0f172a",
+      heading: "1e293b",
+      accent: "2563eb",
+      text: "334155",
+      secondary: "64748b",
+      divider: "e2e8f0",
+      sidebarBg: "1e293b",
+      sidebarText: "cbd5e1",
+      sidebarHeading: "ffffff",
+      sidebarAccent: "60a5fa",
+    },
+  },
+  // Modern Split — premium two-column with a deep slate-900 sidebar.
+  {
+    id: "modern-split",
+    name: "Modern Split",
+    presetKey: "sidebar",
+    isAtsFriendly: false,
+    sizes: { name: 26, section: 11, item: 10.5, content: 9.5, small: 8.5 },
+    colors: {
+      name: "0f172a",
+      heading: "0f172a",
+      accent: "2563eb",
+      text: "1e293b",
+      secondary: "64748b",
+      divider: "e2e8f0",
+      sidebarBg: "0f172a",
+      sidebarText: "cbd5e1",
+      sidebarHeading: "ffffff",
+      sidebarAccent: "38bdf8",
+    },
+  },
+  // Bold Professional — dark navy banner header, single column.
+  {
+    id: "bold-professional",
+    name: "Bold Professional",
+    presetKey: "band",
+    isAtsFriendly: false,
+    colors: {
+      name: "ffffff",
+      heading: "1e293b",
+      accent: "334155",
+      text: "1f2937",
+      secondary: "64748b",
+      divider: "cbd5e1",
+      headerBg: "1e293b",
+      headerText: "ffffff",
+    },
+  },
+]
+
+export const LEGACY_DESIGN_MAP: Record<string, ResumeDesign> = LEGACY_SPECS.reduce(
+  (acc, spec) => {
+    acc[spec.id] = legacyDesign(spec)
+    return acc
+  },
+  {} as Record<string, ResumeDesign>,
+)
+
+/** All legacy designs as an array (for building preview components). */
+export const LEGACY_DESIGNS: ResumeDesign[] = Object.values(LEGACY_DESIGN_MAP)
+
 export function getResumeDesign(id: string): ResumeDesign | undefined {
-  return RESUME_DESIGN_MAP[id]
+  return RESUME_DESIGN_MAP[id] ?? LEGACY_DESIGN_MAP[id]
 }
