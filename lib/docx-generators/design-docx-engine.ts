@@ -16,6 +16,7 @@ import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
 import { createLink, hasSectionContent } from "./utils"
 import type { ResumeDesign } from "../resume-designs"
+import { skillDotsFilled, effectiveSkillLevel } from "../resume-designs"
 
 const noBorders = {
   top: { style: BorderStyle.NONE },
@@ -45,6 +46,26 @@ export async function generateDesignDOCX(
 
   const dateDelim = " - "
 
+  // designer primitives (DOCX has no shapes, so approximate with unicode)
+  const initials = (resumeData.basics.name || "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+  // meters take a 1–5 level
+  const barText = (lvl: number) => "█".repeat(lvl * 2) + "░".repeat(10 - lvl * 2)
+  const dotText = (lvl: number) => "●".repeat(lvl) + "○".repeat(5 - lvl)
+  const firstRole: string = (() => {
+    const exp: any = (resumeData.sections || []).find((s: any) => s.type === "experience")
+    return (exp && exp.items && exp.items[0] && exp.items[0].role) || ""
+  })()
+  const skillLevelsOn: boolean = (() => {
+    const sk: any = (resumeData.sections || []).find((s: any) => s.type === "skills")
+    return !sk || sk.showLevels !== false
+  })()
+
   // ---- generic body builders (target = array of Paragraph|Table) ----
   type Ctx = {
     heading: string
@@ -70,6 +91,24 @@ export async function generateDesignDOCX(
           shading: { type: ShadingType.CLEAR, color: "auto", fill: ctx.accent },
           indent: { left: 60, right: 60 },
           children: [new TextRun({ text, bold: true, size, color: "FFFFFF", font: f, characterSpacing: spacing })],
+        }),
+      )
+      return
+    }
+
+    // Pill: shaded "tab" heading — white fill + dark text on the sidebar,
+    // accent fill + light text in the main column (rounded look not available in DOCX).
+    if (style === "pill") {
+      target.push(
+        new Paragraph({
+          spacing: { before: 200, after: 110 },
+          keepNext: true,
+          keepLines: true,
+          shading: { type: ShadingType.CLEAR, color: "auto", fill: sidebar ? "FFFFFF" : ctx.accent },
+          indent: { left: 60, right: 60 },
+          children: [
+            new TextRun({ text, bold: true, size, color: sidebar ? c.sidebarBg || ctx.heading : "FFFFFF", font: f, characterSpacing: spacing }),
+          ],
         }),
       )
       return
@@ -209,7 +248,32 @@ export async function generateDesignDOCX(
         break
       case "skills": {
         const groups = getEffectiveSkillGroupsFromSection(section).filter((g) => g.skills.length > 0)
-        if (design.skillStyle === "bullets" || sidebar) {
+        if ((design.skillStyle === "bars" || design.skillStyle === "dots") && skillLevelsOn) {
+          const meter = design.skillStyle === "bars" ? barText : dotText
+          const lv = ((section as any).skillLevels || {}) as Record<string, number>
+          for (const g of groups) {
+            if (g.title && g.title !== "General") {
+              target.push(
+                new Paragraph({
+                  spacing: { after: 50 },
+                  children: [new TextRun({ text: g.title, bold: true, size: sz.content, color: ctx.heading, font: f })],
+                }),
+              )
+            }
+            g.skills.forEach((skill, i) => {
+              target.push(
+                new Paragraph({
+                  spacing: { after: 50 },
+                  children: [
+                    new TextRun({ text: `${skill}  `, size: sz.content, color: ctx.text, font: f }),
+                    new TextRun({ text: meter(effectiveSkillLevel(lv, skill, i)), size: sz.content, color: ctx.accent, font: f }),
+                  ],
+                }),
+              )
+            })
+            target.push(new Paragraph({ spacing: { after: 80 } }))
+          }
+        } else if (design.skillStyle === "bullets" || sidebar) {
           for (const g of groups) {
             if (g.title && g.title !== "General") {
               target.push(
@@ -234,6 +298,22 @@ export async function generateDesignDOCX(
         break
       }
       case "languages":
+        if (design.skillStyle === "dots" && skillLevelsOn) {
+          ;(section.items || []).filter(Boolean).forEach((it: string, i: number) => {
+            target.push(
+              new Paragraph({
+                spacing: { after: 50 },
+                children: [
+                  new TextRun({ text: `${it}  `, size: sz.content, color: ctx.text, font: f }),
+                  new TextRun({ text: dotText(skillDotsFilled(i)), size: sz.content, color: ctx.accent, font: f }),
+                ],
+              }),
+            )
+          })
+        } else {
+          for (const it of (section.items || []).filter(Boolean)) bulletLine(target, it, ctx)
+        }
+        break
       case "certifications":
         for (const it of (section.items || []).filter(Boolean)) bulletLine(target, it, ctx)
         break
@@ -278,6 +358,51 @@ export async function generateDesignDOCX(
     const left: any[] = []
     const right: any[] = []
 
+    // monogram (+ name + role) block at the top of the sidebar
+    if (design.sidebarNameBlock) {
+      if (design.monogram && initials) {
+        left.push(
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 80 },
+            children: [new TextRun({ text: initials, bold: true, size: sz.name + 8, color: sideCtx.heading, font: f })],
+          }),
+        )
+      }
+      left.push(
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { after: firstRole ? 40 : 160 },
+          children: [
+            new TextRun({
+              text: design.uppercaseName ? resumeData.basics.name.toUpperCase() : resumeData.basics.name,
+              bold: true,
+              size: Math.min(sz.name, 40),
+              color: sideCtx.heading,
+              font: f,
+            }),
+          ],
+        }),
+      )
+      if (firstRole) {
+        left.push(
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 160 },
+            children: [new TextRun({ text: firstRole, size: sz.small, color: sideCtx.text, font: f })],
+          }),
+        )
+      }
+    } else if (design.monogram && initials) {
+      left.push(
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 160 },
+          children: [new TextRun({ text: initials, bold: true, size: sz.name, color: sideCtx.heading, font: f })],
+        }),
+      )
+    }
+
     // contact
     const contact = [
       ["Email", resumeData.basics.email],
@@ -314,18 +439,22 @@ export async function generateDesignDOCX(
       renderBody(target, sec, isSide ? sideCtx : mainCtx, isSide)
     }
 
-    // name + summary at top of right column
+    // name + summary at top of right column (name omitted when it's in the sidebar block)
     const nameText = design.uppercaseName ? resumeData.basics.name.toUpperCase() : resumeData.basics.name
-    right.unshift(
-      new Paragraph({ spacing: { after: 200 } }),
-      new Paragraph({
-        spacing: { after: 160 },
-        border: { bottom: { color: c.accent, space: 2, style: BorderStyle.SINGLE, size: 18 } },
-        children: [new TextRun({ text: nameText, bold: true, size: sz.name, color: c.name, font: f })],
-      }),
-    )
+    if (design.sidebarNameBlock) {
+      right.unshift(new Paragraph({ spacing: { after: 120 } }))
+    } else {
+      right.unshift(
+        new Paragraph({ spacing: { after: 200 } }),
+        new Paragraph({
+          spacing: { after: 160 },
+          border: { bottom: { color: c.accent, space: 2, style: BorderStyle.SINGLE, size: 18 } },
+          children: [new TextRun({ text: nameText, bold: true, size: sz.name, color: c.name, font: f })],
+        }),
+      )
+    }
     if (resumeData.basics.summary) {
-      right.splice(2, 0, new Paragraph({
+      right.splice(design.sidebarNameBlock ? 1 : 2, 0, new Paragraph({
         spacing: { after: 160 },
         children: [new TextRun({ text: resumeData.basics.summary, size: sz.content, color: c.text, font: f })],
       }))
@@ -368,7 +497,7 @@ export async function generateDesignDOCX(
     resumeData.basics.linkedin,
   ].filter(Boolean)
 
-  if (design.header === "band" && c.headerBg) {
+  if ((design.header === "band" || design.header === "geometric") && c.headerBg) {
     const headerCell: Paragraph[] = [
       new Paragraph({
         alignment: AlignmentType.CENTER,
@@ -385,6 +514,25 @@ export async function generateDesignDOCX(
         ],
       }),
     ]
+    // geometric headers (and any monogram design) lead with big initials
+    if ((design.header === "geometric" || design.monogram) && initials) {
+      headerCell.unshift(
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 60 },
+          children: [new TextRun({ text: initials, bold: true, size: sz.name + 8, color: c.headerText || "FFFFFF", font: f })],
+        }),
+      )
+    }
+    if (design.showRole && firstRole) {
+      headerCell.push(
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 60 },
+          children: [new TextRun({ text: firstRole, size: sz.content, color: c.headerText || "FFFFFF", font: f })],
+        }),
+      )
+    }
     if (contactItems.length)
       headerCell.push(
         new Paragraph({
@@ -415,6 +563,15 @@ export async function generateDesignDOCX(
     body.push(new Paragraph({ spacing: { after: 240 } }))
   } else {
     const centered = design.header === "centered"
+    if (design.monogram && initials) {
+      body.push(
+        new Paragraph({
+          alignment: centered ? AlignmentType.CENTER : AlignmentType.LEFT,
+          spacing: { after: 40 },
+          children: [new TextRun({ text: initials, bold: true, size: sz.name + 8, color: c.accent, font: f })],
+        }),
+      )
+    }
     body.push(
       new Paragraph({
         alignment: centered ? AlignmentType.CENTER : AlignmentType.LEFT,
@@ -431,6 +588,15 @@ export async function generateDesignDOCX(
         ],
       }),
     )
+    if (design.showRole && firstRole) {
+      body.push(
+        new Paragraph({
+          alignment: centered ? AlignmentType.CENTER : AlignmentType.LEFT,
+          spacing: { after: 60 },
+          children: [new TextRun({ text: firstRole, size: sz.content, color: c.accent, font: f })],
+        }),
+      )
+    }
     body.push(
       new Paragraph({
         alignment: centered ? AlignmentType.CENTER : AlignmentType.LEFT,

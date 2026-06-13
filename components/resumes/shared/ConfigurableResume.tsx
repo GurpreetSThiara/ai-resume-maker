@@ -8,6 +8,16 @@ import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
 import ProjectSection from "../../resume-components/project-section"
 import type { ResumeDesign } from "@/lib/resume-designs"
+import { skillDotsFilled, effectiveSkillLevel } from "@/lib/resume-designs"
+
+const getInitials = (name: string) =>
+  (name || "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
 
 interface ConfigurableResumeProps {
   pdfRef: React.RefObject<HTMLDivElement>
@@ -177,8 +187,36 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     sidebarHeading: hx(c.sidebarHeading),
     sidebarAccent: hx(c.sidebarAccent),
   }
+  const firstRole: string = (() => {
+    const exp: any = (resumeData.sections || []).find((s: any) => s.type === SECTION_TYPES.EXPERIENCE)
+    return (exp && exp.items && exp.items[0] && exp.items[0].role) || ""
+  })()
+  const skillLevelsOn: boolean = (() => {
+    const sk: any = (resumeData.sections || []).find((s: any) => s.type === SECTION_TYPES.SKILLS)
+    return !sk || sk.showLevels !== false
+  })()
   const fam = design.font === "serif" ? 'Georgia, "Times New Roman", serif' : "Helvetica, Arial, sans-serif"
   const px = (pt: number) => `${pt * 1.34}px`
+
+  // initials monogram circle (designer templates)
+  const monogramEl = (sizePx: number, fill: string, color: string) => (
+    <div
+      style={{
+        width: sizePx,
+        height: sizePx,
+        borderRadius: "50%",
+        background: fill,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}
+    >
+      <span style={{ color, fontWeight: 800, fontSize: `${sizePx * 0.42}px`, fontFamily: fam }}>
+        {getInitials(resumeData.basics.name)}
+      </span>
+    </div>
+  )
 
   const sectionTitleEl = (section: any, sidebar: boolean) => {
     const color = sidebar ? palette.sidebarHeading || palette.heading : palette.heading
@@ -207,6 +245,15 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
         color: sidebar ? palette.sidebarBg || "#fff" : "#fff",
         borderRadius: 4,
         padding: "4px 9px",
+        marginBottom: 8,
+        display: "inline-block",
+      })
+    else if (design.sectionTitle === "pill")
+      Object.assign(style, {
+        background: sidebar ? "#fff" : accent,
+        color: sidebar ? palette.sidebarBg || palette.heading : "#fff",
+        borderRadius: 9999,
+        padding: "4px 13px",
         marginBottom: 8,
         display: "inline-block",
       })
@@ -353,7 +400,68 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
           const updated = groups.map((g) => (g.title === title ? { ...g, skills } : g))
           handleSkillsChange(section.id, updated)
         }
-        if (design.skillStyle === "pills" && !sidebar) {
+        const groupTitleEl = (title: string) =>
+          title !== "General" ? (
+            <div style={{ fontSize: smallFont, fontWeight: 700, color: sidebar ? palette.sidebarHeading || palette.heading : sub, textTransform: "uppercase", marginBottom: 4, fontFamily: fam }}>
+              {title}
+            </div>
+          ) : null
+        const dotEmpty = sidebar ? "rgba(255,255,255,0.3)" : palette.divider
+        const skillEdit = (g: any, j: number) => (e: React.FormEvent<HTMLElement>) => {
+          const v = [...g.skills]
+          v[j] = e.currentTarget.textContent || ""
+          editGroup(g.title, v)
+        }
+        // When level indicators are turned off, bars/dots fall back to pills.
+        const eff = !skillLevelsOn && (design.skillStyle === "bars" || design.skillStyle === "dots") ? "pills" : design.skillStyle
+        if (eff === "bars") {
+          return (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+              {groups.map((g) => (
+                <div key={g.title}>
+                  {groupTitleEl(g.title)}
+                  {g.skills.map((sk, j) => (
+                    <div key={j} style={{ marginBottom: 7 }}>
+                      <div style={{ fontSize: contentFont, color: tColor, fontFamily: fam, marginBottom: 3 }} contentEditable suppressContentEditableWarning onBlur={skillEdit(g, j)}>
+                        {sk}
+                      </div>
+                      <div style={{ background: sidebar ? "rgba(255,255,255,0.22)" : palette.divider, height: 5, borderRadius: 3 }}>
+                        <div style={{ background: acc, width: `${(effectiveSkillLevel((section as any).skillLevels, sk, j) / 5) * 100}%`, height: "100%", borderRadius: 3 }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )
+        }
+        if (eff === "dots") {
+          return (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
+              {groups.map((g) => (
+                <div key={g.title}>
+                  {groupTitleEl(g.title)}
+                  {g.skills.map((sk, j) => {
+                    const filled = effectiveSkillLevel((section as any).skillLevels, sk, j)
+                    return (
+                      <div key={j} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                        <span style={{ fontSize: contentFont, color: tColor, fontFamily: fam }} contentEditable suppressContentEditableWarning onBlur={skillEdit(g, j)}>
+                          {sk}
+                        </span>
+                        <span style={{ display: "inline-flex", gap: 3, flexShrink: 0 }}>
+                          {[0, 1, 2, 3, 4].map((k) => (
+                            <span key={k} style={{ width: 6, height: 6, borderRadius: "50%", background: k < filled ? acc : dotEmpty }} />
+                          ))}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              ))}
+            </div>
+          )
+        }
+        if (eff === "pills" && !sidebar) {
           return (
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
               {groups.map((g) => (
@@ -420,6 +528,28 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
         )
       }
       case SECTION_TYPES.LANGUAGES:
+        if (design.skillStyle === "dots" && skillLevelsOn) {
+          return (
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              {(section.items || []).filter(Boolean).map((lng: string, i: number) => {
+                const filled = skillDotsFilled(i)
+                return (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: contentFont, color: tColor, fontFamily: fam }} contentEditable suppressContentEditableWarning onBlur={(e) => handleListChange(section.id, i, e.currentTarget.textContent || "")}>
+                      {lng}
+                    </span>
+                    <span style={{ display: "inline-flex", gap: 3, flexShrink: 0 }}>
+                      {[0, 1, 2, 3, 4].map((k) => (
+                        <span key={k} style={{ width: 6, height: 6, borderRadius: "50%", background: k < filled ? acc : sidebar ? "rgba(255,255,255,0.3)" : palette.divider }} />
+                      ))}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        }
+        return bulletList((section.items || []).filter(Boolean), (i, v) => handleListChange(section.id, i, v))
       case SECTION_TYPES.CERTIFICATIONS:
         return bulletList((section.items || []).filter(Boolean), (i, v) => handleListChange(section.id, i, v))
       case SECTION_TYPES.CUSTOM:
@@ -536,6 +666,28 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     const right = allSections.filter((s: any) => !(s.column === 1 || (!s.column && sidebarTypes.includes(s.type))))
     const sidebarPanel = (
       <div key="sidebar" style={{ width: 188, flexShrink: 0, background: palette.sidebarBg, padding: "28px 22px", color: palette.sidebarText }}>
+        {design.sidebarNameBlock ? (
+          <div style={{ background: palette.accent, margin: "-28px -22px 18px -22px", padding: "26px 16px 22px", textAlign: "center", color: "#fff" }}>
+            {design.monogram && (
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>{monogramEl(58, "#fff", palette.accent)}</div>
+            )}
+            <div
+              style={{ fontSize: px(Math.min(design.sizes.name, 19)), fontWeight: 800, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.02em", lineHeight: 1.15, color: "#fff" }}
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={handleNameChange}
+            >
+              {resumeData.basics.name}
+            </div>
+            {firstRole && (
+              <div style={{ fontSize: px(design.sizes.small), fontFamily: fam, marginTop: 5, color: "#fff", opacity: 0.92 }}>{firstRole}</div>
+            )}
+          </div>
+        ) : design.monogram ? (
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
+            {monogramEl(64, palette.sidebarAccent || palette.accent, palette.sidebarBg || "#fff")}
+          </div>
+        ) : null}
         <div style={{ marginBottom: 16 }}>
           <div style={{ fontSize: px(design.sizes.section - 1), fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: palette.sidebarHeading, borderBottom: `1.5px solid ${palette.sidebarAccent}`, paddingBottom: 3, marginBottom: 8, fontFamily: fam }}>
             Contact
@@ -555,14 +707,16 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     )
     const mainPanel = (
       <div key="main" style={{ flex: 1, padding: "28px 30px" }}>
-        <h1
-          style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.name, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.01em", borderBottom: `2px solid ${palette.accent}`, paddingBottom: 8, marginBottom: 14, lineHeight: 1.1 }}
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={handleNameChange}
-        >
-          {resumeData.basics.name}
-        </h1>
+        {!design.sidebarNameBlock && (
+          <h1
+            style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.name, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.01em", borderBottom: `2px solid ${palette.accent}`, paddingBottom: 8, marginBottom: 14, lineHeight: 1.1 }}
+            contentEditable
+            suppressContentEditableWarning
+            onBlur={handleNameChange}
+          >
+            {resumeData.basics.name}
+          </h1>
+        )}
         {summaryEl}
         {right.map((s: any) => renderSectionBlock(s, false))}
       </div>
@@ -576,26 +730,62 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
 
   // ===== SINGLE COLUMN =====
   const stripe = design.accentStripe
+  const roleEl = (color: string, center: boolean) =>
+    design.showRole && firstRole ? (
+      <div style={{ fontSize: px(design.sizes.content), color, fontFamily: fam, marginTop: -2, marginBottom: 8, textAlign: center ? "center" : "left", letterSpacing: "0.03em" }}>
+        {firstRole}
+      </div>
+    ) : null
   const header =
     design.header === "band" ? (
       <div style={{ background: palette.headerBg, color: palette.headerText, padding: "26px 40px", textAlign: "center" }}>
         <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.headerText, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.06em", marginBottom: 8 }} contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
           {resumeData.basics.name}
         </h1>
+        {roleEl(palette.headerText || "#fff", true)}
         {contactRow(palette.headerText || "#fff", true)}
+      </div>
+    ) : design.header === "geometric" ? (
+      <div style={{ display: "flex", alignItems: "stretch", overflow: "hidden" }}>
+        <div style={{ width: 150, background: palette.accent, display: "flex", alignItems: "center", justifyContent: "center", padding: "22px 0", flexShrink: 0 }}>
+          <span style={{ color: palette.headerText || "#fff", fontWeight: 800, fontSize: px(design.sizes.name * 1.15), fontFamily: fam, letterSpacing: "0.04em" }}>
+            {getInitials(resumeData.basics.name)}
+          </span>
+        </div>
+        <div style={{ flex: 1, background: palette.headerBg, color: palette.headerText, padding: "22px 28px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.headerText, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.04em", marginBottom: 8 }} contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
+            {resumeData.basics.name}
+          </h1>
+          {roleEl(palette.headerText || "#fff", false)}
+          {contactRow(palette.headerText || "#fff", false)}
+        </div>
       </div>
     ) : design.header === "centered" ? (
       <div style={{ textAlign: "center", marginBottom: 14, borderBottom: `1.2px solid ${palette.divider}`, paddingBottom: 12 }}>
+        {design.monogram && (
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>{monogramEl(54, palette.accent, palette.headerText || "#fff")}</div>
+        )}
         <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 700, color: palette.name, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.06em", marginBottom: 8 }} contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
           {resumeData.basics.name}
         </h1>
+        {roleEl(palette.accent, true)}
         {contactRow(palette.secondary, true)}
       </div>
     ) : (
       <div style={{ marginBottom: 14, borderBottom: `1.6px solid ${palette.accent}`, paddingBottom: 10 }}>
-        <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.name, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.01em", marginBottom: 8 }} contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
-          {resumeData.basics.name}
-        </h1>
+        {design.monogram ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 8 }}>
+            {monogramEl(50, palette.accent, palette.headerText || "#fff")}
+            <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.name, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.01em", margin: 0, lineHeight: 1.1 }} contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
+              {resumeData.basics.name}
+            </h1>
+          </div>
+        ) : (
+          <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.name, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.01em", marginBottom: 8 }} contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
+            {resumeData.basics.name}
+          </h1>
+        )}
+        {roleEl(palette.accent, false)}
         {contactRow(palette.secondary, false)}
       </div>
     )
@@ -611,7 +801,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     <div style={{ display: stripe ? "flex" : "block", minHeight: 842 }}>
       {stripe && <div style={{ width: 8, background: palette.accent, flexShrink: 0 }} />}
       <div style={{ flex: 1 }}>
-        {design.header === "band" ? (
+        {design.header === "band" || design.header === "geometric" ? (
           <>
             {header}
             <div style={{ padding: "22px 40px 36px 40px" }}>{sectionsBody}</div>

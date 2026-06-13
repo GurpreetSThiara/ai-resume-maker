@@ -1,42 +1,19 @@
 import type { PDFGenerationOptions } from "@/types/resume"
-import { generateGoogleDOCX } from "./google-resume-docx"
-import { generateClassicDOCX } from "./classic-resume-docx"
-import { generateATSGreenDOCX } from "./ats-green-docx"
-import { generateTimelineDOCX } from "./timeline-resume-docx"
-import { generateModernSidebarDOCX } from "./modern-sidebar-docx"
-import { generateBoldDOCX } from "./bold-professional-docx"
 import { generateDesignDOCX } from "./design-docx-engine"
 import { getResumeDesign } from "../resume-designs"
 
-/** Build the DOCX bytes for the given template, without downloading or tracking. */
+/**
+ * Build the DOCX bytes for the given template.
+ *
+ * Mirrors the PDF pipeline: every template (config-driven designs and the
+ * bridged legacy templates) renders through the single design DOCX engine.
+ * Legacy ids resolve via `getResumeDesign`; an unknown id falls back to the
+ * classic-blue design.
+ */
 export async function generateResumeDOCXBytes(options: PDFGenerationOptions) {
   const { template } = options
-  switch (template.id) {
-    case "classic-blue":
-      return generateGoogleDOCX({ ...options, variant: "default" } as any)
-    case "ats-compact-lines":
-      return generateGoogleDOCX({ ...options, variant: "black_compact" } as any)
-    case "ats-classic":
-      return generateClassicDOCX({ ...options, variant: "default" } as any)
-    case "ats-classic-compact":
-      return generateClassicDOCX({ ...options, variant: "compact" } as any)
-    case "ats-green":
-      return generateATSGreenDOCX({ ...options, theme: "green" } as any)
-    case "ats-yellow":
-      return generateATSGreenDOCX({ ...options, theme: "yellow" } as any)
-    case "ats-timeline":
-      return generateTimelineDOCX(options)
-    case "modern-sidebar":
-      return generateModernSidebarDOCX(options)
-    case "bold-professional":
-      return generateBoldDOCX(options)
-    default: {
-      const design = getResumeDesign(template.id)
-      if (design) return generateDesignDOCX(options, design)
-      // Fallback for unknown templates
-      return generateClassicDOCX({ ...options, variant: "default" } as any)
-    }
-  }
+  const design = getResumeDesign(template.id) ?? getResumeDesign("classic-blue")!
+  return generateDesignDOCX(options, design)
 }
 
 export async function generateResumeDOCX(options: PDFGenerationOptions) {

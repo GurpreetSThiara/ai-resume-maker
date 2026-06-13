@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Trash2, Edit2, Zap, FolderPlus, Tag } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import { Plus, Trash2, Edit2, Zap, FolderPlus, Tag, SlidersHorizontal } from "lucide-react"
 import { SectionVisibilityToggle } from "@/components/section-visibility-toggle"
 import { SectionHiddenBanner } from "@/components/section-hidden-banner"
 import type { ResumeData, SkillsSection as ISkillsSection, SkillGroup } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
+import { effectiveSkillLevel } from "@/lib/resume-designs"
 
 interface SkillGroupInputProps {
   skills: string[]
@@ -65,9 +67,11 @@ function SkillGroupInput({
 interface SkillsSectionProps {
   data: ResumeData
   onUpdate: (updates: Partial<ResumeData>) => void
+  /** Whether the selected template renders skill bars/dots. Hides the level UI when false. */
+  supportsLevels?: boolean
 }
 
-export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
+export function SkillsSection({ data, onUpdate, supportsLevels = false }: SkillsSectionProps) {
   const [newSkill, setNewSkill] = useState("")
   const [newSkillCategory, setNewSkillCategory] = useState("")
   const [isAddingNew, setIsAddingNew] = useState(false)
@@ -182,6 +186,26 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
     updateSkillsSection(effectiveGroups, !isHidden)
   }
 
+  // Proficiency bars/dots on visual templates. Default on. Levels are user-set
+  // (1–5), with an auto starting value until the user picks one.
+  const showLevels = skillsSection.showLevels !== false
+  const skillLevels: Record<string, number> = skillsSection.skillLevels || {}
+  const setShowLevels = (show: boolean) => {
+    const updatedSections = [...data.sections]
+    const idx = updatedSections.findIndex((s) => s.type === SECTION_TYPES.SKILLS)
+    if (idx === -1) return
+    updatedSections[idx] = { ...(updatedSections[idx] as ISkillsSection), showLevels: show }
+    onUpdate({ sections: updatedSections })
+  }
+  const setSkillLevel = (name: string, level: number) => {
+    const updatedSections = [...data.sections]
+    const idx = updatedSections.findIndex((s) => s.type === SECTION_TYPES.SKILLS)
+    if (idx === -1) return
+    const cur = (updatedSections[idx] as ISkillsSection).skillLevels || {}
+    updatedSections[idx] = { ...(updatedSections[idx] as ISkillsSection), skillLevels: { ...cur, [name]: level } }
+    onUpdate({ sections: updatedSections })
+  }
+
   return (
     <div className="space-y-6">
       {/* Header with visibility toggle */}
@@ -195,6 +219,22 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
 
       {/* Disabled overlay when hidden */}
       {isHidden && <SectionHiddenBanner />}
+
+      {/* Skill level indicators toggle — only for templates that draw bars/dots */}
+      {supportsLevels && (
+      <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/30 px-4 py-3">
+        <div className="flex items-start gap-3">
+          <SlidersHorizontal className="w-4 h-4 mt-0.5 text-blue-500 shrink-0" />
+          <div>
+            <Label htmlFor="skill-levels" className="text-sm font-medium">Show skill level bars</Label>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Adds proficiency bars/dots on visual (designer) templates. Levels are auto-set by list order — turn off to show plain tags instead.
+            </p>
+          </div>
+        </div>
+        <Switch id="skill-levels" checked={showLevels} onCheckedChange={setShowLevels} disabled={isHidden} />
+      </div>
+      )}
 
       {/* Existing Skills (grouped) */}
       <div className="space-y-4">
@@ -255,6 +295,34 @@ export function SkillsSection({ data, onUpdate }: SkillsSectionProps) {
                       className="mt-1"
                       disabled={isHidden}
                     />
+                    {supportsLevels && showLevels && (
+                      <div className="mt-3 space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">Proficiency level (shown on visual templates)</Label>
+                        {group.skills.map((sk, i) => {
+                          const lvl = effectiveSkillLevel(skillLevels, sk, i)
+                          return (
+                            <div key={`${sk}-${i}`} className="flex items-center justify-between gap-3 py-0.5">
+                              <span className="text-sm text-slate-700 truncate">{sk}</span>
+                              <div className="flex items-center gap-1 shrink-0" role="group" aria-label={`Proficiency for ${sk}`}>
+                                {[1, 2, 3, 4, 5].map((n) => (
+                                  <button
+                                    key={n}
+                                    type="button"
+                                    onClick={() => setSkillLevel(sk, n)}
+                                    disabled={isHidden}
+                                    aria-label={`Set ${sk} proficiency to ${n} of 5`}
+                                    title={`${n} / 5`}
+                                    className="p-0.5 disabled:opacity-50"
+                                  >
+                                    <span className={`block w-3.5 h-3.5 rounded-full transition-colors ${n <= lvl ? "bg-blue-500" : "bg-slate-200 hover:bg-slate-300"}`} />
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>

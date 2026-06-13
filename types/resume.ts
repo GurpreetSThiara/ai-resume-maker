@@ -80,6 +80,18 @@ export interface SkillsSection extends BaseSection {
    */
   items: string[]
   /**
+   * Whether visual templates draw proficiency bars/dots for skills (and language
+   * dots). Users can switch this off to render plain pills/tags instead.
+   * Undefined = on (default).
+   */
+  showLevels?: boolean
+  /**
+   * User-set proficiency per skill, keyed by skill name, on a 1–5 scale.
+   * Skills not present here fall back to an auto starting value (by list order).
+   * Kept as a side map so `items`/`groups` stay plain string lists.
+   */
+  skillLevels?: Record<string, number>
+  /**
    * New grouped skills structure used by the Skills editor UI.
    * When absent, the editor will automatically treat `items` as a single
    * "General" group so existing resumes still work seamlessly.

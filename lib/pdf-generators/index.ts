@@ -1,23 +1,8 @@
 import type { PDFGenerationOptions } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { triggerPdfDownload } from "@/lib/pdf-generators/trigger-pdf-download"
-import { generateResumePDF as generateGooglePDF } from "@/lib/pdf-generators/google-resume-generator"
-import { generateModernResumePDF } from "@/lib/pdf-generators/modern-resume-generator"
-import { generateClassic2ResumePDF } from "@/lib/pdf-generators/template-classic-generator"
-import { generateElegantResumePDF } from "@/lib/pdf-generators/template-elegant-generator"
-import { generateCompactResumePDF } from "@/lib/pdf-generators/template-compact-generator"
-import { generateCreativeResumePDF } from "@/lib/pdf-generators/template-creative-generator"
-import { generateATSGreenResume } from "./ats-green-resume-generator"
-import { generateTimelineResumePDF } from "./timeline-resume-generator"
-import { generateModernSidebarResumePDF } from "./template-modern-sidebar-generator"
-import { generateModernSplitResumePDF } from "./template-modern-split-generator"
-import { generateBoldProfessionalResumePDF } from "./template-bold-professional-generator"
 import { generateDesignPDF } from "./design-pdf-engine"
 import { getResumeDesign } from "../resume-designs"
-// removed broken import twoside; not used
-// removed RESUME_NAMES unused import
-import { ATS_GREEN, ATS_YELLOW, ATS_TIMELINE } from "../templates"
-import { SHOW_SUCCESS } from "@/utils/toast"
 
 function hasSectionContent(section: any): boolean {
   if (!section || section.hidden) return false
@@ -50,52 +35,20 @@ function getFilteredPdfOptions(options: PDFGenerationOptions): PDFGenerationOpti
   }
 }
 
-/** Build the same PDF as download, without triggering a file save or analytics. */
+/**
+ * Build the PDF bytes for the given template.
+ *
+ * Every template — the config-driven designs AND the legacy templates
+ * (classic-blue, ats-classic, ats-green, modern-sidebar, …) — renders through
+ * the single, properly-paginated design engine. Legacy ids resolve to their
+ * bridged `ResumeDesign` via `getResumeDesign`; an unknown id falls back to the
+ * classic-blue design so we never produce an empty document.
+ */
 export async function generateResumePDFBytes(options: PDFGenerationOptions): Promise<Uint8Array> {
   const { template } = options
   const filteredOptions = getFilteredPdfOptions(options)
-
-  switch (template.id) {
-    case "classic-blue":
-      return generateGooglePDF(filteredOptions)
-    case "ats-compact-lines":
-      return generateGooglePDF({
-        ...filteredOptions,
-        variant: "black_compact",
-      } as any)
-    case "modern":
-      return generateModernResumePDF(filteredOptions)
-    case "ats-classic":
-      return generateClassic2ResumePDF(filteredOptions)
-    case "ats-classic-compact":
-      return generateClassic2ResumePDF({
-        ...filteredOptions,
-        variant: "compact",
-      } as any)
-    case "ats-elegant":
-      return generateElegantResumePDF(filteredOptions)
-    case "ats-compact":
-      return generateCompactResumePDF(filteredOptions)
-    case "ats-creative":
-      return generateCreativeResumePDF(filteredOptions)
-    case ATS_GREEN.id:
-      return generateATSGreenResume(filteredOptions)
-    case ATS_YELLOW.id:
-      return generateATSGreenResume({ ...filteredOptions, theme: "yellow" })
-    case ATS_TIMELINE.id:
-      return generateTimelineResumePDF(filteredOptions)
-    case "modern-sidebar":
-      return generateModernSidebarResumePDF(filteredOptions)
-    case "bold-professional":
-      return generateBoldProfessionalResumePDF(filteredOptions)
-    case "modern-split":
-      return generateModernSplitResumePDF(filteredOptions)
-    default: {
-      const design = getResumeDesign(template.id)
-      if (design) return generateDesignPDF(filteredOptions, design)
-      return generateGooglePDF(filteredOptions)
-    }
-  }
+  const design = getResumeDesign(template.id) ?? getResumeDesign("classic-blue")!
+  return generateDesignPDF(filteredOptions, design)
 }
 
 export async function generateResumePDF(options: PDFGenerationOptions) {
@@ -119,6 +72,3 @@ export async function generateResumePDF(options: PDFGenerationOptions) {
     console.error("Failed to track PDF download:", error)
   }
 }
-
-
-

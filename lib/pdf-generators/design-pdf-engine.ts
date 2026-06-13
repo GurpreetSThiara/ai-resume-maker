@@ -5,6 +5,7 @@ import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
 import { wrapText } from "../pdf-utils"
 import { sanitizeWithFont, hexToRgb, addLinkAnnotation } from "./pdf-helpers"
 import type { ResumeDesign } from "../resume-designs"
+import { skillDotsFilled, effectiveSkillLevel } from "../resume-designs"
 
 const PAGE_W = 595.276
 const PAGE_H = 841.89
@@ -53,6 +54,18 @@ export async function generateDesignPDF(
     sidebarAccent: c.sidebarAccent ? col(c.sidebarAccent) : undefined,
   }
   const s = design.sizes
+
+  // Role/headline shown under the name (derived from the most recent experience role).
+  const firstRole: string = (() => {
+    const exp: any = (resumeData.sections || []).find((sec: any) => sec.type === "experience")
+    return (exp && exp.items && exp.items[0] && exp.items[0].role) || ""
+  })()
+
+  // User toggle: draw proficiency bars/dots (skills + language dots). Default on.
+  const skillLevelsOn: boolean = (() => {
+    const sk: any = (resumeData.sections || []).find((sec: any) => sec.type === "skills")
+    return !sk || sk.showLevels !== false
+  })()
 
   const isSidebarLayout = design.layout === "sidebar-left" || design.layout === "sidebar-right"
   const sidebarRight = design.layout === "sidebar-right"
@@ -194,6 +207,22 @@ export async function generateDesignPDF(
       return
     }
 
+    if (style === "pill") {
+      // Prominent rounded "tab" header: white pill w/ dark text on the sidebar,
+      // accent pill w/ light text in the main column.
+      const padX = 11
+      const padV = 5
+      const tw = trackedWidth(title, size, bold, tracking)
+      const boxH = size + 2 * padV
+      const boxBottom = cur.y - 0.25 * size - padV
+      const pillBg = cur.isSidebar ? rgb(1, 1, 1) : accentColorFor(cur)
+      const pillText = cur.isSidebar ? colors.sidebarBg || colors.heading : rgb(1, 1, 1)
+      roundedRect(pageOf(cur), cur.x, boxBottom, tw + 2 * padX, boxH, boxH / 2, pillBg)
+      drawTracked(pageOf(cur), title, cur.x + padX, cur.y, size, bold, pillText, tracking)
+      cur.y = boxBottom - 13
+      return
+    }
+
     if (style === "centered") {
       const w = trackedWidth(title, size, bold, tracking)
       drawTracked(pageOf(cur), title, cur.x + (cur.width - w) / 2, cur.y, size, bold, titleColorFor(cur), tracking)
@@ -282,6 +311,76 @@ export async function generateDesignPDF(
         px += pw + 6
       }
       cur.y -= pillH + 6
+    }
+  }
+
+  // ---- designer primitives: monogram, skill bars, skill/language dots ----
+  const initials = (name: string) =>
+    (name || "")
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase()
+
+  const drawMonogram = (page: any, cx: number, cy: number, r: number, fill: RGB, textColor: RGB) => {
+    page.drawCircle({ x: cx, y: cy, size: r, color: fill })
+    const init = sanitizeWithFont(initials(resumeData.basics.name), bold)
+    const fs = r
+    const w = bold.widthOfTextAtSize(init, fs)
+    page.drawText(init, { x: cx - w / 2, y: cy - fs * 0.35, size: fs, font: bold, color: textColor })
+  }
+
+  // a label on the left + 5 filled/empty proficiency dots right-aligned
+  const drawDotRow = (cur: Cursor, label: string, filled: number) => {
+    const dotR = 2.4
+    const gap = 4
+    const size = s.content
+    ensure(cur, size + 8)
+    const p = pageOf(cur)
+    p.drawText(sanitizeWithFont(label, regular), { x: cur.x, y: cur.y, size, font: regular, color: textColorFor(cur) })
+    const dotsW = 5 * (dotR * 2) + 4 * gap
+    let dx = cur.x + cur.width - dotsW
+    const dy = cur.y + size * 0.28
+    const empty = cur.isSidebar ? rgb(0.42, 0.42, 0.42) : col(c.divider)
+    for (let k = 0; k < 5; k++) {
+      p.drawCircle({ x: dx + dotR, y: dy, size: dotR, color: k < filled ? accentColorFor(cur) : empty })
+      dx += dotR * 2 + gap
+    }
+    cur.y -= size + 8
+  }
+
+  type SkillGroups = { title: string; skills: string[] }[]
+  type Levels = Record<string, number>
+
+  const skillBars = (cur: Cursor, groups: SkillGroups, levels: Levels) => {
+    const barH = 4
+    for (const g of groups) {
+      if (g.title && g.title !== "General") {
+        para(cur, g.title, { size: s.small, font: bold, color: secondaryColorFor(cur), lineGap: s.small + 4 })
+      }
+      g.skills.forEach((skill, i) => {
+        ensure(cur, s.content + barH + 11)
+        const p = pageOf(cur)
+        p.drawText(sanitizeWithFont(skill, regular), { x: cur.x, y: cur.y, size: s.content, font: regular, color: textColorFor(cur) })
+        const barY = cur.y - barH - 4
+        const track = cur.isSidebar ? rgb(0.42, 0.42, 0.42) : col(c.divider)
+        roundedRect(p, cur.x, barY, cur.width, barH, barH / 2, track)
+        roundedRect(p, cur.x, barY, cur.width * (effectiveSkillLevel(levels, skill, i) / 5), barH, barH / 2, accentColorFor(cur))
+        cur.y = barY - 9
+      })
+      cur.y -= 4
+    }
+  }
+
+  const skillDots = (cur: Cursor, groups: SkillGroups, levels: Levels) => {
+    for (const g of groups) {
+      if (g.title && g.title !== "General") {
+        para(cur, g.title, { size: s.small, font: bold, color: secondaryColorFor(cur), lineGap: s.small + 4 })
+      }
+      g.skills.forEach((skill, i) => drawDotRow(cur, skill, effectiveSkillLevel(levels, skill, i)))
+      cur.y -= 4
     }
   }
 
@@ -494,8 +593,13 @@ export async function generateDesignPDF(
         break
       case "skills": {
         const groups = getEffectiveSkillGroupsFromSection(section).filter((g) => g.skills.length > 0)
-        if (design.skillStyle === "pills") skillPills(cur, groups)
-        else if (design.skillStyle === "bullets" || cur.isSidebar) {
+        // When the user turns off level indicators, bars/dots fall back to pills.
+        const eff = !skillLevelsOn && (design.skillStyle === "bars" || design.skillStyle === "dots") ? "pills" : design.skillStyle
+        const lv = (section.skillLevels || {}) as Record<string, number>
+        if (eff === "bars") skillBars(cur, groups, lv)
+        else if (eff === "dots") skillDots(cur, groups, lv)
+        else if (eff === "pills") skillPills(cur, groups)
+        else if (eff === "bullets" || cur.isSidebar) {
           for (const g of groups) {
             if (g.title && g.title !== "General") {
               para(cur, g.title, {
@@ -512,6 +616,13 @@ export async function generateDesignPDF(
         break
       }
       case "languages":
+        if (design.skillStyle === "dots" && skillLevelsOn) {
+          ;(section.items || []).filter(Boolean).forEach((it: string, i: number) => drawDotRow(cur, it, skillDotsFilled(i)))
+        } else {
+          bullets(cur, (section.items || []).filter(Boolean), textColorFor(cur))
+        }
+        cur.y -= 4
+        break
       case "certifications":
         bullets(cur, (section.items || []).filter(Boolean), textColorFor(cur))
         cur.y -= 4
@@ -660,6 +771,44 @@ export async function generateDesignPDF(
       pageIndex: 0,
     }
 
+    // two-tone accent block at the top of the sidebar: monogram + name + role
+    if (design.sidebarNameBlock) {
+      const blockPad = 14
+      const innerW = sidebarW - 2 * blockPad
+      const nm = design.uppercaseName ? resumeData.basics.name.toUpperCase() : resumeData.basics.name
+      const nameSize = Math.min(s.name, 19)
+      const nameLines = wrapText(nm, innerW, bold, nameSize)
+      const r = design.monogram ? 22 : 0
+      const topPad = 22
+      const monoBlock = r ? r * 2 + 12 : 0
+      const roleBlock = firstRole ? s.small + 6 : 0
+      const blockH = topPad + monoBlock + nameLines.length * (nameSize + 3) + roleBlock + 18
+      pageOf(side).drawRectangle({ x: sidebarX0, y: PAGE_H - blockH, width: sidebarW, height: blockH, color: colors.accent })
+      let by = PAGE_H - topPad
+      if (r) {
+        drawMonogram(pageOf(side), sidebarX0 + sidebarW / 2, by - r, r, rgb(1, 1, 1), colors.accent)
+        by -= r * 2 + 12
+      }
+      for (const line of nameLines) {
+        const safe = sanitizeWithFont(line, bold)
+        const w = bold.widthOfTextAtSize(safe, nameSize)
+        pageOf(side).drawText(safe, { x: sidebarX0 + (sidebarW - w) / 2, y: by - nameSize, size: nameSize, font: bold, color: rgb(1, 1, 1) })
+        by -= nameSize + 3
+      }
+      if (firstRole) {
+        const safe = sanitizeWithFont(firstRole, regular)
+        const w = regular.widthOfTextAtSize(safe, s.small)
+        pageOf(side).drawText(safe, { x: sidebarX0 + (sidebarW - w) / 2, y: by - s.small - 1, size: s.small, font: regular, color: rgb(1, 1, 1) })
+      }
+      side.y = PAGE_H - blockH - 16
+    } else if (design.monogram) {
+      const r = 24
+      const cx = sidebarX0 + sidebarW / 2
+      const cy = side.y - r
+      drawMonogram(pageOf(side), cx, cy, r, colors.sidebarAccent || colors.accent, colors.sidebarBg || rgb(1, 1, 1))
+      side.y = cy - r - 14
+    }
+
     // sidebar contact
     side.y -= 4
     const contactLabelColor = colors.sidebarHeading || colors.heading
@@ -692,26 +841,32 @@ export async function generateDesignPDF(
 
     // main: name + summary + sections
     main.y -= 4
-    const nameText = design.uppercaseName ? resumeData.basics.name.toUpperCase() : resumeData.basics.name
-    const nameLines = wrapText(nameText, main.width, bold, s.name)
-    for (const line of nameLines) {
-      ensure(main, s.name + 6)
-      pageOf(main).drawText(sanitizeWithFont(line, bold), {
-        x: main.x,
-        y: main.y,
-        size: s.name,
-        font: bold,
-        color: colors.name,
+    if (!design.sidebarNameBlock) {
+      const nameText = design.uppercaseName ? resumeData.basics.name.toUpperCase() : resumeData.basics.name
+      const nameLines = wrapText(nameText, main.width, bold, s.name)
+      for (const line of nameLines) {
+        ensure(main, s.name + 6)
+        pageOf(main).drawText(sanitizeWithFont(line, bold), {
+          x: main.x,
+          y: main.y,
+          size: s.name,
+          font: bold,
+          color: colors.name,
+        })
+        main.y -= s.name + 4
+      }
+      if (design.showRole && firstRole) {
+        pageOf(main).drawText(sanitizeWithFont(firstRole, regular), { x: main.x, y: main.y, size: s.content, font: regular, color: colors.accent })
+        main.y -= s.content + 4
+      }
+      pageOf(main).drawLine({
+        start: { x: main.x, y: main.y + 4 },
+        end: { x: main.x + main.width, y: main.y + 4 },
+        thickness: 2,
+        color: colors.accent,
       })
-      main.y -= s.name + 4
+      main.y -= 16
     }
-    pageOf(main).drawLine({
-      start: { x: main.x, y: main.y + 4 },
-      end: { x: main.x + main.width, y: main.y + 4 },
-      thickness: 2,
-      color: colors.accent,
-    })
-    main.y -= 16
 
     if (resumeData.basics.summary) {
       para(main, resumeData.basics.summary, {
@@ -760,9 +915,11 @@ export async function generateDesignPDF(
     const topPad = 24
     const midGap = 10
     const botPad = 20
+    const roleLH = design.showRole && firstRole ? s.content + 6 : 0
     const bandH =
       topPad +
       nameLines.length * nameLH +
+      roleLH +
       (contactLines.length ? midGap + contactLines.length * contLH : 0) +
       botPad
     firstPage.drawRectangle({ x: 0, y: PAGE_H - bandH, width: PAGE_W, height: bandH, color: colors.headerBg })
@@ -770,10 +927,60 @@ export async function generateDesignPDF(
       firstPage.drawRectangle({ x: 0, y: PAGE_H - bandH, width: stripeW, height: bandH, color: colors.accent })
     }
     let top = drawNameLines(firstPage, nameLines, PAGE_H - topPad, true, headerText, innerPad)
+    if (design.showRole && firstRole) {
+      const safe = sanitizeWithFont(firstRole, regular)
+      const w = regular.widthOfTextAtSize(safe, s.content)
+      firstPage.drawText(safe, { x: (PAGE_W - w) / 2, y: top - s.content * 0.8, size: s.content, font: regular, color: headerText })
+      top -= roleLH
+    }
     if (contactLines.length) {
       top -= midGap
       for (const ln of contactLines) {
         drawContactLine(firstPage, ln, top - s.small * 0.8, true, headerText, innerPad)
+        top -= contLH
+      }
+    }
+    cur.y = PAGE_H - bandH - 22
+  } else if (design.header === "geometric" && colors.headerBg) {
+    // Two-tone split banner: accent block with big initials on the left,
+    // name + contact on the right.
+    const headerText = colors.headerText || rgb(1, 1, 1)
+    const splitX = 150
+    const rightX = splitX + 22
+    const innerW = PAGE_W - rightX - 36
+    const nameLines = wrapText(nameText, innerW, bold, s.name)
+    const contactLines = groupContact(innerW)
+    const topPad = 28
+    const midGap = 10
+    const botPad = 26
+    const roleLH = design.showRole && firstRole ? s.content + 6 : 0
+    const bandH =
+      topPad +
+      nameLines.length * nameLH +
+      roleLH +
+      (contactLines.length ? midGap + contactLines.length * contLH : 0) +
+      botPad
+    firstPage.drawRectangle({ x: 0, y: PAGE_H - bandH, width: PAGE_W, height: bandH, color: colors.headerBg })
+    firstPage.drawRectangle({ x: 0, y: PAGE_H - bandH, width: splitX, height: bandH, color: colors.accent })
+    const init = sanitizeWithFont(initials(resumeData.basics.name), bold)
+    const ifs = 36
+    const iw = bold.widthOfTextAtSize(init, ifs)
+    firstPage.drawText(init, {
+      x: splitX / 2 - iw / 2,
+      y: PAGE_H - bandH / 2 - ifs * 0.35,
+      size: ifs,
+      font: bold,
+      color: headerText,
+    })
+    let top = drawNameLines(firstPage, nameLines, PAGE_H - topPad, false, headerText, rightX)
+    if (design.showRole && firstRole) {
+      firstPage.drawText(sanitizeWithFont(firstRole, regular), { x: rightX, y: top - s.content * 0.8, size: s.content, font: regular, color: headerText })
+      top -= roleLH
+    }
+    if (contactLines.length) {
+      top -= midGap
+      for (const ln of contactLines) {
+        drawContactLine(firstPage, ln, top - s.small * 0.8, false, headerText, rightX)
         top -= contLH
       }
     }
@@ -796,9 +1003,19 @@ export async function generateDesignPDF(
     cur.y -= 14
   } else {
     // left header
+    if (design.monogram) {
+      const r = 22
+      const cy = cur.y - r
+      drawMonogram(firstPage, cur.x + r, cy, r, colors.accent, rgb(1, 1, 1))
+      cur.y = cy - r - 12
+    }
     const nameLines = wrapText(nameText, cur.width, bold, s.name)
     ensure(cur, nameLines.length * nameLH + 10)
     cur.y = drawNameLines(firstPage, nameLines, cur.y, false, colors.name, cur.x) - 2
+    if (design.showRole && firstRole) {
+      firstPage.drawText(sanitizeWithFont(firstRole, regular), { x: cur.x, y: cur.y - s.content * 0.8, size: s.content, font: regular, color: colors.accent })
+      cur.y -= s.content + 4
+    }
     for (const ln of groupContact(cur.width)) {
       drawContactLine(firstPage, ln, cur.y - s.small * 0.8, false, colors.secondary, cur.x)
       cur.y -= contLH

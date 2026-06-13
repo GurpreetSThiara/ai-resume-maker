@@ -8,8 +8,11 @@ import { SECTION_TYPES } from "@/types/resume"
 import { getResumePreview } from "./resumes"
 import { PdfPreviewErrorBoundary } from "./pdf-preview-boundary"
 import { atsCompactLinesTemplate, atsClassicCompactTemplate } from "@/lib/templates"
-import { AlertTriangle, FileText, FileType2, Loader2, PencilLine, X } from "lucide-react"
+import { AlertTriangle, FileText, FileType2, Loader2, PencilLine, Printer, X } from "lucide-react"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { Button } from "@/components/ui/button"
+import { printResumePDF } from "@/lib/pdf-generators/print-pdf"
+import { SHOW_ERROR } from "@/utils/toast"
 
 const ResumePdfPreview = dynamic(
   () => import("@/components/resume-pdf-preview").then((m) => m.ResumePdfPreview),
@@ -175,6 +178,21 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
 
     const [showAtsWarning, setShowAtsWarning] = useState(true)
     const [previewSurface, setPreviewSurface] = useState<"editable" | "pdf" | "docx">("editable")
+    const [isPrinting, setIsPrinting] = useState(false)
+
+    // Print the REAL generated PDF (same design engine as download) — opens the
+    // browser print dialog for the PDF itself, not the app page.
+    const handlePrint = async () => {
+      try {
+        setIsPrinting(true)
+        await printResumePDF({ resumeData: filteredResumeData, template })
+      } catch (error) {
+        console.error("Error printing resume:", error)
+        SHOW_ERROR({ title: "Couldn't open the print dialog.", description: "Please try downloading the PDF instead." })
+      } finally {
+        setIsPrinting(false)
+      }
+    }
 
     // Reset warning when template changes
     useEffect(() => {
@@ -211,7 +229,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
           </div>
         )}
 
-        <div className="w-full px-3 sm:px-4 pt-1 pb-3 flex justify-center">
+        <div className="w-full px-3 sm:px-4 pt-1 pb-3 flex items-center justify-center gap-2">
           <ToggleGroup
             type="single"
             variant="outline"
@@ -219,7 +237,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
             onValueChange={(v) => {
               if (v === "editable" || v === "pdf" || v === "docx") setPreviewSurface(v)
             }}
-            className="w-full max-w-md flex"
+            className="max-w-md flex"
             aria-label="Preview mode"
           >
             <ToggleGroupItem
@@ -247,6 +265,21 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
               <span className="truncate">DOCX</span>
             </ToggleGroupItem>
           </ToggleGroup>
+          <Button
+            type="button"
+            size="sm"
+            onClick={handlePrint}
+            disabled={isPrinting}
+            className="gap-1.5 text-xs sm:text-sm px-3 py-2 h-auto shrink-0"
+            aria-label="Print resume"
+          >
+            {isPrinting ? (
+              <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+            ) : (
+              <Printer className="h-4 w-4 shrink-0" aria-hidden />
+            )}
+            <span className="truncate">Print</span>
+          </Button>
         </div>
 
         {previewSurface === "pdf" ? (
