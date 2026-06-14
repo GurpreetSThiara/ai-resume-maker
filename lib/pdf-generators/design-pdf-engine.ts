@@ -292,6 +292,7 @@ export async function generateDesignPDF(
     for (const g of groups) {
       if (g.title && g.title !== "General") {
         para(cur, g.title, { size: s.small, font: bold, color: secondaryColorFor(cur), lineGap: s.small + 4 })
+        cur.y -= 6 // clearance so pill tops don't crowd the group label
       }
       let px = cur.x
       ensure(cur, rowStep)
@@ -840,32 +841,24 @@ export async function generateDesignPDF(
     }
 
     // main: name + summary + sections
-    main.y -= 4
+    main.y -= 8
     if (!design.sidebarNameBlock) {
       const nameText = design.uppercaseName ? resumeData.basics.name.toUpperCase() : resumeData.basics.name
       const nameLines = wrapText(nameText, main.width, bold, s.name)
-      for (const line of nameLines) {
-        ensure(main, s.name + 6)
-        pageOf(main).drawText(sanitizeWithFont(line, bold), {
-          x: main.x,
-          y: main.y,
-          size: s.name,
-          font: bold,
-          color: colors.name,
-        })
-        main.y -= s.name + 4
-      }
+      // drawNameLines positions the baseline so the cap height sits below the
+      // top margin (proper top padding) and leaves a tight, controlled trailing gap.
+      main.y = drawNameLines(pageOf(main), nameLines, main.y, false, colors.name, main.x)
       if (design.showRole && firstRole) {
-        pageOf(main).drawText(sanitizeWithFont(firstRole, regular), { x: main.x, y: main.y, size: s.content, font: regular, color: colors.accent })
+        pageOf(main).drawText(sanitizeWithFont(firstRole, regular), { x: main.x, y: main.y - s.content * 0.8, size: s.content, font: regular, color: colors.accent })
         main.y -= s.content + 4
       }
       pageOf(main).drawLine({
-        start: { x: main.x, y: main.y + 4 },
-        end: { x: main.x + main.width, y: main.y + 4 },
+        start: { x: main.x, y: main.y - 3 },
+        end: { x: main.x + main.width, y: main.y - 3 },
         thickness: 2,
         color: colors.accent,
       })
-      main.y -= 16
+      main.y -= 22 // clearance below the accent rule before the summary/first section
     }
 
     if (resumeData.basics.summary) {

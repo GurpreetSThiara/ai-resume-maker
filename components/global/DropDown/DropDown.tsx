@@ -12,6 +12,7 @@ import {
 
 import { generateResumePDF } from "@/lib/pdf-generators"
 import { generateResumeDOCX } from "@/lib/docx-generators";
+import { getResumeDesign } from "@/lib/resume-designs";
 import { SHOW_ERROR, SHOW_SUCCESS } from "@/utils/toast";
 import { usePostDownloadReview } from "@/hooks/use-post-download-review";
 import { trackResumeDownloadToSheets } from "@/lib/google-sheets-tracker";
@@ -22,6 +23,9 @@ import { useAuth } from "@/contexts/auth-context";
 const DownloadDropDown = ({ data }: any) => {
   const { triggerReviewModal, ReviewModalComponent } = usePostDownloadReview();
   const { user } = useAuth();
+
+  // Visual designer templates render poorly as DOCX — offer PDF only for them.
+  const pdfOnly = !!getResumeDesign(data?.template?.id)?.pdfOnly;
 
   const handleDownload = async (downloadFunction: () => Promise<void>) => {
     try {
@@ -59,16 +63,18 @@ const DownloadDropDown = ({ data }: any) => {
           >
             PDF
           </DropdownMenuItem>
-          <DropdownMenuItem
-            className="capitalize cursor-pointer"
-            onClick={() => {
-              handleDownload(async () => {
-                await generateResumeDOCX({ ...data, filename: `${data.filename}.docx` });
-              });
-            }}
-          >
-            DOCX
-          </DropdownMenuItem>
+          {!pdfOnly && (
+            <DropdownMenuItem
+              className="capitalize cursor-pointer"
+              onClick={() => {
+                handleDownload(async () => {
+                  await generateResumeDOCX({ ...data, filename: `${data.filename}.docx` });
+                });
+              }}
+            >
+              DOCX
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
       <ReviewModalComponent />

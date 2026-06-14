@@ -14,6 +14,7 @@ import { SectionManagement } from "@/components/section-management"
 import { ModernSidebarLayoutModal } from "@/components/modern-sidebar-layout-modal"
 import DownloadDropDown from "@/components/global/DropDown/DropDown"
 import type { ResumeData, ResumeTemplate, Section } from "@/types/resume"
+import { getResumeDesign } from "@/lib/resume-designs"
 import { useRouter, useSearchParams } from "next/navigation"
 
 interface CreateResumeHeaderProps {
@@ -47,18 +48,23 @@ export function CreateResumeHeader({
 const renderControls = () => (
   <div className="w-full flex flex-wrap items-center gap-3">
 
-    {selectedTemplate.id === 'modern-sidebar' ? (
-      <ModernSidebarLayoutModal
-        sections={sectionsWithOrder}
-        onUpdate={handleSectionReorder}
-      />
-    ) : (
-      <SectionManagement
-        sections={sectionsWithOrder}
-        onReorder={handleSectionReorder}
-        className="h-10 px-4 rounded-md text-sm flex items-center"
-      />
-    )}
+    {(() => {
+      const layout = getResumeDesign(selectedTemplate.id)?.layout
+      const isTwoColumn = layout === "sidebar-left" || layout === "sidebar-right"
+      return isTwoColumn ? (
+        <ModernSidebarLayoutModal
+          sections={sectionsWithOrder}
+          onUpdate={handleSectionReorder}
+          sidebarSide={layout === "sidebar-right" ? "right" : "left"}
+        />
+      ) : (
+        <SectionManagement
+          sections={sectionsWithOrder}
+          onReorder={handleSectionReorder}
+          className="h-10 px-4 rounded-md text-sm flex items-center"
+        />
+      )
+    })()}
 
     <Button
       variant="outline"

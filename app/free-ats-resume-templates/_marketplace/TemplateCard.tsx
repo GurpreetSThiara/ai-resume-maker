@@ -10,7 +10,7 @@ import {
   useTemplateHref,
   type MarketplaceTemplate,
 } from "./data"
-import { AtsBadge, PremiumBadge, Highlight, TemplateThumb } from "./shared"
+import { PremiumBadge, Highlight, TemplateThumb } from "./shared"
 
 interface TemplateCardProps {
   /** Representative template (also used when there is a single variant). */
@@ -63,7 +63,6 @@ function TemplateCardBase({ template, variants, onPreview, query = "", priority,
               </span>
             )}
           </div>
-          <AtsBadge score={active.atsScore} className="bg-white/95 backdrop-blur" />
         </div>
 
         {/* Hover overlay actions */}
