@@ -125,6 +125,8 @@ export interface ResumeDesign {
   sidebarNameBlock?: boolean
   /** Show a role/headline line under the name (derived from the most recent experience role). */
   showRole?: boolean
+  /** PDF-only: visual templates whose DOCX approximation is poor — hide DOCX download. */
+  pdfOnly?: boolean
 
   // ── marketplace metadata ────────────────────────────────────────────────
   tags: string[]
@@ -208,7 +210,7 @@ const FAMILY_LABEL: Record<string, string> = {
   centeredPillsP: "Centered Pills",
   studioMono: "Studio Mono",
   cascade: "Cascade",
-  portfolioRight: "Portfolio",
+  portfolioRight: "Portfolio Coral",
   twoToneStudio: "Two-Tone Studio",
   accentEdgePro: "Accent Edge",
   timelineCraft: "Timeline Craft",
@@ -270,6 +272,8 @@ interface Preset {
   monogram?: boolean
   sidebarNameBlock?: boolean
   showRole?: boolean
+  /** PDF-only template: hide the DOCX download (visual designs DOCX can't reproduce). */
+  pdfOnly?: boolean
   sizes: DesignSizes
 }
 
@@ -341,16 +345,16 @@ const PRESETS: Record<PresetKey, Preset> = {
   // ── graphic-designer families (visual-first; flagged non-ATS via low atsScore) ──
   // Two-column designs put name+role in a sidebar accent block, use pill section
   // headers, and a dotted timeline for experience — the recurring designer look.
-  studioMono: { layout: "sidebar-left", header: "left", font: "sans", sectionTitle: "pill", skillStyle: "bars", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, monogram: true, sidebarNameBlock: true, timeline: true, sizes: SIZE_SIDEBAR },
+  studioMono: { layout: "sidebar-left", header: "left", font: "sans", sectionTitle: "pill", skillStyle: "bars", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, monogram: true, sidebarNameBlock: true, timeline: true, pdfOnly: true, sizes: SIZE_SIDEBAR },
   cascade: { layout: "sidebar-left", header: "left", font: "sans", sectionTitle: "pill", skillStyle: "bars", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, monogram: true, sidebarNameBlock: true, timeline: true, sizes: SIZE_SIDEBAR },
-  portfolioRight: { layout: "sidebar-right", header: "left", font: "sans", sectionTitle: "pill", skillStyle: "dots", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, monogram: true, sidebarNameBlock: true, timeline: true, sizes: SIZE_SIDEBAR },
+  portfolioRight: { layout: "sidebar-right", header: "left", font: "sans", sectionTitle: "pill", skillStyle: "dots", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, monogram: true, sidebarNameBlock: true, timeline: true, pdfOnly: true, sizes: SIZE_SIDEBAR },
   twoToneStudio: { layout: "sidebar-left", header: "left", font: "sans", sectionTitle: "pill", skillStyle: "bars", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, monogram: true, sidebarNameBlock: true, timeline: true, sizes: SIZE_SIDEBAR },
   accentEdgePro: { layout: "single", header: "left", font: "sans", sectionTitle: "pill", skillStyle: "bars", uppercaseName: false, uppercaseTitles: true, letterSpacingTitles: false, accentStripe: true, monogram: true, showRole: true, timeline: true, sizes: SIZE_DEFAULT },
   timelineCraft: { layout: "single", header: "left", font: "sans", sectionTitle: "pill", skillStyle: "bars", uppercaseName: false, uppercaseTitles: true, letterSpacingTitles: false, timeline: true, monogram: true, showRole: true, sizes: SIZE_DEFAULT },
   monoMinimal: { layout: "single", header: "left", font: "sans", sectionTitle: "underline", skillStyle: "dots", uppercaseName: false, uppercaseTitles: true, letterSpacingTitles: true, monogram: true, showRole: true, sizes: SIZE_DEFAULT },
-  creativePrism: { layout: "single", header: "geometric", font: "sans", sectionTitle: "pill", skillStyle: "pills", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, showRole: true, timeline: true, sizes: SIZE_DEFAULT },
+  creativePrism: { layout: "single", header: "geometric", font: "sans", sectionTitle: "pill", skillStyle: "pills", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, showRole: true, timeline: true, pdfOnly: true, sizes: SIZE_DEFAULT },
   boldPrism: { layout: "single", header: "geometric", font: "sans", sectionTitle: "pill", skillStyle: "pills", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, showRole: true, timeline: true, sizes: SIZE_DEFAULT },
-  vividPills: { layout: "single", header: "band", font: "sans", sectionTitle: "pill", skillStyle: "pills", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, showRole: true, sizes: SIZE_DEFAULT },
+  vividPills: { layout: "single", header: "band", font: "sans", sectionTitle: "pill", skillStyle: "pills", uppercaseName: true, uppercaseTitles: true, letterSpacingTitles: false, showRole: true, pdfOnly: true, sizes: SIZE_DEFAULT },
 }
 
 /* ────────────────────────────────────────────────────────────────────────
@@ -492,6 +496,7 @@ function build(row: Row, index: number): ResumeDesign {
     monogram: preset.monogram,
     sidebarNameBlock: preset.sidebarNameBlock,
     showRole: preset.showRole,
+    pdfOnly: preset.pdfOnly,
     tags,
     atsScore,
     popularityScore,
@@ -628,16 +633,18 @@ const CATALOG: Row[] = [
   ["boxed-sidebar-plum", "Plum Boxed Sidebar", "creative", "boxedSidebar", "plum", 85, 82, true, ["Creative", "Boxed", "Sidebar"]],
   ["centered-pills-indigo", "Indigo Centered Pills", "marketing", "centeredPillsP", "indigo", 90, 84, true, ["Marketing", "Centered", "Pills"]],
 
-  // ── Graphic-designer templates (visual-first; atsScore < 92 ⇒ non-ATS) ─────
+  // ── Graphic-designer templates (visual-first; PDF-only; atsScore < 92 ⇒ non-ATS) ─────
+  // Studio Mono — one sidebar layout offered in three colours (Lime / Teal / Ocean).
+  // The three rows share the `studioMono` family so they club into one card with swatches.
   ["studio-mono", "Studio Mono", "designer", "studioMono", "lime", 86, 93, true, ["Designer", "Two Column", "Skill Bars"]],
-  ["designer-cascade", "Designer Cascade", "designer", "cascade", "tealVivid", 87, 95, true, ["Designer", "Sidebar", "Skill Bars"]],
+  ["designer-cascade", "Studio Mono", "designer", "studioMono", "tealVivid", 87, 95, true, ["Designer", "Sidebar", "Skill Bars"]],
+  ["two-tone-studio", "Studio Mono", "designer", "studioMono", "ocean", 86, 88, true, ["Designer", "Two Column", "Bold"]],
+  // Portfolio Coral — right sidebar, skill dots.
   ["portfolio-coral", "Portfolio Coral", "designer", "portfolioRight", "coral", 86, 90, true, ["Designer", "Right Sidebar", "Skill Dots"]],
-  ["two-tone-studio", "Two-Tone Studio", "designer", "twoToneStudio", "ocean", 86, 88, true, ["Designer", "Two Column", "Bold"]],
-  ["accent-edge-pro", "Accent Edge Pro", "designer", "accentEdgePro", "blue", 88, 89, false, ["Designer", "Accent", "Skill Bars"]],
-  ["timeline-craft", "Timeline Craft", "designer", "timelineCraft", "emerald", 88, 87, false, ["Designer", "Timeline", "Skill Bars"]],
-  ["mono-minimal", "Mono Minimal", "minimalist", "monoMinimal", "graphite", 89, 85, false, ["Minimalist", "Monogram", "Clean"]],
+  // Creative Prism — geometric two-tone header offered in two colours (Amber / Gold).
   ["creative-prism", "Creative Prism", "creative", "creativePrism", "amberIndigo", 85, 86, true, ["Creative", "Geometric", "Bold"]],
-  ["bold-prism", "Bold Prism", "creative", "boldPrism", "goldPlum", 85, 84, true, ["Creative", "Geometric", "Dark"]],
+  ["bold-prism", "Creative Prism", "creative", "creativePrism", "goldPlum", 85, 84, true, ["Creative", "Geometric", "Dark"]],
+  // Vivid Pills — band header, pills.
   ["vivid-pills", "Vivid Pills", "creative", "vividPills", "rose", 86, 85, true, ["Creative", "Pills", "Header"]],
 ]
 

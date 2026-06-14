@@ -19,13 +19,15 @@ export const RESUME_IMAGES = {
 
 
 
-  CLASSIC_BLUE: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/deveops/devops1.png",
+  CLASSIC_BLUE: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/classic-blue.png",
   MODERN: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/modern.png",
+  MODERN_SIDEBAR: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/modern-sidebar.png",
+  BOLD_PROFESSIONAL: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/bold-professional.png",
   CREATIVE: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/creative.png",
   ELEGANT: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/elegant.png",
   GOOGLE_STYLE: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/google-resume.png",
   TIMELINE_1: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/timeline_1.png",
-  MODERN_SPLIT: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/modern.png", // Placeholder
+  MODERN_SPLIT: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/modern-split.png",
 }
 
 export const RESUME_TEMPLATES = [
@@ -87,7 +89,7 @@ export const RESUME_TEMPLATES = [
   {
     id: "modern-sidebar",
     name: "Modern Sidebar",
-    url: RESUME_IMAGES.MODERN,
+    url: RESUME_IMAGES.MODERN_SIDEBAR,
     category: "Modern",
     description: "Two-column layout with sidebar for skills and contact info. Stylish and professional.",
     suggestedFor: ["Designers", "Developers", "Creative roles"],
@@ -96,7 +98,7 @@ export const RESUME_TEMPLATES = [
   {
     id: "bold-professional",
     name: "Bold Professional",
-    url: RESUME_IMAGES.MODERN, // Using Modern image as placeholder until dedicated image is available
+    url: RESUME_IMAGES.BOLD_PROFESSIONAL,
     category: "Professional",
     description: "Impactful design with a dark navy header and clean single-column layout. High preview fidelity.",
     suggestedFor: ["Executive", "Management", "Professional"],

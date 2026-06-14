@@ -8,17 +8,20 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { GripVertical, Columns, ChevronUp, ChevronDown } from 'lucide-react'
 
-const getLeftSections = (sections: Section[]) => sections.filter(s => s.column === 1 || (!s.column && ['skills', 'languages'].includes(s.type)))
-const getRightSections = (sections: Section[]) => sections.filter(s => s.column === 2 || (!s.column && !['skills', 'languages'].includes(s.type)))
+const getLeftSections = (sections: Section[]) => sections.filter(s => s.column === 1 || (!s.column && ['skills', 'languages', 'certifications'].includes(s.type)))
+const getRightSections = (sections: Section[]) => sections.filter(s => s.column === 2 || (!s.column && !['skills', 'languages', 'certifications'].includes(s.type)))
 
 interface ModernSidebarLayoutModalProps {
   sections: Section[]
   onUpdate: (sections: Section[]) => void
+  /** Which side the sidebar (column 1) renders on — mirrors the panes to match the template. */
+  sidebarSide?: "left" | "right"
 }
 
 export const ModernSidebarLayoutModal: React.FC<ModernSidebarLayoutModalProps> = ({
   sections,
   onUpdate,
+  sidebarSide = "left",
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [localSections, setLocalSections] = useState<Section[]>([])
@@ -38,7 +41,7 @@ export const ModernSidebarLayoutModal: React.FC<ModernSidebarLayoutModalProps> =
   useEffect(() => {
     setLocalSections(sections.map(s => ({
         ...s,
-        column: s.column || (['skills', 'languages'].includes(s.type) ? 1 : 2)
+        column: s.column || (['skills', 'languages', 'certifications'].includes(s.type) ? 1 : 2)
     })))
   }, [sections])
 
@@ -192,8 +195,8 @@ export const ModernSidebarLayoutModal: React.FC<ModernSidebarLayoutModalProps> =
         </div>
         {isMobile && (
             <div className="flex gap-2 mt-1">
-                <Button variant="outline" size="sm" className="h-5 text-[10px] px-1" disabled={section.column === 1} onClick={() => moveItemMobile(section.id, 'left')}>To Left</Button>
-                <Button variant="outline" size="sm" className="h-5 text-[10px] px-1" disabled={section.column === 2} onClick={() => moveItemMobile(section.id, 'right')}>To Right</Button>
+                <Button variant="outline" size="sm" className="h-5 text-[10px] px-1" disabled={section.column === 1} onClick={() => moveItemMobile(section.id, 'left')}>To Sidebar</Button>
+                <Button variant="outline" size="sm" className="h-5 text-[10px] px-1" disabled={section.column === 2} onClick={() => moveItemMobile(section.id, 'right')}>To Main</Button>
             </div>
         )}
       </div>
@@ -221,53 +224,59 @@ export const ModernSidebarLayoutModal: React.FC<ModernSidebarLayoutModalProps> =
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Columns className="w-5 h-5" />
-            Modern Sidebar Layout
+            Manage Layout — Two Columns
           </DialogTitle>
         </DialogHeader>
         
         <div className="flex-1 overflow-y-auto mt-4 pr-1">
           <div className="flex flex-col md:flex-row gap-6 h-full">
-            
-            {/* Left Column */}
-            <div 
-                className={`flex-1 min-w-0 flex flex-col border rounded-xl p-4 bg-gray-50 transition-colors ${dragOverColumn === 1 && !dragOverId ? 'border-blue-400 bg-blue-50/50' : ''}`}
-                onDragOver={(e) => handleDragOverColumn(e, 1)}
-                onDrop={(e) => handleDrop(e, null, 1)}
-            >
-                <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center justify-between">
-                    Left Sidebar
+            {(() => {
+              // Sidebar = column 1, Main = column 2. Order the panes to match the
+              // template's actual side so "right sidebar" templates read correctly.
+              const sidebarPane = (
+                <div
+                  key="sidebar"
+                  className={`flex-1 min-w-0 flex flex-col border rounded-xl p-4 bg-gray-50 transition-colors ${dragOverColumn === 1 && !dragOverId ? 'border-blue-400 bg-blue-50/50' : ''}`}
+                  onDragOver={(e) => handleDragOverColumn(e, 1)}
+                  onDrop={(e) => handleDrop(e, null, 1)}
+                >
+                  <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center justify-between">
+                    {sidebarSide === "right" ? "Right Sidebar" : "Left Sidebar"}
                     <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">{leftSections.length}</span>
-                </h3>
-                <div className="flex-1 overflow-y-auto min-h-[150px]">
+                  </h3>
+                  <div className="flex-1 overflow-y-auto min-h-[150px]">
                     {leftSections.map((s, i) => renderSectionItem(s, i, leftSections.length))}
                     {leftSections.length === 0 && (
-                        <div className="h-full flex items-center justify-center text-sm text-gray-400 border-2 border-dashed border-gray-200 rounded-lg py-8">
-                            Drag sections here
-                        </div>
+                      <div className="h-full flex items-center justify-center text-sm text-gray-400 border-2 border-dashed border-gray-200 rounded-lg py-8">
+                        Drag sections here
+                      </div>
                     )}
+                  </div>
                 </div>
-            </div>
-
-            {/* Right Column */}
-            <div 
-                className={`flex-1 min-w-0 flex flex-col border rounded-xl p-4 bg-gray-50 transition-colors ${dragOverColumn === 2 && !dragOverId ? 'border-blue-400 bg-blue-50/50' : ''}`}
-                onDragOver={(e) => handleDragOverColumn(e, 2)}
-                onDrop={(e) => handleDrop(e, null, 2)}
-            >
-                <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center justify-between">
+              )
+              const mainPane = (
+                <div
+                  key="main"
+                  className={`flex-1 min-w-0 flex flex-col border rounded-xl p-4 bg-gray-50 transition-colors ${dragOverColumn === 2 && !dragOverId ? 'border-blue-400 bg-blue-50/50' : ''}`}
+                  onDragOver={(e) => handleDragOverColumn(e, 2)}
+                  onDrop={(e) => handleDrop(e, null, 2)}
+                >
+                  <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center justify-between">
                     Main Body
                     <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">{rightSections.length}</span>
-                </h3>
-                <div className="flex-1 overflow-y-auto min-h-[150px]">
+                  </h3>
+                  <div className="flex-1 overflow-y-auto min-h-[150px]">
                     {rightSections.map((s, i) => renderSectionItem(s, i, rightSections.length))}
                     {rightSections.length === 0 && (
-                        <div className="h-full flex items-center justify-center text-sm text-gray-400 border-2 border-dashed border-gray-200 rounded-lg py-8">
-                            Drag sections here
-                        </div>
+                      <div className="h-full flex items-center justify-center text-sm text-gray-400 border-2 border-dashed border-gray-200 rounded-lg py-8">
+                        Drag sections here
+                      </div>
                     )}
+                  </div>
                 </div>
-            </div>
-
+              )
+              return sidebarSide === "right" ? [mainPane, sidebarPane] : [sidebarPane, mainPane]
+            })()}
           </div>
         </div>
 

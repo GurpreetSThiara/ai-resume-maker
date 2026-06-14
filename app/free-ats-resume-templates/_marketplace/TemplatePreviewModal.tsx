@@ -12,7 +12,7 @@ import {
   previewTemplateHref,
   type MarketplaceTemplate,
 } from "./data"
-import { AtsBadge, PremiumBadge, TemplateThumb } from "./shared"
+import { PremiumBadge, TemplateThumb } from "./shared"
 
 interface Props {
   template: MarketplaceTemplate | null
@@ -121,32 +121,11 @@ export function TemplatePreviewModal({ template, open, onOpenChange }: Props) {
             <p className="mt-4 text-sm leading-relaxed text-slate-600">{template.description}</p>
 
             {/* Stats */}
-            <div className="mt-5 grid grid-cols-3 gap-3">
-              <Stat label="ATS Score" value={`${template.atsScore}`} accent={atsAccent(template.atsScore)} />
+            <div className="mt-5 grid grid-cols-2 gap-3">
               <Stat label="Popularity" value={`${template.popularityScore}%`} />
               <Stat label="Downloads" value={formatDownloads(template.downloads)} />
             </div>
 
-            {/* ATS detail */}
-            <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-700">ATS Compatibility</span>
-                <AtsBadge score={template.atsScore} />
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
-                <div
-                  className={cn("h-full rounded-full", atsBar(template.atsScore))}
-                  style={{ width: `${template.atsScore}%` }}
-                />
-              </div>
-              <p className="mt-2 text-xs text-slate-500">
-                {template.atsScore >= 98
-                  ? "Excellent — parses cleanly in virtually all applicant tracking systems."
-                  : template.atsScore >= 95
-                    ? "Great — reliably passes standard ATS screening."
-                    : "Good — strong visual design with solid ATS support."}
-              </p>
-            </div>
 
             {/* Tags */}
             <div className="mt-5">
@@ -191,13 +170,3 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
   )
 }
 
-function atsAccent(score: number) {
-  if (score >= 98) return "text-emerald-600"
-  if (score >= 95) return "text-green-600"
-  return "text-amber-600"
-}
-function atsBar(score: number) {
-  if (score >= 98) return "bg-emerald-500"
-  if (score >= 95) return "bg-green-500"
-  return "bg-amber-500"
-}

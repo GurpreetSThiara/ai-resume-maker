@@ -11,6 +11,7 @@ import { atsCompactLinesTemplate, atsClassicCompactTemplate } from "@/lib/templa
 import { AlertTriangle, FileText, FileType2, Loader2, PencilLine, Printer, X } from "lucide-react"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Button } from "@/components/ui/button"
+import { getResumeDesign } from "@/lib/resume-designs"
 import { printResumePDF } from "@/lib/pdf-generators/print-pdf"
 import { SHOW_ERROR } from "@/utils/toast"
 
@@ -180,6 +181,12 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
     const [previewSurface, setPreviewSurface] = useState<"editable" | "pdf" | "docx">("editable")
     const [isPrinting, setIsPrinting] = useState(false)
 
+    // Visual designer templates are PDF-only — hide DOCX preview + download.
+    const pdfOnly = !!getResumeDesign(template.id)?.pdfOnly
+    useEffect(() => {
+      if (pdfOnly && previewSurface === "docx") setPreviewSurface("editable")
+    }, [pdfOnly, previewSurface])
+
     // Print the REAL generated PDF (same design engine as download) — opens the
     // browser print dialog for the PDF itself, not the app page.
     const handlePrint = async () => {
@@ -256,14 +263,16 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
               <FileText className="h-4 w-4 shrink-0" aria-hidden />
               <span className="truncate">PDF</span>
             </ToggleGroupItem>
-            <ToggleGroupItem
-              value="docx"
-              className="gap-1.5 text-xs sm:text-sm px-2 py-2 h-auto"
-              aria-label="Word DOCX preview"
-            >
-              <FileType2 className="h-4 w-4 shrink-0" aria-hidden />
-              <span className="truncate">DOCX</span>
-            </ToggleGroupItem>
+            {!pdfOnly && (
+              <ToggleGroupItem
+                value="docx"
+                className="gap-1.5 text-xs sm:text-sm px-2 py-2 h-auto"
+                aria-label="Word DOCX preview"
+              >
+                <FileType2 className="h-4 w-4 shrink-0" aria-hidden />
+                <span className="truncate">DOCX</span>
+              </ToggleGroupItem>
+            )}
           </ToggleGroup>
           <Button
             type="button"
