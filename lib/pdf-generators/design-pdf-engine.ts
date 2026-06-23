@@ -1,7 +1,8 @@
 import { PDFDocument, StandardFonts, rgb } from "@pdfme/pdf-lib"
-import type { PDFGenerationOptions } from "@/types/resume"
+import type { PDFGenerationOptions, PerLineStyle } from "@/types/resume"
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
+import { lineKey } from "@/utils/lineStyle"
 import { wrapText } from "../pdf-utils"
 import { sanitizeWithFont, hexToRgb, addLinkAnnotation } from "./pdf-helpers"
 import type { ResumeDesign } from "../resume-designs"
@@ -31,12 +32,22 @@ export async function generateDesignPDF(
 ): Promise<Uint8Array> {
   const pdf = await PDFDocument.create()
 
-  const regular = await pdf.embedFont(
-    design.font === "serif" ? StandardFonts.TimesRoman : StandardFonts.Helvetica,
-  )
-  const bold = await pdf.embedFont(
-    design.font === "serif" ? StandardFonts.TimesRomanBold : StandardFonts.HelveticaBold,
-  )
+  // Font matrix — regular/bold/italic/bold-italic per family (StandardFonts are
+  // not byte-embedded, so this is cheap). Enables per-line bold/italic/font.
+  const E = (f: StandardFonts) => pdf.embedFont(f)
+  const fontMatrix = {
+    sans: { r: await E(StandardFonts.Helvetica), b: await E(StandardFonts.HelveticaBold), i: await E(StandardFonts.HelveticaOblique), bi: await E(StandardFonts.HelveticaBoldOblique) },
+    serif: { r: await E(StandardFonts.TimesRoman), b: await E(StandardFonts.TimesRomanBold), i: await E(StandardFonts.TimesRomanItalic), bi: await E(StandardFonts.TimesRomanBoldItalic) },
+    mono: { r: await E(StandardFonts.Courier), b: await E(StandardFonts.CourierBold), i: await E(StandardFonts.CourierOblique), bi: await E(StandardFonts.CourierBoldOblique) },
+  } as const
+  const baseFamily: "sans" | "serif" | "mono" = design.font === "serif" ? "serif" : "sans"
+  const pickFont = (family: "sans" | "serif" | "mono", b: boolean, i: boolean) => {
+    const fm = fontMatrix[family] || fontMatrix.sans
+    return b && i ? fm.bi : b ? fm.b : i ? fm.i : fm.r
+  }
+  const regular = fontMatrix[baseFamily].r
+  const bold = fontMatrix[baseFamily].b
+  const LS: Record<string, PerLineStyle> = (resumeData as { lineStyles?: Record<string, PerLineStyle> }).lineStyles || {}
 
   const c = design.colors
   const colors = {
@@ -137,24 +148,31 @@ export async function generateDesignPDF(
       indent?: number
       lineGap?: number
       link?: string
+      style?: PerLineStyle
     },
   ) => {
+    const st = opts.style
+    const font = st && (st.bold || st.italic || st.font) ? pickFont(st.font || baseFamily, !!st.bold, !!st.italic) : opts.font
+    const size = st?.size ?? opts.size
+    const color = st?.color ? col(st.color) : opts.color
     const indent = opts.indent || 0
-    const lineGap = opts.lineGap ?? opts.size + 2
-    const lines = wrapText(text, cur.width - indent, opts.font, opts.size)
+    const lineGap = opts.lineGap ?? size + 2
+    const lines = wrapText(text, cur.width - indent, font, size)
     for (const line of lines) {
       ensure(cur, lineGap)
-      const safe = sanitizeWithFont(line, opts.font)
-      pageOf(cur).drawText(safe, {
-        x: cur.x + indent,
-        y: cur.y,
-        size: opts.size,
-        font: opts.font,
-        color: opts.color,
-      })
+      const safe = sanitizeWithFont(line, font)
+      pageOf(cur).drawText(safe, { x: cur.x + indent, y: cur.y, size, font, color })
+      const w = font.widthOfTextAtSize(safe, size)
+      if (st?.underline) {
+        pageOf(cur).drawLine({
+          start: { x: cur.x + indent, y: cur.y - size * 0.12 },
+          end: { x: cur.x + indent + w, y: cur.y - size * 0.12 },
+          thickness: Math.max(0.5, size * 0.06),
+          color,
+        })
+      }
       if (opts.link) {
-        const w = opts.font.widthOfTextAtSize(safe, opts.size)
-        addLinkAnnotation(pdf, pageOf(cur), cur.x + indent, cur.y, w, opts.size, opts.link)
+        addLinkAnnotation(pdf, pageOf(cur), cur.x + indent, cur.y, w, size, opts.link)
       }
       cur.y -= lineGap
     }
@@ -257,11 +275,11 @@ export async function generateDesignPDF(
     }
   }
 
-  const bullets = (cur: Cursor, items: string[], color: RGB) => {
-    for (const it of items) {
-      if (!it) continue
-      para(cur, `• ${it}`, { size: s.content, font: regular, color, indent: 10, lineGap: s.content + 3 })
-    }
+  const bullets = (cur: Cursor, items: string[], color: RGB, keyFor?: (i: number) => string) => {
+    items.forEach((it, i) => {
+      if (!it) return
+      para(cur, `• ${it}`, { size: s.content, font: regular, color, indent: 10, lineGap: s.content + 3, style: keyFor ? LS[keyFor(i)] : undefined })
+    })
   }
 
   // Filled rounded rectangle (pdf-lib has no native corner radius) — composed
@@ -441,6 +459,7 @@ export async function generateDesignPDF(
     rightOfSub: string,
     items: string[] | undefined,
     withTimeline: boolean,
+    keyBase?: { sid: string; item: number },
   ) => {
     const tlIndent = withTimeline ? 16 : 0
     const startPage = cur.pageIndex
@@ -501,16 +520,17 @@ export async function generateDesignPDF(
     }
 
     if (items && items.length) {
-      for (const it of items) {
-        if (!it) continue
+      items.forEach((it, j) => {
+        if (!it) return
         para(cur, `• ${it}`, {
           size: s.content,
           font: regular,
           color: textColorFor(cur),
           indent: tlIndent + 10,
           lineGap: s.content + 3,
+          style: keyBase ? LS[lineKey(keyBase.sid, { item: keyBase.item, field: "bullet", bullet: j })] : undefined,
         })
-      }
+      })
     }
 
     // timeline marker (only when no page break occurred during the entry)
@@ -533,7 +553,7 @@ export async function generateDesignPDF(
     const withTimeline = !!design.timeline && !cur.isSidebar
     switch (section.type) {
       case "experience":
-        for (const exp of section.items || []) {
+        ;(section.items || []).forEach((exp: any, idx: number) => {
           headedEntry(
             cur,
             exp.role || "",
@@ -542,11 +562,12 @@ export async function generateDesignPDF(
             exp.location || "",
             exp.achievements,
             withTimeline,
+            { sid: section.id, item: idx },
           )
-        }
+        })
         break
       case "education":
-        for (const edu of section.items || []) {
+        ;(section.items || []).forEach((edu: any, idx: number) => {
           headedEntry(
             cur,
             edu.institution || "",
@@ -555,8 +576,9 @@ export async function generateDesignPDF(
             edu.location || "",
             edu.highlights,
             withTimeline,
+            { sid: section.id, item: idx },
           )
-        }
+        })
         break
       case "projects":
         for (const proj of section.items || []) {
@@ -620,16 +642,16 @@ export async function generateDesignPDF(
         if (design.skillStyle === "dots" && skillLevelsOn) {
           ;(section.items || []).filter(Boolean).forEach((it: string, i: number) => drawDotRow(cur, it, skillDotsFilled(i)))
         } else {
-          bullets(cur, (section.items || []).filter(Boolean), textColorFor(cur))
+          bullets(cur, section.items || [], textColorFor(cur), (i) => lineKey(section.id, { item: i }))
         }
         cur.y -= 4
         break
       case "certifications":
-        bullets(cur, (section.items || []).filter(Boolean), textColorFor(cur))
+        bullets(cur, section.items || [], textColorFor(cur), (i) => lineKey(section.id, { item: i }))
         cur.y -= 4
         break
       case "custom":
-        bullets(cur, (section.content || []).filter(Boolean), textColorFor(cur))
+        bullets(cur, section.content || [], textColorFor(cur), (i) => lineKey(section.id, { item: i }))
         cur.y -= 4
         break
     }
@@ -867,6 +889,7 @@ export async function generateDesignPDF(
         font: regular,
         color: colors.text,
         lineGap: s.content + 3,
+        style: LS["basics:summary"],
       })
       main.y -= 12
     }
@@ -1029,6 +1052,7 @@ export async function generateDesignPDF(
       font: regular,
       color: colors.text,
       lineGap: s.content + 3,
+      style: LS["basics:summary"],
     })
     cur.y -= 12
   }

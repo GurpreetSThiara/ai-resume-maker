@@ -128,5 +128,9 @@ export function validateResumeData(data: unknown): ValidationResult {
     }
   }
 
+  // Optional per-line styling map (keyed by lineKey) — only shape-check it.
+  const lineStyles = (data as Record<string, unknown>).lineStyles
+  if (lineStyles != null && !isRecord(lineStyles)) { errors.push("lineStyles must be an object"); ok = false }
+
   return ok ? { ok: true } : { ok: false, errors }
 }

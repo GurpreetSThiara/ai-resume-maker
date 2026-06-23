@@ -15,6 +15,54 @@ export interface ResumeData {
 
   // Flexible sections (Education, Experience, Skills, Custom, etc.)
   sections: Section[]
+
+  // Per-resume styling overrides applied on top of the selected template's design.
+  // Optional + backward compatible (older resumes simply omit it). Edited via the
+  // Visual editor's styling toolbar and merged into the design for preview + export.
+  style?: ResumeStyleOverrides
+
+  // Per-line formatting overrides, keyed by a stable lineKey() (see utils/lineStyle.ts).
+  // Lets the user mark an individual line/field bold/italic/underline/colored/etc.
+  // Optional + backward compatible. Honoured identically by the HTML, PDF and DOCX renderers.
+  lineStyles?: Record<string, PerLineStyle>
+}
+
+// 🔹 Whole-line formatting override (granularity = one line/field, which exports cleanly).
+export interface PerLineStyle {
+  bold?: boolean
+  italic?: boolean
+  underline?: boolean
+  /** Hex colour, with or without leading '#'. */
+  color?: string
+  /** Point size override for this line. */
+  size?: number
+  font?: "sans" | "serif" | "mono"
+}
+
+// 🔹 Per-resume style overrides (document/section level — what pdf-lib can render).
+export interface ResumeStyleOverrides {
+  /** Accent colour as a hex string (with or without leading '#'). */
+  accent?: string
+  /** Name colour override (hex). */
+  nameColor?: string
+  /** Heading colour override (hex). */
+  headingColor?: string
+  /** Body text colour override (hex). */
+  textColor?: string
+  font?: "serif" | "sans"
+  /** Scales all font sizes: compact (0.92) / normal (1) / relaxed (1.08). */
+  density?: "compact" | "normal" | "relaxed"
+  /** Explicit point-size overrides (win over density) for the name / section headings / body. */
+  nameSize?: number
+  headingSize?: number
+  bodySize?: number
+  sectionTitle?: "rule-full" | "underline" | "left-bar" | "plain" | "boxed" | "centered" | "pill"
+  skillStyle?: "pills" | "grouped-line" | "bullets" | "bars" | "dots"
+  layout?: "single" | "sidebar-left" | "sidebar-right"
+  uppercaseName?: boolean
+  uppercaseTitles?: boolean
+  accentStripe?: boolean
+  timeline?: boolean
 }
 
 // 🔹 Custom field definition
