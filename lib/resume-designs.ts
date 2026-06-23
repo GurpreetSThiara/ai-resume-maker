@@ -17,6 +17,8 @@
  * Colours are stored as 6-digit hex strings WITHOUT a leading "#".
  */
 
+import type { ResumeStyleOverrides } from "@/types/resume"
+
 export type DesignLayout = "single" | "sidebar-left" | "sidebar-right"
 export type DesignHeader = "centered" | "left" | "band" | "geometric"
 export type DesignFont = "serif" | "sans"
@@ -880,4 +882,93 @@ export const LEGACY_DESIGNS: ResumeDesign[] = Object.values(LEGACY_DESIGN_MAP)
 
 export function getResumeDesign(id: string): ResumeDesign | undefined {
   return RESUME_DESIGN_MAP[id] ?? LEGACY_DESIGN_MAP[id]
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * Per-resume style overrides (Visual editor styling toolbar)
+ * ──────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Curated accent swatches for the styling toolbar. All are dark enough that
+ * white header/sidebar text stays readable when used as a band/sidebar fill.
+ * Hex stored WITHOUT a leading '#'.
+ */
+export const ACCENT_SWATCHES: { name: string; hex: string }[] = [
+  { name: "Ink", hex: "1a1a1a" },
+  { name: "Slate", hex: "475569" },
+  { name: "Navy", hex: "1e3a5f" },
+  { name: "Blue", hex: "2563eb" },
+  { name: "Teal", hex: "0d9488" },
+  { name: "Emerald", hex: "059669" },
+  { name: "Indigo", hex: "4f46e5" },
+  { name: "Plum", hex: "7c3aed" },
+  { name: "Maroon", hex: "7f1d1d" },
+  { name: "Crimson", hex: "dc2626" },
+  { name: "Rose", hex: "e11d48" },
+  { name: "Ocean", hex: "0891b2" },
+  { name: "Bronze", hex: "b45309" },
+  { name: "Charcoal", hex: "27272a" },
+]
+
+const cleanHex = (hex: string) => (hex || "").replace("#", "").trim()
+const DENSITY_SCALE: Record<NonNullable<ResumeStyleOverrides["density"]>, number> = {
+  compact: 0.92,
+  normal: 1,
+  relaxed: 1.08,
+}
+const r1 = (n: number) => Math.round(n * 10) / 10
+
+/**
+ * Apply per-resume style overrides on top of a base design, returning a new
+ * design. Drives the live preview AND the PDF/DOCX export (applied at the single
+ * resolution point in lib/pdf-generators & lib/docx-generators), so preview ==
+ * export. Accent re-tints the band/geometric header fill and sidebar accent so
+ * the colour change is visible across every layout.
+ */
+export function mergeDesign(base: ResumeDesign, style?: ResumeStyleOverrides): ResumeDesign {
+  if (!style) return base
+  const d: ResumeDesign = { ...base, colors: { ...base.colors }, sizes: { ...base.sizes } }
+
+  if (style.font) d.font = style.font
+  if (style.layout) d.layout = style.layout
+  if (style.sectionTitle) d.sectionTitle = style.sectionTitle
+  if (style.skillStyle) d.skillStyle = style.skillStyle
+  if (typeof style.uppercaseName === "boolean") d.uppercaseName = style.uppercaseName
+  if (typeof style.uppercaseTitles === "boolean") d.uppercaseTitles = style.uppercaseTitles
+  if (typeof style.accentStripe === "boolean") d.accentStripe = style.accentStripe
+  if (typeof style.timeline === "boolean") d.timeline = style.timeline
+
+  if (style.density && DENSITY_SCALE[style.density]) {
+    const k = DENSITY_SCALE[style.density]
+    d.sizes = {
+      name: r1(base.sizes.name * k),
+      section: r1(base.sizes.section * k),
+      item: r1(base.sizes.item * k),
+      content: r1(base.sizes.content * k),
+      small: r1(base.sizes.small * k),
+    }
+  }
+
+  // Explicit point-size overrides win over density.
+  if (typeof style.nameSize === "number") d.sizes.name = style.nameSize
+  if (typeof style.headingSize === "number") d.sizes.section = style.headingSize
+  if (typeof style.bodySize === "number") { d.sizes.content = style.bodySize; d.sizes.item = style.bodySize }
+
+  if (style.nameColor) d.colors.name = cleanHex(style.nameColor)
+  if (style.headingColor) d.colors.heading = cleanHex(style.headingColor)
+  if (style.textColor) d.colors.text = cleanHex(style.textColor)
+
+  if (style.accent) {
+    const a = cleanHex(style.accent)
+    d.colors.accent = a
+    if (d.header === "band" || d.header === "geometric") {
+      d.colors.headerBg = a
+      d.colors.headerText = d.colors.headerText ?? "ffffff"
+    }
+    if (d.layout === "sidebar-left" || d.layout === "sidebar-right") {
+      d.colors.sidebarAccent = a
+    }
+  }
+
+  return d
 }

@@ -1,12 +1,17 @@
 import type { PDFFont } from "@pdfme/pdf-lib"
+import { sanitizeWithFont } from "./pdf-generators/pdf-helpers"
 
 /**
- * wrapText - wraps text for pdf-lib rendering
+ * wrapText - wraps text for pdf-lib rendering.
+ * Sanitizes for the font first: measuring glyphs the StandardFont can't encode
+ * (e.g. a literal "\n") throws in pdf-lib, so we flatten/strip them up front.
  */
 export function wrapText(text: string, maxWidth: number, font: PDFFont, fontSize: number): string[] {
   if (!text) return ['']
-  
-  const words = text.split(' ')
+
+  const safe = sanitizeWithFont(String(text), font)
+  if (!safe) return ['']
+  const words = safe.split(' ')
   const lines: string[] = []
   let currentLine = ''
 

@@ -2,7 +2,7 @@ import type { PDFGenerationOptions } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { triggerPdfDownload } from "@/lib/pdf-generators/trigger-pdf-download"
 import { generateDesignPDF } from "./design-pdf-engine"
-import { getResumeDesign } from "../resume-designs"
+import { getResumeDesign, mergeDesign } from "../resume-designs"
 
 function hasSectionContent(section: any): boolean {
   if (!section || section.hidden) return false
@@ -47,7 +47,8 @@ function getFilteredPdfOptions(options: PDFGenerationOptions): PDFGenerationOpti
 export async function generateResumePDFBytes(options: PDFGenerationOptions): Promise<Uint8Array> {
   const { template } = options
   const filteredOptions = getFilteredPdfOptions(options)
-  const design = getResumeDesign(template.id) ?? getResumeDesign("classic-blue")!
+  const base = getResumeDesign(template.id) ?? getResumeDesign("classic-blue")!
+  const design = mergeDesign(base, options.resumeData.style)
   return generateDesignPDF(filteredOptions, design)
 }
 
