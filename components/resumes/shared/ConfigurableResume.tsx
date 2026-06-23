@@ -9,6 +9,9 @@ import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
 import ProjectSection from "../../resume-components/project-section"
 import type { ResumeDesign } from "@/lib/resume-designs"
 import { skillDotsFilled, effectiveSkillLevel } from "@/lib/resume-designs"
+import { DEFAULT_EDUCATION, DEFAULT_EXPERIENCE, DEFAULT_PROJECT } from "@/constants/resumeConstants"
+import { lineKey, cssFor } from "@/utils/lineStyle"
+import { Plus, Trash2 } from "lucide-react"
 
 const getInitials = (name: string) =>
   (name || "")
@@ -26,6 +29,13 @@ interface ConfigurableResumeProps {
   setResumeData: (data: ResumeData | ((prev: ResumeData) => ResumeData)) => void
   activeSection: string
   design: ResumeDesign
+  /** Visual editor: show add/delete affordances for full CRUD on the preview. */
+  crud?: boolean
+  /** Visual editor: size the page to the available WIDTH (comfortable to edit) and
+   * scroll vertically, instead of shrinking to fit the container height. */
+  editorFit?: boolean
+  /** Studio: explicit zoom (overrides the auto width-fit when editorFit is on). */
+  zoomLevel?: number
 }
 
 const hx = (h?: string) => (h ? `#${h}` : undefined)
@@ -36,15 +46,33 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
   resumeData,
   setResumeData,
   design,
+  crud = false,
+  editorFit = false,
+  zoomLevel,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
+  const [zoom, setZoom] = useState(1)
+  // After an add, scroll the new (empty) field into view and focus it, so it's
+  // obvious the add worked and the user can type immediately.
+  const pendingFocusKey = useRef<string | null>(null)
+
+  // Per-line formatting overrides → CSS for a given lineKey.
+  const LS = resumeData.lineStyles || {}
+  const lcss = (k: string) => cssFor(LS[k])
 
   useEffect(() => {
     function updateScale() {
       if (!containerRef.current) return
       const parent = containerRef.current.parentElement
       if (!parent) return
+      if (editorFit) {
+        if (zoomLevel != null) return // studio drives zoom explicitly
+        // Fit to width at a comfortable, readable size; let the page scroll vertically.
+        const z = Math.min(1.35, Math.max(0.85, (parent.clientWidth - 56) / 595))
+        setZoom(z)
+        return
+      }
       const widthScale = parent.clientWidth / 595
       const heightScale = parent.clientHeight / 842
       let newScale = Math.min(widthScale, heightScale, 1)
@@ -54,7 +82,26 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     updateScale()
     window.addEventListener("resize", updateScale)
     return () => window.removeEventListener("resize", updateScale)
-  }, [])
+  }, [editorFit])
+
+  // Focus a freshly-added field once it has rendered.
+  useEffect(() => {
+    const k = pendingFocusKey.current
+    if (!k) return
+    pendingFocusKey.current = null
+    const el = (containerRef.current || document).querySelector(`[data-linekey="${k}"]`) as HTMLElement | null
+    if (!el) return
+    el.scrollIntoView({ behavior: "smooth", block: "center" })
+    el.focus()
+    const sel = window.getSelection?.()
+    if (sel) {
+      const range = document.createRange()
+      range.selectNodeContents(el)
+      range.collapse(false)
+      sel.removeAllRanges()
+      sel.addRange(range)
+    }
+  }, [resumeData])
 
   // ---------- editing handlers ----------
   const handleNameChange = (e: React.FormEvent<HTMLElement>) =>
@@ -65,6 +112,16 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
 
   const handleContactInfoChange = (e: React.FormEvent<HTMLElement>, key: keyof typeof resumeData.basics) =>
     setResumeData((prev) => ({ ...prev, basics: { ...prev.basics, [key]: e.currentTarget?.textContent || "" } }))
+
+  // The headline/role under the name mirrors the first experience entry's role.
+  const handleFirstRoleChange = (e: React.FormEvent<HTMLElement>) =>
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const exp: any = updated.sections.find((s: any) => s.type === SECTION_TYPES.EXPERIENCE)
+      const val = e.currentTarget?.textContent || ""
+      if (exp && Array.isArray(exp.items) && exp.items[0]) exp.items[0].role = val
+      return updated
+    })
 
   const handleSectionTitleChange = (sectionId: string, newTitle: string) =>
     setResumeData((prev) => {
@@ -171,6 +228,196 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
       return updated
     })
 
+  // ---------- CRUD handlers (visual editor) ----------
+  const genId = () => `sec-${Math.random().toString(36).slice(2, 9)}`
+  const defaultTitle = (type: string) =>
+    (({
+      [SECTION_TYPES.EXPERIENCE]: "Experience",
+      [SECTION_TYPES.EDUCATION]: "Education",
+      [SECTION_TYPES.PROJECTS]: "Projects",
+      [SECTION_TYPES.SKILLS]: "Skills",
+      [SECTION_TYPES.LANGUAGES]: "Languages",
+      [SECTION_TYPES.CERTIFICATIONS]: "Certifications",
+      [SECTION_TYPES.CUSTOM]: "Custom Section",
+    }) as Record<string, string>)[type] || "Section"
+
+  const addEntry = (sectionId: string) =>
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const s: any = updated.sections.find((x) => x.id === sectionId)
+      if (!s) return prev
+      const blank =
+        s.type === SECTION_TYPES.EXPERIENCE ? DEFAULT_EXPERIENCE
+          : s.type === SECTION_TYPES.EDUCATION ? DEFAULT_EDUCATION
+            : s.type === SECTION_TYPES.PROJECTS ? DEFAULT_PROJECT
+              : null
+      if (!blank) return prev
+      s.items = [...(s.items || []), structuredClone(blank)]
+      return updated
+    })
+
+  const removeEntry = (sectionId: string, index: number) =>
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const s: any = updated.sections.find((x) => x.id === sectionId)
+      if (!s || !Array.isArray(s.items)) return prev
+      s.items.splice(index, 1)
+      return updated
+    })
+
+  const addBullet = (sectionId: string, index: number, field: string) => {
+    const cur: any = resumeData.sections.find((x) => x.id === sectionId)
+    const newIdx = cur?.items?.[index]?.[field]?.length ?? 0
+    pendingFocusKey.current = lineKey(sectionId, { item: index, field: "bullet", bullet: newIdx })
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const s: any = updated.sections.find((x) => x.id === sectionId)
+      const it = s?.items?.[index]
+      if (!it) return prev
+      it[field] = [...(it[field] || []), ""]
+      return updated
+    })
+  }
+
+  const removeBullet = (sectionId: string, index: number, field: string, bi: number) =>
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const s: any = updated.sections.find((x) => x.id === sectionId)
+      const it = s?.items?.[index]
+      if (!it || !Array.isArray(it[field])) return prev
+      it[field].splice(bi, 1)
+      return updated
+    })
+
+  const addListItem = (sectionId: string, field: "items" | "content") => {
+    const cur: any = resumeData.sections.find((x) => x.id === sectionId)
+    const newIdx = cur?.[field]?.length ?? 0
+    pendingFocusKey.current = lineKey(sectionId, { item: newIdx })
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const s: any = updated.sections.find((x) => x.id === sectionId)
+      if (!s) return prev
+      s[field] = [...(s[field] || []), ""]
+      return updated
+    })
+  }
+
+  const removeListItem = (sectionId: string, field: "items" | "content", idx: number) =>
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const s: any = updated.sections.find((x) => x.id === sectionId)
+      if (!s || !Array.isArray(s[field])) return prev
+      s[field].splice(idx, 1)
+      return updated
+    })
+
+  const addSkill = (sectionId: string, groupTitle: string) =>
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const s: any = updated.sections.find((x) => x.id === sectionId)
+      if (!s) return prev
+      const groups = getEffectiveSkillGroupsFromSection(s as any).map((g) =>
+        g.title === groupTitle ? { ...g, skills: [...g.skills, ""] } : g,
+      )
+      s.groups = groups
+      s.items = groups.flatMap((g) => g.skills)
+      return updated
+    })
+
+  const removeSkill = (sectionId: string, groupTitle: string, idx: number) =>
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const s: any = updated.sections.find((x) => x.id === sectionId)
+      if (!s) return prev
+      const groups = getEffectiveSkillGroupsFromSection(s as any).map((g) =>
+        g.title === groupTitle ? { ...g, skills: g.skills.filter((_, i) => i !== idx) } : g,
+      )
+      s.groups = groups
+      s.items = groups.flatMap((g) => g.skills)
+      return updated
+    })
+
+  const removeSectionById = (sectionId: string) =>
+    setResumeData((prev) => ({ ...prev, sections: prev.sections.filter((s) => s.id !== sectionId) }))
+
+  const addSection = (type: string) =>
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const base = { id: genId(), title: defaultTitle(type), type, order: updated.sections.length, hidden: false }
+      let sec: any
+      if (type === SECTION_TYPES.CUSTOM) sec = { ...base, content: [""] }
+      else if (type === SECTION_TYPES.SKILLS) sec = { ...base, items: [], groups: [{ id: genId(), title: "General", skills: [""] }] }
+      else if (type === SECTION_TYPES.LANGUAGES || type === SECTION_TYPES.CERTIFICATIONS) sec = { ...base, items: [""] }
+      else sec = { ...base, items: [] }
+      updated.sections.push(sec as any)
+      return updated
+    })
+
+  // small affordance button styles
+  const xBtn: React.CSSProperties = { cursor: "pointer", border: "none", background: "transparent", color: "#dc2626", fontSize: 13, lineHeight: 1, padding: "0 2px", marginLeft: 6, fontFamily: "system-ui" }
+  const addBtn: React.CSSProperties = { cursor: "pointer", border: "1px dashed #cbd5e1", background: "transparent", color: "#64748b", fontSize: 11, borderRadius: 6, padding: "3px 9px", marginTop: 6, fontFamily: "system-ui" }
+  const Del = ({ onClick, title }: { onClick: () => void; title: string }) =>
+    crud ? (
+      <button type="button" contentEditable={false} onClick={onClick} title={title} style={xBtn} className="cfc-x" aria-label={title}>×</button>
+    ) : null
+  const Add = ({ onClick, label }: { onClick: () => void; label: string }) =>
+    crud ? (
+      <button type="button" contentEditable={false} onClick={onClick} style={addBtn} className="cfc-add">+ {label}</button>
+    ) : null
+
+  // EnhanCV-style contextual section toolbar (appears on hover over a section).
+  const sectionAddAction = (section: any): null | { fn: () => void; title: string } => {
+    switch (section.type) {
+      case SECTION_TYPES.EXPERIENCE:
+      case SECTION_TYPES.EDUCATION:
+      case SECTION_TYPES.PROJECTS:
+        return { fn: () => addEntry(section.id), title: "Add entry" }
+      case SECTION_TYPES.SKILLS:
+        return { fn: () => { const g = getEffectiveSkillGroupsFromSection(section)[0]; addSkill(section.id, g?.title || "General") }, title: "Add skill" }
+      case SECTION_TYPES.LANGUAGES:
+      case SECTION_TYPES.CERTIFICATIONS:
+        return { fn: () => addListItem(section.id, "items"), title: "Add item" }
+      case SECTION_TYPES.CUSTOM:
+        return { fn: () => addListItem(section.id, "content"), title: "Add item" }
+      default:
+        return null
+    }
+  }
+  const SectionTools = ({ section }: { section: any }) => {
+    if (!crud || section.type === SECTION_TYPES.CUSTOM_FIELDS) return null
+    const add = sectionAddAction(section)
+    return (
+      <div className="cfc-tools" contentEditable={false}>
+        {add && (
+          <button type="button" className="cfc-tbtn" title={add.title} onClick={add.fn}>
+            <Plus size={13} strokeWidth={2.5} />
+          </button>
+        )}
+        <button type="button" className="cfc-tbtn cfc-tbtn-danger" title="Delete section" onClick={() => removeSectionById(section.id)}>
+          <Trash2 size={12} strokeWidth={2} />
+        </button>
+      </div>
+    )
+  }
+
+  // Scoped styles for the visual-editor affordances (only injected in CRUD mode).
+  const crudStyleTag = crud ? (
+    <style>{`
+      .cfc-sec{position:relative;border-radius:8px;padding:4px 10px;margin:0 -10px 4px;transition:background .15s,box-shadow .15s;}
+      .cfc-sec:hover{background:rgba(37,99,235,.045);box-shadow:inset 0 0 0 1px rgba(37,99,235,.18);}
+      .cfc-tools{position:absolute;top:-13px;right:10px;display:flex;gap:3px;background:#111827;padding:4px;border-radius:9px;box-shadow:0 8px 20px rgba(0,0,0,.24);opacity:0;transform:translateY(5px);transition:opacity .14s,transform .14s;z-index:6;}
+      .cfc-sec:hover .cfc-tools{opacity:1;transform:translateY(0);}
+      .cfc-tbtn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:none;border-radius:6px;background:transparent;color:#fff;cursor:pointer;}
+      .cfc-tbtn:hover{background:rgba(255,255,255,.16);}
+      .cfc-tbtn-danger:hover{background:#dc2626;}
+      .cfc-x{opacity:.45;transition:opacity .12s;}
+      .cfc-x:hover{opacity:1;}
+      .cfc-add{opacity:.7;transition:opacity .12s;}
+      .cfc-add:hover{opacity:1;border-color:#94a3b8;}
+      [data-ph]:empty:before{content:attr(data-ph);color:#aeb6c2;font-style:italic;pointer-events:none;}
+    `}</style>
+  ) : null
+
   // ---------- derived palette ----------
   const c = design.colors
   const palette = {
@@ -260,6 +507,9 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     return (
       <div
         style={style}
+        data-ph="Section title"
+        data-el="heading"
+        data-sid={section.id}
         contentEditable
         suppressContentEditableWarning
         onBlur={(e) => handleSectionTitleChange(section.id, e.currentTarget.textContent || "")}
@@ -308,21 +558,22 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
             </>
           )}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-            <span style={{ fontWeight: 700, color: sidebar ? palette.sidebarHeading || palette.heading : palette.heading, fontSize: itemFont, fontFamily: fam }} contentEditable suppressContentEditableWarning onBlur={(e) => edit(opts.titleField, e.currentTarget.textContent || "")}>
+            <span style={{ fontWeight: 700, color: sidebar ? palette.sidebarHeading || palette.heading : palette.heading, fontSize: itemFont, fontFamily: fam }} data-ph="Title" data-el="body" contentEditable suppressContentEditableWarning onBlur={(e) => edit(opts.titleField, e.currentTarget.textContent || "")}>
               {opts.title}
             </span>
             <span style={{ color: sub, fontSize: smallFont, fontFamily: fam, whiteSpace: "nowrap" }}>
-              <span contentEditable suppressContentEditableWarning onBlur={(e) => edit("startDate", e.currentTarget.textContent || "")}>{opts.startDate}</span>
+              <span data-ph="Start" contentEditable suppressContentEditableWarning onBlur={(e) => edit("startDate", e.currentTarget.textContent || "")}>{opts.startDate}</span>
               {(opts.startDate || opts.endDate) && " - "}
-              <span contentEditable suppressContentEditableWarning onBlur={(e) => edit("endDate", e.currentTarget.textContent || "")}>{opts.endDate}</span>
+              <span data-ph="End" contentEditable suppressContentEditableWarning onBlur={(e) => edit("endDate", e.currentTarget.textContent || "")}>{opts.endDate}</span>
             </span>
+            <Del onClick={() => removeEntry(opts.sectionId, opts.index)} title="Delete entry" />
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <span style={{ color: acc, fontWeight: 600, fontSize: contentFont, fontFamily: fam }} contentEditable suppressContentEditableWarning onBlur={(e) => edit(opts.subtitleField, e.currentTarget.textContent || "")}>
+            <span style={{ color: acc, fontWeight: 600, fontSize: contentFont, fontFamily: fam }} data-ph="Company / Institution" data-el="body" contentEditable suppressContentEditableWarning onBlur={(e) => edit(opts.subtitleField, e.currentTarget.textContent || "")}>
               {opts.subtitle}
             </span>
             {opts.location !== undefined && (
-              <span style={{ color: sub, fontSize: smallFont, fontFamily: fam }} contentEditable suppressContentEditableWarning onBlur={(e) => edit("location", e.currentTarget.textContent || "")}>
+              <span style={{ color: sub, fontSize: smallFont, fontFamily: fam }} data-ph="Location" contentEditable suppressContentEditableWarning onBlur={(e) => edit("location", e.currentTarget.textContent || "")}>
                 {opts.location}
               </span>
             )}
@@ -332,67 +583,119 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
       )
     }
 
-    const bulletList = (items: string[], onEdit: (i: number, v: string) => void) => (
+    const bulletList = (
+      items: string[],
+      onEdit: (i: number, v: string) => void,
+      crudOps?: { onAdd: () => void; onRemove: (i: number) => void },
+      keyFor?: (i: number) => string,
+    ) => (
       <ul style={{ listStyle: "disc", marginLeft: 16, marginTop: 4 }}>
-        {items.map((it, i) => (
-          <li key={i} style={{ color: tColor, fontSize: contentFont, fontFamily: fam, lineHeight: 1.45 }} contentEditable suppressContentEditableWarning onBlur={(e) => onEdit(i, e.currentTarget.textContent || "")}>
-            {it}
+        {items.map((it, i) => {
+          const lk = keyFor?.(i)
+          return (
+          <li key={i} style={{ color: tColor, fontSize: contentFont, fontFamily: fam, lineHeight: 1.45 }}>
+            <span data-ph="Add a detail — quantify your impact where possible." data-el="body" data-linekey={lk} style={lk ? lcss(lk) : undefined} contentEditable suppressContentEditableWarning onBlur={(e) => onEdit(i, e.currentTarget.textContent || "")}>
+              {it}
+            </span>
+            {crudOps && <Del onClick={() => crudOps.onRemove(i)} title="Delete line" />}
           </li>
-        ))}
+        )})}
+        {crudOps && (
+          <li style={{ listStyle: "none", marginLeft: -16 }}>
+            <Add label="Add line" onClick={crudOps.onAdd} />
+          </li>
+        )}
       </ul>
     )
 
     switch (section.type) {
       case SECTION_TYPES.EXPERIENCE:
-        return (section.items || []).map((exp: any, i: number) =>
-          entryBlock(
-            i,
-            {
-              sectionId: section.id,
-              index: i,
-              title: exp.role,
-              titleField: "role",
-              startDate: exp.startDate || "",
-              endDate: exp.endDate || "",
-              subtitle: exp.company,
-              subtitleField: "company",
-              location: exp.location || "",
-            },
-            exp.achievements && bulletList(exp.achievements, (j, v) => handleAchievementChange(section.id, i, j, v)),
-          ),
+        return (
+          <>
+            {(section.items || []).map((exp: any, i: number) =>
+              entryBlock(
+                i,
+                {
+                  sectionId: section.id,
+                  index: i,
+                  title: exp.role,
+                  titleField: "role",
+                  startDate: exp.startDate || "",
+                  endDate: exp.endDate || "",
+                  subtitle: exp.company,
+                  subtitleField: "company",
+                  location: exp.location || "",
+                },
+                (crud || (exp.achievements && exp.achievements.length))
+                  ? bulletList(
+                      exp.achievements || [],
+                      (j, v) => handleAchievementChange(section.id, i, j, v),
+                      crud ? { onAdd: () => addBullet(section.id, i, "achievements"), onRemove: (j) => removeBullet(section.id, i, "achievements", j) } : undefined,
+                      (j) => lineKey(section.id, { item: i, field: "bullet", bullet: j }),
+                    )
+                  : null,
+              ),
+            )}
+            <Add label="Add experience" onClick={() => addEntry(section.id)} />
+          </>
         )
       case SECTION_TYPES.EDUCATION:
-        return (section.items || []).map((edu: any, i: number) =>
-          entryBlock(
-            i,
-            {
-              sectionId: section.id,
-              index: i,
-              title: edu.institution,
-              titleField: "institution",
-              startDate: edu.startDate || "",
-              endDate: edu.endDate || "",
-              subtitle: edu.degree,
-              subtitleField: "degree",
-              location: edu.location || "",
-            },
-            edu.highlights && bulletList(edu.highlights, (j, v) => handleHighlightChange(section.id, i, j, v)),
-          ),
+        return (
+          <>
+            {(section.items || []).map((edu: any, i: number) =>
+              entryBlock(
+                i,
+                {
+                  sectionId: section.id,
+                  index: i,
+                  title: edu.institution,
+                  titleField: "institution",
+                  startDate: edu.startDate || "",
+                  endDate: edu.endDate || "",
+                  subtitle: edu.degree,
+                  subtitleField: "degree",
+                  location: edu.location || "",
+                },
+                (crud || (edu.highlights && edu.highlights.length))
+                  ? bulletList(
+                      edu.highlights || [],
+                      (j, v) => handleHighlightChange(section.id, i, j, v),
+                      crud ? { onAdd: () => addBullet(section.id, i, "highlights"), onRemove: (j) => removeBullet(section.id, i, "highlights", j) } : undefined,
+                      (j) => lineKey(section.id, { item: i, field: "bullet", bullet: j }),
+                    )
+                  : null,
+              ),
+            )}
+            <Add label="Add education" onClick={() => addEntry(section.id)} />
+          </>
         )
       case SECTION_TYPES.PROJECTS:
         return (
-          <ProjectSection
-            sectionId={section.id}
-            projects={section.items || []}
-            textColor={tColor}
-            linkColor={acc}
-            contentEditable
-            onProjectFieldChange={handleProjectFieldChange}
-            onProjectDescriptionChange={handleProjectDescriptionChange}
-            titleClassName="font-bold"
-            titleStyle={{ fontSize: itemFont, fontFamily: fam, color: sidebar ? palette.sidebarHeading || palette.heading : palette.heading }}
-            descriptionStyle={{ fontSize: contentFont, fontFamily: fam }}
-          />
+          <>
+            {crud && (section.items || []).length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 6 }}>
+                {(section.items || []).map((p: any, i: number) => (
+                  <span key={i} contentEditable={false} style={{ fontSize: 11, color: "#64748b", border: "1px solid #e2e8f0", borderRadius: 6, padding: "1px 4px 1px 8px", fontFamily: "system-ui" }}>
+                    {p.name || `Project ${i + 1}`}
+                    <Del onClick={() => removeEntry(section.id, i)} title="Delete project" />
+                  </span>
+                ))}
+              </div>
+            )}
+            <ProjectSection
+              sectionId={section.id}
+              projects={section.items || []}
+              textColor={tColor}
+              linkColor={acc}
+              contentEditable
+              onProjectFieldChange={handleProjectFieldChange}
+              onProjectDescriptionChange={handleProjectDescriptionChange}
+              titleClassName="font-bold"
+              titleStyle={{ fontSize: itemFont, fontFamily: fam, color: sidebar ? palette.sidebarHeading || palette.heading : palette.heading }}
+              descriptionStyle={{ fontSize: contentFont, fontFamily: fam }}
+            />
+            <Add label="Add project" onClick={() => addEntry(section.id)} />
+          </>
         )
       case SECTION_TYPES.SKILLS: {
         const groups = getEffectiveSkillGroupsFromSection(section).filter((g) => g.skills.length > 0)
@@ -400,10 +703,18 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
           const updated = groups.map((g) => (g.title === title ? { ...g, skills } : g))
           handleSkillsChange(section.id, updated)
         }
+        const editGroupTitle = (oldTitle: string, newTitle: string) => {
+          const updated = groups.map((g) => (g.title === oldTitle ? { ...g, title: newTitle } : g))
+          handleSkillsChange(section.id, updated)
+        }
+        const groupTitleProps = (title: string) =>
+          crud
+            ? { contentEditable: true, suppressContentEditableWarning: true, "data-el": "heading", onBlur: (e: React.FormEvent<HTMLElement>) => editGroupTitle(title, e.currentTarget.textContent || "") }
+            : {}
         const groupTitleEl = (title: string) =>
-          title !== "General" ? (
-            <div style={{ fontSize: smallFont, fontWeight: 700, color: sidebar ? palette.sidebarHeading || palette.heading : sub, textTransform: "uppercase", marginBottom: 4, fontFamily: fam }}>
-              {title}
+          title !== "General" || crud ? (
+            <div {...groupTitleProps(title)} data-ph="Category" style={{ fontSize: smallFont, fontWeight: 700, color: sidebar ? palette.sidebarHeading || palette.heading : sub, textTransform: "uppercase", marginBottom: 4, fontFamily: fam }}>
+              {title === "General" ? "" : title}
             </div>
           ) : null
         const dotEmpty = sidebar ? "rgba(255,255,255,0.3)" : palette.divider
@@ -466,8 +777,8 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
               {groups.map((g) => (
                 <div key={g.title}>
-                  {g.title !== "General" && (
-                    <div style={{ fontSize: smallFont, fontWeight: 700, color: sub, textTransform: "uppercase", marginBottom: 4, fontFamily: fam }}>{g.title}</div>
+                  {(g.title !== "General" || crud) && (
+                    <div {...groupTitleProps(g.title)} data-ph="Category" style={{ fontSize: smallFont, fontWeight: 700, color: sub, textTransform: "uppercase", marginBottom: 4, fontFamily: fam }}>{g.title === "General" ? "" : g.title}</div>
                   )}
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                     {g.skills.map((sk, j) => (
@@ -496,14 +807,18 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {groups.map((g) => (
                 <div key={g.title}>
-                  {g.title !== "General" && (
-                    <div style={{ fontSize: smallFont, fontWeight: 700, color: sidebar ? palette.sidebarHeading || palette.heading : sub, marginBottom: 2, fontFamily: fam }}>{g.title}</div>
+                  {(g.title !== "General" || crud) && (
+                    <div {...groupTitleProps(g.title)} data-ph="Category" style={{ fontSize: smallFont, fontWeight: 700, color: sidebar ? palette.sidebarHeading || palette.heading : sub, marginBottom: 2, fontFamily: fam }}>{g.title === "General" ? "" : g.title}</div>
                   )}
-                  {bulletList(g.skills, (j, v) => {
-                    const nv = [...g.skills]
-                    nv[j] = v
-                    editGroup(g.title, nv)
-                  })}
+                  {bulletList(
+                    g.skills,
+                    (j, v) => {
+                      const nv = [...g.skills]
+                      nv[j] = v
+                      editGroup(g.title, nv)
+                    },
+                    crud ? { onAdd: () => addSkill(section.id, g.title), onRemove: (j) => removeSkill(section.id, g.title, j) } : undefined,
+                  )}
                 </div>
               ))}
             </div>
@@ -513,7 +828,10 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
             {groups.map((g) => (
               <div key={g.title} style={{ fontSize: contentFont, fontFamily: fam, lineHeight: 1.45 }}>
-                {g.title !== "General" && <span style={{ fontWeight: 700, color: palette.heading }}>{g.title}: </span>}
+                {(g.title !== "General" || crud) && (
+                  <span {...groupTitleProps(g.title)} data-ph="Category" style={{ fontWeight: 700, color: palette.heading }}>{g.title === "General" ? "" : g.title}</span>
+                )}
+                {g.title !== "General" && <span style={{ fontWeight: 700, color: palette.heading }}>: </span>}
                 <span
                   style={{ color: tColor }}
                   contentEditable
@@ -549,11 +867,26 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
             </div>
           )
         }
-        return bulletList((section.items || []).filter(Boolean), (i, v) => handleListChange(section.id, i, v))
+        return bulletList(
+          crud ? (section.items || []) : (section.items || []).filter(Boolean),
+          (i, v) => handleListChange(section.id, i, v),
+          crud ? { onAdd: () => addListItem(section.id, "items"), onRemove: (i) => removeListItem(section.id, "items", i) } : undefined,
+          (i) => lineKey(section.id, { item: i }),
+        )
       case SECTION_TYPES.CERTIFICATIONS:
-        return bulletList((section.items || []).filter(Boolean), (i, v) => handleListChange(section.id, i, v))
+        return bulletList(
+          crud ? (section.items || []) : (section.items || []).filter(Boolean),
+          (i, v) => handleListChange(section.id, i, v),
+          crud ? { onAdd: () => addListItem(section.id, "items"), onRemove: (i) => removeListItem(section.id, "items", i) } : undefined,
+          (i) => lineKey(section.id, { item: i }),
+        )
       case SECTION_TYPES.CUSTOM:
-        return bulletList((section.content || []).filter(Boolean), (i, v) => handleCustomContentChange(section.id, i, v))
+        return bulletList(
+          crud ? (section.content || []) : (section.content || []).filter(Boolean),
+          (i, v) => handleCustomContentChange(section.id, i, v),
+          crud ? { onAdd: () => addListItem(section.id, "content"), onRemove: (i) => removeListItem(section.id, "content", i) } : undefined,
+          (i) => lineKey(section.id, { item: i }),
+        )
       case SECTION_TYPES.CUSTOM_FIELDS:
         return (
           <div style={{ fontSize: contentFont, fontFamily: fam, color: tColor, display: "flex", flexDirection: "column", gap: 3 }}>
@@ -601,15 +934,39 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
   const sidebarTypes = [SECTION_TYPES.SKILLS, SECTION_TYPES.LANGUAGES, SECTION_TYPES.CERTIFICATIONS] as string[]
 
   const renderSectionBlock = (section: any, sidebar: boolean) => {
-    if (section.type !== SECTION_TYPES.CUSTOM_FIELDS && !sectionHasContent(section)) return null
-    if (section.type === SECTION_TYPES.CUSTOM_FIELDS && !sectionHasContent(section)) return null
+    const isCustomFields = section.type === SECTION_TYPES.CUSTOM_FIELDS
+    const empty = !sectionHasContent(section)
+    // In CRUD mode, still show empty (non-hidden) sections so the user can add to them.
+    if (empty && !(crud && !section.hidden && !isCustomFields)) return null
     return (
-      <div key={section.id} style={{ marginBottom: 14 }}>
+      <div key={section.id} className={crud ? "cfc-sec" : undefined} data-sid={section.id} style={{ marginBottom: 14 }}>
+        <SectionTools section={section} />
         {sectionTitleEl(section, sidebar)}
         <div style={{ marginTop: 6 }}>{renderSectionContent(section, sidebar)}</div>
       </div>
     )
   }
+
+  // "Add a section" bar (visual editor only) — rendered at the end of the body.
+  const SECTION_TYPE_OPTS: { type: string; label: string }[] = [
+    { type: SECTION_TYPES.EXPERIENCE, label: "Experience" },
+    { type: SECTION_TYPES.EDUCATION, label: "Education" },
+    { type: SECTION_TYPES.PROJECTS, label: "Projects" },
+    { type: SECTION_TYPES.SKILLS, label: "Skills" },
+    { type: SECTION_TYPES.LANGUAGES, label: "Languages" },
+    { type: SECTION_TYPES.CERTIFICATIONS, label: "Certifications" },
+    { type: SECTION_TYPES.CUSTOM, label: "Custom" },
+  ]
+  const addSectionBar = crud ? (
+    <div contentEditable={false} style={{ marginTop: 18, paddingTop: 12, borderTop: "1px dashed #e2e8f0" }}>
+      <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 6, fontFamily: "system-ui" }}>Add a section</div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        {SECTION_TYPE_OPTS.map((t) => (
+          <button key={t.type} type="button" onClick={() => addSection(t.type)} style={addBtn}>+ {t.label}</button>
+        ))}
+      </div>
+    </div>
+  ) : null
 
   // contact row for single header
   const contactPairs: { key: keyof typeof resumeData.basics; val: string }[] = [
@@ -624,7 +981,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
         .filter((p) => p.val)
         .map((p, i, arr) => (
           <span key={p.key} style={{ display: "inline-flex", gap: 8 }}>
-            <span contentEditable suppressContentEditableWarning onBlur={(e) => handleContactInfoChange(e, p.key)}>
+            <span data-ph={p.key} contentEditable suppressContentEditableWarning onBlur={(e) => handleContactInfoChange(e, p.key)}>
               {p.val}
             </span>
             {i < arr.length - 1 && <span style={{ opacity: 0.5 }}>|</span>}
@@ -633,9 +990,12 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     </div>
   )
 
-  const summaryEl = resumeData.basics.summary ? (
+  const summaryEl = (resumeData.basics.summary || crud) ? (
     <p
-      style={{ color: palette.text, fontFamily: fam, fontSize: px(design.sizes.content), lineHeight: 1.5, marginBottom: 14, textAlign: "justify" }}
+      data-ph="Briefly explain why you're a great fit for the role."
+      data-el="summary"
+      data-linekey="basics:summary"
+      style={{ color: palette.text, fontFamily: fam, fontSize: px(design.sizes.content), lineHeight: 1.5, marginBottom: 14, textAlign: "justify", ...lcss("basics:summary") }}
       contentEditable
       suppressContentEditableWarning
       onBlur={handleSummaryChange}
@@ -646,12 +1006,21 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
 
   // ---------- page shell ----------
   const page = (children: React.ReactNode) => (
-    <div className={`border w-full h-full flex justify-center items-start overflow-auto bg-gray-100 py-8 ${font.className}`}>
+    <div className={`border w-full h-full flex justify-center items-start overflow-auto bg-gray-100 ${editorFit ? "py-6" : "py-8"} ${font.className}`}>
+      {crudStyleTag}
       <div ref={containerRef} style={{ width: "100%", display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
         <div
           ref={pdfRef}
+          data-resume-page
           className="shadow-2xl relative"
-          style={{ width: 595, minHeight: 842, transform: `scale(${scale})`, transformOrigin: "top center", background: "white" }}
+          style={{
+            width: 595,
+            minHeight: 842,
+            background: "white",
+            ...(editorFit
+              ? ({ zoom: zoomLevel ?? zoom } as React.CSSProperties)
+              : { transform: `scale(${scale})`, transformOrigin: "top center" }),
+          }}
         >
           {children}
         </div>
@@ -679,8 +1048,8 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
             >
               {resumeData.basics.name}
             </div>
-            {firstRole && (
-              <div style={{ fontSize: px(design.sizes.small), fontFamily: fam, marginTop: 5, color: "#fff", opacity: 0.92 }}>{firstRole}</div>
+            {(firstRole || crud) && (
+              <div data-el="body" data-ph="Your professional title" contentEditable suppressContentEditableWarning onBlur={handleFirstRoleChange} style={{ fontSize: px(design.sizes.small), fontFamily: fam, marginTop: 5, color: "#fff", opacity: 0.92 }}>{firstRole}</div>
             )}
           </div>
         ) : design.monogram ? (
@@ -696,7 +1065,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
             {contactPairs
               .filter((p) => p.val)
               .map((p) => (
-                <span key={p.key} style={{ fontSize: px(design.sizes.content), color: palette.sidebarText, fontFamily: fam, wordBreak: "break-word" }} contentEditable suppressContentEditableWarning onBlur={(e) => handleContactInfoChange(e, p.key)}>
+                <span key={p.key} style={{ fontSize: px(design.sizes.content), color: palette.sidebarText, fontFamily: fam, wordBreak: "break-word" }} data-ph={p.key} contentEditable suppressContentEditableWarning onBlur={(e) => handleContactInfoChange(e, p.key)}>
                   {p.val}
                 </span>
               ))}
@@ -719,6 +1088,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
         )}
         {summaryEl}
         {right.map((s: any) => renderSectionBlock(s, false))}
+        {addSectionBar}
       </div>
     )
     return page(
@@ -731,15 +1101,15 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
   // ===== SINGLE COLUMN =====
   const stripe = design.accentStripe
   const roleEl = (color: string, center: boolean) =>
-    design.showRole && firstRole ? (
-      <div style={{ fontSize: px(design.sizes.content), color, fontFamily: fam, marginTop: -2, marginBottom: 8, textAlign: center ? "center" : "left", letterSpacing: "0.03em" }}>
+    design.showRole && (firstRole || crud) ? (
+      <div data-el="body" data-ph="Your professional title" contentEditable suppressContentEditableWarning onBlur={handleFirstRoleChange} style={{ fontSize: px(design.sizes.content), color, fontFamily: fam, marginTop: -2, marginBottom: 8, textAlign: center ? "center" : "left", letterSpacing: "0.03em" }}>
         {firstRole}
       </div>
     ) : null
   const header =
     design.header === "band" ? (
       <div style={{ background: palette.headerBg, color: palette.headerText, padding: "26px 40px", textAlign: "center" }}>
-        <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.headerText, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.06em", marginBottom: 8 }} contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
+        <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.headerText, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.06em", marginBottom: 8 }} data-ph="YOUR NAME" data-el="name" contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
           {resumeData.basics.name}
         </h1>
         {roleEl(palette.headerText || "#fff", true)}
@@ -753,7 +1123,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
           </span>
         </div>
         <div style={{ flex: 1, background: palette.headerBg, color: palette.headerText, padding: "22px 28px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.headerText, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.04em", marginBottom: 8 }} contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
+          <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.headerText, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.04em", marginBottom: 8 }} data-ph="YOUR NAME" data-el="name" contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
             {resumeData.basics.name}
           </h1>
           {roleEl(palette.headerText || "#fff", false)}
@@ -765,7 +1135,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
         {design.monogram && (
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>{monogramEl(54, palette.accent, palette.headerText || "#fff")}</div>
         )}
-        <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 700, color: palette.name, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.06em", marginBottom: 8 }} contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
+        <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 700, color: palette.name, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.06em", marginBottom: 8 }} data-ph="YOUR NAME" data-el="name" contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
           {resumeData.basics.name}
         </h1>
         {roleEl(palette.accent, true)}
@@ -776,12 +1146,12 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
         {design.monogram ? (
           <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 8 }}>
             {monogramEl(50, palette.accent, palette.headerText || "#fff")}
-            <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.name, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.01em", margin: 0, lineHeight: 1.1 }} contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
+            <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.name, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.01em", margin: 0, lineHeight: 1.1 }} data-ph="YOUR NAME" data-el="name" contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
               {resumeData.basics.name}
             </h1>
           </div>
         ) : (
-          <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.name, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.01em", marginBottom: 8 }} contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
+          <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.name, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.01em", marginBottom: 8 }} data-ph="YOUR NAME" data-el="name" contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
             {resumeData.basics.name}
           </h1>
         )}
@@ -794,6 +1164,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     <>
       {summaryEl}
       {allSections.map((s: any) => renderSectionBlock(s, false))}
+      {addSectionBar}
     </>
   )
 

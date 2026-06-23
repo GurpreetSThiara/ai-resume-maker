@@ -9,10 +9,9 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { TemplatePickerDrawer } from "@/components/template-picker-drawer"
-import { Eye, Star, Menu } from "lucide-react"
+import { Eye, Star, Menu, Download } from "lucide-react"
 import { SectionManagement } from "@/components/section-management"
 import { ModernSidebarLayoutModal } from "@/components/modern-sidebar-layout-modal"
-import DownloadDropDown from "@/components/global/DropDown/DropDown"
 import type { ResumeData, ResumeTemplate, Section } from "@/types/resume"
 import { getResumeDesign } from "@/lib/resume-designs"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -28,6 +27,7 @@ interface CreateResumeHeaderProps {
   availableTemplates: ResumeTemplate[]
   effectiveAiEnabled: boolean
   setModalOpen: (open: boolean) => void
+  onOpenDownload: () => void
 }
 
 export function CreateResumeHeader({
@@ -41,6 +41,7 @@ export function CreateResumeHeader({
   availableTemplates,
   effectiveAiEnabled,
   setModalOpen,
+  onOpenDownload,
 }: CreateResumeHeaderProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -75,14 +76,13 @@ const renderControls = () => (
       {showPreview ? "Hide Preview" : "Show Preview"}
     </Button>
 
-    <DownloadDropDown
-      data={{
-        resumeData,
-        template: selectedTemplate,
-        filename: `${resumeData.basics.name || "resume"}.pdf`,
-      }}
-      className="h-10 px-4 rounded-md text-sm flex items-center"
-    />
+    <Button
+      onClick={onOpenDownload}
+      className="h-10 px-4 rounded-md text-sm flex items-center gap-2"
+    >
+      <Download className="w-4 h-4" />
+      Download
+    </Button>
 
     <TemplatePickerDrawer
       selectedId={selectedTemplate.id}
