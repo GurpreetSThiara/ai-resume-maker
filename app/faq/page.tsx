@@ -118,7 +118,7 @@ export default function FAQPage() {
                                             Can I create multiple resumes?
                                         </AccordionTrigger>
                                         <AccordionContent className="text-slate-600 leading-relaxed">
-                                            Absolutely! You can create as many resumes as you need. We recommend tailoring your resume for each job application to maximize your chances of getting interviews. Each resume can use a different template and highlight different skills and experiences.
+                                            Yes — you can build and download as many resumes as you need, and we recommend tailoring your resume for each job application to maximize your chances of getting interviews. Your free account keeps one resume saved in the cloud; you can update it anytime and download unlimited copies in PDF or DOCX.
                                         </AccordionContent>
                                     </AccordionItem>
 

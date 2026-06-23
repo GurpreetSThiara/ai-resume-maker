@@ -185,19 +185,19 @@ export default function ProfilePage() {
 
   const handleSyncLocalToCloud = async () => {
     if (!user) return
-    if (resumes.length >= 3) {
-      SHOW_WARNING({ title: "Resume limit reached", description: "You can only have 3 resumes in your account" })
+    if (resumes.length >= 1) {
+      SHOW_WARNING({ title: "Resume limit reached", description: "You can only have 1 resume in your account" })
       return
     }
     if (localResumes.length === 0) {
       SHOW_WARNING({ title: "No local resumes", description: "No local resumes found to sync" })
       return
     }
-    const confirmSync = confirm("Sync up to the last 3 local resumes to your account?")
+    const confirmSync = confirm("Sync your most recent local resume to your account?")
     if (!confirmSync) return
     setIsSyncingLocal(true)
     try {
-      const availableSlots = Math.max(0, 3 - resumes.length)
+      const availableSlots = Math.max(0, 1 - resumes.length)
       const toSync = localResumes.slice(0, availableSlots)
       for (const item of toSync) {
         const result = await saveResumeData(item.data)
@@ -345,9 +345,9 @@ export default function ProfilePage() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
                   <div>
                     <CardTitle className="text-lg sm:text-xl">Your Resumes</CardTitle>
-                    <CardDescription>{resumes.length} of 3 resumes created</CardDescription>
+                    <CardDescription>{resumes.length} of 1 resume created</CardDescription>
                   </div>
-                  <Button onClick={handleCreateNew} className="mt-2 sm:mt-0 w-full sm:w-auto" disabled={resumes.length >= 3}>
+                  <Button onClick={handleCreateNew} className="mt-2 sm:mt-0 w-full sm:w-auto" disabled={resumes.length >= 1}>
                     <Plus className="w-4 h-4 mr-2" /> Create New
                   </Button>
                 </div>
@@ -424,9 +424,9 @@ export default function ProfilePage() {
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
                       <div>
                         <CardTitle className="flex items-center gap-1 sm:gap-2 text-base">Local Resumes <Badge variant="secondary">{localResumes.length}</Badge></CardTitle>
-                        <CardDescription className="text-xs sm:text-sm">These are saved in your browser. You can sync up to 3 to your account.</CardDescription>
+                        <CardDescription className="text-xs sm:text-sm">These are saved in your browser. You can sync 1 to your account.</CardDescription>
                       </div>
-                      <Button size="sm" onClick={handleSyncLocalToCloud} className="w-full sm:w-auto mt-2 sm:mt-0" disabled={!user || isSyncingLocal || resumes.length >= 3 || localResumes.length === 0}>
+                      <Button size="sm" onClick={handleSyncLocalToCloud} className="w-full sm:w-auto mt-2 sm:mt-0" disabled={!user || isSyncingLocal || resumes.length >= 1 || localResumes.length === 0}>
                         {isSyncingLocal ? "Syncing..." : "Sync to Cloud"}
                       </Button>
                     </div>

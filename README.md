@@ -23,7 +23,7 @@
 - **Real-time Preview** - See changes instantly as you build your resume
 - **Export Options** - Download your resume in PDF or DOCX format
 - **Cover Letter Generator** - Create matching cover letters for your applications
-- **Cloud Storage** - Save and manage multiple resume versions securely
+- **Cloud Storage** - Securely sync your resume to your account (1 resume per account)
 - **Mobile-Friendly** - Fully responsive design works on all devices
 - **Dark Mode** - Built-in dark theme for comfortable viewing
 

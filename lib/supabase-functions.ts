@@ -37,7 +37,7 @@ export async function saveResumeData(data: ResumeData, resumeId?: string) {
       if (error) throw error
       return { success: true, data: resume, message: "Resume updated successfully" }
     } else {
-      // Check if user has reached the 3-resume limit
+      // Check if user has reached the 1-resume limit
       const { data: existingResumes, error: countError } = await supabase
         .from("resumes")
         .select("id")
@@ -45,11 +45,11 @@ export async function saveResumeData(data: ResumeData, resumeId?: string) {
 
       if (countError) throw countError
 
-      if (existingResumes && existingResumes.length >= 3) {
-        return { 
-          success: false, 
-          error: "Resume limit reached", 
-          message: "You can only create up to 3 resumes. Please delete an existing resume or edit one of your current resumes." 
+      if (existingResumes && existingResumes.length >= 1) {
+        return {
+          success: false,
+          error: "Resume limit reached",
+          message: "You can only save 1 resume to the cloud. Update your existing resume instead, or delete it to save a new one."
         }
       }
 
