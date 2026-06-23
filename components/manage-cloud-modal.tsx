@@ -62,7 +62,7 @@ export function ManageCloudModal({
           <DialogTitle>Cloud limit reached</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 text-sm text-gray-700">
-          <p>You can store up to 3 resumes in the cloud. Choose resumes to delete and retry saving, or save this one locally instead.</p>
+          <p>You can store 1 resume in the cloud. Delete it and retry saving, or save this one locally instead.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
