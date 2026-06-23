@@ -1,6 +1,6 @@
 import type { PDFGenerationOptions } from "@/types/resume"
 import { generateDesignDOCX } from "./design-docx-engine"
-import { getResumeDesign } from "../resume-designs"
+import { getResumeDesign, mergeDesign } from "../resume-designs"
 
 /**
  * Build the DOCX bytes for the given template.
@@ -12,7 +12,8 @@ import { getResumeDesign } from "../resume-designs"
  */
 export async function generateResumeDOCXBytes(options: PDFGenerationOptions) {
   const { template } = options
-  const design = getResumeDesign(template.id) ?? getResumeDesign("classic-blue")!
+  const base = getResumeDesign(template.id) ?? getResumeDesign("classic-blue")!
+  const design = mergeDesign(base, options.resumeData.style)
   return generateDesignDOCX(options, design)
 }
 

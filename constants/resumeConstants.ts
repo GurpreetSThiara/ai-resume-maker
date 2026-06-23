@@ -9,6 +9,24 @@ export const DEFAULT_EDUCATION = {
   highlights: []
 }
 
+export const DEFAULT_EXPERIENCE = {
+  company: "",
+  role: "",
+  startDate: "",
+  endDate: "",
+  location: "",
+  achievements: [] as string[],
+}
+
+export const DEFAULT_PROJECT = {
+  name: "",
+  link: "",
+  repo: "",
+  description: [] as string[],
+  startDate: "",
+  endDate: "",
+}
+
 export const RESUME_IMAGES = {
   CLASSIC: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/classic.png",
   ATS_GREEN: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/atsgreen.png",
