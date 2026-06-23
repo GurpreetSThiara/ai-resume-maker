@@ -1,10 +1,12 @@
 "use client"
 
-import React, { useState, useEffect, useRef, Suspense, ReactNode } from "react"
+import React, { useState, useEffect, useRef, useCallback, Suspense, ReactNode } from "react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChevronLeft, ChevronRight, Trophy, Star, Zap, Target, Eye, Download, Save, X } from "lucide-react"
+import { ChevronLeft, ChevronRight, Trophy, Star, Zap, Target, Eye, Download, Save, X, ListChecks, LayoutTemplate } from "lucide-react"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { ResumeStudio } from "@/components/visual-editor/ResumeStudio"
 import { HotkeysInfo } from "@/components/hotkeys-info"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { PersonalInfoSection } from "@/components/personal-info-section"
@@ -17,7 +19,8 @@ import { ProjectsSection as ProjectsSectionComponent } from "@/components/projec
 import { SummarySection } from "@/components/summary-section"
 import { CustomFieldsSection } from "@/components/custom-fields-section"
 import { ReviewSection } from "@/components/review-section"
-import { saveResumeData, getUserResumeCount, loadResumeData, deleteResume } from "@/lib/supabase-functions"
+import { saveResumeData, getUserResumeCount, loadResumeData, deleteResume, getUserResumes } from "@/lib/supabase-functions"
+import { ContinueResumeModal } from "@/components/continue-resume-modal"
 import ResumePreview from "@/components/resume-preview"
 import type {
   ResumeData,
@@ -75,6 +78,10 @@ const CreateResumeContent: FC = () => {
   const [limitModalOpen, setLimitModalOpen] = useState(false)
   const [limitModalBusy, setLimitModalBusy] = useState(false)
   const [saveModalOpen, setSaveModalOpen] = useState(false)
+  const [editorMode, setEditorMode] = useState<"guided" | "visual">("visual")
+  const [continueModalOpen, setContinueModalOpen] = useState(false)
+  const [continueBusy, setContinueBusy] = useState(false)
+  const [savedCloudResume, setSavedCloudResume] = useState<{ id: string; title?: string; updated_at?: string; template_id?: string } | null>(null)
 
   // Generate dynamic steps based on current section order
   const steps = generateDynamicSteps(resumeData.sections, resumeData.custom);
@@ -182,6 +189,79 @@ const CreateResumeContent: FC = () => {
   useEffect(() => {
     setSelectedTemplate(template)
   }, [template])
+
+  // Persist the chosen editing mode (guided form vs. visual WYSIWYG editor).
+  useEffect(() => {
+    const m = getLocalStorageItem("cfc_editor_mode")
+    if (m === "visual" || m === "guided") setEditorMode(m)
+  }, [])
+  useEffect(() => {
+    setLocalStorageItem("cfc_editor_mode", editorMode)
+  }, [editorMode])
+
+  // On every page load/refresh: if a logged-in user already has a resume saved
+  // to their account (and isn't opening a specific one via `?id=`), offer to
+  // continue it. The ref guard resets on each mount, so it shows once per
+  // refresh — not on in-page auth/state changes within the same load.
+  const continuePromptedRef = useRef(false)
+  useEffect(() => {
+    if (loading || !user || resumeIdFromUrl) return
+    if (continuePromptedRef.current) return
+    continuePromptedRef.current = true
+
+    let cancelled = false
+    getUserResumes()
+      .then((res) => {
+        if (cancelled) return
+        const latest = res.success && Array.isArray(res.data) && res.data.length > 0 ? res.data[0] : null
+        if (latest) {
+          setSavedCloudResume({ id: latest.id, title: latest.title, updated_at: latest.updated_at, template_id: latest.template_id })
+          setContinueModalOpen(true)
+        }
+      })
+      .catch(() => { })
+    return () => { cancelled = true }
+  }, [user, loading, resumeIdFromUrl])
+
+  const handleContinueSaved = async () => {
+    if (!savedCloudResume) return
+    setContinueBusy(true)
+    try {
+      const res = await loadResumeData(savedCloudResume.id)
+      if (res.success && res.data) {
+        setResumeData(res.data)
+        setCurrentResumeId(savedCloudResume.id)
+        const t = availableTemplates.find((tpl) => tpl.id === savedCloudResume.template_id)
+        if (t) setSelectedTemplate(t)
+        setCurrentStep(0)
+        removeLocalStorageItems(LS_KEYS.resumeData, LS_KEYS.currentStep, LS_KEYS.completedSteps, LS_KEYS.currentResumeId)
+        setContinueModalOpen(false)
+      } else {
+        SHOW_ERROR({ title: "Could not load your saved resume", description: res.error || "Please try again." })
+      }
+    } finally {
+      setContinueBusy(false)
+    }
+  }
+
+  const handleStartNew = () => {
+    setContinueModalOpen(false)
+  }
+
+  const handleStudioSelectTemplate = useCallback((id: string) => {
+    const t = availableTemplates.find((x) => x.id === id)
+    if (!t) return
+    setSelectedTemplate(t)
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("template", id)
+    router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false })
+  }, [searchParams, router])
+
+  // Stable callbacks so the (heavy) studio doesn't re-render when unrelated state
+  // (e.g. opening the download modal) changes — this was causing the download lag.
+  const handleStudioAI = useCallback(() => setModalOpen(true), [])
+  const handleStudioExport = useCallback(() => setSaveModalOpen(true), [])
+  const handleStudioExit = useCallback(() => setEditorMode("guided"), [])
 
 
   // Auto-save functionality
@@ -304,16 +384,6 @@ const CreateResumeContent: FC = () => {
       }
     } finally {
       setIsSaving(false)
-    }
-  };
-
-  const onDownloadOnly = async () => {
-    try {
-      await downloadResume()
-      setSaveModalOpen(false)
-      // Don't redirect, let user stay on page
-    } catch (error) {
-      console.error('Error downloading resume:', error)
     }
   };
 
@@ -548,8 +618,38 @@ const CreateResumeContent: FC = () => {
           availableTemplates={availableTemplates}
           effectiveAiEnabled={false}
           setModalOpen={setModalOpen}
+          onOpenDownload={() => setSaveModalOpen(true)}
         />
 
+        {/* Editing mode switcher: Guided step form vs. Visual WYSIWYG editor */}
+        <div className="mt-5 flex justify-center">
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            value={editorMode}
+            onValueChange={(v) => { if (v === "guided" || v === "visual") setEditorMode(v) }}
+            aria-label="Editing mode"
+          >
+            <ToggleGroupItem value="guided" className="gap-1.5 px-4">
+              <ListChecks className="h-4 w-4" /> Guided
+            </ToggleGroupItem>
+            <ToggleGroupItem value="visual" className="gap-1.5 px-4">
+              <LayoutTemplate className="h-4 w-4" /> Visual editor
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+
+        {editorMode === "visual" ? (
+          <ResumeStudio
+            resumeData={resumeData}
+            setResumeData={setResumeData}
+            template={selectedTemplate}
+            onSelectTemplate={handleStudioSelectTemplate}
+            onAI={handleStudioAI}
+            onExport={handleStudioExport}
+            onExit={handleStudioExit}
+          />
+        ) : (
         <div className="grid gap-6 mt-6">
           <div className={`grid gap-6 ${showPreview ? "lg:grid-cols-2" : "lg:grid-cols-4"}`}>
             {/* Desktop Sidebar Navigation */}
@@ -628,8 +728,8 @@ const CreateResumeContent: FC = () => {
                   disabled={isSaving}
                   className="flex items-center gap-2"
                 >
-                  {isSaving ? "Saving..." : currentStep === steps.length - 1 ? "Complete Resume" : "Next Step"}
-                  {currentStep === steps.length - 1 ? <Save className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                  {isSaving ? "Saving..." : currentStep === steps.length - 1 ? "Download resume" : "Next Step"}
+                  {currentStep === steps.length - 1 ? <Download className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                 </Button>
               </div>
             </div>
@@ -690,16 +790,17 @@ const CreateResumeContent: FC = () => {
             )}
           </div>
         </div>
+        )}
       </div>
 
       <AIResumeModal open={modalOpen} onOpenChange={setModalOpen} onResumeDataGenerated={handleAIResumeData} />
       <SaveResumeModal
         open={saveModalOpen}
         onOpenChange={setSaveModalOpen}
+        data={{ resumeData, template: selectedTemplate, filename: resumeData.basics?.name || 'resume' }}
         onChooseLocal={onChooseLocal}
         onChooseCloudCreate={onChooseCloudCreate}
         onChooseCloudUpdate={onChooseCloudUpdate}
-        onDownloadOnly={onDownloadOnly}
         busy={isSaving}
       />
       <ManageCloudModal
@@ -708,6 +809,14 @@ const CreateResumeContent: FC = () => {
         onConfirmDeleteAndRetry={handleConfirmDeleteAndRetry}
         onSaveLocally={onChooseLocal}
         loading={limitModalBusy}
+      />
+      <ContinueResumeModal
+        open={continueModalOpen}
+        onOpenChange={setContinueModalOpen}
+        resume={savedCloudResume}
+        onContinue={handleContinueSaved}
+        onStartNew={handleStartNew}
+        busy={continueBusy}
       />
       <ReviewModalComponent />
     </div>
