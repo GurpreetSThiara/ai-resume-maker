@@ -11,9 +11,10 @@ import {
   WidthType,
   ShadingType,
 } from "docx"
-import type { PDFGenerationOptions } from "@/types/resume"
+import type { PDFGenerationOptions, PerLineStyle } from "@/types/resume"
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
+import { lineKey, docxRunProps } from "@/utils/lineStyle"
 import { createLink, hasSectionContent } from "./utils"
 import type { ResumeDesign } from "../resume-designs"
 import { skillDotsFilled, effectiveSkillLevel } from "../resume-designs"
@@ -34,6 +35,7 @@ export async function generateDesignDOCX(
   design: ResumeDesign,
 ): Promise<Buffer> {
   const f = FONT(design)
+  const LS: Record<string, PerLineStyle> = (resumeData as { lineStyles?: Record<string, PerLineStyle> }).lineStyles || {}
   const c = design.colors
   const hp = (pt: number) => Math.round(pt * 2) // pt -> half-points
   const sz = {
@@ -137,12 +139,12 @@ export async function generateDesignDOCX(
     )
   }
 
-  const bulletLine = (target: any[], text: string, ctx: Ctx) => {
+  const bulletLine = (target: any[], text: string, ctx: Ctx, style?: PerLineStyle) => {
     target.push(
       new Paragraph({
         spacing: { after: 50 },
         indent: { left: 240 },
-        children: [new TextRun({ text: `• ${text}`, size: sz.content, color: ctx.text, font: f })],
+        children: [new TextRun({ text: `• ${text}`, size: sz.content, color: ctx.text, font: f, ...docxRunProps(style) })],
       }),
     )
   }
@@ -196,7 +198,7 @@ export async function generateDesignDOCX(
   const renderBody = (target: any[], section: any, ctx: Ctx, sidebar: boolean) => {
     switch (section.type) {
       case "experience":
-        for (const exp of section.items || []) {
+        ;(section.items || []).forEach((exp: any, idx: number) => {
           entryHeader(
             target,
             exp.role || "",
@@ -205,12 +207,14 @@ export async function generateDesignDOCX(
             exp.location || "",
             ctx,
           )
-          for (const a of exp.achievements || []) bulletLine(target, a, ctx)
+          ;(exp.achievements || []).forEach((a: string, j: number) =>
+            bulletLine(target, a, ctx, LS[lineKey(section.id, { item: idx, field: "bullet", bullet: j })]),
+          )
           target.push(new Paragraph({ spacing: { after: 110 } }))
-        }
+        })
         break
       case "education":
-        for (const edu of section.items || []) {
+        ;(section.items || []).forEach((edu: any, idx: number) => {
           entryHeader(
             target,
             edu.institution || "",
@@ -219,9 +223,11 @@ export async function generateDesignDOCX(
             edu.location || "",
             ctx,
           )
-          for (const h of edu.highlights || []) bulletLine(target, h, ctx)
+          ;(edu.highlights || []).forEach((h: string, j: number) =>
+            bulletLine(target, h, ctx, LS[lineKey(section.id, { item: idx, field: "bullet", bullet: j })]),
+          )
           target.push(new Paragraph({ spacing: { after: 110 } }))
-        }
+        })
         break
       case "projects":
         for (const proj of section.items || []) {
@@ -311,14 +317,14 @@ export async function generateDesignDOCX(
             )
           })
         } else {
-          for (const it of (section.items || []).filter(Boolean)) bulletLine(target, it, ctx)
+          ;(section.items || []).forEach((it: string, i: number) => { if (it) bulletLine(target, it, ctx, LS[lineKey(section.id, { item: i })]) })
         }
         break
       case "certifications":
-        for (const it of (section.items || []).filter(Boolean)) bulletLine(target, it, ctx)
+        ;(section.items || []).forEach((it: string, i: number) => { if (it) bulletLine(target, it, ctx, LS[lineKey(section.id, { item: i })]) })
         break
       case "custom":
-        for (const it of (section.content || []).filter(Boolean)) bulletLine(target, it, ctx)
+        ;(section.content || []).forEach((it: string, i: number) => { if (it) bulletLine(target, it, ctx, LS[lineKey(section.id, { item: i })]) })
         break
     }
   }
