@@ -9,7 +9,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { TemplatePickerDrawer } from "@/components/template-picker-drawer"
-import { Eye, Star, Menu, Download } from "lucide-react"
+import { Eye, Star, Menu, Download, ListChecks, LayoutTemplate } from "lucide-react"
 import { SectionManagement } from "@/components/section-management"
 import { ModernSidebarLayoutModal } from "@/components/modern-sidebar-layout-modal"
 import type { ResumeData, ResumeTemplate, Section } from "@/types/resume"
@@ -28,6 +28,8 @@ interface CreateResumeHeaderProps {
   effectiveAiEnabled: boolean
   setModalOpen: (open: boolean) => void
   onOpenDownload: () => void
+  editorMode: "guided" | "visual"
+  setEditorMode: (mode: "guided" | "visual") => void
 }
 
 export function CreateResumeHeader({
@@ -42,12 +44,34 @@ export function CreateResumeHeader({
   effectiveAiEnabled,
   setModalOpen,
   onOpenDownload,
+  editorMode,
+  setEditorMode,
 }: CreateResumeHeaderProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
+  const ModeSwitch = () => (
+    <div className="flex items-center rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+      <button
+        onClick={() => setEditorMode("guided")}
+        className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition ${editorMode === "guided" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}
+      >
+        <ListChecks className="w-4 h-4" /> Guided
+      </button>
+      <button
+        onClick={() => setEditorMode("visual")}
+        title="Visual editor (Beta)"
+        className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition ${editorMode === "visual" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}
+      >
+        <LayoutTemplate className="w-4 h-4" /> Visual
+        <span className="rounded bg-amber-100 px-1 py-0.5 text-[9px] font-bold uppercase leading-none text-amber-700">Beta</span>
+      </button>
+    </div>
+  )
+
 const renderControls = () => (
   <div className="w-full flex flex-wrap items-center gap-3">
+    <ModeSwitch />
 
     {(() => {
       const layout = getResumeDesign(selectedTemplate.id)?.layout

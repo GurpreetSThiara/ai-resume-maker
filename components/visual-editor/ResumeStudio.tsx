@@ -19,7 +19,6 @@ function ResumeStudioImpl({
   setResumeData,
   template,
   onSelectTemplate,
-  onAI,
   onExport,
   onExit,
 }: {
@@ -27,7 +26,6 @@ function ResumeStudioImpl({
   setResumeData: (v: ResumeData | ((p: ResumeData) => ResumeData)) => void
   template: ResumeTemplate
   onSelectTemplate: (id: string) => void
-  onAI: () => void
   onExport: () => void
   onExit: () => void
 }) {
@@ -54,7 +52,6 @@ function ResumeStudioImpl({
       <StudioTopBar
         templateId={template.id}
         onSelectTemplate={onSelectTemplate}
-        onAI={onAI}
         onExport={onExport}
         onTogglePreview={() => setIsPreview((p) => !p)}
         isPreview={isPreview}
