@@ -417,11 +417,14 @@ export async function generateDesignDOCX(
       ["LinkedIn", resumeData.basics.linkedin],
     ].filter(([, v]) => v)
     if (contact.length) {
-      sectionTitle(left, "Contact", sideCtx, true)
-      for (const [, v] of contact) {
+      for (const [label, v] of contact) {
         left.push(
           new Paragraph({
-            spacing: { after: 70 },
+            spacing: { before: 60, after: 10 },
+            children: [new TextRun({ text: (label as string).toUpperCase(), bold: true, size: sz.small, color: sideCtx.heading, font: f })],
+          }),
+          new Paragraph({
+            spacing: { after: 40 },
             children: [new TextRun({ text: v as string, size: sz.content, color: sideCtx.text, font: f })],
           }),
         )
