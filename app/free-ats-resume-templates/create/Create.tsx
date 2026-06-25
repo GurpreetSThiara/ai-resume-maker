@@ -4,8 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, Suspense, ReactNode } 
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChevronLeft, ChevronRight, Trophy, Star, Zap, Target, Eye, Download, Save, X, ListChecks, LayoutTemplate } from "lucide-react"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { ChevronLeft, ChevronRight, Trophy, Star, Zap, Target, Eye, Download, Save, X } from "lucide-react"
 import { ResumeStudio } from "@/components/visual-editor/ResumeStudio"
 import { HotkeysInfo } from "@/components/hotkeys-info"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -78,7 +77,7 @@ const CreateResumeContent: FC = () => {
   const [limitModalOpen, setLimitModalOpen] = useState(false)
   const [limitModalBusy, setLimitModalBusy] = useState(false)
   const [saveModalOpen, setSaveModalOpen] = useState(false)
-  const [editorMode, setEditorMode] = useState<"guided" | "visual">("visual")
+  const [editorMode, setEditorMode] = useState<"guided" | "visual">("guided")
   const [continueModalOpen, setContinueModalOpen] = useState(false)
   const [continueBusy, setContinueBusy] = useState(false)
   const [savedCloudResume, setSavedCloudResume] = useState<{ id: string; title?: string; updated_at?: string; template_id?: string } | null>(null)
@@ -190,14 +189,8 @@ const CreateResumeContent: FC = () => {
     setSelectedTemplate(template)
   }, [template])
 
-  // Persist the chosen editing mode (guided form vs. visual WYSIWYG editor).
-  useEffect(() => {
-    const m = getLocalStorageItem("cfc_editor_mode")
-    if (m === "visual" || m === "guided") setEditorMode(m)
-  }, [])
-  useEffect(() => {
-    setLocalStorageItem("cfc_editor_mode", editorMode)
-  }, [editorMode])
+  // Always land on the guided step form by default; the Visual (beta) editor is
+  // opt-in per session via the header switcher (not persisted across reloads).
 
   // On every page load/refresh: if a logged-in user already has a resume saved
   // to their account (and isn't opening a specific one via `?id=`), offer to
@@ -259,7 +252,6 @@ const CreateResumeContent: FC = () => {
 
   // Stable callbacks so the (heavy) studio doesn't re-render when unrelated state
   // (e.g. opening the download modal) changes — this was causing the download lag.
-  const handleStudioAI = useCallback(() => setModalOpen(true), [])
   const handleStudioExport = useCallback(() => setSaveModalOpen(true), [])
   const handleStudioExit = useCallback(() => setEditorMode("guided"), [])
 
@@ -619,25 +611,9 @@ const CreateResumeContent: FC = () => {
           effectiveAiEnabled={false}
           setModalOpen={setModalOpen}
           onOpenDownload={() => setSaveModalOpen(true)}
+          editorMode={editorMode}
+          setEditorMode={setEditorMode}
         />
-
-        {/* Editing mode switcher: Guided step form vs. Visual WYSIWYG editor */}
-        <div className="mt-5 flex justify-center">
-          <ToggleGroup
-            type="single"
-            variant="outline"
-            value={editorMode}
-            onValueChange={(v) => { if (v === "guided" || v === "visual") setEditorMode(v) }}
-            aria-label="Editing mode"
-          >
-            <ToggleGroupItem value="guided" className="gap-1.5 px-4">
-              <ListChecks className="h-4 w-4" /> Guided
-            </ToggleGroupItem>
-            <ToggleGroupItem value="visual" className="gap-1.5 px-4">
-              <LayoutTemplate className="h-4 w-4" /> Visual editor
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </div>
 
         {editorMode === "visual" ? (
           <ResumeStudio
@@ -645,7 +621,6 @@ const CreateResumeContent: FC = () => {
             setResumeData={setResumeData}
             template={selectedTemplate}
             onSelectTemplate={handleStudioSelectTemplate}
-            onAI={handleStudioAI}
             onExport={handleStudioExport}
             onExit={handleStudioExit}
           />

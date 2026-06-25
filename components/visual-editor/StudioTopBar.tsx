@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { TemplatePickerDrawer } from "@/components/template-picker-drawer"
-import { Check, Download, Eye, LayoutTemplate, ListChecks, Redo2, Sparkles, Undo2 } from "lucide-react"
+import { Check, Download, Eye, LayoutTemplate, ListChecks, Redo2, Undo2 } from "lucide-react"
 
 function Brand() {
   return (
@@ -19,7 +19,6 @@ function Brand() {
 export function StudioTopBar({
   templateId,
   onSelectTemplate,
-  onAI,
   onExport,
   onTogglePreview,
   isPreview,
@@ -31,7 +30,6 @@ export function StudioTopBar({
 }: {
   templateId: string
   onSelectTemplate: (id: string) => void
-  onAI: () => void
   onExport: () => void
   onTogglePreview: () => void
   isPreview: boolean
@@ -50,15 +48,13 @@ export function StudioTopBar({
           <button onClick={onExit} className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-white hover:text-gray-900" title="Switch to the step-by-step form editor">
             <ListChecks className="h-4 w-4" /> Guided
           </button>
-          <button className="flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-primary shadow-sm" aria-current="true" title="You're in the visual editor">
+          <button className="flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-primary shadow-sm" aria-current="true" title="You're in the visual editor (Beta)">
             <LayoutTemplate className="h-4 w-4" /> Visual
+            <span className="rounded bg-amber-100 px-1 py-0.5 text-[9px] font-bold uppercase leading-none text-amber-700">Beta</span>
           </button>
         </div>
         <div className="mx-1 h-5 w-px bg-gray-200" />
-        <TemplatePickerDrawer selectedId={templateId} onSelect={onSelectTemplate} triggerClassName="!h-8 !px-3 !border-0 !rounded-md text-gray-700 hover:bg-gray-100" />
-        <Button variant="ghost" size="sm" className="gap-1.5 text-gray-700" onClick={onAI}>
-          <Sparkles className="h-4 w-4 text-primary" /> AI Assistant
-        </Button>
+        <TemplatePickerDrawer selectedId={templateId} onSelect={onSelectTemplate} triggerClassName="!h-8 !px-3 !rounded-md !border !border-gray-300 !bg-white !font-medium text-gray-700 hover:!bg-gray-50" />
       </div>
 
       <div className="flex items-center gap-1">
