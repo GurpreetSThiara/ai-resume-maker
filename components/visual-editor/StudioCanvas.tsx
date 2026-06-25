@@ -107,9 +107,16 @@ export function StudioCanvas({
     if (!floatSel.sid) return
     setResumeData((prev) => ({ ...prev, sections: (dir === "up" ? moveSectionUp : moveSectionDown)(prev.sections, floatSel.sid!) }))
   }
+  const [confirmDelSid, setConfirmDelSid] = useState<string | null>(null)
   const delSec = () => {
     if (!floatSel.sid) return
-    setResumeData((prev) => ({ ...prev, sections: prev.sections.filter((s) => s.id !== floatSel.sid) }))
+    setConfirmDelSid(floatSel.sid)
+  }
+  const doDelSec = () => {
+    const sid = confirmDelSid
+    setConfirmDelSid(null)
+    if (!sid) return
+    setResumeData((prev) => ({ ...prev, sections: prev.sections.filter((s) => s.id !== sid) }))
     setFloatRect(null)
   }
 
@@ -174,6 +181,21 @@ export function StudioCanvas({
         onDown={floatSel.sid ? () => moveSec("down") : undefined}
         onDelete={floatSel.sid ? delSec : undefined}
       />
+
+      {confirmDelSid && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/50" onClick={() => setConfirmDelSid(null)}>
+          <div className="w-[340px] max-w-[90%] rounded-xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <p className="text-base font-bold text-gray-900">Delete this section?</p>
+            <p className="mt-1.5 mb-4 text-sm leading-relaxed text-gray-500">
+              The section and its content will be removed. You can bring it back with Undo (Ctrl+Z).
+            </p>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setConfirmDelSid(null)} className="rounded-lg border border-gray-200 px-3.5 py-2 text-sm font-medium hover:bg-gray-50">Cancel</button>
+              <button onClick={doDelSec} className="rounded-lg bg-red-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-red-700">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

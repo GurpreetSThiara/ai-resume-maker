@@ -64,6 +64,8 @@ export function StudioLeftRail({
     const el = document.querySelector(`[data-sid="${id}"]`)
     el?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
+  const [confirmId, setConfirmId] = useState<string | null>(null)
+  const confirmSection = sections.find((s) => s.id === confirmId)
 
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r bg-white">
@@ -105,7 +107,7 @@ export function StudioLeftRail({
                 <button onClick={(e) => { e.stopPropagation(); toggleHidden(s.id) }} className="text-gray-400 opacity-0 hover:text-gray-700 group-hover:opacity-100" title={s.hidden ? "Show" : "Hide"}>
                   {s.hidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                 </button>
-                <button onClick={(e) => { e.stopPropagation(); remove(s.id) }} className="text-gray-400 opacity-0 hover:text-red-500 group-hover:opacity-100" title="Delete">
+                <button onClick={(e) => { e.stopPropagation(); setConfirmId(s.id) }} className="text-gray-400 opacity-0 hover:text-red-500 group-hover:opacity-100" title="Delete">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -126,6 +128,21 @@ export function StudioLeftRail({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {confirmSection && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/50" onClick={() => setConfirmId(null)}>
+          <div className="w-[340px] max-w-[90%] rounded-xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <p className="text-base font-bold text-gray-900">Delete this section?</p>
+            <p className="mt-1.5 mb-4 text-sm leading-relaxed text-gray-500">
+              The “{confirmSection.title}” section and its content will be removed. You can bring it back with Undo (Ctrl+Z).
+            </p>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setConfirmId(null)} className="rounded-lg border border-gray-200 px-3.5 py-2 text-sm font-medium hover:bg-gray-50">Cancel</button>
+              <button onClick={() => { remove(confirmSection.id); setConfirmId(null) }} className="rounded-lg bg-red-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-red-700">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   )
 }
