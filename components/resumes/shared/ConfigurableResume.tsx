@@ -11,6 +11,7 @@ import type { ResumeDesign } from "@/lib/resume-designs"
 import { skillDotsFilled, effectiveSkillLevel } from "@/lib/resume-designs"
 import { DEFAULT_EDUCATION, DEFAULT_EXPERIENCE, DEFAULT_PROJECT } from "@/constants/resumeConstants"
 import { lineKey, cssFor } from "@/utils/lineStyle"
+import { px as ptToPx, FONT_CSS, SIDEBAR_TRACK_HEX, type FontKey } from "@/lib/render-spec"
 import { Plus, Trash2 } from "lucide-react"
 
 const getInitials = (name: string) =>
@@ -56,6 +57,9 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
   // After an add, scroll the new (empty) field into view and focus it, so it's
   // obvious the add worked and the user can type immediately.
   const pendingFocusKey = useRef<string | null>(null)
+  // Deletes route through a confirmation modal.
+  const [confirmDel, setConfirmDel] = useState<{ label: string; fn: () => void } | null>(null)
+  const requestDelete = (label: string, fn: () => void) => setConfirmDel({ label, fn })
 
   // Per-line formatting overrides → CSS for a given lineKey.
   const LS = resumeData.lineStyles || {}
@@ -337,6 +341,17 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
       return updated
     })
 
+  // Set a skill's proficiency (1–5) for the bars/dots styles. Stored per name in
+  // section.skillLevels and read by effectiveSkillLevel in all three renderers.
+  const setSkillLevel = (sectionId: string, name: string, level: number) =>
+    setResumeData((prev) => {
+      const updated = structuredClone(prev)
+      const s: any = updated.sections.find((x) => x.id === sectionId)
+      if (!s) return prev
+      s.skillLevels = { ...(s.skillLevels || {}), [name]: Math.max(1, Math.min(5, level)) }
+      return updated
+    })
+
   const removeSectionById = (sectionId: string) =>
     setResumeData((prev) => ({ ...prev, sections: prev.sections.filter((s) => s.id !== sectionId) }))
 
@@ -358,11 +373,11 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
   const addBtn: React.CSSProperties = { cursor: "pointer", border: "1px dashed #cbd5e1", background: "transparent", color: "#64748b", fontSize: 11, borderRadius: 6, padding: "3px 9px", marginTop: 6, fontFamily: "system-ui" }
   const Del = ({ onClick, title }: { onClick: () => void; title: string }) =>
     crud ? (
-      <button type="button" contentEditable={false} onClick={onClick} title={title} style={xBtn} className="cfc-x" aria-label={title}>×</button>
+      <button type="button" contentEditable={false} onMouseDown={(e) => e.preventDefault()} onClick={() => requestDelete(title, onClick)} title={title} style={xBtn} className="cfc-x" aria-label={title}>×</button>
     ) : null
   const Add = ({ onClick, label }: { onClick: () => void; label: string }) =>
     crud ? (
-      <button type="button" contentEditable={false} onClick={onClick} style={addBtn} className="cfc-add">+ {label}</button>
+      <button type="button" contentEditable={false} onMouseDown={(e) => e.preventDefault()} onClick={onClick} style={addBtn} className="cfc-add">+ {label}</button>
     ) : null
 
   // EnhanCV-style contextual section toolbar (appears on hover over a section).
@@ -389,11 +404,11 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     return (
       <div className="cfc-tools" contentEditable={false}>
         {add && (
-          <button type="button" className="cfc-tbtn" title={add.title} onClick={add.fn}>
+          <button type="button" className="cfc-tbtn" title={add.title} onMouseDown={(e) => e.preventDefault()} onClick={add.fn}>
             <Plus size={13} strokeWidth={2.5} />
           </button>
         )}
-        <button type="button" className="cfc-tbtn cfc-tbtn-danger" title="Delete section" onClick={() => removeSectionById(section.id)}>
+        <button type="button" className="cfc-tbtn cfc-tbtn-danger" title="Delete section" onMouseDown={(e) => e.preventDefault()} onClick={() => requestDelete(`Delete the "${section.title || "section"}" section`, () => removeSectionById(section.id))}>
           <Trash2 size={12} strokeWidth={2} />
         </button>
       </div>
@@ -442,8 +457,8 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     const sk: any = (resumeData.sections || []).find((s: any) => s.type === SECTION_TYPES.SKILLS)
     return !sk || sk.showLevels !== false
   })()
-  const fam = design.font === "serif" ? 'Georgia, "Times New Roman", serif' : "Helvetica, Arial, sans-serif"
-  const px = (pt: number) => `${pt * 1.34}px`
+  const fam = FONT_CSS[(design.font as FontKey)] || FONT_CSS.sans
+  const px = (pt: number) => `${ptToPx(pt)}px`
 
   // initials monogram circle (designer templates)
   const monogramEl = (sizePx: number, fill: string, color: string) => (
@@ -713,11 +728,11 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
             : {}
         const groupTitleEl = (title: string) =>
           title !== "General" || crud ? (
-            <div {...groupTitleProps(title)} data-ph="Category" style={{ fontSize: smallFont, fontWeight: 700, color: sidebar ? palette.sidebarHeading || palette.heading : sub, textTransform: "uppercase", marginBottom: 4, fontFamily: fam }}>
+            <div {...groupTitleProps(title)} data-ph="Category" style={{ fontSize: smallFont, fontWeight: 700, color: sub, marginBottom: 4, fontFamily: fam }}>
               {title === "General" ? "" : title}
             </div>
           ) : null
-        const dotEmpty = sidebar ? "rgba(255,255,255,0.3)" : palette.divider
+        const dotEmpty = sidebar ? SIDEBAR_TRACK_HEX : palette.divider
         const skillEdit = (g: any, j: number) => (e: React.FormEvent<HTMLElement>) => {
           const v = [...g.skills]
           v[j] = e.currentTarget.textContent || ""
@@ -736,8 +751,13 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
                       <div style={{ fontSize: contentFont, color: tColor, fontFamily: fam, marginBottom: 3 }} contentEditable suppressContentEditableWarning onBlur={skillEdit(g, j)}>
                         {sk}
                       </div>
-                      <div style={{ background: sidebar ? "rgba(255,255,255,0.22)" : palette.divider, height: 5, borderRadius: 3 }}>
-                        <div style={{ background: acc, width: `${(effectiveSkillLevel((section as any).skillLevels, sk, j) / 5) * 100}%`, height: "100%", borderRadius: 3 }} />
+                      <div
+                        title={crud ? "Click to set level (1–5)" : undefined}
+                        onMouseDown={crud ? (e) => e.preventDefault() : undefined}
+                        onClick={crud ? (e) => { const r = e.currentTarget.getBoundingClientRect(); setSkillLevel(section.id, sk, Math.ceil(((e.clientX - r.left) / r.width) * 5)) } : undefined}
+                        style={{ background: sidebar ? SIDEBAR_TRACK_HEX : palette.divider, height: 5, borderRadius: 3, cursor: crud ? "pointer" : undefined }}
+                      >
+                        <div style={{ background: acc, width: `${(effectiveSkillLevel((section as any).skillLevels, sk, j) / 5) * 100}%`, height: "100%", borderRadius: 3, pointerEvents: "none" }} />
                       </div>
                     </div>
                   ))}
@@ -761,7 +781,13 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
                         </span>
                         <span style={{ display: "inline-flex", gap: 3, flexShrink: 0 }}>
                           {[0, 1, 2, 3, 4].map((k) => (
-                            <span key={k} style={{ width: 6, height: 6, borderRadius: "50%", background: k < filled ? acc : dotEmpty }} />
+                            <span
+                              key={k}
+                              title={crud ? `Set level ${k + 1}` : undefined}
+                              onMouseDown={crud ? (e) => e.preventDefault() : undefined}
+                              onClick={crud ? () => setSkillLevel(section.id, sk, k + 1) : undefined}
+                              style={{ width: crud ? 9 : 6, height: crud ? 9 : 6, borderRadius: "50%", background: k < filled ? acc : dotEmpty, cursor: crud ? "pointer" : undefined }}
+                            />
                           ))}
                         </span>
                       </div>
@@ -778,7 +804,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
               {groups.map((g) => (
                 <div key={g.title}>
                   {(g.title !== "General" || crud) && (
-                    <div {...groupTitleProps(g.title)} data-ph="Category" style={{ fontSize: smallFont, fontWeight: 700, color: sub, textTransform: "uppercase", marginBottom: 4, fontFamily: fam }}>{g.title === "General" ? "" : g.title}</div>
+                    <div {...groupTitleProps(g.title)} data-ph="Category" style={{ fontSize: smallFont, fontWeight: 700, color: sub, marginBottom: 4, fontFamily: fam }}>{g.title === "General" ? "" : g.title}</div>
                   )}
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                     {g.skills.map((sk, j) => (
@@ -858,7 +884,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
                     </span>
                     <span style={{ display: "inline-flex", gap: 3, flexShrink: 0 }}>
                       {[0, 1, 2, 3, 4].map((k) => (
-                        <span key={k} style={{ width: 6, height: 6, borderRadius: "50%", background: k < filled ? acc : sidebar ? "rgba(255,255,255,0.3)" : palette.divider }} />
+                        <span key={k} style={{ width: 6, height: 6, borderRadius: "50%", background: k < filled ? acc : sidebar ? SIDEBAR_TRACK_HEX : palette.divider }} />
                       ))}
                     </span>
                   </div>
@@ -962,13 +988,14 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
       <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 6, fontFamily: "system-ui" }}>Add a section</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
         {SECTION_TYPE_OPTS.map((t) => (
-          <button key={t.type} type="button" onClick={() => addSection(t.type)} style={addBtn}>+ {t.label}</button>
+          <button key={t.type} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => addSection(t.type)} style={addBtn}>+ {t.label}</button>
         ))}
       </div>
     </div>
   ) : null
 
   // contact row for single header
+  const CONTACT_LABELS: Record<string, string> = { email: "Email", phone: "Phone", location: "Location", linkedin: "LinkedIn" }
   const contactPairs: { key: keyof typeof resumeData.basics; val: string }[] = [
     { key: "email", val: resumeData.basics.email },
     { key: "phone", val: resumeData.basics.phone },
@@ -1025,6 +1052,23 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
           {children}
         </div>
       </div>
+      {confirmDel && (
+        <div
+          contentEditable={false}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => setConfirmDel(null)}
+          style={{ position: "fixed", inset: 0, zIndex: 80, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(15,23,42,0.5)", fontFamily: "system-ui" }}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "#fff", borderRadius: 12, padding: 22, width: 340, maxWidth: "90%", boxShadow: "0 20px 50px rgba(0,0,0,0.3)" }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#111827", marginBottom: 6 }}>Delete this?</div>
+            <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 18, lineHeight: 1.5 }}>{confirmDel.label}. You can bring it back with Undo (Ctrl+Z).</div>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <button type="button" onClick={() => setConfirmDel(null)} style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 500 }}>Cancel</button>
+              <button type="button" onClick={() => { confirmDel.fn(); setConfirmDel(null) }} style={{ padding: "8px 14px", borderRadius: 8, border: "none", background: "#dc2626", color: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 
@@ -1057,19 +1101,19 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
             {monogramEl(64, palette.sidebarAccent || palette.accent, palette.sidebarBg || "#fff")}
           </div>
         ) : null}
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: px(design.sizes.section - 1), fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: palette.sidebarHeading, borderBottom: `1.5px solid ${palette.sidebarAccent}`, paddingBottom: 3, marginBottom: 8, fontFamily: fam }}>
-            Contact
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {contactPairs
-              .filter((p) => p.val)
-              .map((p) => (
-                <span key={p.key} style={{ fontSize: px(design.sizes.content), color: palette.sidebarText, fontFamily: fam, wordBreak: "break-word" }} data-ph={p.key} contentEditable suppressContentEditableWarning onBlur={(e) => handleContactInfoChange(e, p.key)}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+          {contactPairs
+            .filter((p) => p.val || crud)
+            .map((p) => (
+              <div key={p.key}>
+                <div style={{ fontSize: px(design.sizes.small), fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: palette.sidebarHeading, marginBottom: 2, fontFamily: fam }}>
+                  {CONTACT_LABELS[p.key as string] || (p.key as string)}
+                </div>
+                <span data-ph={p.key} contentEditable suppressContentEditableWarning onBlur={(e) => handleContactInfoChange(e, p.key)} style={{ display: "block", fontSize: px(design.sizes.content), color: palette.sidebarText, fontFamily: fam, wordBreak: "break-word" }}>
                   {p.val}
                 </span>
-              ))}
-          </div>
+              </div>
+            ))}
         </div>
         {left.map((s: any) => renderSectionBlock(s, true))}
       </div>
