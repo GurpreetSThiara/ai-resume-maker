@@ -7,6 +7,10 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    // Serve images as-is (no /_next/image optimization). This avoids Vercel's
+    // image-optimization quota entirely — next/image now behaves like a plain
+    // <img> tag, passing the original src straight through.
+    unoptimized: true,
     // Allow external template preview images from jsdelivr CDN
     remotePatterns: [
       {
