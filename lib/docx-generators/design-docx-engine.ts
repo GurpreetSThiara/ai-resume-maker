@@ -14,7 +14,7 @@ import {
 import type { PDFGenerationOptions, PerLineStyle } from "@/types/resume"
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
-import { lineKey, docxRunProps } from "@/utils/lineStyle"
+import { lineKey, docxRunProps, caseText, docxParaSpacing } from "@/utils/lineStyle"
 import { createLink, hasSectionContent } from "./utils"
 import type { ResumeDesign } from "../resume-designs"
 import { skillDotsFilled, effectiveSkillLevel } from "../resume-designs"
@@ -140,11 +140,12 @@ export async function generateDesignDOCX(
   }
 
   const bulletLine = (target: any[], text: string, ctx: Ctx, style?: PerLineStyle) => {
+    const ls = docxParaSpacing(style)
     target.push(
       new Paragraph({
-        spacing: { after: 50 },
+        spacing: { after: 50, ...(ls || {}) },
         indent: { left: 240 },
-        children: [new TextRun({ text: `• ${text}`, size: sz.content, color: ctx.text, font: f, ...docxRunProps(style) })],
+        children: [new TextRun({ text: `• ${caseText(text, style)}`, size: sz.content, color: ctx.text, font: f, ...docxRunProps(style) })],
       }),
     )
   }
@@ -411,13 +412,13 @@ export async function generateDesignDOCX(
 
     // contact
     const contact = [
-      ["Email", resumeData.basics.email],
-      ["Phone", resumeData.basics.phone],
-      ["Location", resumeData.basics.location],
-      ["LinkedIn", resumeData.basics.linkedin],
+      ["Email", resumeData.basics.email, "email"],
+      ["Phone", resumeData.basics.phone, "phone"],
+      ["Location", resumeData.basics.location, "location"],
+      ["LinkedIn", resumeData.basics.linkedin, "linkedin"],
     ].filter(([, v]) => v)
     if (contact.length) {
-      for (const [label, v] of contact) {
+      for (const [label, v, key] of contact) {
         left.push(
           new Paragraph({
             spacing: { before: 60, after: 10 },
@@ -425,7 +426,7 @@ export async function generateDesignDOCX(
           }),
           new Paragraph({
             spacing: { after: 40 },
-            children: [new TextRun({ text: v as string, size: sz.content, color: sideCtx.text, font: f })],
+            children: [new TextRun({ text: caseText(v as string, LS[`basics:${key}`]), size: sz.content, color: sideCtx.text, font: f, ...docxRunProps(LS[`basics:${key}`]) })],
           }),
         )
       }
@@ -464,8 +465,8 @@ export async function generateDesignDOCX(
     }
     if (resumeData.basics.summary) {
       right.splice(design.sidebarNameBlock ? 1 : 2, 0, new Paragraph({
-        spacing: { after: 160 },
-        children: [new TextRun({ text: resumeData.basics.summary, size: sz.content, color: c.text, font: f })],
+        spacing: { after: 160, ...(docxParaSpacing(LS["basics:summary"]) || {}) },
+        children: [new TextRun({ text: caseText(resumeData.basics.summary, LS["basics:summary"]), size: sz.content, color: c.text, font: f, ...docxRunProps(LS["basics:summary"]) })],
       }))
     }
 
@@ -505,6 +506,22 @@ export async function generateDesignDOCX(
     resumeData.basics.location,
     resumeData.basics.linkedin,
   ].filter(Boolean)
+  // Per-field contact runs (so a styled field — e.g. a coloured email — carries
+  // its lineStyles into the single-column header, matching the canvas).
+  const contactKeyed = ([
+    ["email", resumeData.basics.email],
+    ["phone", resumeData.basics.phone],
+    ["location", resumeData.basics.location],
+    ["linkedin", resumeData.basics.linkedin],
+  ] as [string, string][]).filter(([, v]) => v)
+  const contactRuns = (baseColor: string) => {
+    const runs: any[] = []
+    contactKeyed.forEach(([key, v], i) => {
+      if (i > 0) runs.push(new TextRun({ text: "   |   ", size: sz.small, color: baseColor, font: f }))
+      runs.push(new TextRun({ text: caseText(v, LS[`basics:${key}`]), size: sz.small, color: baseColor, font: f, ...docxRunProps(LS[`basics:${key}`]) }))
+    })
+    return runs
+  }
 
   if ((design.header === "band" || design.header === "geometric") && c.headerBg) {
     const headerCell: Paragraph[] = [
@@ -546,9 +563,7 @@ export async function generateDesignDOCX(
       headerCell.push(
         new Paragraph({
           alignment: AlignmentType.CENTER,
-          children: [
-            new TextRun({ text: contactItems.join("   |   "), size: sz.small, color: c.headerText || "FFFFFF", font: f }),
-          ],
+          children: contactRuns(c.headerText || "FFFFFF"),
         }),
       )
     body.push(
@@ -611,7 +626,7 @@ export async function generateDesignDOCX(
         alignment: centered ? AlignmentType.CENTER : AlignmentType.LEFT,
         spacing: { after: 120 },
         border: { bottom: { color: centered ? c.divider : c.accent, space: 4, style: BorderStyle.SINGLE, size: centered ? 8 : 14 } },
-        children: [new TextRun({ text: contactItems.join("   |   "), size: sz.small, color: c.secondary, font: f })],
+        children: contactRuns(c.secondary),
       }),
     )
   }
@@ -619,8 +634,8 @@ export async function generateDesignDOCX(
   if (resumeData.basics.summary) {
     body.push(
       new Paragraph({
-        spacing: { after: 160 },
-        children: [new TextRun({ text: resumeData.basics.summary, size: sz.content, color: c.text, font: f })],
+        spacing: { after: 160, ...(docxParaSpacing(LS["basics:summary"]) || {}) },
+        children: [new TextRun({ text: caseText(resumeData.basics.summary, LS["basics:summary"]), size: sz.content, color: c.text, font: f, ...docxRunProps(LS["basics:summary"]) })],
       }),
     )
   }

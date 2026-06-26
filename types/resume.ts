@@ -37,6 +37,16 @@ export interface PerLineStyle {
   /** Point size override for this line. */
   size?: number
   font?: "sans" | "serif" | "mono"
+  /** Letter-case transform applied at render time (data is unchanged). */
+  transform?: "upper" | "lower" | "title"
+  /** Highlight / background colour (hex, with or without '#'). */
+  background?: string
+  /** Line-height multiplier (e.g. 1.4). Affects multi-line fields only. */
+  lineHeight?: number
+  /** Letter spacing / tracking, in points. */
+  letterSpacing?: number
+  /** Soft drop shadow on the text. */
+  shadow?: boolean
 }
 
 // 🔹 Per-resume style overrides (document/section level — what pdf-lib can render).
