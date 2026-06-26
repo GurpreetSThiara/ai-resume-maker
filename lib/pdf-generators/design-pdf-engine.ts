@@ -2,7 +2,7 @@ import { PDFDocument, StandardFonts, rgb } from "@pdfme/pdf-lib"
 import type { PDFGenerationOptions, PerLineStyle } from "@/types/resume"
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
-import { lineKey } from "@/utils/lineStyle"
+import { lineKey, caseText } from "@/utils/lineStyle"
 import { wrapText } from "../pdf-utils"
 import { sanitizeWithFont, hexToRgb, addLinkAnnotation } from "./pdf-helpers"
 import type { ResumeDesign } from "../resume-designs"
@@ -127,6 +127,20 @@ export async function generateDesignPDF(
   const trackedWidth = (text: string, size: number, font: any, tracking: number) =>
     Array.from(text).reduce((w, ch) => w + font.widthOfTextAtSize(ch, size) + tracking, 0)
 
+  // Greedy word-wrap that accounts for letter spacing (tracking).
+  const wrapTextTracked = (text: string, maxW: number, font: any, size: number, tracking: number) => {
+    const words = sanitizeWithFont(text, font).split(/\s+/).filter(Boolean)
+    const lines: string[] = []
+    let cur = ""
+    for (const word of words) {
+      const cand = cur ? `${cur} ${word}` : word
+      if (!cur || trackedWidth(cand, size, font, tracking) <= maxW) cur = cand
+      else { lines.push(cur); cur = word }
+    }
+    if (cur) lines.push(cur)
+    return lines.length ? lines : [""]
+  }
+
   // ---------- Cursor / pagination ----------
   const ensure = (cur: Cursor, space: number) => {
     if (cur.y - space < margin) {
@@ -156,13 +170,26 @@ export async function generateDesignPDF(
     const size = st?.size ?? opts.size
     const color = st?.color ? col(st.color) : opts.color
     const indent = opts.indent || 0
-    const lineGap = opts.lineGap ?? size + 2
-    const lines = wrapText(text, cur.width - indent, font, size)
+    const baseGap = opts.lineGap ?? size + 2
+    const lineGap = st?.lineHeight ? baseGap * st.lineHeight : baseGap
+    const tracking = st?.letterSpacing || 0
+    const shadowColor = rgb(0.62, 0.65, 0.7)
+    const shown = caseText(text, st)
+    const maxW = cur.width - indent
+    const lines = tracking ? wrapTextTracked(shown, maxW, font, size, tracking) : wrapText(shown, maxW, font, size)
     for (const line of lines) {
       ensure(cur, lineGap)
       const safe = sanitizeWithFont(line, font)
-      pageOf(cur).drawText(safe, { x: cur.x + indent, y: cur.y, size, font, color })
-      const w = font.widthOfTextAtSize(safe, size)
+      const w = tracking ? trackedWidth(safe, size, font, tracking) : font.widthOfTextAtSize(safe, size)
+      if (st?.background) {
+        pageOf(cur).drawRectangle({ x: cur.x + indent - 1, y: cur.y - size * 0.26, width: w + 2, height: size * 1.18, color: col(st.background) })
+      }
+      const drawAt = (dx: number, dy: number, c: RGB) =>
+        tracking
+          ? drawTracked(pageOf(cur), safe, cur.x + indent + dx, cur.y + dy, size, font, c, tracking)
+          : pageOf(cur).drawText(safe, { x: cur.x + indent + dx, y: cur.y + dy, size, font, color: c })
+      if (st?.shadow) drawAt(0.7, -0.7, shadowColor)
+      drawAt(0, 0, color)
       if (st?.underline) {
         pageOf(cur).drawLine({
           start: { x: cur.x + indent, y: cur.y - size * 0.12 },
@@ -710,50 +737,74 @@ export async function generateDesignPDF(
 
   // contact helpers (single-column layouts) — wrap so long emails/URLs never
   // overflow the page width.
-  type Seg = { text: string; link?: string; w: number }
+  type Seg = { text: string; link?: string; w: number; font: any; size: number; color?: RGB; underline?: boolean; tracking?: number; background?: RGB; shadow?: boolean }
   const CONTACT_SEP = "  |  "
-  const contactParts = (): { text: string; link?: string }[] => {
+  const contactParts = (): { text: string; link?: string; key: string }[] => {
     const b = resumeData.basics
-    const parts: { text: string; link?: string }[] = []
-    if (b.email) parts.push({ text: b.email, link: `mailto:${b.email}` })
-    if (b.phone) parts.push({ text: b.phone })
-    if (b.location) parts.push({ text: b.location })
-    if (b.linkedin) parts.push({ text: b.linkedin, link: b.linkedin })
+    const parts: { text: string; link?: string; key: string }[] = []
+    if (b.email) parts.push({ text: b.email, link: `mailto:${b.email}`, key: "email" })
+    if (b.phone) parts.push({ text: b.phone, key: "phone" })
+    if (b.location) parts.push({ text: b.location, key: "location" })
+    if (b.linkedin) parts.push({ text: b.linkedin, link: b.linkedin, key: "linkedin" })
     return parts
   }
+  // Per-field styling for the contact line (mirrors the canvas lineStyles keys).
+  const contactSegStyle = (key: string) => {
+    const st = LS[`basics:${key}`]
+    const family = (st?.font as "sans" | "serif" | "mono") || baseFamily
+    return {
+      st,
+      font: st ? pickFont(family, !!st.bold, !!st.italic) : regular,
+      size: st?.size ?? s.small,
+      color: st?.color ? col(st.color) : undefined,
+      underline: !!st?.underline,
+      tracking: st?.letterSpacing || 0,
+      background: st?.background ? col(st.background) : undefined,
+      shadow: !!st?.shadow,
+    }
+  }
   const groupContact = (maxWidth: number): Seg[][] => {
-    const sz = s.small
-    const sepW = regular.widthOfTextAtSize(CONTACT_SEP, sz)
+    const sepW = regular.widthOfTextAtSize(CONTACT_SEP, s.small)
     const lines: Seg[][] = []
     let line: Seg[] = []
     let lineW = 0
     for (const p of contactParts()) {
-      const text = sanitizeWithFont(p.text, regular)
-      const w = regular.widthOfTextAtSize(text, sz)
+      const cs = contactSegStyle(p.key)
+      const text = sanitizeWithFont(caseText(p.text, cs.st), cs.font)
+      const w = cs.tracking ? trackedWidth(text, cs.size, cs.font, cs.tracking) : cs.font.widthOfTextAtSize(text, cs.size)
       const addW = (line.length ? sepW : 0) + w
       if (line.length && lineW + addW > maxWidth) {
         lines.push(line)
         line = []
         lineW = 0
       }
-      line.push({ text, link: p.link, w })
+      line.push({ text, link: p.link, w, font: cs.font, size: cs.size, color: cs.color, underline: cs.underline, tracking: cs.tracking, background: cs.background, shadow: cs.shadow })
       lineW += (line.length > 1 ? sepW : 0) + w
     }
     if (line.length) lines.push(line)
     return lines
   }
   const drawContactLine = (page: any, segs: Seg[], baseline: number, centered: boolean, color: RGB, leftX: number) => {
-    const sz = s.small
-    const sepW = regular.widthOfTextAtSize(CONTACT_SEP, sz)
+    const sepW = regular.widthOfTextAtSize(CONTACT_SEP, s.small)
     const lineW = segs.reduce((acc, sg, i) => acc + (i ? sepW : 0) + sg.w, 0)
     let x = centered ? (PAGE_W - lineW) / 2 : leftX
     segs.forEach((sg, i) => {
       if (i > 0) {
-        page.drawText(CONTACT_SEP, { x, y: baseline, size: sz, font: regular, color })
+        page.drawText(CONTACT_SEP, { x, y: baseline, size: s.small, font: regular, color })
         x += sepW
       }
-      page.drawText(sg.text, { x, y: baseline, size: sz, font: regular, color })
-      if (sg.link) addLinkAnnotation(pdf, page, x, baseline, sg.w, sz, sg.link)
+      const segColor = sg.color || color
+      if (sg.background) page.drawRectangle({ x: x - 1, y: baseline - sg.size * 0.26, width: sg.w + 2, height: sg.size * 1.18, color: sg.background })
+      const drawSeg = (dx: number, dy: number, c: RGB) =>
+        sg.tracking
+          ? drawTracked(page, sg.text, x + dx, baseline + dy, sg.size, sg.font, c, sg.tracking)
+          : page.drawText(sg.text, { x: x + dx, y: baseline + dy, size: sg.size, font: sg.font, color: c })
+      if (sg.shadow) drawSeg(0.7, -0.7, rgb(0.62, 0.65, 0.7))
+      drawSeg(0, 0, segColor)
+      if (sg.underline) {
+        page.drawLine({ start: { x, y: baseline - sg.size * 0.12 }, end: { x: x + sg.w, y: baseline - sg.size * 0.12 }, thickness: Math.max(0.5, sg.size * 0.06), color: segColor })
+      }
+      if (sg.link) addLinkAnnotation(pdf, page, x, baseline, sg.w, sg.size, sg.link)
       x += sg.w
     })
   }
@@ -835,7 +886,7 @@ export async function generateDesignPDF(
     // sidebar contact
     side.y -= 4
     const contactLabelColor = colors.sidebarHeading || colors.heading
-    const renderSideContact = (label: string, value: string, link?: string) => {
+    const renderSideContact = (label: string, value: string, key: string, link?: string) => {
       if (!value) return
       ensure(side, 24)
       drawTracked(pageOf(side), label.toUpperCase(), side.x, side.y, s.small, bold, contactLabelColor, 0.6)
@@ -846,13 +897,14 @@ export async function generateDesignPDF(
         color: colors.sidebarText || colors.text,
         link,
         lineGap: s.content + 2,
+        style: LS[`basics:${key}`],
       })
       side.y -= 6
     }
-    renderSideContact("Email", resumeData.basics.email, resumeData.basics.email ? `mailto:${resumeData.basics.email}` : undefined)
-    renderSideContact("Phone", resumeData.basics.phone)
-    renderSideContact("Location", resumeData.basics.location)
-    renderSideContact("LinkedIn", resumeData.basics.linkedin, resumeData.basics.linkedin)
+    renderSideContact("Email", resumeData.basics.email, "email", resumeData.basics.email ? `mailto:${resumeData.basics.email}` : undefined)
+    renderSideContact("Phone", resumeData.basics.phone, "phone")
+    renderSideContact("Location", resumeData.basics.location, "location")
+    renderSideContact("LinkedIn", resumeData.basics.linkedin, "linkedin", resumeData.basics.linkedin)
     side.y -= 6
 
     for (const sec of sideSections) {

@@ -1008,7 +1008,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
         .filter((p) => p.val)
         .map((p, i, arr) => (
           <span key={p.key} style={{ display: "inline-flex", gap: 8 }}>
-            <span data-ph={p.key} contentEditable suppressContentEditableWarning onBlur={(e) => handleContactInfoChange(e, p.key)}>
+            <span data-ph={p.key} data-el="body" data-linekey={lineKey("basics", { field: p.key })} style={lcss(lineKey("basics", { field: p.key }))} contentEditable suppressContentEditableWarning onBlur={(e) => handleContactInfoChange(e, p.key)}>
               {p.val}
             </span>
             {i < arr.length - 1 && <span style={{ opacity: 0.5 }}>|</span>}
@@ -1109,7 +1109,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
                 <div style={{ fontSize: px(design.sizes.small), fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: palette.sidebarHeading, marginBottom: 2, fontFamily: fam }}>
                   {CONTACT_LABELS[p.key as string] || (p.key as string)}
                 </div>
-                <span data-ph={p.key} contentEditable suppressContentEditableWarning onBlur={(e) => handleContactInfoChange(e, p.key)} style={{ display: "block", fontSize: px(design.sizes.content), color: palette.sidebarText, fontFamily: fam, wordBreak: "break-word" }}>
+                <span data-ph={p.key} data-el="body" data-linekey={lineKey("basics", { field: p.key })} contentEditable suppressContentEditableWarning onBlur={(e) => handleContactInfoChange(e, p.key)} style={{ display: "block", fontSize: px(design.sizes.content), color: palette.sidebarText, fontFamily: fam, wordBreak: "break-word", ...lcss(lineKey("basics", { field: p.key })) }}>
                   {p.val}
                 </span>
               </div>

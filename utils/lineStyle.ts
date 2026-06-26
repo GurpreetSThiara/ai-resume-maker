@@ -21,6 +21,23 @@ export function lineKey(
   return k
 }
 
+const CSS_TRANSFORM: Record<NonNullable<PerLineStyle["transform"]>, string> = {
+  upper: "uppercase",
+  lower: "lowercase",
+  title: "capitalize",
+}
+
+/**
+ * Apply the letter-case transform to the actual string — used by the PDF and
+ * DOCX renderers, which have no "display transform" (the canvas uses CSS).
+ */
+export function caseText(text: string, s?: PerLineStyle): string {
+  if (!s?.transform || !text) return text
+  if (s.transform === "upper") return text.toUpperCase()
+  if (s.transform === "lower") return text.toLowerCase()
+  return text.replace(/\b\w/g, (c) => c.toUpperCase()) // title
+}
+
 /** HTML preview: CSS for a styled line (spread onto the element's style). */
 export function cssFor(s?: PerLineStyle): Record<string, string | number> {
   if (!s) return {}
@@ -32,6 +49,12 @@ export function cssFor(s?: PerLineStyle): Record<string, string | number> {
   if (color) css.color = color
   if (s.size) css.fontSize = `${px(s.size)}px`
   if (s.font) css.fontFamily = FONT_CSS[s.font]
+  if (s.transform) css.textTransform = CSS_TRANSFORM[s.transform]
+  const bg = cssHex(s.background)
+  if (bg) css.backgroundColor = bg
+  if (s.lineHeight) css.lineHeight = s.lineHeight
+  if (s.letterSpacing) css.letterSpacing = `${px(s.letterSpacing)}px`
+  if (s.shadow) css.textShadow = "0.7px 0.7px 1px rgba(15,23,42,0.45)"
   return css
 }
 
@@ -45,9 +68,19 @@ export function docxRunProps(s?: PerLineStyle): Record<string, unknown> {
   if (s.color) p.color = docxHex(s.color)
   if (s.size) p.size = halfPt(s.size)
   if (s.font) p.font = FONT_DOCX[s.font]
+  if (s.transform === "upper") p.allCaps = true // lower/title handled via caseText()
+  if (s.background) p.shading = { type: "clear", color: "auto", fill: docxHex(s.background) }
+  if (s.letterSpacing) p.characterSpacing = Math.round(s.letterSpacing * 20) // pt → twips
+  if (s.shadow) p.shadow = true
   return p
+}
+
+/** DOCX paragraph spacing for line-height (applied on the Paragraph, not the run). */
+export function docxParaSpacing(s?: PerLineStyle): Record<string, unknown> | undefined {
+  if (!s?.lineHeight) return undefined
+  return { line: Math.round(s.lineHeight * 240), lineRule: "auto" }
 }
 
 /** Does this line have any active formatting? */
 export const hasLineStyle = (s?: PerLineStyle): boolean =>
-  !!s && (!!s.bold || !!s.italic || !!s.underline || !!s.color || !!s.size || !!s.font)
+  !!s && Object.values(s).some((v) => v !== undefined && v !== false && v !== "")
