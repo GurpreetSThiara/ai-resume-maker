@@ -6,6 +6,7 @@ import { AiProvider } from "@/hooks/use-ai"
 import { DevelopmentBanner } from "@/components/global/DevelopmentBanner";
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
+import { BottomNav } from "@/components/mobile/bottom-nav"
 import { Analytics } from "@vercel/analytics/next"
 import Providers from "@/contexts/provider"
 import { ToastContainer } from "@/components/toast/toast-contaner"
@@ -147,8 +148,10 @@ export default function RootLayout({
             {/* <DevelopmentBanner /> */}
             <Navbar />
 
-            <main className="flex-1">{children}</main>
+            {/* Bottom padding on mobile so content clears the fixed bottom tab bar. */}
+            <main className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
             <Footer />
+            <BottomNav />
             <ToastContainer />
             {/* <Analytics/> */}
 

@@ -12,9 +12,17 @@ import { TemplatePickerDrawer } from "@/components/template-picker-drawer"
 import { Eye, Star, Menu, Download, ListChecks, LayoutTemplate } from "lucide-react"
 import { SectionManagement } from "@/components/section-management"
 import { ModernSidebarLayoutModal } from "@/components/modern-sidebar-layout-modal"
+import { Brand } from "@/components/ui/brand"
 import type { ResumeData, ResumeTemplate, Section } from "@/types/resume"
 import { getResumeDesign } from "@/lib/resume-designs"
 import { useRouter, useSearchParams } from "next/navigation"
+
+interface StepInfo {
+  id: number
+  title: string
+  icon: string
+  description: string
+}
 
 interface CreateResumeHeaderProps {
   sectionsWithOrder: Section[]
@@ -30,6 +38,10 @@ interface CreateResumeHeaderProps {
   onOpenDownload: () => void
   editorMode: "guided" | "visual"
   setEditorMode: (mode: "guided" | "visual") => void
+  steps: StepInfo[]
+  currentStep: number
+  setCurrentStep: (index: number) => void
+  completedSteps: Set<number>
 }
 
 export function CreateResumeHeader({
@@ -46,6 +58,10 @@ export function CreateResumeHeader({
   onOpenDownload,
   editorMode,
   setEditorMode,
+  steps,
+  currentStep,
+  setCurrentStep,
+  completedSteps,
 }: CreateResumeHeaderProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -135,36 +151,80 @@ const renderControls = () => (
 )
 
 
+  const progress = steps.length ? ((currentStep + 1) / steps.length) * 100 : 0
+
   return (
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-          Create Your Resume
-        </h1>
+    <>
+      {/* Desktop header */}
+      <div className="hidden md:flex flex-row items-center justify-between gap-3 mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Create Your Resume</h1>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">{renderControls()}</div>
       </div>
 
-      {/* Desktop Controls */}
-      <div className="hidden md:flex flex-wrap items-center gap-3">
-        {renderControls()}
-      </div>
+      {/* Mobile app bar — full-bleed, sticky, single source of chrome */}
+      <div className="md:hidden -mx-4 -mt-4 mb-4 sticky top-0 z-40 border-b border-gray-200/80 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+        <div className="flex items-center gap-1 px-4 h-14">
+          <Brand logoSize={26} asLink={false} />
+          <span className="ml-auto mr-1 rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold tabular-nums text-gray-500">
+            {currentStep + 1}/{steps.length}
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowPreview(!showPreview)}
+            aria-label="Preview resume"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-600 transition active:bg-gray-100"
+          >
+            <Eye className="h-[22px] w-[22px]" />
+          </button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                aria-label="Resume tools"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-gray-600 transition active:bg-gray-100"
+              >
+                <Menu className="h-[22px] w-[22px]" />
+              </button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Resume Tools</SheetTitle>
+              </SheetHeader>
+              <div className="flex flex-col gap-4 py-4 px-6">{renderControls()}</div>
+            </SheetContent>
+          </Sheet>
+        </div>
 
-      {/* Mobile Controls */}
-      <div className="md:hidden flex justify-end">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <Menu className="w-4 h-4" />
-              <span>Tools</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Resume Tools</SheetTitle>
-            </SheetHeader>
-            <div className="flex flex-col gap-4 py-4 px-8">{renderControls()}</div>
-          </SheetContent>
-        </Sheet>
+        {/* progress */}
+        <div className="h-0.5 w-full bg-gray-100">
+          <div className="h-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
+        </div>
+
+        {/* step chips — jump to any step */}
+        <div className="overflow-x-auto px-4 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex w-max gap-2">
+            {steps.map((step, i) => (
+              <button
+                key={step.id}
+                type="button"
+                onClick={() => setCurrentStep(i)}
+                className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-[13px] font-medium transition ${
+                  i === currentStep
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : completedSteps.has(i)
+                      ? "bg-green-50 text-green-700"
+                      : "bg-gray-100 text-gray-500"
+                }`}
+              >
+                <span className="text-sm leading-none">{step.icon}</span>
+                {step.title}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   )
 }

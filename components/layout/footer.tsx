@@ -1,10 +1,16 @@
+"use client"
+
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { FileText, Facebook, Twitter, Linkedin, Instagram } from "lucide-react"
 import { CREATE_RESUME } from "@/config/urls"
 import { Brand } from "@/components/ui/brand"
 import { BuyMeCoffee } from "@/components/ui/buy-me-coffee"
 export function Footer() {
   const currentYear = new Date().getFullYear()
+  const pathname = usePathname() || "/"
+  // The focused editor is app-like — no marketing footer there.
+  if (pathname.startsWith("/free-ats-resume-templates/create")) return null
 
   return (
     <footer className="bg-card border-t border-border">

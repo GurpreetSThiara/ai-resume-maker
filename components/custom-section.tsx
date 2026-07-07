@@ -9,6 +9,8 @@ import { Plus, Trash2, Edit2, Save } from "lucide-react"
 import { SectionVisibilityToggle } from "@/components/section-visibility-toggle"
 import { SectionHiddenBanner } from "@/components/section-hidden-banner"
 import { Textarea } from "@/components/ui/textarea"
+import { RecordFormSheet } from "@/components/record-form-sheet"
+import { useIsMobile } from "@/hooks/use-mobile"
 import type { ResumeData, CustomSection } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 
@@ -18,6 +20,7 @@ interface CustomSectionProps {
 }
 
 export function CustomSection({ data, onUpdate }: CustomSectionProps) {
+  const isMobile = useIsMobile()
   const [newSection, setNewSection] = useState<CustomSection>({
     id: "",
     title: "",
@@ -110,6 +113,145 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
     }))
   }
 
+  const editingSection = customSections.find(s => s.id === editingSectionId)
+
+  const addFields = (
+    <>
+      <div>
+        <Label htmlFor="section-title">Section Title</Label>
+        <Input
+          id="section-title"
+          placeholder="e.g., Awards & Honors, Publications, Volunteer Work"
+          value={newSection.title}
+          onChange={(e) => setNewSection(prev => ({ ...prev, title: e.target.value }))}
+          className="mt-1"
+        />
+      </div>
+
+      <div className="space-y-3">
+        <Label>Content</Label>
+        {newSection.content.map((text, index) => (
+          <div key={index} className="flex gap-2">
+            <Textarea
+              placeholder="Add your content here"
+              value={text}
+              onChange={(e) => updateContent(index, e.target.value)}
+              rows={2}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => removeContent(index)}
+              className="text-red-500"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        ))}
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={addContent}
+          className="w-full bg-transparent"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Content
+        </Button>
+      </div>
+    </>
+  )
+
+  const addActions = (
+    <Button onClick={addSection} className="w-full">
+      Create Section
+    </Button>
+  )
+
+  const editFields = (
+    <>
+      <div>
+        <Label htmlFor="edit-title">Section Title</Label>
+        <Input
+          id="edit-title"
+          value={editData.title}
+          onChange={(e) => setEditData(prev => ({ ...prev, title: e.target.value }))}
+          className="mt-1"
+        />
+      </div>
+
+      <div className="space-y-3">
+        <Label>Content</Label>
+        {editData.content.map((text, index) => (
+          <div key={index} className="flex gap-2">
+            <Textarea
+              value={text}
+              onChange={(e) => {
+                const newContent = [...editData.content]
+                newContent[index] = e.target.value
+                setEditData(prev => ({ ...prev, content: newContent }))
+              }}
+              rows={2}
+              disabled={editingSection?.hidden}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const newContent = editData.content.filter((_, i) => i !== index)
+                setEditData(prev => ({ ...prev, content: newContent }))
+              }}
+              className="text-red-500"
+              disabled={editingSection?.hidden}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        ))}
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setEditData(prev => ({
+              ...prev,
+              content: [...prev.content, ""]
+            }))
+          }}
+          className="w-full bg-transparent"
+          disabled={editingSection?.hidden}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Content
+        </Button>
+      </div>
+    </>
+  )
+
+  const editActions = (
+    <div className="flex gap-2">
+      <Button onClick={saveEdit} className="flex-1" disabled={editingSection?.hidden}>
+        Save Changes
+      </Button>
+      <Button
+        variant="outline"
+        onClick={() => {
+          setEditingSectionId(null)
+          setEditData({
+            id: "",
+            title: "",
+            type: "custom",
+            content: []
+          })
+        }}
+        className="flex-1 bg-transparent"
+        disabled={editingSection?.hidden}
+      >
+        Cancel
+      </Button>
+    </div>
+  )
+
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
@@ -121,85 +263,10 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
       <div className="space-y-4">
         {customSections.map((section) => (
           <Card key={section.id} className="relative">
-            {editingSectionId === section.id ? (
+            {editingSectionId === section.id && !isMobile ? (
               <CardContent className="pt-6 space-y-4">
-                <div>
-                  <Label htmlFor="edit-title">Section Title</Label>
-                  <Input
-                    id="edit-title"
-                    value={editData.title}
-                    onChange={(e) => setEditData(prev => ({ ...prev, title: e.target.value }))}
-                    className="mt-1"
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <Label>Content</Label>
-                  {editData.content.map((text, index) => (
-                    <div key={index} className="flex gap-2">
-                      <Textarea
-                        value={text}
-                        onChange={(e) => {
-                          const newContent = [...editData.content]
-                          newContent[index] = e.target.value
-                          setEditData(prev => ({ ...prev, content: newContent }))
-                        }}
-                        rows={2}
-                        disabled={section.hidden}
-                      />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const newContent = editData.content.filter((_, i) => i !== index)
-                          setEditData(prev => ({ ...prev, content: newContent }))
-                        }}
-                        className="text-red-500"
-                        disabled={section.hidden}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setEditData(prev => ({
-                        ...prev,
-                        content: [...prev.content, ""]
-                      }))
-                    }}
-                    className="w-full bg-transparent"
-                    disabled={section.hidden}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Content
-                  </Button>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button onClick={saveEdit} className="flex-1" disabled={section.hidden}>
-                    Save Changes
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setEditingSectionId(null)
-                      setEditData({
-                        id: "",
-                        title: "",
-                        type: "custom",
-                        content: []
-                      })
-                    }}
-                    className="flex-1 bg-transparent"
-                    disabled={section.hidden}
-                  >
-                    Cancel
-                  </Button>
-                </div>
+                {editFields}
+                {editActions}
               </CardContent>
             ) : (
               <>
@@ -247,12 +314,34 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
         ))}
       </div>
 
+      {/* Mobile edit sheet */}
+      {isMobile && editingSectionId !== null && (
+        <RecordFormSheet
+          open
+          onOpenChange={(o) => { if (!o) { setEditingSectionId(null); setEditData({ id: "", title: "", type: SECTION_TYPES.CUSTOM, content: [] }) } }}
+          title="Edit Section"
+          footer={editActions}
+        >
+          {editFields}
+        </RecordFormSheet>
+      )}
+
       {/* Add New Custom Section */}
       {!isAddingNew ? (
         <Button variant="outline" onClick={() => setIsAddingNew(true)} className="w-full">
           <Plus className="w-4 h-4 mr-2" />
           Add Additional Section
         </Button>
+      ) : isMobile ? (
+        <RecordFormSheet
+          open
+          onOpenChange={(o) => { if (!o) setIsAddingNew(false) }}
+          title="Add Additional Section"
+          description="Highlight awards, publications, volunteer work, and more"
+          footer={addActions}
+        >
+          {addFields}
+        </RecordFormSheet>
       ) : (
         <Card className="border-dashed border-2 border-gray-300">
           <CardHeader>
@@ -262,52 +351,8 @@ export function CustomSection({ data, onUpdate }: CustomSectionProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="section-title">Section Title</Label>
-              <Input
-                id="section-title"
-                placeholder="e.g., Awards & Honors, Publications, Volunteer Work"
-                value={newSection.title}
-                onChange={(e) => setNewSection(prev => ({ ...prev, title: e.target.value }))}
-                className="mt-1"
-              />
-            </div>
-
-            <div className="space-y-3">
-              <Label>Content</Label>
-              {newSection.content.map((text, index) => (
-                <div key={index} className="flex gap-2">
-                  <Textarea
-                    placeholder="Add your content here"
-                    value={text}
-                    onChange={(e) => updateContent(index, e.target.value)}
-                    rows={2}
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeContent(index)}
-                    className="text-red-500"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={addContent}
-                className="w-full bg-transparent"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Content
-              </Button>
-            </div>
-
-            <Button onClick={addSection} className="w-full">
-              Create Section
-            </Button>
+            {addFields}
+            {addActions}
           </CardContent>
         </Card>
       )}

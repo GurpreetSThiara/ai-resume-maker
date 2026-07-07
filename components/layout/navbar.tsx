@@ -158,8 +158,11 @@ export function Navbar() {
     </Link>
   ));
 
+  // The mobile resume editor has its own app bar — the marketing navbar is redundant chrome there.
+  const isEditor = (pathname || "").startsWith("/free-ats-resume-templates/create")
+
   return (
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
+    <header className={`sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b ${isEditor ? "hidden md:block" : ""}`}>
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-4">
           <Brand logoSize={32} asLink={true} />

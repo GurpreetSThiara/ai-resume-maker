@@ -236,7 +236,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
           </div>
         )}
 
-        <div className="w-full px-3 sm:px-4 pt-1 pb-3 flex items-center justify-center gap-2">
+        <div className="w-full px-2 sm:px-4 pt-1 pb-3 flex items-center justify-center gap-1.5 sm:gap-2">
           <ToggleGroup
             type="single"
             variant="outline"
@@ -249,28 +249,28 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
           >
             <ToggleGroupItem
               value="editable"
-              className="gap-1.5 text-xs sm:text-sm px-2 py-2 h-auto"
+              className="gap-1.5 text-xs sm:text-sm px-2 py-2 h-auto flex-none"
               aria-label="Editable preview"
             >
               <PencilLine className="h-4 w-4 shrink-0" aria-hidden />
-              <span className="truncate">Editable</span>
+              <span className="whitespace-nowrap">Editable</span>
             </ToggleGroupItem>
             <ToggleGroupItem
               value="pdf"
-              className="gap-1.5 text-xs sm:text-sm px-2 py-2 h-auto"
+              className="gap-1.5 text-xs sm:text-sm px-2 py-2 h-auto flex-none"
               aria-label="PDF preview from pdf-lib"
             >
               <FileText className="h-4 w-4 shrink-0" aria-hidden />
-              <span className="truncate">PDF</span>
+              <span className="whitespace-nowrap">PDF</span>
             </ToggleGroupItem>
             {!pdfOnly && (
               <ToggleGroupItem
                 value="docx"
-                className="gap-1.5 text-xs sm:text-sm px-2 py-2 h-auto"
+                className="gap-1.5 text-xs sm:text-sm px-2 py-2 h-auto flex-none"
                 aria-label="Word DOCX preview"
               >
                 <FileType2 className="h-4 w-4 shrink-0" aria-hidden />
-                <span className="truncate">DOCX</span>
+                <span className="whitespace-nowrap">DOCX</span>
               </ToggleGroupItem>
             )}
           </ToggleGroup>
@@ -279,7 +279,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
             size="sm"
             onClick={handlePrint}
             disabled={isPrinting}
-            className="gap-1.5 text-xs sm:text-sm px-3 py-2 h-auto shrink-0"
+            className="gap-1.5 text-xs sm:text-sm px-2.5 py-2 h-auto shrink-0"
             aria-label="Print resume"
           >
             {isPrinting ? (
@@ -287,7 +287,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
             ) : (
               <Printer className="h-4 w-4 shrink-0" aria-hidden />
             )}
-            <span className="truncate">Print</span>
+            <span className="whitespace-nowrap">Print</span>
           </Button>
         </div>
 

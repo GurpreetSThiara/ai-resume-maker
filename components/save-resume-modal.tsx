@@ -77,7 +77,7 @@ export function SaveResumeModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-5 sm:p-6">
+      <DialogContent className="w-full max-w-md p-5 sm:p-6 max-h-[92vh] overflow-y-auto !bottom-0 !top-auto !translate-y-0 rounded-b-none rounded-t-2xl sm:!top-1/2 sm:!bottom-auto sm:!-translate-y-1/2 sm:rounded-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Download className="w-5 h-5 text-primary" />

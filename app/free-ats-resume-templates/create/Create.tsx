@@ -595,10 +595,10 @@ const CreateResumeContent: FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-green-50 to-indigo-100">
+    <div className="min-h-screen bg-gray-50 md:bg-gradient-to-br md:from-purple-50 md:via-green-50 md:to-indigo-100">
 
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-4 md:py-6">
         <CreateResumeHeader
           sectionsWithOrder={sectionsWithCustomFields}
           handleSectionReorder={handleSectionReorder}
@@ -613,6 +613,10 @@ const CreateResumeContent: FC = () => {
           onOpenDownload={() => setSaveModalOpen(true)}
           editorMode={editorMode}
           setEditorMode={setEditorMode}
+          steps={steps}
+          currentStep={currentStep}
+          setCurrentStep={setCurrentStep}
+          completedSteps={completedSteps}
         />
 
         {editorMode === "visual" ? (
@@ -625,8 +629,8 @@ const CreateResumeContent: FC = () => {
             onExit={handleStudioExit}
           />
         ) : (
-        <div className="grid gap-6 mt-6">
-          <div className={`grid gap-6 ${showPreview ? "lg:grid-cols-2" : "lg:grid-cols-4"}`}>
+        <div className="grid grid-cols-1 gap-6 mt-0 pb-28 md:mt-6 md:pb-0">
+          <div className={`grid min-w-0 grid-cols-1 gap-6 ${showPreview ? "lg:grid-cols-2" : "lg:grid-cols-4"}`}>
             {/* Desktop Sidebar Navigation */}
             {!showPreview && (
               <div className="hidden lg:block">
@@ -666,9 +670,10 @@ const CreateResumeContent: FC = () => {
             )}
 
             {/* Main Content */}
-            <div className={showPreview ? "lg:col-span-1" : "lg:col-span-3"}>
-              <Card className="min-h-[600px]">
-                <CardHeader>
+            <div className={`min-w-0 ${showPreview ? "lg:col-span-1" : "lg:col-span-3"}`}>
+              <Card className="border-0 bg-transparent shadow-none md:min-h-[600px] md:border md:bg-card md:shadow-sm">
+                {/* Desktop-only header; section components render their own title on mobile */}
+                <CardHeader className="hidden md:block">
                   <div className="flex items-center gap-3">
                     <span className="text-3xl">{steps[currentStep].icon}</span>
                     <div>
@@ -677,11 +682,11 @@ const CreateResumeContent: FC = () => {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>{renderCurrentSection()}</CardContent>
+                <CardContent className="app-mobile-form p-0 md:p-6 md:pt-0">{renderCurrentSection()}</CardContent>
               </Card>
 
-              {/* Navigation */}
-              <div className="flex justify-between mt-6">
+              {/* Navigation (desktop) */}
+              <div className="hidden md:flex justify-between mt-6">
                 <Button
                   variant="outline"
                   onClick={() => setCurrentStep(prev => prev - 1)}
@@ -709,13 +714,36 @@ const CreateResumeContent: FC = () => {
               </div>
             </div>
 
+            {/* Sticky step bar (mobile) */}
+            <div
+              className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-gray-200 bg-white px-4 py-3 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] md:hidden"
+              style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
+            >
+              <Button variant="outline" size="icon" onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))} disabled={currentStep === 0} className="shrink-0" aria-label="Previous step">
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+              <div className="flex-1">
+                <div className="text-center text-xs font-medium text-gray-500">Step {currentStep + 1} of {steps.length}</div>
+                <div className="mt-1 h-1 w-full overflow-hidden rounded bg-gray-100">
+                  <div className="h-full rounded bg-primary transition-all" style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }} />
+                </div>
+              </div>
+              <Button
+                onClick={() => { if (currentStep === steps.length - 1) setSaveModalOpen(true); else setCurrentStep(prev => prev + 1) }}
+                disabled={isSaving}
+                className="shrink-0 gap-1.5"
+              >
+                {currentStep === steps.length - 1 ? <><Download className="w-4 h-4" /> Download</> : <>Next <ChevronRight className="w-4 h-4" /></>}
+              </Button>
+            </div>
+
             {/* Preview Panel */}
             {showPreview && (
               <div className="lg:col-span-1">
                 {/* On mobile: Dialog, On desktop: Regular panel */}
                 {typeof window !== 'undefined' && window.innerWidth < 1024 ? (
                   <Dialog open={showPreview} onOpenChange={setShowPreview}>
-                    <DialogContent className="w-full sm:max-w-[95vw] h-[90vh] flex flex-col">
+                    <DialogContent className="w-full sm:max-w-[95vw] h-[90vh] flex flex-col p-3 sm:p-6">
                       <DialogHeader>
                         <DialogTitle className="text-lg flex items-center justify-between">
                           Resume Preview

@@ -34,11 +34,12 @@ export function TemplatePreviewModal({ template, open, onOpenChange }: Props) {
   if (!template) return null
   const category = CATEGORY_MAP[template.category]
   const Icon = category?.icon
+  const templateHref = useTemplateHref(template.templateId)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-5xl gap-0 overflow-hidden p-0 sm:rounded-2xl"
+        className="flex flex-col gap-0 overflow-hidden p-0 w-full max-w-full h-[92vh] rounded-b-none rounded-t-2xl !bottom-0 !top-auto !translate-y-0 sm:h-auto sm:max-h-[88vh] sm:max-w-5xl sm:rounded-2xl sm:!top-1/2 sm:!bottom-auto sm:!-translate-y-1/2"
         aria-describedby={`preview-desc-${template.id}`}
       >
         <DialogTitle className="sr-only">{template.name} template preview</DialogTitle>
@@ -46,7 +47,7 @@ export function TemplatePreviewModal({ template, open, onOpenChange }: Props) {
           {template.description}
         </DialogDescription>
 
-        <div className="grid max-h-[88vh] grid-cols-1 md:grid-cols-[1.4fr_1fr]">
+        <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden md:grid-cols-[1.4fr_1fr]">
           {/* Preview pane */}
           <div className="relative flex min-h-[40vh] flex-col bg-slate-100">
             <div className="flex items-center justify-between border-b border-slate-200 bg-white/80 px-4 py-2 backdrop-blur">
@@ -139,10 +140,10 @@ export function TemplatePreviewModal({ template, open, onOpenChange }: Props) {
               </div>
             </div>
 
-            {/* CTAs */}
-            <div className="mt-auto space-y-2 pt-6">
+            {/* CTAs (desktop — mobile uses the sticky footer below) */}
+            <div className="mt-auto hidden space-y-2 pt-6 md:block">
               <Link
-                href={useTemplateHref(template.templateId)}
+                href={templateHref}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 Use this template <ArrowRight className="h-4 w-4" aria-hidden />
@@ -155,6 +156,26 @@ export function TemplatePreviewModal({ template, open, onOpenChange }: Props) {
               </Link>
             </div>
           </div>
+        </div>
+
+        {/* Sticky action footer (mobile) */}
+        <div
+          className="flex items-center gap-2 border-t border-slate-200 bg-white p-3 md:hidden"
+          style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
+        >
+          <Link
+            href={previewTemplateHref(template.templateId)}
+            aria-label="Open full preview"
+            className="flex shrink-0 items-center justify-center rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
+          >
+            <Eye className="h-5 w-5" aria-hidden />
+          </Link>
+          <Link
+            href={templateHref}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white shadow-sm"
+          >
+            Use this template <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
         </div>
       </DialogContent>
     </Dialog>

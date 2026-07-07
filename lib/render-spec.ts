@@ -33,6 +33,10 @@ export const px = (pt: number) => pt * PT_TO_PX
 /** pt → half-points (docx TextRun `size`). */
 export const halfPt = (pt: number) => Math.round(pt * 2)
 
+/** A4 in CSS px at PT_TO_PX — the canvas page must use these so its geometry is
+ *  the PDF's pt space uniformly scaled (→ identical proportions & wrapping). */
+export const PAGE_PX = { w: PAGE_PT.w * PT_TO_PX, h: PAGE_PT.h * PT_TO_PX }
+
 /** Shared structural geometry, declared once in pt. */
 export const GEO = {
   sidebarWPt: 188,
@@ -66,9 +70,13 @@ export const SIDEBAR_TRACK_RGB01 = { r: 0.42, g: 0.42, b: 0.42 } as const
 export type FontKey = "sans" | "serif" | "mono"
 /** CSS font stacks chosen to match the metrics of the PDF StandardFonts below. */
 export const FONT_CSS: Record<FontKey, string> = {
-  sans: "Helvetica, Arial, sans-serif",
-  serif: 'Georgia, "Times New Roman", serif',
-  mono: '"Courier New", monospace',
+  // Lead with fonts that are metric-compatible with the PDF StandardFonts
+  // (Arial≈Helvetica, Times New Roman≈Times, Courier New≈Courier) so the
+  // browser's line-breaking matches pdf-lib's. Georgia is intentionally NOT
+  // used for serif — its advance widths differ from Times and break wrapping.
+  sans: "Arial, Helvetica, sans-serif",
+  serif: '"Times New Roman", Times, serif',
+  mono: '"Courier New", Courier, monospace',
 }
 /** docx font names. */
 export const FONT_DOCX: Record<FontKey, string> = {

@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, Briefcase, Edit2, Save } from "lucide-react"
 import { SectionVisibilityToggle } from "@/components/section-visibility-toggle"
 import { SectionHiddenBanner } from "@/components/section-hidden-banner"
+import { RecordFormSheet } from "@/components/record-form-sheet"
+import { useIsMobile } from "@/hooks/use-mobile"
 import type { ResumeData, Experience, ExperienceSection as ExperienceSectionType } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 
@@ -17,6 +19,7 @@ interface ExperienceSectionProps {
 }
 
 export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
+  const isMobile = useIsMobile()
   const [newExperience, setNewExperience] = useState<Experience>({
     company: "",
     role: "",
@@ -188,6 +191,95 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
     setIsSectionDirty(false) // Clear the dirty state after saving
   }
 
+  const addFields = (
+    <>
+      <div>
+        <Label htmlFor="company">Company</Label>
+        <Input id="company" placeholder="e.g., Google Inc." value={newExperience.company} onChange={(e) => setNewExperience((prev) => ({ ...prev, company: e.target.value }))} disabled={isHidden} className="mt-1" />
+      </div>
+      <div>
+        <Label htmlFor="role">Role</Label>
+        <Input id="role" placeholder="e.g., Senior Software Engineer" value={newExperience.role} onChange={(e) => setNewExperience((prev) => ({ ...prev, role: e.target.value }))} disabled={isHidden} className="mt-1" />
+      </div>
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <Label htmlFor="start">Start Date</Label>
+          <Input id="start" placeholder="e.g., Jan 2020" value={newExperience.startDate} onChange={(e) => setNewExperience((prev) => ({ ...prev, startDate: e.target.value }))} disabled={isHidden} className="mt-1" />
+        </div>
+        <div className="flex-1">
+          <Label htmlFor="end">End Date</Label>
+          <Input id="end" placeholder="e.g., Present" value={newExperience.endDate} onChange={(e) => setNewExperience((prev) => ({ ...prev, endDate: e.target.value }))} disabled={isHidden} className="mt-1" />
+        </div>
+      </div>
+      <div>
+        <Label htmlFor="location">Location</Label>
+        <Input id="location" placeholder="e.g., San Francisco, CA" value={newExperience.location} onChange={(e) => setNewExperience((prev) => ({ ...prev, location: e.target.value }))} disabled={isHidden} className="mt-1" />
+      </div>
+      <div className="space-y-3">
+        <Label>Achievements</Label>
+        {(newExperience.achievements || []).map((ach, i) => (
+          <div key={i} className="flex gap-2">
+            <Input placeholder="Achievement or responsibility" value={ach} onChange={(e) => updateAchievement(i, e.target.value)} disabled={isHidden} />
+            {(newExperience.achievements?.length || 0) > 1 && (
+              <Button variant="ghost" size="sm" onClick={() => removeAchievement(i)} className="text-red-500" disabled={isHidden}><Trash2 className="w-4 h-4" /></Button>
+            )}
+          </div>
+        ))}
+        <Button variant="outline" size="sm" onClick={addAchievementField} className="w-full bg-transparent" disabled={isHidden}><Plus className="w-4 h-4 mr-2" />Add Achievement</Button>
+      </div>
+    </>
+  )
+
+  const addActions = (
+    <Button onClick={addExperience} className="w-full" disabled={isHidden}>Save Experience Entry</Button>
+  )
+
+  const editFields = (
+    <>
+      <div>
+        <Label htmlFor="edit-company">Company</Label>
+        <Input id="edit-company" value={editData.company} onChange={(e) => setEditData((prev) => ({ ...prev, company: e.target.value }))} className="mt-1" disabled={isHidden} />
+      </div>
+      <div>
+        <Label htmlFor="edit-role">Role</Label>
+        <Input id="edit-role" value={editData.role} onChange={(e) => setEditData((prev) => ({ ...prev, role: e.target.value }))} disabled={isHidden} className="mt-1" />
+      </div>
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <Label htmlFor="edit-start">Start Date</Label>
+          <Input id="edit-start" value={editData.startDate} onChange={(e) => setEditData((prev) => ({ ...prev, startDate: e.target.value }))} disabled={isHidden} className="mt-1" />
+        </div>
+        <div className="flex-1">
+          <Label htmlFor="edit-end">End Date</Label>
+          <Input id="edit-end" value={editData.endDate} onChange={(e) => setEditData((prev) => ({ ...prev, endDate: e.target.value }))} disabled={isHidden} className="mt-1" />
+        </div>
+      </div>
+      <div>
+        <Label htmlFor="edit-location">Location</Label>
+        <Input id="edit-location" value={editData.location} onChange={(e) => setEditData((prev) => ({ ...prev, location: e.target.value }))} disabled={isHidden} className="mt-1" />
+      </div>
+      <div className="space-y-3">
+        <Label>Achievements</Label>
+        {(editData.achievements || []).map((ach, i) => (
+          <div key={i} className="flex gap-2">
+            <Input value={ach} onChange={(e) => updateEditAchievement(i, e.target.value)} placeholder="Achievement or responsibility" disabled={isHidden} />
+            {(editData.achievements?.length || 0) > 1 && (
+              <Button variant="ghost" size="sm" onClick={() => removeEditAchievement(i)} className="text-red-500" disabled={isHidden}><Trash2 className="w-4 h-4" /></Button>
+            )}
+          </div>
+        ))}
+        <Button variant="outline" size="sm" onClick={addEditAchievementField} className="w-full bg-transparent" disabled={isHidden}><Plus className="w-4 h-4 mr-2" />Add Achievement</Button>
+      </div>
+    </>
+  )
+
+  const editActions = (
+    <div className="flex gap-2">
+      <Button onClick={saveEdit} className="flex-1">Save Changes</Button>
+      <Button variant="outline" onClick={cancelEdit} className="flex-1 bg-transparent">Cancel</Button>
+    </div>
+  )
+
   return (
     <div className="space-y-6">
       <div className="text-center mb-2 flex items-center justify-between">
@@ -212,96 +304,10 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
       <div className="space-y-4">
         {experienceSection.items.map((exp, index) => (
           <Card key={index} className="relative">
-            {editingIndex === index ? (
+            {editingIndex === index && !isMobile ? (
               <CardContent className="pt-6 space-y-4">
-                <div>
-                  <Label htmlFor="edit-company">Company</Label>
-                  <Input
-                    id="edit-company"
-                    value={editData.company}
-                    onChange={(e) => setEditData((prev) => ({ ...prev, company: e.target.value }))}
-                    className="mt-1"
-                    disabled={isHidden}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-role">Role</Label>
-                  <Input
-                    id="edit-role"
-                    value={editData.role}
-                    onChange={(e) => setEditData((prev) => ({ ...prev, role: e.target.value }))}
-                    disabled={isHidden}
-                    className="mt-1"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <Label htmlFor="edit-start">Start Date</Label>
-                    <Input
-                      id="edit-start"
-                      value={editData.startDate}
-                      onChange={(e) => setEditData((prev) => ({ ...prev, startDate: e.target.value }))}
-                      disabled={isHidden}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <Label htmlFor="edit-end">End Date</Label>
-                    <Input
-                      id="edit-end"
-                      value={editData.endDate}
-                      onChange={(e) => setEditData((prev) => ({ ...prev, endDate: e.target.value }))}
-                      disabled={isHidden}
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="edit-location">Location</Label>
-                  <Input
-                    id="edit-location"
-                    value={editData.location}
-                    onChange={(e) => setEditData((prev) => ({ ...prev, location: e.target.value }))}
-                    disabled={isHidden}
-                    className="mt-1"
-                  />
-                </div>
-                <div className="space-y-3">
-                  <Label>Achievements</Label>
-                  {(editData.achievements || []).map((ach, i) => (
-                    <div key={i} className="flex gap-2">
-                      <Input
-                        value={ach}
-                        onChange={(e) => updateEditAchievement(i, e.target.value)}
-                        placeholder="Achievement or responsibility"
-                        disabled={isHidden}
-                      />
-                      {(editData.achievements?.length || 0) > 1 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeEditAchievement(i)}
-                          className="text-red-500"
-                          disabled={isHidden}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  <Button variant="outline" size="sm" onClick={addEditAchievementField} className="w-full bg-transparent" disabled={isHidden}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Achievement
-                  </Button>
-                </div>
-                <div className="flex gap-2">
-                  <Button onClick={saveEdit} className="flex-1">
-                    Save Changes
-                  </Button>
-                  <Button variant="outline" onClick={cancelEdit} className="flex-1 bg-transparent">
-                    Cancel
-                  </Button>
-                </div>
+                {editFields}
+                {editActions}
               </CardContent>
             ) : (
               <>
@@ -353,12 +359,34 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
         ))}
       </div>
 
+      {/* Mobile edit sheet */}
+      {isMobile && editingIndex !== null && (
+        <RecordFormSheet
+          open
+          onOpenChange={(o) => { if (!o) cancelEdit() }}
+          title="Edit Experience"
+          footer={editActions}
+        >
+          {editFields}
+        </RecordFormSheet>
+      )}
+
       {/* Add New Experience */}
       {!isAddingNew ? (
         <Button variant="outline" onClick={() => setIsAddingNew(true)} className="w-full" disabled={isHidden}>
           <Plus className="w-4 h-4 mr-2" />
           Add Experience Entry
         </Button>
+      ) : isMobile ? (
+        <RecordFormSheet
+          open
+          onOpenChange={(o) => { if (!o) setIsAddingNew(false) }}
+          title="Add Experience"
+          description="Showcase your career achievements and impact"
+          footer={addActions}
+        >
+          {addFields}
+        </RecordFormSheet>
       ) : (
         <Card className="border-dashed border-2 border-gray-300">
           <CardHeader>
@@ -368,88 +396,8 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="company">Company</Label>
-              <Input
-                id="company"
-                placeholder="e.g., Google Inc."
-                value={newExperience.company}
-                onChange={(e) => setNewExperience((prev) => ({ ...prev, company: e.target.value }))}
-                disabled={isHidden}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="role">Role</Label>
-              <Input
-                id="role"
-                placeholder="e.g., Senior Software Engineer"
-                value={newExperience.role}
-                onChange={(e) => setNewExperience((prev) => ({ ...prev, role: e.target.value }))}
-                disabled={isHidden}
-                className="mt-1"
-              />
-            </div>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Label htmlFor="start">Start Date</Label>
-                <Input
-                  id="start"
-                  placeholder="e.g., Jan 2020"
-                  value={newExperience.startDate}
-                  onChange={(e) => setNewExperience((prev) => ({ ...prev, startDate: e.target.value }))}
-                  disabled={isHidden}
-                  className="mt-1"
-                />
-              </div>
-              <div className="flex-1">
-                <Label htmlFor="end">End Date</Label>
-                <Input
-                  id="end"
-                  placeholder="e.g., Present"
-                  value={newExperience.endDate}
-                  onChange={(e) => setNewExperience((prev) => ({ ...prev, endDate: e.target.value }))}
-                  disabled={isHidden}
-                  className="mt-1"
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                placeholder="e.g., San Francisco, CA"
-                value={newExperience.location}
-                onChange={(e) => setNewExperience((prev) => ({ ...prev, location: e.target.value }))}
-                disabled={isHidden}
-                className="mt-1"
-              />
-            </div>
-            <div className="space-y-3">
-              <Label>Achievements</Label>
-              {(newExperience.achievements || []).map((ach, i) => (
-                <div key={i} className="flex gap-2">
-                  <Input
-                    placeholder="Achievement or responsibility"
-                    value={ach}
-                    onChange={(e) => updateAchievement(i, e.target.value)}
-                    disabled={isHidden}
-                  />
-                  {(newExperience.achievements?.length || 0) > 1 && (
-                    <Button variant="ghost" size="sm" onClick={() => removeAchievement(i)} className="text-red-500" disabled={isHidden}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <Button variant="outline" size="sm" onClick={addAchievementField} className="w-full bg-transparent" disabled={isHidden}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Achievement
-              </Button>
-            </div>
-            <Button onClick={addExperience} className="w-full" disabled={isHidden}>
-              Save Experience Entry
-            </Button>
+            {addFields}
+            {addActions}
           </CardContent>
         </Card>
       )}

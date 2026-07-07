@@ -127,3 +127,65 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ------------------------------------------------------------------ *
+ * Native app-form feel for the mobile resume editor.
+ * Scoped to .app-mobile-form + phone widths only — desktop untouched.
+ * Turns green-bordered web inputs into soft, filled, tap-friendly
+ * fields and neutralises the mint card tint into clean white sheets.
+ * ------------------------------------------------------------------ */
+@media (max-width: 767.98px) {
+  .app-mobile-form input:not([type="checkbox"]):not([type="radio"]):not([role="switch"]),
+  .app-mobile-form textarea,
+  .app-mobile-form select {
+    min-height: 3rem;                 /* 48px tap target */
+    width: 100%;
+    border-radius: 0.875rem;          /* 14px */
+    background-color: #f3f4f6;        /* soft filled, not white+green-border */
+    border: 1px solid transparent;
+    font-size: 16px;                  /* prevents iOS focus zoom */
+    padding: 0.75rem 1rem;
+    box-shadow: none;
+    color: var(--foreground);
+    transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease;
+  }
+
+  .app-mobile-form textarea {
+    min-height: 7rem;
+    line-height: 1.55;
+  }
+
+  .app-mobile-form input:focus,
+  .app-mobile-form input:focus-visible,
+  .app-mobile-form textarea:focus,
+  .app-mobile-form textarea:focus-visible,
+  .app-mobile-form select:focus {
+    background-color: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 18%, transparent);
+    outline: none;
+  }
+
+  .app-mobile-form input::placeholder,
+  .app-mobile-form textarea::placeholder {
+    color: #9ca3af;
+  }
+
+  /* Field labels: quieter and roomier than the web default */
+  .app-mobile-form label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 0.375rem;
+    display: inline-block;
+  }
+
+  /* Group / sub-section cards: clean white sheets with a soft lift,
+     replacing the mint-tinted hard-bordered boxes. */
+  .app-mobile-form [data-slot="card"] {
+    background: #ffffff;
+    border: 1px solid #eef0f2;
+    border-radius: 1rem;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+  }
+}
