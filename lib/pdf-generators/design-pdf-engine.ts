@@ -6,7 +6,7 @@ import { lineKey, caseText } from "@/utils/lineStyle"
 import { wrapText } from "../pdf-utils"
 import { sanitizeWithFont, hexToRgb, addLinkAnnotation } from "./pdf-helpers"
 import type { ResumeDesign } from "../resume-designs"
-import { skillDotsFilled, effectiveSkillLevel } from "../resume-designs"
+import { skillDotsFilled, effectiveSkillLevel, DEFAULT_MARGIN_SCALE } from "../resume-designs"
 
 const PAGE_W = 595.276
 const PAGE_H = 841.89
@@ -65,6 +65,9 @@ export async function generateDesignPDF(
     sidebarAccent: c.sidebarAccent ? col(c.sidebarAccent) : undefined,
   }
   const s = design.sizes
+  // Vertical-gap multiplier driven by the density setting (tight by default).
+  const gapScale = design.gapScale ?? 0.75
+  const gp = (n: number) => n * gapScale
 
   // Role/headline shown under the name (derived from the most recent experience role).
   const firstRole: string = (() => {
@@ -80,7 +83,8 @@ export async function generateDesignPDF(
 
   const isSidebarLayout = design.layout === "sidebar-left" || design.layout === "sidebar-right"
   const sidebarRight = design.layout === "sidebar-right"
-  const margin = isSidebarLayout ? 28 : design.id === "compact-pro" ? 36 : 44
+  const marginScale = design.marginScale ?? DEFAULT_MARGIN_SCALE
+  const margin = (isSidebarLayout ? 28 : design.id === "compact-pro" ? 36 : 44) * marginScale
   const stripeW = design.accentStripe ? 8 : 0
   const sidebarW = 188
   const sidebarX0 = sidebarRight ? PAGE_W - sidebarW : 0 // left edge of the sidebar band
@@ -572,7 +576,7 @@ export async function generateDesignPDF(
       })
     }
 
-    cur.y -= 8
+    cur.y -= gp(8)
   }
 
   // ---------- section dispatch ----------
@@ -594,6 +598,23 @@ export async function generateDesignPDF(
         })
         break
       case "education":
+        // Condensed = one line: Institution — Degree, Year, CGPA.
+        if (design.condensedEducation) {
+          ;(section.items || []).forEach((edu: any) => {
+            const yr = [edu.startDate, edu.endDate].filter(Boolean).join(" – ")
+            const rest = [edu.degree, yr, edu.gpa].filter(Boolean).join(", ")
+            const inst = sanitizeWithFont(edu.institution || "", bold)
+            ensure(cur, s.content + 5)
+            const baseY = cur.y - s.content * 0.8
+            pageOf(cur).drawText(inst, { x: cur.x, y: baseY, size: s.content, font: bold, color: colors.heading })
+            if (rest) {
+              const instW = bold.widthOfTextAtSize(inst, s.content)
+              pageOf(cur).drawText(sanitizeWithFont(` — ${rest}`, regular), { x: cur.x + instW, y: baseY, size: s.content, font: regular, color: colors.text })
+            }
+            cur.y -= s.content + gp(6)
+          })
+          break
+        }
         ;(section.items || []).forEach((edu: any, idx: number) => {
           headedEntry(
             cur,
@@ -950,13 +971,13 @@ export async function generateDesignPDF(
       if (sec.type === "custom-fields") {
         sectionTitle(main, sec.title)
         renderCustomFields(main)
-        main.y -= 6
+        main.y -= gp(6)
         continue
       }
       if (!sectionHasContent(sec)) continue
       sectionTitle(main, sec.title)
       renderSectionBody(main, sec)
-      main.y -= 6
+      main.y -= gp(6)
     }
 
     return await pdf.save()
@@ -1089,12 +1110,15 @@ export async function generateDesignPDF(
       cur.y -= contLH
     }
     cur.y -= 6
-    firstPage.drawLine({
-      start: { x: cur.x, y: cur.y + 4 },
-      end: { x: cur.x + cur.width, y: cur.y + 4 },
-      thickness: 1.4,
-      color: colors.accent,
-    })
+    // "plain" designs carry no rules anywhere, including under the header.
+    if (design.sectionTitle !== "plain") {
+      firstPage.drawLine({
+        start: { x: cur.x, y: cur.y + 4 },
+        end: { x: cur.x + cur.width, y: cur.y + 4 },
+        thickness: 1.4,
+        color: colors.accent,
+      })
+    }
     cur.y -= 14
   }
 
@@ -1116,13 +1140,13 @@ export async function generateDesignPDF(
       if (!entries.length) continue
       sectionTitle(cur, sec.title)
       renderCustomFields(cur)
-      cur.y -= 6
+      cur.y -= gp(6)
       continue
     }
     if (!sectionHasContent(sec)) continue
     sectionTitle(cur, sec.title)
     renderSectionBody(cur, sec)
-    cur.y -= 6
+    cur.y -= gp(6)
   }
 
   return await pdf.save()

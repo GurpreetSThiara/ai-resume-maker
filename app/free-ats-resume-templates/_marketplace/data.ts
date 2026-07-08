@@ -180,7 +180,7 @@ const LEGACY_DEFS: LegacyDef[] = [
   { id: "classic-blue", name: "Classic Blue", category: "professional", thumb: RESUME_IMAGES.CLASSIC_BLUE, ats: 96, pop: 94, premium: false, accent: "1d4ed8", tags: ["Professional", "Blue", "Classic"] },
   { id: "ats-green", name: "ATS Friendly Green", category: "ats-friendly", thumb: RESUME_IMAGES.ATS_GREEN, ats: 98, pop: 88, premium: false, accent: "15803d", tags: ["ATS", "Headers", "Green"] },
   { id: "ats-yellow", name: "Classic Yellow", category: "ats-friendly", thumb: RESUME_IMAGES.ATS_YELLOW, ats: 98, pop: 84, premium: false, accent: "b45309", tags: ["ATS", "Accent", "Yellow"] },
-  { id: "ats-compact-lines", name: "ATS Compact Lines", category: "ats-friendly", thumb: RESUME_IMAGES.COMPACT_LINES, ats: 98, pop: 86, premium: false, accent: "111827", tags: ["ATS", "Compact", "Lines"] },
+  { id: "ats-compact-lines", name: "ATS Classic Lines", category: "ats-friendly", thumb: RESUME_IMAGES.COMPACT_LINES, ats: 98, pop: 86, premium: false, accent: "111827", tags: ["ATS", "Classic", "Lines"] },
   { id: "modern-sidebar", name: "Modern Sidebar", category: "designer", thumb: RESUME_IMAGES.MODERN_SIDEBAR, ats: 87, pop: 89, premium: false, accent: "1e293b", tags: ["Designer", "Sidebar", "Two Column"] },
   { id: "bold-professional", name: "Bold Professional", category: "professional", thumb: RESUME_IMAGES.BOLD_PROFESSIONAL, ats: 89, pop: 90, premium: false, accent: "1e293b", tags: ["Professional", "Bold", "Header"] },
   { id: "modern-split", name: "Modern Split", category: "modern", thumb: RESUME_IMAGES.MODERN_SPLIT, ats: 88, pop: 93, premium: true, accent: "0f172a", tags: ["Modern", "Two Column", "Premium"] },

@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { blogPosts } from '../data/blogPosts';
 import BlogPostDetail from '../BlogPostDetail';
 import { Metadata } from 'next';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { blogPostSchema } from '@/lib/seo';
 
 interface PageProps {
     params: Promise<{
@@ -61,5 +63,19 @@ export default async function BlogPostPage({ params }: PageProps) {
         notFound();
     }
 
-    return <BlogPostDetail post={post} />;
+    return (
+        <>
+            <JsonLd
+                data={blogPostSchema({
+                    title: post.title,
+                    description: post.excerpt,
+                    slug: post.id,
+                    image: post.image,
+                    author: post.author,
+                    publishedAt: post.publishedAt,
+                })}
+            />
+            <BlogPostDetail post={post} />
+        </>
+    );
 }

@@ -5,15 +5,15 @@ import { useRef, useEffect, forwardRef, useState } from "react"
 import dynamic from "next/dynamic"
 import type { ResumeData, ResumeTemplate, Section } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
-import { getResumePreview } from "./resumes"
 import { PdfPreviewErrorBoundary } from "./pdf-preview-boundary"
 import { atsCompactLinesTemplate, atsClassicCompactTemplate } from "@/lib/templates"
 import { AlertTriangle, FileText, FileType2, Loader2, PencilLine, Printer, X } from "lucide-react"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Button } from "@/components/ui/button"
-import { getResumeDesign } from "@/lib/resume-designs"
+import { getResumeDesign, mergeDesign } from "@/lib/resume-designs"
 import { printResumePDF } from "@/lib/pdf-generators/print-pdf"
 import { SHOW_ERROR } from "@/utils/toast"
+import ConfigurableResume from "@/components/resumes/shared/ConfigurableResume"
 
 const ResumePdfPreview = dynamic(
   () => import("@/components/resume-pdf-preview").then((m) => m.ResumePdfPreview),
@@ -55,7 +55,12 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
     const customFieldsRef = useRef<HTMLDivElement>(null)
     const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
-    const [ResumeComponent, setResumeComponent] = useState<React.ComponentType<any> | null>(null);
+    // The editable surface renders through mergeDesign so per-resume style
+    // (density / margins / condensed education …) matches the PDF & DOCX output.
+    const editableDesign = mergeDesign(
+      getResumeDesign(template.id) ?? getResumeDesign("classic-blue")!,
+      resumeData.style,
+    )
 
     // Effect to handle scrolling when activeSection changes
     useEffect(() => {
@@ -88,17 +93,6 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
       }
     }, [activeSection, ref])
 
-    useEffect(() => {
-      let isMounted = true;
-
-      getResumePreview({ template: template }).then((comp) => {
-        if (isMounted) setResumeComponent(() => comp);
-      });
-
-      return () => {
-        isMounted = false;
-      };
-    }, [template.id]);
 
     const hasSectionContent = (section: any): boolean => {
       if (!section || section.hidden) return false
@@ -305,19 +299,14 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
           </div>
         ) : (
           <div ref={ref} className="w-full flex justify-center pb-8">
-            {ResumeComponent && (
-              <ResumeComponent
-                pdfRef={ref}
-                font={{ className: "", name: "Helvetica, Arial, sans-serif" }}
-                theme={template.theme || {}}
-                resumeData={filteredResumeData}
-                setResumeData={setResumeData}
-                activeSection={activeSection}
-                useBlackVariant={
-                  template.id === atsCompactLinesTemplate.id || template.id === atsClassicCompactTemplate.id
-                }
-              />
-            )}
+            <ConfigurableResume
+              pdfRef={ref as any}
+              font={{ className: "", name: "Helvetica, Arial, sans-serif" }}
+              design={editableDesign}
+              resumeData={filteredResumeData}
+              setResumeData={setResumeData}
+              activeSection={activeSection}
+            />
           </div>
         )}
       </div>

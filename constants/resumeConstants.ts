@@ -61,19 +61,19 @@ export const RESUME_TEMPLATES = [
   },
   {
     id: "ats-classic",
-    name: "Classic",
+    name: "ATS Classic",
     url: RESUME_IMAGES.CLASSIC,
     category: "Professional",
-    description: "Clean, minimal and highly readable. Works well for corporate and technical roles.",
+    description: "Clean, minimal and highly readable, with plain section headings (no rules).",
     suggestedFor: ["Engineering", "Finance", "Operations"],
     isAtsFriendly: true
   },
   {
     id: "ats-compact-lines",
-    name: "ATS Compact Lines",
+    name: "ATS Classic Lines",
     url: RESUME_IMAGES.COMPACT_LINES,
     category: "ATS",
-    description: "Ultra-compact ATS-friendly layout with minimal line spacing. Maximizes content while staying ATS-safe.",
+    description: "ATS Classic with black rule lines under each section heading.",
     suggestedFor: ["Experienced professionals", "Technical roles", "Dense resumes"],
     isAtsFriendly: true
   },

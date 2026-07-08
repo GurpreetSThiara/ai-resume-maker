@@ -605,6 +605,7 @@ const CreateResumeContent: FC = () => {
           showPreview={showPreview}
           setShowPreview={setShowPreview}
           resumeData={resumeData}
+          setResumeData={setResumeData}
           selectedTemplate={selectedTemplate}
           setSelectedTemplate={setSelectedTemplate}
           availableTemplates={availableTemplates}

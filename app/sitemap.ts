@@ -1,146 +1,41 @@
 import { MetadataRoute } from 'next';
+import { blogPosts } from './blog/data/blogPosts';
+import { SITE_URL } from '@/lib/seo';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://createfreecv.com';
+  const baseUrl = SITE_URL;
+  const now = new Date();
 
-  return [
-    {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}/about`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/blog`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/blog/hidden-job-market-2026`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/ats-resume-explained`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/ats-resume-guide`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/resume-for-freshers`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/software-engineer-resume`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/resume-rejected-without-interview`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/top-resume-career-trends-2026`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/contact`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/cookie-policy`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-    {
-      url: `${baseUrl}/cover-letter`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/free-ats-resume-templates`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}/free-ats-resume-templates/create`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/free-ats-resume-templates/preview`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/resume-examples`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/faq`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/how-to-write-a-resume`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/image-converter`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/privacy-policy`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-    {
-      url: `${baseUrl}/resume-for-freshers`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/terms-of-service`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-  ];
+  const staticRoutes: MetadataRoute.Sitemap = ([
+    { url: baseUrl, changeFrequency: 'weekly', priority: 1 },
+    { url: `${baseUrl}/free-ats-resume-templates`, changeFrequency: 'weekly', priority: 1 },
+    { url: `${baseUrl}/free-ats-resume-templates/create`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${baseUrl}/free-ats-resume-templates/preview`, changeFrequency: 'weekly', priority: 0.6 },
+    { url: `${baseUrl}/resume-examples`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${baseUrl}/cover-letter`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${baseUrl}/blog`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${baseUrl}/faq`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${baseUrl}/about`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${baseUrl}/how-to-write-a-resume`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/resume-for-freshers`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/software-engineer-resume`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/ats-resume-explained`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/resume-rejected-without-interview`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${baseUrl}/image-converter`, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${baseUrl}/contact`, changeFrequency: 'yearly', priority: 0.5 },
+    { url: `${baseUrl}/privacy-policy`, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${baseUrl}/terms-of-service`, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${baseUrl}/cookie-policy`, changeFrequency: 'yearly', priority: 0.3 },
+  ] as MetadataRoute.Sitemap).map((route) => ({ ...route, lastModified: now }));
+
+  // Blog posts are generated from the single source of truth so new posts are
+  // indexed automatically and slugs never drift out of sync.
+  const blogRoutes: MetadataRoute.Sitemap = blogPosts.map((post) => ({
+    url: `${baseUrl}/blog/${post.id}`,
+    lastModified: post.publishedAt ? new Date(post.publishedAt) : now,
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
+
+  return [...staticRoutes, ...blogRoutes];
 }

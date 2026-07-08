@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { RotateCcw, AlignLeft, AlignCenter, Bold, Italic, Underline, Target, Globe } from "lucide-react"
-import { DENSITY_OPTS, FONT_OPTS, LAYOUT_OPTS, SKILL_OPTS, type Selection } from "./studio-shared"
+import { DENSITY_OPTS, FONT_OPTS, LAYOUT_OPTS, MARGIN_OPTS, SKILL_OPTS, type Selection } from "./studio-shared"
 
 const clean = (h: string) => (h || "").replace("#", "")
 
@@ -260,6 +260,7 @@ export function StudioRightPanel({
       <Group title="Layout & spacing" scope="global">
         <Row label="Spacing">{sel(eff.density, DENSITY_OPTS, (v) => setStyle({ density: v as any }), 120)}</Row>
         <Row label="Divider"><Switch checked={dividerOn} onCheckedChange={(c) => setStyle({ sectionTitle: c ? "underline" : "plain" })} /></Row>
+        <Row label="Condensed education"><Switch checked={style.condensedEducation ?? base.condensedEducation ?? false} onCheckedChange={(c) => setStyle({ condensedEducation: c })} /></Row>
         <Row label="Layout">{sel(eff.layout, LAYOUT_OPTS, (v) => setStyle({ layout: v as any }), 140)}</Row>
         <Row label="Skills">{sel(eff.skillStyle, SKILL_OPTS, (v) => setStyle({ skillStyle: v as any }), 120)}</Row>
       </Group>
@@ -270,7 +271,7 @@ export function StudioRightPanel({
           <input type="color" value={`#${clean(style.accent ?? base.colors.accent)}`} onChange={(e) => setStyle({ accent: e.target.value })} className="h-8 w-10 cursor-pointer rounded border bg-transparent p-0.5" />
         </Row>
         <Row label="Page size"><span className="text-xs text-gray-400">A4 (210×297mm)</span></Row>
-        <Row label="Margins"><span className="text-xs text-gray-400">Normal</span></Row>
+        <Row label="Margins">{sel(style.pageMargin ?? "normal", MARGIN_OPTS, (v) => setStyle({ pageMargin: v as any }), 120)}</Row>
       </Group>
 
       <div className="px-4 py-4">

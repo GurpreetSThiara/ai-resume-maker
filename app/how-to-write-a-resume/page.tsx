@@ -2,6 +2,17 @@ import React from 'react'
 import Detail from './Detail'
 
 import type { Metadata } from "next";
+import { JsonLd } from '@/components/seo/JsonLd';
+import { howToSchema } from '@/lib/seo';
+
+const HOW_TO_STEPS = [
+  { name: 'Choose an ATS-friendly template', text: 'Start with a clean, single-column, ATS-compatible template so your resume parses correctly in applicant tracking systems.' },
+  { name: 'Add your contact information', text: 'Put your name, phone, email, and LinkedIn/portfolio at the top of the page (never in the header/footer), so recruiters and ATS can find them.' },
+  { name: 'Write a targeted professional summary', text: 'Summarize your value in 2-3 lines, tailored to the role, highlighting your most relevant skills and measurable achievements.' },
+  { name: 'List work experience with quantified results', text: 'For each role, use action verbs and include metrics (numbers, percentages, outcomes) that prove your impact.' },
+  { name: 'Add skills, education, and certifications', text: 'Include a categorized skills section with keywords from the job description, plus your education and any relevant certifications.' },
+  { name: 'Proofread and download', text: 'Review for typos and consistency, then download your resume as a PDF or DOCX to send to employers.' },
+];
 
 export const metadata: Metadata = {
   title: "ATS Resume Guide 2026 – How to Create a Resume That Gets Interviews",
@@ -48,6 +59,14 @@ export const metadata: Metadata = {
 const page = () => {
   return (
     <div>
+        <JsonLd
+          data={howToSchema({
+            name: 'How to Write a Resume That Gets Interviews',
+            description:
+              'Step-by-step guide to writing an ATS-optimized resume that passes applicant tracking systems and impresses recruiters.',
+            steps: HOW_TO_STEPS,
+          })}
+        />
         <Detail/>
     </div>
   )

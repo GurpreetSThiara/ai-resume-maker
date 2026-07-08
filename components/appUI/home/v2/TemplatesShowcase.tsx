@@ -5,7 +5,7 @@ import Link from "next/link"
 import { ArrowRight, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getResumeDesign } from "@/lib/resume-designs"
-import { Section, SectionHeading, SafeImg, TEMPLATES_URL } from "./shared"
+import { Section, SectionHeading, SafeImg, TEMPLATES_URL, CREATE_URL } from "./shared"
 
 const PICKS = ["ats-pure", "tech-teal", "corporate-navy", "timeline-pro", "sidebar-emerald", "boxed-cobalt"]
 
@@ -39,7 +39,7 @@ export function TemplatesShowcase() {
         {SHOWCASE.map((t) => (
           <Link
             key={t.name}
-            href={TEMPLATES_URL}
+            href={`${CREATE_URL}/create?template=${t.id}`}
             className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl"
           >
             <div className="relative aspect-[3/4] w-full overflow-hidden bg-slate-100">

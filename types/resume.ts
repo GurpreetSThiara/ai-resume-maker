@@ -60,8 +60,12 @@ export interface ResumeStyleOverrides {
   /** Body text colour override (hex). */
   textColor?: string
   font?: "serif" | "sans"
-  /** Scales all font sizes: compact (0.92) / normal (1) / relaxed (1.08). */
+  /** Scales font sizes AND the vertical spacing between sections/entries/lines: compact / normal / relaxed. */
   density?: "compact" | "normal" | "relaxed"
+  /** When true, education entries render as a tight 1–2 line block (no bullet highlights). */
+  condensedEducation?: boolean
+  /** Page margin preset — scales the page's outer margins. Default normal. */
+  pageMargin?: "compact" | "normal" | "wide"
   /** Explicit point-size overrides (win over density) for the name / section headings / body. */
   nameSize?: number
   headingSize?: number
@@ -198,6 +202,8 @@ export interface Education {
   startDate?: string
   endDate?: string
   location?: string
+  /** CGPA / GPA / percentage, e.g. "8.6 CGPA" or "3.8/4.0". */
+  gpa?: string
   highlights?: string[]
 }
 

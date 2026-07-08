@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -9,9 +10,10 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { TemplatePickerDrawer } from "@/components/template-picker-drawer"
-import { Eye, Star, Menu, Download, ListChecks, LayoutTemplate } from "lucide-react"
+import { Eye, Star, Menu, Download, ListChecks, LayoutTemplate, Settings2 } from "lucide-react"
 import { SectionManagement } from "@/components/section-management"
 import { ModernSidebarLayoutModal } from "@/components/modern-sidebar-layout-modal"
+import { GuidedSettingsModal } from "@/components/guided-settings-modal"
 import { Brand } from "@/components/ui/brand"
 import type { ResumeData, ResumeTemplate, Section } from "@/types/resume"
 import { getResumeDesign } from "@/lib/resume-designs"
@@ -30,6 +32,7 @@ interface CreateResumeHeaderProps {
   showPreview: boolean
   setShowPreview: (show: boolean) => void
   resumeData: ResumeData
+  setResumeData: (v: ResumeData | ((prev: ResumeData) => ResumeData)) => void
   selectedTemplate: ResumeTemplate
   setSelectedTemplate: (template: ResumeTemplate) => void
   availableTemplates: ResumeTemplate[]
@@ -50,6 +53,7 @@ export function CreateResumeHeader({
   showPreview,
   setShowPreview,
   resumeData,
+  setResumeData,
   selectedTemplate,
   setSelectedTemplate,
   availableTemplates,
@@ -65,6 +69,14 @@ export function CreateResumeHeader({
 }: CreateResumeHeaderProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  // Whole-résumé style settings (spacing / margins / condensed education …).
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const style = resumeData.style || {}
+  const setStyle = (patch: Partial<NonNullable<ResumeData["style"]>>) =>
+    setResumeData((prev) => ({ ...prev, style: { ...(prev.style || {}), ...patch } }))
+  const resetStyle = () => setResumeData((prev) => ({ ...prev, style: undefined }))
+  const settingsBase = getResumeDesign(selectedTemplate.id) ?? getResumeDesign("classic-blue")!
 
   const ModeSwitch = () => (
     <div className="flex items-center rounded-lg border border-gray-200 bg-gray-50 p-0.5">
@@ -124,6 +136,15 @@ const renderControls = () => (
       Download
     </Button>
 
+    <Button
+      variant="outline"
+      onClick={() => setSettingsOpen(true)}
+      className="h-10 px-4 rounded-md text-sm flex items-center gap-2"
+    >
+      <Settings2 className="w-4 h-4" />
+      Settings
+    </Button>
+
     <TemplatePickerDrawer
       selectedId={selectedTemplate.id}
       onSelect={(value) => {
@@ -155,6 +176,15 @@ const renderControls = () => (
 
   return (
     <>
+      <GuidedSettingsModal
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        base={settingsBase}
+        style={style}
+        setStyle={setStyle}
+        reset={resetStyle}
+      />
+
       {/* Desktop header */}
       <div className="hidden md:flex flex-row items-center justify-between gap-3 mb-6">
         <div>

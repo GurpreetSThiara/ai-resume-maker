@@ -59,8 +59,8 @@ export const googleTemplate: ResumeTemplate = {
 
 export const classicATSTemplate: ResumeTemplate = {
   id: "ats-classic",
-  name: "ATS Classic 2",
-  description: "Traditional, single-column layout optimized for parsers",
+  name: "ATS Classic",
+  description: "Clean single-column layout with plain section headings (no rules).",
   isAtsFriendly: true,
   theme: {
     fontSize: { name: "text-3xl", section: "text-xl", content: "text-base", small: "text-sm" },
@@ -116,8 +116,8 @@ export const ATS_YELLOW: ResumeTemplate = {
 
 export const atsCompactLinesTemplate: ResumeTemplate = {
   id: "ats-compact-lines",
-  name: "ATS Compact Lines",
-  description: "A compact ATS-friendly resume template with black lines and titles for maximum content density.",
+  name: "ATS Classic Lines",
+  description: "ATS Classic with black rule lines under each section heading.",
   isAtsFriendly: true,
   theme: {
     fontSize: {

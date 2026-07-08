@@ -11,6 +11,8 @@ import { Analytics } from "@vercel/analytics/next"
 import Providers from "@/contexts/provider"
 import { ToastContainer } from "@/components/toast/toast-contaner"
 import Script from "next/script"
+import { JsonLd } from "@/components/seo/JsonLd"
+import { organizationSchema, websiteSchema, webApplicationSchema } from "@/lib/seo"
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -131,6 +133,8 @@ export default function RootLayout({
             `}
           </Script>
         </>
+        {/* Global structured data: brand identity + the free resume builder app. */}
+        <JsonLd data={[organizationSchema(), websiteSchema(), webApplicationSchema()]} />
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
         {/* GTM noscript iframe (render unconditionally) */}

@@ -8,7 +8,7 @@ import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
 import ProjectSection from "../../resume-components/project-section"
 import type { ResumeDesign } from "@/lib/resume-designs"
-import { skillDotsFilled, effectiveSkillLevel } from "@/lib/resume-designs"
+import { skillDotsFilled, effectiveSkillLevel, DEFAULT_MARGIN_SCALE } from "@/lib/resume-designs"
 import { DEFAULT_EDUCATION, DEFAULT_EXPERIENCE, DEFAULT_PROJECT } from "@/constants/resumeConstants"
 import { lineKey, cssFor } from "@/utils/lineStyle"
 import { px as ptToPx, FONT_CSS, SIDEBAR_TRACK_HEX, type FontKey } from "@/lib/render-spec"
@@ -459,6 +459,12 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
   })()
   const fam = FONT_CSS[(design.font as FontKey)] || FONT_CSS.sans
   const px = (pt: number) => `${ptToPx(pt)}px`
+  // Vertical-gap multiplier driven by the density setting (tight by default).
+  const gapScale = design.gapScale ?? 0.75
+  const gp = (n: number) => Math.round(n * gapScale)
+  // Page-margin multiplier driven by the pageMargin setting.
+  const marginScale = design.marginScale ?? DEFAULT_MARGIN_SCALE
+  const sm = (n: number) => Math.round(n * marginScale)
 
   // initials monogram circle (designer templates)
   const monogramEl = (sizePx: number, fill: string, color: string) => (
@@ -565,7 +571,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     ) => {
       const edit = (field: string, v: string) => handleSectionItemChange(opts.sectionId, opts.index, field, v)
       return (
-        <div key={key} style={{ marginBottom: 10, position: useTimeline ? "relative" : undefined, paddingLeft: useTimeline ? 18 : 0 }}>
+        <div key={key} style={{ marginBottom: gp(10), position: useTimeline ? "relative" : undefined, paddingLeft: useTimeline ? 18 : 0 }}>
           {useTimeline && (
             <>
               <span style={{ position: "absolute", left: 0, top: 4, width: 8, height: 8, borderRadius: "50%", background: palette.accent }} />
@@ -655,6 +661,35 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
           </>
         )
       case SECTION_TYPES.EDUCATION:
+        // Condensed = everything on one line: Institution — Degree, Year, CGPA.
+        if (design.condensedEducation) {
+          return (
+            <>
+              {(section.items || []).map((edu: any, i: number) => {
+                const yr = [edu.startDate, edu.endDate].filter(Boolean).join(" – ")
+                const rest = [edu.degree, yr, edu.gpa].filter(Boolean).join(", ")
+                return (
+                  <div key={i} style={{ marginBottom: gp(6), display: "flex", alignItems: "baseline", gap: 8 }}>
+                    <span style={{ fontSize: contentFont, fontFamily: fam, color: palette.text, flex: 1 }}>
+                      <span
+                        style={{ fontWeight: 700, color: sidebar ? palette.sidebarHeading || palette.heading : palette.heading }}
+                        data-el="body"
+                        contentEditable
+                        suppressContentEditableWarning
+                        onBlur={(e) => handleSectionItemChange(section.id, i, "institution", e.currentTarget.textContent || "")}
+                      >
+                        {edu.institution}
+                      </span>
+                      {rest && <span style={{ color: sub }}>{" — "}{rest}</span>}
+                    </span>
+                    {crud && <Del onClick={() => removeEntry(section.id, i)} title="Delete entry" />}
+                  </div>
+                )
+              })}
+              <Add label="Add education" onClick={() => addEntry(section.id)} />
+            </>
+          )
+        }
         return (
           <>
             {(section.items || []).map((edu: any, i: number) =>
@@ -965,10 +1000,10 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     // In CRUD mode, still show empty (non-hidden) sections so the user can add to them.
     if (empty && !(crud && !section.hidden && !isCustomFields)) return null
     return (
-      <div key={section.id} className={crud ? "cfc-sec" : undefined} data-sid={section.id} style={{ marginBottom: 14 }}>
+      <div key={section.id} className={crud ? "cfc-sec" : undefined} data-sid={section.id} style={{ marginBottom: gp(14) }}>
         <SectionTools section={section} />
         {sectionTitleEl(section, sidebar)}
-        <div style={{ marginTop: 6 }}>{renderSectionContent(section, sidebar)}</div>
+        <div style={{ marginTop: gp(6) }}>{renderSectionContent(section, sidebar)}</div>
       </div>
     )
   }
@@ -1186,7 +1221,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
         {contactRow(palette.secondary, true)}
       </div>
     ) : (
-      <div style={{ marginBottom: 14, borderBottom: `1.6px solid ${palette.accent}`, paddingBottom: 10 }}>
+      <div style={{ marginBottom: 14, borderBottom: design.sectionTitle === "plain" ? undefined : `1.6px solid ${palette.accent}`, paddingBottom: 10 }}>
         {design.monogram ? (
           <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 8 }}>
             {monogramEl(50, palette.accent, palette.headerText || "#fff")}
@@ -1219,10 +1254,10 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
         {design.header === "band" || design.header === "geometric" ? (
           <>
             {header}
-            <div style={{ padding: "22px 40px 36px 40px" }}>{sectionsBody}</div>
+            <div style={{ padding: `22px ${sm(40)}px 36px ${sm(40)}px` }}>{sectionsBody}</div>
           </>
         ) : (
-          <div style={{ padding: "30px 44px 36px 44px" }}>
+          <div style={{ padding: `30px ${sm(44)}px 36px ${sm(44)}px` }}>
             {header}
             {sectionsBody}
           </div>

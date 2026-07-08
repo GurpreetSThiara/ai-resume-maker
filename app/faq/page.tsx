@@ -9,6 +9,52 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion";
 import Link from 'next/link';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { faqSchema } from '@/lib/seo';
+
+// Plain-text mirror of the accordion Q&As, used only for the FAQPage rich result.
+const FAQS = [
+    {
+        question: 'Is CreateFreeCV.com really free?',
+        answer: 'Yes! CreateFreeCV.com is completely free to use. You can create, edit, and download professional resumes without any cost. There are no hidden fees, no subscriptions, and no credit card required. The core resume building and downloading features will always remain free.',
+    },
+    {
+        question: 'Do I need to create an account?',
+        answer: 'No account is required to create and download your resume. Your data is stored locally in your browser. However, creating an account allows you to save your resumes in the cloud, access them from any device, and sync your work across multiple devices.',
+    },
+    {
+        question: 'How long does it take to create a resume?',
+        answer: 'Most users complete their resume in 10-15 minutes. Our intuitive interface and pre-designed templates make the process quick and straightforward. You simply fill in your information, choose a template, and download your professional resume.',
+    },
+    {
+        question: 'Can I create multiple resumes?',
+        answer: 'Yes — you can build and download as many resumes as you need, and we recommend tailoring your resume for each job application to maximize your chances of getting interviews. Your free account keeps one resume saved in the cloud; you can update it anytime and download unlimited copies in PDF or DOCX.',
+    },
+    {
+        question: 'Can I edit my resume after downloading?',
+        answer: "Yes! Your resume data is automatically saved in your browser's local storage. You can return anytime to edit and re-download your resume. If you create an account, your resumes are saved to the cloud and accessible from any device.",
+    },
+    {
+        question: 'Are your templates ATS-friendly?',
+        answer: 'Yes! All our templates are specifically designed to be ATS-compatible. We avoid elements that confuse ATS systems like tables, text boxes, headers/footers with critical information, complex graphics, and unusual fonts. Our templates use clean formatting that both ATS and humans can easily read.',
+    },
+    {
+        question: 'What is ATS and why does it matter?',
+        answer: 'ATS (Applicant Tracking System) is software used by 75% of companies to filter resumes before they reach human recruiters. ATS scans resumes for keywords, proper formatting, and relevant experience. Our templates are designed to pass ATS scans so your resume actually gets seen by hiring managers.',
+    },
+    {
+        question: 'How long should my resume be?',
+        answer: '0-5 years experience: 1 page. 5-15 years experience: 1-2 pages. 15+ years experience: 2 pages (rarely 3 for academic/research roles). Recruiters spend 6-7 seconds on initial resume review, so prioritize quality over quantity.',
+    },
+    {
+        question: 'Is my personal information safe?',
+        answer: 'Yes! Your data is stored locally in your browser by default and never sent to our servers unless you create an account. We use industry-standard security measures to protect any data you choose to save to the cloud. We never sell or share your personal information with third parties.',
+    },
+    {
+        question: 'What formats can I download my resume in?',
+        answer: 'You can download your resume as a PDF or DOCX file. These are the most professional and universally accepted formats that preserve your resume formatting across all devices and platforms.',
+    },
+];
 
 export const metadata: Metadata = {
     title: 'FAQ - Frequently Asked Questions | CreateFreeCV.com',
@@ -26,6 +72,7 @@ export const metadata: Metadata = {
 export default function FAQPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30">
+            <JsonLd data={faqSchema(FAQS)} />
             {/* Hero Section */}
             <section className="relative overflow-hidden">
                 <div className="pointer-events-none absolute inset-0 opacity-40">

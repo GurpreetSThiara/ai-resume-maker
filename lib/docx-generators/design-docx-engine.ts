@@ -17,7 +17,7 @@ import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
 import { lineKey, docxRunProps, caseText, docxParaSpacing } from "@/utils/lineStyle"
 import { createLink, hasSectionContent } from "./utils"
 import type { ResumeDesign } from "../resume-designs"
-import { skillDotsFilled, effectiveSkillLevel } from "../resume-designs"
+import { skillDotsFilled, effectiveSkillLevel, DEFAULT_MARGIN_SCALE } from "../resume-designs"
 
 const noBorders = {
   top: { style: BorderStyle.NONE },
@@ -38,6 +38,12 @@ export async function generateDesignDOCX(
   const LS: Record<string, PerLineStyle> = (resumeData as { lineStyles?: Record<string, PerLineStyle> }).lineStyles || {}
   const c = design.colors
   const hp = (pt: number) => Math.round(pt * 2) // pt -> half-points
+  // Vertical-gap multiplier driven by the density setting (tight by default).
+  const gapScale = design.gapScale ?? 0.75
+  const gp = (twips: number) => Math.round(twips * gapScale)
+  // Page-margin multiplier driven by the pageMargin setting.
+  const marginScale = design.marginScale ?? DEFAULT_MARGIN_SCALE
+  const sm = (twips: number) => Math.round(twips * marginScale)
   const sz = {
     name: hp(design.sizes.name),
     section: hp(design.sizes.section),
@@ -121,7 +127,7 @@ export async function generateDesignDOCX(
     target.push(
       new Paragraph({
         alignment: centered ? AlignmentType.CENTER : undefined,
-        spacing: { before: 220, after: 110 },
+        spacing: { before: gp(220), after: gp(110) },
         keepNext: true,
         keepLines: true,
         children: [new TextRun({ text, bold: true, size, color: ctx.heading, font: f, characterSpacing: spacing })],
@@ -192,7 +198,7 @@ export async function generateDesignDOCX(
     if (subtitle || rightOfSub) {
       const runs = [new TextRun({ text: subtitle, size: sz.content, color: ctx.accent, bold: true, font: f })]
       if (rightOfSub) runs.push(new TextRun({ text: `   ${rightOfSub}`, size: sz.small, color: ctx.secondary, font: f }))
-      target.push(new Paragraph({ spacing: { before: 30, after: 60 }, children: runs }))
+      target.push(new Paragraph({ spacing: { before: gp(30), after: gp(60) }, children: runs }))
     }
   }
 
@@ -211,10 +217,21 @@ export async function generateDesignDOCX(
           ;(exp.achievements || []).forEach((a: string, j: number) =>
             bulletLine(target, a, ctx, LS[lineKey(section.id, { item: idx, field: "bullet", bullet: j })]),
           )
-          target.push(new Paragraph({ spacing: { after: 110 } }))
+          target.push(new Paragraph({ spacing: { after: gp(110) } }))
         })
         break
       case "education":
+        // Condensed = one line: Institution — Degree, Year, CGPA.
+        if (design.condensedEducation) {
+          ;(section.items || []).forEach((edu: any) => {
+            const yr = [edu.startDate, edu.endDate].filter(Boolean).join(" – ")
+            const rest = [edu.degree, yr, edu.gpa].filter(Boolean).join(", ")
+            const runs = [new TextRun({ text: edu.institution || "", bold: true, size: sz.content, color: ctx.heading, font: f })]
+            if (rest) runs.push(new TextRun({ text: ` — ${rest}`, size: sz.content, color: ctx.text, font: f }))
+            target.push(new Paragraph({ spacing: { after: gp(60) }, children: runs }))
+          })
+          break
+        }
         ;(section.items || []).forEach((edu: any, idx: number) => {
           entryHeader(
             target,
@@ -227,7 +244,7 @@ export async function generateDesignDOCX(
           ;(edu.highlights || []).forEach((h: string, j: number) =>
             bulletLine(target, h, ctx, LS[lineKey(section.id, { item: idx, field: "bullet", bullet: j })]),
           )
-          target.push(new Paragraph({ spacing: { after: 110 } }))
+          target.push(new Paragraph({ spacing: { after: gp(110) } }))
         })
         break
       case "projects":
@@ -472,14 +489,14 @@ export async function generateDesignDOCX(
 
     const sideCell = new TableCell({
       width: { size: 32, type: WidthType.PERCENTAGE },
-      margins: { top: 500, bottom: 500, left: sidebarRight ? 300 : 400, right: sidebarRight ? 400 : 300 },
+      margins: { top: sm(500), bottom: sm(500), left: sm(sidebarRight ? 300 : 400), right: sm(sidebarRight ? 400 : 300) },
       shading: c.sidebarBg ? { type: ShadingType.CLEAR, color: "auto", fill: c.sidebarBg } : undefined,
       borders: noBorders,
       children: left,
     })
     const mainCell = new TableCell({
       width: { size: 68, type: WidthType.PERCENTAGE },
-      margins: { top: 400, bottom: 500, left: sidebarRight ? 400 : 400, right: 400 },
+      margins: { top: sm(400), bottom: sm(500), left: sm(400), right: sm(400) },
       borders: noBorders,
       children: right,
     })
@@ -625,7 +642,11 @@ export async function generateDesignDOCX(
       new Paragraph({
         alignment: centered ? AlignmentType.CENTER : AlignmentType.LEFT,
         spacing: { after: 120 },
-        border: { bottom: { color: centered ? c.divider : c.accent, space: 4, style: BorderStyle.SINGLE, size: centered ? 8 : 14 } },
+        // "plain" designs carry no rules anywhere, including under the header.
+        border:
+          !centered && design.sectionTitle === "plain"
+            ? undefined
+            : { bottom: { color: centered ? c.divider : c.accent, space: 4, style: BorderStyle.SINGLE, size: centered ? 8 : 14 } },
         children: contactRuns(c.secondary),
       }),
     )
@@ -656,7 +677,7 @@ export async function generateDesignDOCX(
 
   const doc = new Document({
     sections: [
-      { properties: { page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } }, children: body },
+      { properties: { page: { margin: { top: sm(720), right: sm(720), bottom: sm(720), left: sm(720) } } }, children: body },
     ],
   })
   return Packer.toBuffer(doc)

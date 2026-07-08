@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, GraduationCap, Edit2, Save } from "lucide-react"
 import { SectionVisibilityToggle } from "@/components/section-visibility-toggle"
@@ -29,6 +30,9 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
 
   const educationSection = data.sections.find((s) => s.type === SECTION_TYPES.EDUCATION)
   const isHidden = educationSection?.hidden || false
+  // Condensed mode renders one line (institution, degree, year, CGPA) — so
+  // Location and Highlights are unused; hide those inputs to avoid confusion.
+  const condensed = data.style?.condensedEducation ?? false
 
   const addEducation = () => {
     if (newEducation.institution && newEducation.degree) {
@@ -182,66 +186,83 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
           </div>
         </div>
 
-        <div>
-          <Label htmlFor="location">Location</Label>
-          <Input
-            id="location"
-            placeholder="e.g., Cambridge, MA"
-            value={newEducation.location}
-            onChange={(e) => setNewEducation((prev) => ({ ...prev, location: e.target.value }))}
-            className="mt-1"
-            disabled={isHidden}
-          />
+        <div className="grid grid-cols-2 gap-4">
+          {!condensed && (
+            <div>
+              <Label htmlFor="location">Location</Label>
+              <Input
+                id="location"
+                placeholder="e.g., Cambridge, MA"
+                value={newEducation.location}
+                onChange={(e) => setNewEducation((prev) => ({ ...prev, location: e.target.value }))}
+                className="mt-1"
+                disabled={isHidden}
+              />
+            </div>
+          )}
+          <div>
+            <Label htmlFor="gpa">CGPA / GPA</Label>
+            <Input
+              id="gpa"
+              placeholder="e.g., 8.6 CGPA"
+              value={newEducation.gpa || ""}
+              onChange={(e) => setNewEducation((prev) => ({ ...prev, gpa: e.target.value }))}
+              className="mt-1"
+              disabled={isHidden}
+            />
+          </div>
         </div>
       </div>
 
-      <div className="space-y-3">
-        <Label>Highlights & Achievements</Label>
-        {(newEducation.highlights || []).map((highlight, index) => (
-          <div key={index} className="flex gap-2">
-            <Input
-              placeholder="e.g., Dean's List, Research Project, etc."
-              value={highlight}
-              onChange={(e) => {
-                const newHighlights = [...(newEducation.highlights || [])];
-                newHighlights[index] = e.target.value;
-                setNewEducation(prev => ({ ...prev, highlights: newHighlights }));
-              }}
-              disabled={isHidden}
-            />
-            {(newEducation.highlights?.length || 0) > 1 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  const newHighlights = newEducation.highlights?.filter((_, i) => i !== index) || [];
+      {!condensed && (
+        <div className="space-y-3">
+          <Label>Highlights & Achievements</Label>
+          {(newEducation.highlights || []).map((highlight, index) => (
+            <div key={index} className="flex gap-2">
+              <Input
+                placeholder="e.g., Dean's List, Research Project, etc."
+                value={highlight}
+                onChange={(e) => {
+                  const newHighlights = [...(newEducation.highlights || [])];
+                  newHighlights[index] = e.target.value;
                   setNewEducation(prev => ({ ...prev, highlights: newHighlights }));
                 }}
-                className="text-red-500"
                 disabled={isHidden}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-        ))}
+              />
+              {(newEducation.highlights?.length || 0) > 1 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    const newHighlights = newEducation.highlights?.filter((_, i) => i !== index) || [];
+                    setNewEducation(prev => ({ ...prev, highlights: newHighlights }));
+                  }}
+                  className="text-red-500"
+                  disabled={isHidden}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          ))}
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            setNewEducation(prev => ({
-              ...prev,
-              highlights: [...(prev.highlights || []), ""]
-            }));
-          }}
-          className="w-full bg-transparent"
-          disabled={isHidden}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Highlight
-        </Button>
-      </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setNewEducation(prev => ({
+                ...prev,
+                highlights: [...(prev.highlights || []), ""]
+              }));
+            }}
+            className="w-full bg-transparent"
+            disabled={isHidden}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Highlight
+          </Button>
+        </div>
+      )}
     </>
   )
 
@@ -301,65 +322,82 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
           </div>
         </div>
 
-        <div>
-          <Label htmlFor="edit-location">Location</Label>
-          <Input
-            id="edit-location"
-            value={editData.location}
-            onChange={(e) => setEditData((prev) => ({ ...prev, location: e.target.value }))}
-            className="mt-1"
-            disabled={isHidden}
-          />
+        <div className="grid grid-cols-2 gap-4">
+          {!condensed && (
+            <div>
+              <Label htmlFor="edit-location">Location</Label>
+              <Input
+                id="edit-location"
+                value={editData.location}
+                onChange={(e) => setEditData((prev) => ({ ...prev, location: e.target.value }))}
+                className="mt-1"
+                disabled={isHidden}
+              />
+            </div>
+          )}
+          <div>
+            <Label htmlFor="edit-gpa">CGPA / GPA</Label>
+            <Input
+              id="edit-gpa"
+              value={editData.gpa || ""}
+              onChange={(e) => setEditData((prev) => ({ ...prev, gpa: e.target.value }))}
+              placeholder="e.g., 8.6 CGPA"
+              className="mt-1"
+              disabled={isHidden}
+            />
+          </div>
         </div>
       </div>
 
-      <div className="space-y-3">
-        <Label>Highlights & Achievements</Label>
-        {(editData.highlights || []).map((highlight, index) => (
-          <div key={index} className="flex gap-2">
-            <Input
-              value={highlight}
-              onChange={(e) => {
-                const newHighlights = [...(editData.highlights || [])];
-                newHighlights[index] = e.target.value;
-                setEditData(prev => ({ ...prev, highlights: newHighlights }));
-              }}
-              placeholder="Achievement or highlight"
-              disabled={isHidden}
-            />
-            {(editData.highlights?.length || 0) > 1 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  const newHighlights = editData.highlights?.filter((_, i) => i !== index) || [];
+      {!condensed && (
+        <div className="space-y-3">
+          <Label>Highlights & Achievements</Label>
+          {(editData.highlights || []).map((highlight, index) => (
+            <div key={index} className="flex gap-2">
+              <Input
+                value={highlight}
+                onChange={(e) => {
+                  const newHighlights = [...(editData.highlights || [])];
+                  newHighlights[index] = e.target.value;
                   setEditData(prev => ({ ...prev, highlights: newHighlights }));
                 }}
-                className="text-red-500"
+                placeholder="Achievement or highlight"
                 disabled={isHidden}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-        ))}
+              />
+              {(editData.highlights?.length || 0) > 1 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    const newHighlights = editData.highlights?.filter((_, i) => i !== index) || [];
+                    setEditData(prev => ({ ...prev, highlights: newHighlights }));
+                  }}
+                  className="text-red-500"
+                  disabled={isHidden}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          ))}
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            setEditData(prev => ({
-              ...prev,
-              highlights: [...(prev.highlights || []), ""]
-            }));
-          }}
-          className="w-full bg-transparent"
-          disabled={isHidden}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Highlight
-        </Button>
-      </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setEditData(prev => ({
+                ...prev,
+                highlights: [...(prev.highlights || []), ""]
+              }));
+            }}
+            className="w-full bg-transparent"
+            disabled={isHidden}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Highlight
+          </Button>
+        </div>
+      )}
     </>
   )
 
@@ -397,6 +435,18 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
 
       {/* Disabled overlay when hidden */}
       {isHidden && <SectionHiddenBanner />}
+
+      {/* Condensed layout toggle — collapses each entry to one line */}
+      <div className="flex items-center justify-between gap-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+        <div>
+          <p className="text-sm font-medium text-gray-800">Condensed layout</p>
+          <p className="text-xs text-muted-foreground">Show each entry on one line: institution, degree, year, CGPA (hides bullet highlights)</p>
+        </div>
+        <Switch
+          checked={data.style?.condensedEducation ?? false}
+          onCheckedChange={(v) => onUpdate({ style: { ...(data.style || {}), condensedEducation: v } })}
+        />
+      </div>
 
       {/* Existing Education Entries */}
       <div className="space-y-4">
@@ -444,9 +494,10 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
                     <div className="font-medium">{education.degree}</div>
                     <div className="text-sm text-muted-foreground">
                       {education.startDate} - {education.endDate}
-                      {education.location && ` • ${education.location}`}
+                      {!condensed && education.location && ` • ${education.location}`}
+                      {education.gpa && ` • ${education.gpa}`}
                     </div>
-                    {education.highlights && education.highlights.length > 0 && (
+                    {!condensed && education.highlights && education.highlights.length > 0 && (
                       <div className="mt-2 space-y-1">
                         {education.highlights.map((highlight, i) => (
                           <div key={i} className="flex items-center gap-2 text-sm">

@@ -120,6 +120,12 @@ export interface ResumeDesign {
 
   accentStripe?: boolean
   timeline?: boolean
+  /** Multiplier applied to the dominant vertical gaps (section/entry/line). Set from `density`; ~0.75 default. */
+  gapScale?: number
+  /** Render education entries as a tight 1–2 line block (no bullet highlights). */
+  condensedEducation?: boolean
+  /** Multiplier applied to the page's outer margins. Set from `pageMargin`; 1 default. */
+  marginScale?: number
   skillStyle: SkillStyle
   /** Draw an initials monogram circle in the header (single) / sidebar top (two-column). */
   monogram?: boolean
@@ -737,11 +743,12 @@ const LEGACY_SPECS: LegacySpec[] = [
       divider: "dbeafe",
     },
   },
-  // ATS Classic 2 — traditional serif, near-black ink, ruled sections.
+  // ATS Classic — clean sans-serif, near-black ink, plain headings (no rules)
+  // to match the advertised `classic.png` thumbnail.
   {
     id: "ats-classic",
-    name: "ATS Classic 2",
-    presetKey: "classicSerif",
+    name: "ATS Classic",
+    presetKey: "minimal",
     colors: {
       name: "1a1a1a",
       heading: "1a1a1a",
@@ -767,10 +774,11 @@ const LEGACY_SPECS: LegacySpec[] = [
       divider: "9ca3af",
     },
   },
-  // ATS Compact Lines — dense serif with crisp black section rules.
+  // ATS Classic Lines — the ruled counterpart to ATS Classic: crisp black
+  // section rules under each heading.
   {
     id: "ats-compact-lines",
-    name: "ATS Compact Lines",
+    name: "ATS Classic Lines",
     presetKey: "compact",
     font: "serif",
     sectionTitle: "rule-full",
@@ -916,6 +924,27 @@ const DENSITY_SCALE: Record<NonNullable<ResumeStyleOverrides["density"]>, number
   normal: 1,
   relaxed: 1.08,
 }
+/**
+ * Multiplier applied to the vertical GAPS (between sections/entries/lines) per
+ * density. The baseline is deliberately tight (normal < 1) so the default
+ * document reads like a ChatGPT-style resume; "relaxed" restores the older,
+ * airier spacing. Consumed by all three renderers via `design.gapScale`.
+ */
+export const DEFAULT_GAP_SCALE = 0.75
+const DENSITY_GAP_SCALE: Record<NonNullable<ResumeStyleOverrides["density"]>, number> = {
+  compact: 0.6,
+  normal: DEFAULT_GAP_SCALE,
+  relaxed: 1,
+}
+/** Multiplier applied to the page's outer margins per `pageMargin` preset. */
+const MARGIN_SCALE: Record<NonNullable<ResumeStyleOverrides["pageMargin"]>, number> = {
+  compact: 1,
+  normal: 1.3,
+  wide: 1.5,
+}
+/** Default page-margin preset + its scale (used when a resume has no explicit style). */
+export const DEFAULT_PAGE_MARGIN: NonNullable<ResumeStyleOverrides["pageMargin"]> = "wide"
+export const DEFAULT_MARGIN_SCALE = MARGIN_SCALE[DEFAULT_PAGE_MARGIN]
 const r1 = (n: number) => Math.round(n * 10) / 10
 
 /**
@@ -937,7 +966,11 @@ export function mergeDesign(base: ResumeDesign, style?: ResumeStyleOverrides): R
   if (typeof style.uppercaseTitles === "boolean") d.uppercaseTitles = style.uppercaseTitles
   if (typeof style.accentStripe === "boolean") d.accentStripe = style.accentStripe
   if (typeof style.timeline === "boolean") d.timeline = style.timeline
+  if (typeof style.condensedEducation === "boolean") d.condensedEducation = style.condensedEducation
 
+  // Density scales both font sizes and the vertical gap rhythm.
+  d.gapScale = DENSITY_GAP_SCALE[style.density ?? "normal"]
+  d.marginScale = MARGIN_SCALE[style.pageMargin ?? DEFAULT_PAGE_MARGIN]
   if (style.density && DENSITY_SCALE[style.density]) {
     const k = DENSITY_SCALE[style.density]
     d.sizes = {
