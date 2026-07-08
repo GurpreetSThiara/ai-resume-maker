@@ -86,6 +86,7 @@ export default function ContactPage() {
                   href="https://www.instagram.com/createfreecv"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label="Follow CreateFreeCV on Instagram"
                   className="p-2 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"
                 >
                   <Instagram className="w-5 h-5" />
@@ -114,7 +115,7 @@ export default function ContactPage() {
                 <Textarea id="message" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Your message..." rows={6} required />
               </div>
               <div className="text-left">
-                <Button type="submit" size="lg" className="w-full md:w-auto bg-gradient-to-r from-green-600 to-slate-600 hover:from-purple-700 hover:to-blue-700" disabled={status === 'loading'}>
+                <Button type="submit" size="lg" className="w-full md:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700" disabled={status === 'loading'}>
                   {status === 'loading' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {status === 'loading' ? 'Sending...' : 'Send Message'}
                 </Button>

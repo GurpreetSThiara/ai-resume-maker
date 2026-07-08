@@ -8,7 +8,7 @@ import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
 import ProjectSection from "../../resume-components/project-section"
 import type { ResumeDesign } from "@/lib/resume-designs"
-import { skillDotsFilled, effectiveSkillLevel, DEFAULT_MARGIN_SCALE } from "@/lib/resume-designs"
+import { skillDotsFilled, effectiveSkillLevel, DEFAULT_MARGIN_SCALE, DEFAULT_CONDENSED_EDUCATION } from "@/lib/resume-designs"
 import { DEFAULT_EDUCATION, DEFAULT_EXPERIENCE, DEFAULT_PROJECT } from "@/constants/resumeConstants"
 import { lineKey, cssFor } from "@/utils/lineStyle"
 import { px as ptToPx, FONT_CSS, SIDEBAR_TRACK_HEX, type FontKey } from "@/lib/render-spec"
@@ -662,7 +662,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
         )
       case SECTION_TYPES.EDUCATION:
         // Condensed = everything on one line: Institution — Degree, Year, CGPA.
-        if (design.condensedEducation) {
+        if (design.condensedEducation ?? DEFAULT_CONDENSED_EDUCATION) {
           return (
             <>
               {(section.items || []).map((edu: any, i: number) => {

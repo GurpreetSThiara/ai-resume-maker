@@ -192,7 +192,7 @@ export default function PortfoliosPage() {
                                                     {typeof window !== 'undefined' ? window.location.origin : ''}/p/{portfolio.slug}
                                                 </div>
                                                 <Button variant="outline" size="icon" className="h-10 w-10 shrink-0" asChild>
-                                                    <Link href={`/p/${portfolio.slug}`} target="_blank">
+                                                    <Link href={`/p/${portfolio.slug}`} target="_blank" rel="noopener noreferrer" aria-label="Open public portfolio in a new tab">
                                                         <ExternalLink className="h-4 w-4" />
                                                     </Link>
                                                 </Button>

@@ -945,6 +945,8 @@ const MARGIN_SCALE: Record<NonNullable<ResumeStyleOverrides["pageMargin"]>, numb
 /** Default page-margin preset + its scale (used when a resume has no explicit style). */
 export const DEFAULT_PAGE_MARGIN: NonNullable<ResumeStyleOverrides["pageMargin"]> = "wide"
 export const DEFAULT_MARGIN_SCALE = MARGIN_SCALE[DEFAULT_PAGE_MARGIN]
+/** Education renders as a condensed one-line block by default. */
+export const DEFAULT_CONDENSED_EDUCATION = true
 const r1 = (n: number) => Math.round(n * 10) / 10
 
 /**
@@ -966,7 +968,7 @@ export function mergeDesign(base: ResumeDesign, style?: ResumeStyleOverrides): R
   if (typeof style.uppercaseTitles === "boolean") d.uppercaseTitles = style.uppercaseTitles
   if (typeof style.accentStripe === "boolean") d.accentStripe = style.accentStripe
   if (typeof style.timeline === "boolean") d.timeline = style.timeline
-  if (typeof style.condensedEducation === "boolean") d.condensedEducation = style.condensedEducation
+  d.condensedEducation = style.condensedEducation ?? DEFAULT_CONDENSED_EDUCATION
 
   // Density scales both font sizes and the vertical gap rhythm.
   d.gapScale = DENSITY_GAP_SCALE[style.density ?? "normal"]

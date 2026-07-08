@@ -91,7 +91,7 @@ export function ManageCloudModal({
 
         <DialogFooter className="flex gap-2 justify-end">
           <Button variant="outline" onClick={onSaveLocally} disabled={loading}>Save locally instead</Button>
-          <Button onClick={handleDeleteAndRetry} disabled={selected.size === 0 || loading} className="bg-red-600 text-white hover:bg-red-700">
+          <Button variant="destructive" onClick={handleDeleteAndRetry} disabled={selected.size === 0 || loading}>
             {loading ? "Processing…" : "Delete selected and retry"}
           </Button>
         </DialogFooter>

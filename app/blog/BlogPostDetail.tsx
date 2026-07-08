@@ -61,7 +61,7 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({ post }) => {
                     <h3 className="text-2xl font-bold mb-4">Want to build your ATS-friendly resume?</h3>
                     <p className="text-muted-foreground mb-6">Create a professional resume in minutes with our free builder.</p>
                     <Link
-                        href="/dashboard/resume/create"
+                        href="/free-ats-resume-templates/create"
                         className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"
                     >
                         Build My Resume Now

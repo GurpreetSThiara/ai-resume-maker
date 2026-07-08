@@ -2,6 +2,7 @@
 
 import type { ResumeStyleOverrides } from "@/types/resume"
 import type { ResumeDesign } from "@/lib/resume-designs"
+import { DEFAULT_CONDENSED_EDUCATION } from "@/lib/resume-designs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
@@ -91,7 +92,7 @@ export function GuidedSettingsModal({
               <Switch checked={dividerOn} onCheckedChange={(c) => setStyle({ sectionTitle: c ? "underline" : "plain" })} />
             </Row>
             <Row label="Condensed education" hint="Tight 1–2 line entries, no bullets">
-              <Switch checked={style.condensedEducation ?? false} onCheckedChange={(c) => setStyle({ condensedEducation: c })} />
+              <Switch checked={style.condensedEducation ?? DEFAULT_CONDENSED_EDUCATION} onCheckedChange={(c) => setStyle({ condensedEducation: c })} />
             </Row>
           </div>
 

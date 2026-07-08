@@ -17,7 +17,7 @@ import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
 import { lineKey, docxRunProps, caseText, docxParaSpacing } from "@/utils/lineStyle"
 import { createLink, hasSectionContent } from "./utils"
 import type { ResumeDesign } from "../resume-designs"
-import { skillDotsFilled, effectiveSkillLevel, DEFAULT_MARGIN_SCALE } from "../resume-designs"
+import { skillDotsFilled, effectiveSkillLevel, DEFAULT_MARGIN_SCALE, DEFAULT_CONDENSED_EDUCATION } from "../resume-designs"
 
 const noBorders = {
   top: { style: BorderStyle.NONE },
@@ -222,7 +222,7 @@ export async function generateDesignDOCX(
         break
       case "education":
         // Condensed = one line: Institution — Degree, Year, CGPA.
-        if (design.condensedEducation) {
+        if (design.condensedEducation ?? DEFAULT_CONDENSED_EDUCATION) {
           ;(section.items || []).forEach((edu: any) => {
             const yr = [edu.startDate, edu.endDate].filter(Boolean).join(" – ")
             const rest = [edu.degree, yr, edu.gpa].filter(Boolean).join(", ")

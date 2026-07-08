@@ -6,7 +6,7 @@ import { lineKey, caseText } from "@/utils/lineStyle"
 import { wrapText } from "../pdf-utils"
 import { sanitizeWithFont, hexToRgb, addLinkAnnotation } from "./pdf-helpers"
 import type { ResumeDesign } from "../resume-designs"
-import { skillDotsFilled, effectiveSkillLevel, DEFAULT_MARGIN_SCALE } from "../resume-designs"
+import { skillDotsFilled, effectiveSkillLevel, DEFAULT_MARGIN_SCALE, DEFAULT_CONDENSED_EDUCATION } from "../resume-designs"
 
 const PAGE_W = 595.276
 const PAGE_H = 841.89
@@ -599,7 +599,7 @@ export async function generateDesignPDF(
         break
       case "education":
         // Condensed = one line: Institution — Degree, Year, CGPA.
-        if (design.condensedEducation) {
+        if (design.condensedEducation ?? DEFAULT_CONDENSED_EDUCATION) {
           ;(section.items || []).forEach((edu: any) => {
             const yr = [edu.startDate, edu.endDate].filter(Boolean).join(" – ")
             const rest = [edu.degree, yr, edu.gpa].filter(Boolean).join(", ")

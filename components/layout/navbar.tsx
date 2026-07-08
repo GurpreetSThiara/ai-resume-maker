@@ -69,13 +69,7 @@ export function Navbar() {
       icon: User,
       matchPath: (p: string) => p.startsWith("/dashboard/portfolios"),
       colorClass: "bg-teal-100 text-teal-700",
-    }] : [{
-      label: "Portfolios",
-      href: "/dashboard/portfolios",
-      icon: User,
-      matchPath: (p: string) => p.startsWith("/dashboard/portfolios"),
-      colorClass: "bg-teal-100 text-teal-700",
-    }]),
+    }] : []),
     {
       label: "FAQ",
       href: "/faq",

@@ -14,6 +14,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import type { ResumeData, Education, EducationSection as EducationSectionType } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { DEFAULT_EDUCATION } from "@/constants/resumeConstants"
+import { DEFAULT_CONDENSED_EDUCATION } from "@/lib/resume-designs"
 
 interface EducationSectionProps {
   data: ResumeData
@@ -32,7 +33,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
   const isHidden = educationSection?.hidden || false
   // Condensed mode renders one line (institution, degree, year, CGPA) — so
   // Location and Highlights are unused; hide those inputs to avoid confusion.
-  const condensed = data.style?.condensedEducation ?? false
+  const condensed = data.style?.condensedEducation ?? DEFAULT_CONDENSED_EDUCATION
 
   const addEducation = () => {
     if (newEducation.institution && newEducation.degree) {
@@ -443,7 +444,7 @@ export function EducationSection({ data, onUpdate }: EducationSectionProps) {
           <p className="text-xs text-muted-foreground">Show each entry on one line: institution, degree, year, CGPA (hides bullet highlights)</p>
         </div>
         <Switch
-          checked={data.style?.condensedEducation ?? false}
+          checked={condensed}
           onCheckedChange={(v) => onUpdate({ style: { ...(data.style || {}), condensedEducation: v } })}
         />
       </div>
