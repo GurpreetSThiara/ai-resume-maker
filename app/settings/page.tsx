@@ -38,7 +38,6 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState({
     emailNotifications: true,
     autoSave: true,
-    darkMode: false,
     publicProfile: false,
   })
   
@@ -360,19 +359,6 @@ export default function SettingsPage() {
                   id="auto_save"
                   checked={settings.autoSave}
                   onCheckedChange={(checked) => setSettings(prev => ({ ...prev, autoSave: checked }))}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="dark_mode">Dark Mode</Label>
-                  <p className="text-sm text-gray-600">Use dark theme (coming soon)</p>
-                </div>
-                <Switch
-                  id="dark_mode"
-                  checked={settings.darkMode}
-                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, darkMode: checked }))}
-                  disabled
                 />
               </div>
 
