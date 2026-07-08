@@ -10,7 +10,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { TemplatePickerDrawer } from "@/components/template-picker-drawer"
-import { Eye, Star, Menu, Download, ListChecks, LayoutTemplate, Settings2 } from "lucide-react"
+import { Eye, Menu, Download, ListChecks, LayoutTemplate, Settings2 } from "lucide-react"
 import { SectionManagement } from "@/components/section-management"
 import { ModernSidebarLayoutModal } from "@/components/modern-sidebar-layout-modal"
 import { GuidedSettingsModal } from "@/components/guided-settings-modal"
@@ -158,16 +158,6 @@ const renderControls = () => (
         }
       }}
     />
-
-    <Button
-      disabled
-      hidden={true}
-      title="Coming soon"
-      className="h-10 px-4 rounded-md text-sm flex items-center gap-2"
-    >
-      <Star className="w-4 h-4" />
-      Create with AI
-    </Button>
   </div>
 )
 
@@ -204,7 +194,7 @@ const renderControls = () => (
             type="button"
             onClick={() => setShowPreview(!showPreview)}
             aria-label="Preview resume"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-600 transition active:bg-gray-100"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-gray-600 transition active:bg-gray-100"
           >
             <Eye className="h-[22px] w-[22px]" />
           </button>
@@ -213,7 +203,7 @@ const renderControls = () => (
               <button
                 type="button"
                 aria-label="Resume tools"
-                className="flex h-9 w-9 items-center justify-center rounded-full text-gray-600 transition active:bg-gray-100"
+                className="flex h-11 w-11 items-center justify-center rounded-full text-gray-600 transition active:bg-gray-100"
               >
                 <Menu className="h-[22px] w-[22px]" />
               </button>

@@ -96,7 +96,7 @@ export function CustomFieldsSection({ data, onUpdate, onSave, isDirty }: CustomF
                 <Label htmlFor={`content-${id}`}>Content</Label>
                 <Input
                   id={`content-${id}`}
-                  value={field.content}
+                  value={field.content ?? ""}
                   onChange={(e) => updateCustomField(id, "content", e.target.value)}
                   className="mt-1"
                 />
@@ -164,7 +164,7 @@ export function CustomFieldsSection({ data, onUpdate, onSave, isDirty }: CustomF
               <Input
                 id="new-content"
                 placeholder="Enter the value"
-                value={newField.content}
+                value={newField.content ?? ""}
                 onChange={(e) => setNewField((prev) => ({ ...prev, content: e.target.value }))}
                 className="mt-1"
               />

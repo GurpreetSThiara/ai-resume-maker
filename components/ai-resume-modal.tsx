@@ -288,12 +288,12 @@ Parse the user's information and return ONLY the JSON object, no additional text
             />
           </div>
           
-          <div title={!user ? 'Please login to use AI' : 'Coming soon'}>
+          <div title={!user ? 'Log in to use AI' : !effectiveAiEnabled ? 'AI parsing is coming soon' : ''}>
             <Button
               onClick={effectiveAiEnabled && user ? handleStart : undefined}
               disabled={!user || !effectiveAiEnabled || loading}
             >
-              {!user ? 'Login Required' : loading ? 'Analyzing...' : 'Parse with AI'}
+              {!user ? 'Log in to use AI' : !effectiveAiEnabled ? 'Coming soon' : loading ? 'Analyzing…' : 'Parse with AI'}
             </Button>
           </div>
           
@@ -318,9 +318,9 @@ Parse the user's information and return ONLY the JSON object, no additional text
           )}
           
           {aiResponse && !parsedData && (
-            <div className="bg-muted p-4 rounded text-sm whitespace-pre-line">
+            <div className="bg-muted p-4 rounded text-sm max-h-64 overflow-auto">
               <h4 className="font-semibold mb-2">AI Response:</h4>
-              {aiResponse}
+              <pre className="whitespace-pre-wrap break-words font-sans">{aiResponse}</pre>
             </div>
           )}
         </div>
