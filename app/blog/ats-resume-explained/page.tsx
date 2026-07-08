@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     title: 'ATS Resume Explained: Complete Guide for 2026',
     description:
       'Learn what ATS is, how it scans your resume, and how to create a simple, keyword-optimized resume that passes automated screening in 2026.',
-    url: 'https://www.createfreecv.com/blog/ats-resume-explained',
+    url: 'https://createfreecv.com/blog/ats-resume-explained',
     siteName: 'CreateFreeCV',
     type: 'article',
   },

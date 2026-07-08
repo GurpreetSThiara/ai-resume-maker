@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     title: "Resume for Software Engineers: Technical Resume Guide 2026",
     description:
       "Complete guide for software engineers to create ATS-optimized resumes that get interviews. Includes examples, formatting tips, and recruiter insights.",
-    url: "https://www.createfreecv.com/blog/software-engineer-resume",
+    url: "https://createfreecv.com/blog/software-engineer-resume",
     siteName: "CreateFreeCV",
     type: "article"
   },

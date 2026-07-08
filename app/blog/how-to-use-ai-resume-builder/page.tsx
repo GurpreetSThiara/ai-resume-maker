@@ -21,7 +21,7 @@ export const metadata: Metadata = {
         title: 'How to Use AI to Build a Job-Winning Resume in 2026',
         description:
             'Learn how to use AI tools effectively to build a resume that passes ATS and impresses recruiters, without sounding like a robot.',
-        url: 'https://www.createfreecv.com/blog/how-to-use-ai-resume-builder',
+        url: 'https://createfreecv.com/blog/how-to-use-ai-resume-builder',
         siteName: 'CreateFreeCV',
         type: 'article',
         images: [

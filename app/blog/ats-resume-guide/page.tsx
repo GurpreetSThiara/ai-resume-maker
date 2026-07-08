@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     title: "ATS-Optimized Resume Guide 2026",
     description:
       "Step-by-step guide to writing a resume that passes ATS screening and gets noticed by recruiters. Includes real resume examples and formatting tips.",
-    url: "https://www.createfreecv.com/blog/ats-resume-guide",
+    url: "https://createfreecv.com/blog/ats-resume-guide",
     siteName: "CreateFreeCV",
     type: "article"
   },

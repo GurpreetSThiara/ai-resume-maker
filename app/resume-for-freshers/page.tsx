@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     title: "Resume for Freshers: Complete Guide (2026)",
     description:
       "Step-by-step guide to creating a job-winning fresher resume with 25+ examples, ATS tips, and professional templates.",
-    url: "https://www.createfreecv.com/resume-for-freshers",
+    url: "https://createfreecv.com/resume-for-freshers",
     siteName: "CreateFreeCV",
     type: "article"
   },
