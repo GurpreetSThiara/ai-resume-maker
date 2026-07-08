@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, Suspense, ReactNode } 
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChevronLeft, ChevronRight, Trophy, Star, Zap, Target, Eye, Download, Save, X } from "lucide-react"
+import { ChevronLeft, ChevronRight, Trophy, Star, Zap, Target, Eye, Download, Save } from "lucide-react"
 import { ResumeStudio } from "@/components/visual-editor/ResumeStudio"
 import { HotkeysInfo } from "@/components/hotkeys-info"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -746,18 +746,7 @@ const CreateResumeContent: FC = () => {
                   <Dialog open={showPreview} onOpenChange={setShowPreview}>
                     <DialogContent className="w-full sm:max-w-[95vw] h-[90vh] flex flex-col p-3 sm:p-6">
                       <DialogHeader>
-                        <DialogTitle className="text-lg flex items-center justify-between">
-                          Resume Preview
-                          {/* <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setShowPreview(false)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <X className="h-4 w-4" />
-                            <span className="sr-only">Close</span>
-                          </Button> */}
-                        </DialogTitle>
+                        <DialogTitle className="text-lg">Resume Preview</DialogTitle>
                       </DialogHeader>
                       <div className="grow overflow-y-auto">
                         <ResumePreview
