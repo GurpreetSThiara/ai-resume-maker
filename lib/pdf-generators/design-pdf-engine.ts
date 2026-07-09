@@ -600,6 +600,10 @@ export async function generateDesignPDF(
       case "education":
         // Condensed = one line: Institution — Degree, Year, CGPA.
         if (design.condensedEducation ?? DEFAULT_CONDENSED_EDUCATION) {
+          // Plain section titles reserve room sized for multi-line content; a
+          // one-line entry only needs a small gap, so pull the first line up so
+          // the heading→content gap isn't larger than the gap to the next section.
+          cur.y += Math.min(s.section, gp(8))
           ;(section.items || []).forEach((edu: any) => {
             const yr = [edu.startDate, edu.endDate].filter(Boolean).join(" – ")
             const rest = [edu.degree, yr, edu.gpa].filter(Boolean).join(", ")
