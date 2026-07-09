@@ -680,7 +680,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
                       >
                         {edu.institution}
                       </span>
-                      {rest && <span style={{ color: sub }}>{" — "}{rest}</span>}
+                      {rest && <span style={{ color: sub }}>{" — "}{rest}</span>}
                     </span>
                     {crud && <Del onClick={() => removeEntry(section.id, i)} title="Delete entry" />}
                   </div>

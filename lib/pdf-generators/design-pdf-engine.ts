@@ -609,9 +609,12 @@ export async function generateDesignPDF(
             pageOf(cur).drawText(inst, { x: cur.x, y: baseY, size: s.content, font: bold, color: colors.heading })
             if (rest) {
               const instW = bold.widthOfTextAtSize(inst, s.content)
-              pageOf(cur).drawText(sanitizeWithFont(` — ${rest}`, regular), { x: cur.x + instW, y: baseY, size: s.content, font: regular, color: colors.text })
+              const spaceW = regular.widthOfTextAtSize(" ", s.content)
+              // Offset the separator by an explicit gap so it never collides with the
+              // institution (leading spaces can be trimmed during sanitisation).
+              pageOf(cur).drawText(sanitizeWithFont(`— ${rest}`, regular), { x: cur.x + instW + spaceW * 1.4, y: baseY, size: s.content, font: regular, color: colors.text })
             }
-            cur.y -= s.content + gp(6)
+            cur.y -= s.content + gp(18)
           })
           break
         }
