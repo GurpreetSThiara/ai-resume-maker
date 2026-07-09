@@ -10,7 +10,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: baseUrl, changeFrequency: 'weekly', priority: 1 },
     { url: `${baseUrl}/free-ats-resume-templates`, changeFrequency: 'weekly', priority: 1 },
     { url: `${baseUrl}/free-ats-resume-templates/create`, changeFrequency: 'weekly', priority: 0.9 },
-    { url: `${baseUrl}/free-ats-resume-templates/preview`, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${baseUrl}/resume-examples`, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${baseUrl}/cover-letter`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/blog`, changeFrequency: 'weekly', priority: 0.8 },

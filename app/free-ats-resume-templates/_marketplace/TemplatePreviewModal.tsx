@@ -2,14 +2,13 @@
 
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
-import { ZoomIn, ZoomOut, RotateCcw, ArrowRight, Eye } from "lucide-react"
+import { ZoomIn, ZoomOut, RotateCcw, ArrowRight } from "lucide-react"
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import {
   CATEGORY_MAP,
   formatDownloads,
   useTemplateHref,
-  previewTemplateHref,
   type MarketplaceTemplate,
 } from "./data"
 import { PremiumBadge, TemplateThumb } from "./shared"
@@ -148,12 +147,6 @@ export function TemplatePreviewModal({ template, open, onOpenChange }: Props) {
               >
                 Use this template <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
-              <Link
-                href={previewTemplateHref(template.templateId)}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-              >
-                <Eye className="h-4 w-4" aria-hidden /> Open full preview
-              </Link>
             </div>
           </div>
         </div>
@@ -163,13 +156,6 @@ export function TemplatePreviewModal({ template, open, onOpenChange }: Props) {
           className="flex items-center gap-2 border-t border-slate-200 bg-white p-3 md:hidden"
           style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
         >
-          <Link
-            href={previewTemplateHref(template.templateId)}
-            aria-label="Open full preview"
-            className="flex shrink-0 items-center justify-center rounded-xl border border-slate-200 px-4 py-3 text-slate-700"
-          >
-            <Eye className="h-5 w-5" aria-hidden />
-          </Link>
           <Link
             href={templateHref}
             className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white shadow-sm"

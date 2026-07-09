@@ -301,4 +301,3 @@ export function formatDownloads(n: number): string {
 
 export const CREATE_BASE = "/free-ats-resume-templates"
 export const useTemplateHref = (templateId: string) => `${CREATE_BASE}/create?template=${templateId}`
-export const previewTemplateHref = (templateId: string) => `${CREATE_BASE}/preview?template=${templateId}`
