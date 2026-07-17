@@ -1,39 +1,45 @@
 'use client';
 
 import { useCoverLetter } from '@/contexts/CoverLetterContext';
-import { FileText, Download, Edit3 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { downloadCoverLetterPDF, downloadCoverLetterDOCX } from '@/lib/export/cover-letter';
 import {
   ClassicTemplate,
+  SplitHeaderTemplate,
+  ExecutiveTemplate,
+  ModernAccentTemplate,
+  BannerTemplate,
+  SidebarTemplate,
+  MonogramTemplate,
+  MinimalTemplate,
+  BoldHeaderTemplate,
+  CorporateTemplate,
+  CompactTemplate,
+  LetterheadTemplate,
 } from '@/components/cover-letters/templates';
 import { CoverLetter } from '@/types/cover-letter';
-import { coverLetterExample } from '@/lib/examples/cover-letter';
-import { CoverLetterTemplateSwitch } from '@/components/cover-letters/cover-letter-template-switch';
-import SplitHeaderTemplate from '../templates/split-header-template';
-import { useState } from 'react';
 import { A4Page } from '@/components/ui/a4-page';
+import { TemplateLayout, getDefaultTemplate } from '@/lib/config/cover-letter-templates';
 
-import { TemplateLayout } from '@/lib/config/cover-letter-templates';
-
-type Layout = TemplateLayout;
-
-const templateMap: Record<Layout, React.ComponentType<{ coverLetter: CoverLetter; editable?: boolean }>> = {
+export const templateMap: Record<
+  TemplateLayout,
+  React.ComponentType<{ coverLetter: CoverLetter; editable?: boolean }>
+> = {
   classic: ClassicTemplate,
-  'split-header': SplitHeaderTemplate
+  'split-header': SplitHeaderTemplate,
+  executive: ExecutiveTemplate,
+  'modern-accent': ModernAccentTemplate,
+  banner: BannerTemplate,
+  sidebar: SidebarTemplate,
+  monogram: MonogramTemplate,
+  minimal: MinimalTemplate,
+  'bold-header': BoldHeaderTemplate,
+  corporate: CorporateTemplate,
+  compact: CompactTemplate,
+  letterhead: LetterheadTemplate,
 };
-
-import { getDefaultTemplate } from '@/lib/config/cover-letter-templates';
 
 export function CoverLetterPreview({ editable = false }: { editable?: boolean }) {
   const { state } = useCoverLetter();
   const { coverLetter } = state;
-  const [isEditing, setIsEditing] = useState(false);
-
-  // Derived helpers
-  const title: string | undefined = (coverLetter as any)?.title ?? "sample";
-  const canExport = Boolean(title && title.trim().length > 0);
-
 
   if (!coverLetter) {
     return (
@@ -48,9 +54,8 @@ export function CoverLetterPreview({ editable = false }: { editable?: boolean })
 
   return (
     <div className="flex flex-col gap-4">
-    
       <A4Page withOuterWrapper>
-        <SelectedTemplate coverLetter={coverLetter} editable={isEditing} />
+        <SelectedTemplate coverLetter={coverLetter} editable={editable} />
       </A4Page>
     </div>
   );

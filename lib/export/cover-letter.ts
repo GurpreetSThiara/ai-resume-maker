@@ -1,7 +1,7 @@
 import { CoverLetter } from '@/types/cover-letter'
 import { generateCoverLetterPDF } from '@/lib/pdf-generators/cover-letter-generator'
 import { generateCoverLetterDOCX } from '@/lib/docx-generators/cover-letter-generator'
-import { getDefaultTemplate, COVER_LETTER_TEMPLATES } from '@/lib/config/cover-letter-templates'
+import { COVER_LETTER_TEMPLATES, getTemplateStyle } from '@/lib/config/cover-letter-templates'
 
 function triggerDownload(data: BlobPart, filename: string, mime: string) {
   const blob = new Blob([data], { type: mime })
@@ -15,37 +15,41 @@ function triggerDownload(data: BlobPart, filename: string, mime: string) {
   window.URL.revokeObjectURL(url)
 }
 
-export async function downloadCoverLetterPDF({coverLetter, templateName}: {coverLetter: CoverLetter, templateName: string}) {
-
-  let downloadFunction;
-  if (templateName === COVER_LETTER_TEMPLATES['split-header'].value) {
-    downloadFunction = (await import('@/lib/pdf-generators/cover-letter-split-header-generator')).generateSplitHeaderPDF;
-  } else {
-    // Default to classic template
-    downloadFunction = generateCoverLetterPDF;
-  }
-
-  const bytes = await downloadFunction(coverLetter);
-  
-  triggerDownload(new Uint8Array(bytes), `sample.pdf`, 'application/pdf');
-
-  //triggerDownload(bytes, `${coverLetter.title.replace(/\s/g, '_')}.pdf`, 'application/pdf')
+function exportFilename(coverLetter: CoverLetter, ext: string) {
+  const name = `${coverLetter.applicant.firstName} ${coverLetter.applicant.lastName}`.trim()
+  const base = name ? `${name} - Cover Letter` : 'Cover Letter'
+  return `${base.replace(/\s+/g, '_')}.${ext}`
 }
 
-
-export async function downloadCoverLetterDOCX({coverLetter, templateName}: {coverLetter: CoverLetter, templateName: string}) {
-  let downloadFunction;
+export async function downloadCoverLetterPDF({ coverLetter, templateName }: { coverLetter: CoverLetter, templateName: string }) {
+  let bytes: Uint8Array
   if (templateName === COVER_LETTER_TEMPLATES['split-header'].value) {
-    downloadFunction = (await import('@/lib/docx-generators/cover-letter-split-header-docx')).generateSplitHeaderDOCX;
+    const { generateSplitHeaderPDF } = await import('@/lib/pdf-generators/cover-letter-split-header-generator')
+    bytes = await generateSplitHeaderPDF(coverLetter)
+  } else if (templateName === COVER_LETTER_TEMPLATES.classic.value) {
+    bytes = await generateCoverLetterPDF(coverLetter)
   } else {
-    // Default to classic template
-    downloadFunction = generateCoverLetterDOCX;
+    // All other templates share the config-driven generator
+    const { generateConfigCoverLetterPDF } = await import('@/lib/pdf-generators/cover-letter-config-generator')
+    bytes = await generateConfigCoverLetterPDF(coverLetter, getTemplateStyle(templateName))
   }
 
-  const buffer = await downloadFunction(coverLetter);
-  // Ensure buffer is a Uint8Array for Blob compatibility
-  const blobData = buffer instanceof Uint8Array ? new Uint8Array(buffer) : buffer;
-  triggerDownload(blobData, `sample.docx`, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  triggerDownload(new Uint8Array(bytes), exportFilename(coverLetter, 'pdf'), 'application/pdf')
+}
 
-  //triggerDownload(buffer, `${coverLetter.title.replace(/\s/g, '_')}.docx`, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+export async function downloadCoverLetterDOCX({ coverLetter, templateName }: { coverLetter: CoverLetter, templateName: string }) {
+  let buffer: Uint8Array
+  if (templateName === COVER_LETTER_TEMPLATES['split-header'].value) {
+    const { generateSplitHeaderDOCX } = await import('@/lib/docx-generators/cover-letter-split-header-docx')
+    buffer = await generateSplitHeaderDOCX(coverLetter)
+  } else if (templateName === COVER_LETTER_TEMPLATES.classic.value) {
+    buffer = await generateCoverLetterDOCX(coverLetter)
+  } else {
+    const { generateConfigCoverLetterDOCX } = await import('@/lib/docx-generators/cover-letter-config-docx')
+    buffer = await generateConfigCoverLetterDOCX(coverLetter, getTemplateStyle(templateName))
+  }
+
+  // Ensure buffer is a Uint8Array for Blob compatibility
+  const blobData = buffer instanceof Uint8Array ? new Uint8Array(buffer) : buffer
+  triggerDownload(blobData, exportFilename(coverLetter, 'docx'), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 }

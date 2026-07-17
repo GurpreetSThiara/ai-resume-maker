@@ -235,11 +235,11 @@ export function Navbar() {
                   >
                     Sign In
                   </Button>
-                  {pathname !== `${CREATE_RESUME}` && (
+                  {/* {pathname !== `${CREATE_RESUME}` && (
                     <Button asChild className="hidden lg:inline-flex">
                       <Link href={CREATE_RESUME}>Create Free Resume</Link>
                     </Button>
-                  )}
+                  )} */}
                 </>
               )}
             </div>
@@ -282,11 +282,11 @@ export function Navbar() {
               >
                 Sign In
               </Button>
-              {pathname !== `${CREATE_RESUME}` && (
+              {/* {pathname !== `${CREATE_RESUME}` && (
                 <Button asChild onClick={() => setDrawerOpen(false)}>
                   <Link href={CREATE_RESUME}>Create Free Resume</Link>
                 </Button>
-              )}
+              )} */}
             </div>
           )}
         </div>

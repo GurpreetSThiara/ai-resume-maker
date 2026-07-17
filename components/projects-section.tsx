@@ -1,15 +1,19 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Trash2, Edit2, Save, Link as LinkIcon, Github, ArrowUp, ArrowDown, X } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Plus, Trash2, Edit2, X, ArrowUp, ArrowDown } from "lucide-react"
 import { SectionVisibilityToggle } from "@/components/section-visibility-toggle"
 import { SectionHiddenBanner } from "@/components/section-hidden-banner"
-import { RecordFormSheet } from "@/components/record-form-sheet"
-import { useIsMobile } from "@/hooks/use-mobile"
 import type { ResumeData, ProjectsSection as IProjectsSection, Project } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 
@@ -18,8 +22,9 @@ interface ProjectsSectionProps {
   onUpdate: (updates: Partial<ResumeData>) => void
 }
 
+const EMPTY_PROJECT: Project = { name: "", link: "", repo: "", description: [], startDate: "", endDate: "" }
+
 export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
-  const isMobile = useIsMobile()
   const sectionIndex = data.sections.findIndex((s) => s.type === SECTION_TYPES.PROJECTS)
   const projectsSection = (sectionIndex !== -1 ? data.sections[sectionIndex] : {
     id: "projects",
@@ -38,78 +43,61 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
     onUpdate({ sections: updated })
   }
 
-  const [isAddingNew, setIsAddingNew] = useState(false)
-  const [newProject, setNewProject] = useState<Project>({ name: "", link: "", repo: "", description: [], startDate: "", endDate: "" })
-  const [editingIndex, setEditingIndex] = useState<number | null>(null)
-  const [editValue, setEditValue] = useState<Project>({ name: "", link: "", repo: "", description: [], startDate: "", endDate: "" })
-  const newDescRefs = useRef<HTMLInputElement[]>([])
-  const newNameRef = useRef<HTMLInputElement | null>(null)
-  const newStartRef = useRef<HTMLInputElement | null>(null)
-  const newEndRef = useRef<HTMLInputElement | null>(null)
-  const newLinkRef = useRef<HTMLInputElement | null>(null)
-  const newRepoRef = useRef<HTMLInputElement | null>(null)
-  const editDescRefs = useRef<HTMLInputElement[]>([])
-  const editNameRef = useRef<HTMLInputElement | null>(null)
-  const editStartRef = useRef<HTMLInputElement | null>(null)
-  const editEndRef = useRef<HTMLInputElement | null>(null)
-  const editLinkRef = useRef<HTMLInputElement | null>(null)
-  const editRepoRef = useRef<HTMLInputElement | null>(null)
+  // editingIndex === null && !isModalOpen -> modal closed
+  // editingIndex === -1 -> adding a new project
+  // editingIndex >= 0 -> editing that project
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingIndex, setEditingIndex] = useState<number>(-1)
+  const [formValue, setFormValue] = useState<Project>(EMPTY_PROJECT)
 
-  const addNewDescriptionPoint = () => {
-    setNewProject(p => ({ ...p, description: [...(p.description || []), ""] }))
-    // focus the newly added input after render
-    setTimeout(() => {
-      const el = newDescRefs.current[newDescRefs.current.length - 1]
-      if (el) el.focus()
-    }, 0)
+  const openAddModal = () => {
+    setEditingIndex(-1)
+    setFormValue(EMPTY_PROJECT)
+    setIsModalOpen(true)
   }
 
-  const addEditDescriptionPoint = () => {
-    setEditValue(p => ({ ...p, description: [...(p.description || []), ""] }))
-    setTimeout(() => {
-      const el = editDescRefs.current[editDescRefs.current.length - 1]
-      if (el) el.focus()
-    }, 0)
+  const openEditModal = (idx: number) => {
+    setEditingIndex(idx)
+    setFormValue(projectsSection.items[idx])
+    setIsModalOpen(true)
   }
 
-  // Helper functions for new project form
-  const updateNewProjectField = (field: keyof Project, value: string) => {
-    setNewProject(p => ({ ...p, [field]: value }))
+  const closeModal = () => {
+    setIsModalOpen(false)
   }
 
-  const updateNewProjectDescription = (dIdx: number, value: string) => {
-    setNewProject(p => {
+  // Reset form state after the close animation finishes so the fields don't
+  // visibly flash back to empty while the dialog is fading out.
+  useEffect(() => {
+    if (isModalOpen) return
+    const timeout = setTimeout(() => {
+      setEditingIndex(-1)
+      setFormValue(EMPTY_PROJECT)
+    }, 200)
+    return () => clearTimeout(timeout)
+  }, [isModalOpen])
+
+  const updateFormField = (field: keyof Project, value: string) => {
+    setFormValue((p) => ({ ...p, [field]: value }))
+  }
+
+  const updateFormDescription = (dIdx: number, value: string) => {
+    setFormValue((p) => {
       const next = [...(p.description || [])]
       next[dIdx] = value
       return { ...p, description: next }
     })
   }
 
-  const removeNewProjectDescription = (dIdx: number) => {
-    setNewProject(p => ({
+  const removeFormDescription = (dIdx: number) => {
+    setFormValue((p) => ({
       ...p,
       description: (p.description || []).filter((_, i) => i !== dIdx)
     }))
   }
 
-  // Helper functions for edit project form
-  const updateEditProjectField = (field: keyof Project, value: string) => {
-    setEditValue(p => ({ ...p, [field]: value }))
-  }
-
-  const updateEditProjectDescription = (dIdx: number, value: string) => {
-    setEditValue(p => {
-      const next = [...(p.description || [])]
-      next[dIdx] = value
-      return { ...p, description: next }
-    })
-  }
-
-  const removeEditProjectDescription = (dIdx: number) => {
-    setEditValue(p => ({
-      ...p,
-      description: (p.description || []).filter((_, i) => i !== dIdx)
-    }))
+  const addFormDescriptionPoint = () => {
+    setFormValue((p) => ({ ...p, description: [...(p.description || []), ""] }))
   }
 
   const updateSection = (items: Project[]) => {
@@ -121,22 +109,26 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
     }
   }
 
-  const addProject = () => {
-    const name = (newProject.name || "").trim()
+  const saveProject = () => {
+    const name = (formValue.name || "").trim()
     if (!name) return
     const sanitized: Project = {
       name,
-      link: newProject.link?.trim() || undefined,
-      repo: newProject.repo?.trim() || undefined,
-      description: (newProject.description || []).map(d => (d || "").trim()).filter(Boolean),
-      startDate: newProject.startDate?.trim() || undefined,
-      endDate: newProject.endDate?.trim() || undefined,
+      link: formValue.link?.trim() || undefined,
+      repo: formValue.repo?.trim() || undefined,
+      description: (formValue.description || []).map((d) => (d || "").trim()).filter(Boolean),
+      startDate: formValue.startDate?.trim() || undefined,
+      endDate: formValue.endDate?.trim() || undefined,
     }
-    updateSection([...(projectsSection.items || []), sanitized])
-    setNewProject({ name: "", link: "", repo: "", description: [], startDate: "", endDate: "" })
-    setIsAddingNew(false)
-    newDescRefs.current = []
-    newNameRef.current = null
+
+    if (editingIndex === -1) {
+      updateSection([...(projectsSection.items || []), sanitized])
+    } else {
+      const next = [...projectsSection.items]
+      next[editingIndex] = sanitized
+      updateSection(next)
+    }
+    closeModal()
   }
 
   const removeProject = (idx: number) => {
@@ -152,244 +144,6 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
     updateSection(arr)
   }
 
-  const removeBullet = (pIdx: number, dIdx: number) => {
-    const arr = [...(projectsSection.items || [])]
-    const desc = [...(arr[pIdx].description || [])]
-    desc.splice(dIdx, 1)
-    arr[pIdx] = { ...arr[pIdx], description: desc }
-    updateSection(arr)
-  }
-
-  const addBullet = (pIdx: number) => {
-    const arr = [...(projectsSection.items || [])]
-    const desc = [...(arr[pIdx].description || [])]
-    desc.push("")
-    arr[pIdx] = { ...arr[pIdx], description: desc }
-    updateSection(arr)
-  }
-
-  const startEdit = (idx: number) => {
-    editDescRefs.current = []
-    setEditingIndex(idx)
-    setEditValue(projectsSection.items[idx])
-  }
-
-  const saveEdit = () => {
-    if (editingIndex === null) return
-    const name = (editValue.name || "").trim()
-    if (!name) return
-    const sanitized: Project = {
-      name,
-      link: editValue.link?.trim() || undefined,
-      repo: editValue.repo?.trim() || undefined,
-      description: (editValue.description || []).map(d => (d || "").trim()).filter(Boolean),
-      startDate: editValue.startDate?.trim() || undefined,
-      endDate: editValue.endDate?.trim() || undefined,
-    }
-    const next = [...projectsSection.items]
-    next[editingIndex] = sanitized
-    updateSection(next)
-    setEditingIndex(null)
-    editDescRefs.current = []
-  }
-
-  const addFields = (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-        <div>
-          <div className="text-xs text-muted-foreground mb-1">Project name</div>
-          <Input
-            ref={(el: any) => (newNameRef.current = el)}
-            value={newProject.name}
-            onChange={(e) => updateNewProjectField('name', e.target.value)}
-            onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); newStartRef.current?.focus() } }}
-            placeholder="e.g., Resume Builder"
-            className="placeholder:text-muted-foreground"
-            disabled={isHidden}
-          />
-        </div>
-        <div>
-          <div className="text-xs text-muted-foreground mb-1">Start Date (if any)</div>
-          <Input
-            ref={(el: any) => (newStartRef.current = el)}
-            value={newProject.startDate || ""}
-            onChange={(e) => updateNewProjectField('startDate', e.target.value)}
-            onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); newEndRef.current?.focus() } }}
-            placeholder="2023-01"
-            className="placeholder:text-muted-foreground"
-            disabled={isHidden}
-          />
-        </div>
-        <div>
-          <div className="text-xs text-muted-foreground mb-1">End Date (if any)</div>
-          <Input
-            ref={(el: any) => (newEndRef.current = el)}
-            value={newProject.endDate || ""}
-            onChange={(e) => updateNewProjectField('endDate', e.target.value)}
-            onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); newLinkRef.current?.focus() } }}
-            placeholder="2023-12 or Present"
-            className="placeholder:text-muted-foreground"
-            disabled={isHidden}
-          />
-        </div>
-        <div>
-          <div className="text-xs text-muted-foreground mb-1">Project link</div>
-          <Input
-            ref={(el: any) => (newLinkRef.current = el)}
-            value={newProject.link || ""}
-            onChange={(e) => updateNewProjectField('link', e.target.value)}
-            onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); newRepoRef.current?.focus() } }}
-            placeholder="https://example.com"
-            className="placeholder:text-muted-foreground"
-            disabled={isHidden}
-          />
-        </div>
-        <div>
-          <div className="text-xs text-muted-foreground mb-1">GitHub repo</div>
-          <Input
-            ref={(el: any) => (newRepoRef.current = el)}
-            value={newProject.repo || ""}
-            onChange={(e) => updateNewProjectField('repo', e.target.value)}
-            onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); /* move to first description input if present */ if (newDescRefs.current[0]) { newDescRefs.current[0].focus() } }} }
-            placeholder="https://github.com/user/repo"
-            className="placeholder:text-muted-foreground"
-            disabled={isHidden}
-          />
-        </div>
-      </div>
-      <div>
-        <div className="text-xs text-muted-foreground mb-1">Description points</div>
-        <div className="space-y-2">
-          {(newProject.description || []).map((d, dIdx) => (
-            <div key={dIdx} className="flex items-start gap-2">
-              <span className="text-sm pt-2">•</span>
-                <Input
-                  value={d}
-                  onChange={(e) => updateNewProjectDescription(dIdx, e.target.value)}
-                  ref={(el: any) => (newDescRefs.current[dIdx] = el)}
-                  className="placeholder:text-muted-foreground"
-                  onKeyDown={(e: any) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault()
-                      addNewDescriptionPoint()
-                    }
-                  }}
-                  disabled={isHidden}
-                />
-              <Button size="icon" variant="ghost" onClick={() => removeNewProjectDescription(dIdx)} disabled={isHidden}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          ))}
-                <Button size="sm" variant="outline" onClick={addNewDescriptionPoint} disabled={isHidden}>Add description point</Button>
-        </div>
-      </div>
-    </>
-  )
-
-  const addActions = (
-    <div className="flex gap-2">
-      <Button onClick={addProject} className="gap-1" disabled={isHidden}><Plus className="w-4 h-4" />Add Project</Button>
-      <Button variant="outline" onClick={() => { newDescRefs.current = []; newNameRef.current = null; setIsAddingNew(false); setNewProject({ name: "", link: "", repo: "", description: [] }) }} disabled={isHidden}>Cancel</Button>
-    </div>
-  )
-
-  const editFields = (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-        <div>
-          <div className="text-xs text-muted-foreground mb-1">Project name</div>
-          <Input
-            ref={(el: any) => (editNameRef.current = el)}
-            value={editValue.name}
-            onChange={(e) => updateEditProjectField('name', e.target.value)}
-            onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); editStartRef.current?.focus() } }}
-            className="placeholder:text-muted-foreground"
-            disabled={isHidden}
-          />
-        </div>
-        <div>
-          <div className="text-xs text-muted-foreground mb-1">Start Date (if any)</div>
-          <Input
-            ref={(el: any) => (editStartRef.current = el)}
-            value={editValue.startDate || ""}
-            onChange={(e) => updateEditProjectField('startDate', e.target.value)}
-            onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); editEndRef.current?.focus() } }}
-            className="placeholder:text-muted-foreground"
-            disabled={isHidden}
-          />
-        </div>
-        <div>
-          <div className="text-xs text-muted-foreground mb-1">End Date (if any)</div>
-          <Input
-            ref={(el: any) => (editEndRef.current = el)}
-            value={editValue.endDate || ""}
-            onChange={(e) => updateEditProjectField('endDate', e.target.value)}
-            onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); editLinkRef.current?.focus() } }}
-            className="placeholder:text-muted-foreground"
-            disabled={isHidden}
-          />
-        </div>
-        <div>
-          <div className="text-xs text-muted-foreground mb-1">Project link</div>
-          <Input
-            ref={(el: any) => (editLinkRef.current = el)}
-            value={editValue.link || ""}
-            onChange={(e) => updateEditProjectField('link', e.target.value)}
-            onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); editRepoRef.current?.focus() } }}
-            className="placeholder:text-muted-foreground"
-            disabled={isHidden}
-          />
-        </div>
-        <div>
-          <div className="text-xs text-muted-foreground mb-1">GitHub repo</div>
-          <Input
-            ref={(el: any) => (editRepoRef.current = el)}
-            value={editValue.repo || ""}
-            onChange={(e) => updateEditProjectField('repo', e.target.value)}
-            onKeyDown={(e: any) => { if (e.key === 'Enter') { e.preventDefault(); if (editDescRefs.current[0]) { editDescRefs.current[0].focus() } } }}
-            className="placeholder:text-muted-foreground"
-            disabled={isHidden}
-          />
-        </div>
-      </div>
-      <div>
-        <div className="text-xs text-muted-foreground mb-1">Description points</div>
-        <div className="space-y-2">
-          {(editValue.description || []).map((d, dIdx) => (
-            <div key={dIdx} className="flex items-start gap-2">
-              <span className="text-sm pt-2">•</span>
-                  <Input
-                    value={d}
-                    onChange={(e) => updateEditProjectDescription(dIdx, e.target.value)}
-                    ref={(el: any) => (editDescRefs.current[dIdx] = el)}
-                    className="placeholder:text-muted-foreground"
-                    onKeyDown={(e: any) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault()
-                        addEditDescriptionPoint()
-                      }
-                    }}
-                    disabled={isHidden}
-                  />
-              <Button size="icon" variant="ghost" onClick={() => removeEditProjectDescription(dIdx)} disabled={isHidden}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          ))}
-          <Button size="sm" variant="outline" onClick={addEditDescriptionPoint} disabled={isHidden}>Add description point</Button>
-        </div>
-      </div>
-    </>
-  )
-
-  const editActions = (
-    <div className="flex gap-2">
-      <Button size="sm" onClick={saveEdit} className="gap-1" disabled={isHidden}><Save className="w-4 h-4" />Save</Button>
-      <Button size="sm" variant="outline" onClick={() => { editDescRefs.current = []; setEditingIndex(null) }} disabled={isHidden}>Cancel</Button>
-    </div>
-  )
-
   return (
     <div className="space-y-5">
       <Card>
@@ -399,70 +153,145 @@ export function ProjectsSection({ data, onUpdate }: ProjectsSectionProps) {
         </CardHeader>
         {isHidden && <SectionHiddenBanner />}
         <CardContent className="space-y-4">
-          {!isAddingNew ? (
-            <Button onClick={() => { newDescRefs.current = []; setIsAddingNew(true); setTimeout(() => { newNameRef.current?.focus() }, 0) }} className="gap-1" disabled={isHidden}><Plus className="w-4 h-4" />New Project</Button>
-          ) : isMobile ? (
-            <RecordFormSheet open onOpenChange={(o) => { if (!o) { newDescRefs.current = []; newNameRef.current = null; setIsAddingNew(false); setNewProject({ name: "", link: "", repo: "", description: [] }) } }} title="Add Project" footer={addActions}>
-              {addFields}
-            </RecordFormSheet>
-          ) : (
-            <div className="space-y-3 rounded-md border p-3">{addFields}{addActions}</div>
-          )}
+          <Button onClick={openAddModal} className="gap-1" disabled={isHidden}>
+            <Plus className="w-4 h-4" />New Project
+          </Button>
 
           <div className="space-y-3">
             {(projectsSection.items || []).map((proj, idx) => (
               <div key={idx} className="rounded-md border p-3">
-                {editingIndex === idx && !isMobile ? (
-                  <div className="space-y-3">{editFields}{editActions}</div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="font-medium text-sm">{proj.name}</div>
-                        <div className="flex items-center gap-2">
-                        <Button size="icon" variant="ghost" onClick={() => moveProject(idx, idx - 1)} disabled={idx === 0 || isHidden}><ArrowUp className="w-4 h-4" /></Button>
-                        <Button size="icon" variant="ghost" onClick={() => moveProject(idx, idx + 1)} disabled={idx === (projectsSection.items?.length || 0) - 1 || isHidden}><ArrowDown className="w-4 h-4" /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => startEdit(idx)} disabled={isHidden}><Edit2 className="w-4 h-4" /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => removeProject(idx)} disabled={isHidden}><Trash2 className="w-4 h-4" /></Button>
-                      </div>
-                    </div>
-                    {(proj.link || proj.repo) && (
-                      <div className="flex flex-wrap gap-2">
-                        {proj.link && (
-                          <a className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-blue-700 px-2 py-0.5 text-xs" href={proj.link} target="_blank" rel="noreferrer">
-                            Link
-                          </a>
-                        )}
-                        {proj.repo && (
-                          <a className="inline-flex items-center gap-1 rounded-full bg-slate-100 text-slate-700 px-2 py-0.5 text-xs" href={proj.repo} target="_blank" rel="noreferrer">
-                            GitHub
-                          </a>
-                        )}
-                      </div>
-                    )}
-                    <div className="space-y-1">
-                      {(proj.description || []).map((d, i) => (
-                        <div key={i} className="text-sm leading-tight">• {d}</div>
-                      ))}
-                      {(proj.description || []).length === 0 && (
-                        <div className="text-xs text-muted-foreground">No description yet</div>
-                      )}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="font-medium text-sm">{proj.name}</div>
+                    <div className="flex items-center gap-2">
+                      <Button size="icon" variant="ghost" onClick={() => moveProject(idx, idx - 1)} disabled={idx === 0 || isHidden}>
+                        <ArrowUp className="w-4 h-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => moveProject(idx, idx + 1)} disabled={idx === (projectsSection.items?.length || 0) - 1 || isHidden}>
+                        <ArrowDown className="w-4 h-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => openEditModal(idx)} disabled={isHidden}><Edit2 className="w-4 h-4" /></Button>
+                      <Button size="sm" variant="ghost" onClick={() => removeProject(idx)} disabled={isHidden}><Trash2 className="w-4 h-4" /></Button>
                     </div>
                   </div>
-                )}
+                  {(proj.link || proj.repo) && (
+                    <div className="flex flex-wrap gap-2">
+                      {proj.link && (
+                        <a className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-blue-700 px-2 py-0.5 text-xs" href={proj.link} target="_blank" rel="noreferrer">
+                          Link
+                        </a>
+                      )}
+                      {proj.repo && (
+                        <a className="inline-flex items-center gap-1 rounded-full bg-slate-100 text-slate-700 px-2 py-0.5 text-xs" href={proj.repo} target="_blank" rel="noreferrer">
+                          GitHub
+                        </a>
+                      )}
+                    </div>
+                  )}
+                  <div className="space-y-1">
+                    {(proj.description || []).map((d, i) => (
+                      <div key={i} className="text-sm leading-tight">• {d}</div>
+                    ))}
+                    {(proj.description || []).length === 0 && (
+                      <div className="text-xs text-muted-foreground">No description yet</div>
+                    )}
+                  </div>
+                </div>
               </div>
             ))}
             {(!projectsSection.items || projectsSection.items.length === 0) && (
               <div className="text-sm text-muted-foreground">No projects added yet.</div>
             )}
           </div>
-
-          {isMobile && editingIndex !== null && (
-            <RecordFormSheet open onOpenChange={(o) => { if (!o) { editDescRefs.current = []; setEditingIndex(null) } }} title="Edit Project" footer={editActions}>
-              {editFields}
-            </RecordFormSheet>
-          )}
         </CardContent>
       </Card>
+
+      <Dialog open={isModalOpen} onOpenChange={(o) => { if (!o) closeModal() }}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{editingIndex === -1 ? "Add Project" : "Edit Project"}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Project name</label>
+              <Input
+                value={formValue.name}
+                onChange={(e) => updateFormField('name', e.target.value)}
+                placeholder="e.g., Resume Builder"
+                autoFocus
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Start Date (if any)</label>
+                <Input
+                  value={formValue.startDate || ""}
+                  onChange={(e) => updateFormField('startDate', e.target.value)}
+                  placeholder="2023-01"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">End Date (if any)</label>
+                <Input
+                  value={formValue.endDate || ""}
+                  onChange={(e) => updateFormField('endDate', e.target.value)}
+                  placeholder="2023-12 or Present"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Project link</label>
+              <Input
+                value={formValue.link || ""}
+                onChange={(e) => updateFormField('link', e.target.value)}
+                placeholder="https://example.com"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">GitHub repo</label>
+              <Input
+                value={formValue.repo || ""}
+                onChange={(e) => updateFormField('repo', e.target.value)}
+                placeholder="https://github.com/user/repo"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Description points</label>
+              <div className="space-y-2">
+                {(formValue.description || []).map((d, dIdx) => (
+                  <div key={dIdx} className="flex items-start gap-2">
+                    <span className="text-sm pt-2">•</span>
+                    <Input
+                      value={d}
+                      onChange={(e) => updateFormDescription(dIdx, e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          addFormDescriptionPoint()
+                        }
+                      }}
+                    />
+                    <Button size="icon" variant="ghost" onClick={() => removeFormDescription(dIdx)}>
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button size="sm" variant="outline" onClick={addFormDescriptionPoint}>Add description point</Button>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={closeModal}>Cancel</Button>
+            <Button onClick={saveProject} disabled={!formValue.name.trim()}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

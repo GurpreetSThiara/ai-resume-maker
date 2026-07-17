@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -69,6 +69,19 @@ export function CreateResumeHeader({
 }: CreateResumeHeaderProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  // Keep the active step chip scrolled into view (centered) as the step changes.
+  const stepChipsRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const container = stepChipsRef.current
+    if (!container) return
+    const active = container.querySelector<HTMLElement>('[data-step-active="true"]')
+    if (!active) return
+    const cRect = container.getBoundingClientRect()
+    const aRect = active.getBoundingClientRect()
+    const target = container.scrollLeft + (aRect.left - cRect.left) - container.clientWidth / 2 + aRect.width / 2
+    container.scrollTo({ left: Math.max(0, target), behavior: "smooth" })
+  }, [currentStep])
 
   // Whole-résumé style settings (spacing / margins / condensed education …).
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -223,12 +236,13 @@ const renderControls = () => (
         </div>
 
         {/* step chips — jump to any step */}
-        <div className="overflow-x-auto px-4 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div ref={stepChipsRef} className="overflow-x-auto scroll-px-4 px-4 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex w-max gap-2">
             {steps.map((step, i) => (
               <button
                 key={step.id}
                 type="button"
+                data-step-active={i === currentStep}
                 onClick={() => setCurrentStep(i)}
                 className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-[13px] font-medium transition ${
                   i === currentStep

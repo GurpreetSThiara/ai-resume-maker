@@ -1,5 +1,13 @@
+export * from './shared';
 export * from './classic-template';
-export * from './modern-template';
-export * from './elegant-template';
-export * from './creative-template';
-export * from './minimalist-template';
+export * from './executive-template';
+export * from './modern-accent-template';
+export * from './banner-template';
+export * from './sidebar-template';
+export * from './monogram-template';
+export * from './minimal-template';
+export * from './bold-header-template';
+export * from './corporate-template';
+export * from './compact-template';
+export * from './letterhead-template';
+export { default as SplitHeaderTemplate } from './split-header-template';

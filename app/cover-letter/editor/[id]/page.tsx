@@ -84,7 +84,6 @@ export default function CoverLetterEditorPage({ params }: EditorPageProps) {
       let initialData = { ...coverLetterExample };
       
       if (urlTemplate && isValidTemplate(urlTemplate)) {
-        console.log('Setting initial template from URL:', urlTemplate);
         initialData = {
           ...initialData,
           formatting: {
@@ -260,7 +259,7 @@ export default function CoverLetterEditorPage({ params }: EditorPageProps) {
                 <CoverLetterPreview />
               </div>
             }
-            previewTitle="Cover Letter Preview ( edit directly from preview try with click/tap )"
+            previewTitle="Live Preview — click any text to edit it directly"
           >
             <CoverLetterEditor activeStep={currentStep} />
           </StepLayout>
