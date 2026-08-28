@@ -1,6 +1,7 @@
 import { Document, Packer, Paragraph, TextRun } from "docx"
 import type { CoverLetter } from "@/types/cover-letter"
 import { format } from "date-fns"
+import { FONT_DOCX } from "@/lib/render-spec"
 
 export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise<Uint8Array> {
   const { applicant , recipient , content } = coverLetter
@@ -29,7 +30,7 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
           bold: true,
           size: 28, // 14pt
           color: "000000",
-          font: "Helvetica",
+          font: FONT_DOCX.sans,
         }),
       ],
       spacing: { after: 120 },
@@ -41,7 +42,7 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
           text: yourAddress,
           size: 22, // 11pt
           color: "000000",
-          font: "Helvetica",
+          font: FONT_DOCX.sans,
         }),
       ],
       spacing: { after: 60 },
@@ -55,7 +56,7 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
             text: contactInfoParts.join(' | '),
             size: 22, // 11pt
             color: "000000",
-            font: "Helvetica",
+            font: FONT_DOCX.sans,
           }),
         ],
         spacing: { after: 320 },
@@ -69,7 +70,7 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
           text: format(new Date(content.date), "MMMM d, yyyy"),
           size: 22, // 11pt
           color: "000000",
-          font: "Helvetica",
+          font: FONT_DOCX.sans,
         }),
       ],
       spacing: { after: 240 },
@@ -82,7 +83,7 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
           text: recipient.name,
           size: 22, // 11pt
           color: "000000",
-          font: "Helvetica",
+          font: FONT_DOCX.sans,
         }),
       ],
       spacing: { after: 60 },
@@ -94,7 +95,7 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
           text: recipient.title,
           size: 22, // 11pt
           color: "000000",
-          font: "Helvetica",
+          font: FONT_DOCX.sans,
         }),
       ],
       spacing: { after: 60 },
@@ -106,7 +107,7 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
           text: recipient.company,
           size: 22, // 11pt
           color: "000000",
-          font: "Helvetica",
+          font: FONT_DOCX.sans,
         }),
       ],
       spacing: { after: 60 },
@@ -118,7 +119,7 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
           text: recipientAddress,
           size: 22, // 11pt
           color: "000000",
-          font: "Helvetica",
+          font: FONT_DOCX.sans,
         }),
       ],
       spacing: { after: 300 },
@@ -132,7 +133,7 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
             text: content.salutation,
             size: 22, // 11pt
             color: "000000",
-            font: "Helvetica",
+            font: FONT_DOCX.sans,
           }),
         ],
         spacing: { after: 240 },
@@ -146,7 +147,7 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
           text: opening,
           size: 22, // 11pt
           color: "000000",
-          font: "Helvetica",
+          font: FONT_DOCX.sans,
         }),
       ],
       spacing: { after: 180 },
@@ -158,7 +159,7 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
           text: body,
           size: 22, // 11pt
           color: "000000",
-          font: "Helvetica",
+          font: FONT_DOCX.sans,
         }),
       ],
       spacing: { after: 180 },
@@ -170,7 +171,7 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
           text: closing,
           size: 22, // 11pt
           color: "000000",
-          font: "Helvetica",
+          font: FONT_DOCX.sans,
         }),
       ],
       spacing: { after: 240 },
@@ -183,7 +184,7 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
           text: "Sincerely,",
           size: 22, // 11pt
           color: "000000",
-          font: "Helvetica",
+          font: FONT_DOCX.sans,
         }),
       ],
       spacing: { after: 240 },
@@ -196,7 +197,7 @@ export async function generateCoverLetterDOCX(coverLetter: CoverLetter): Promise
           bold: true,
           size: 22, // 11pt
           color: "000000",
-          font: "Helvetica",
+          font: FONT_DOCX.sans,
         }),
       ],
     }),

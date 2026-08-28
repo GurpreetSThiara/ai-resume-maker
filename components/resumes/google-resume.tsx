@@ -6,6 +6,7 @@ import { useRef, useEffect, useState } from "react"
 import { sortSectionsByOrder, getSectionsForRendering } from "@/utils/sectionOrdering"
 import ProjectSection from "../resume-components/project-section"
 import { getEffectiveSkillGroupsFromSection, formatGroupedSkillsLine } from "@/utils/skills"
+import { FONT_CSS } from "@/lib/render-spec"
 
 
 interface ResumeProps {
@@ -244,7 +245,7 @@ export const GoogleResume: React.FC<ResumeProps> = ({
             borderRadius: 8,
             overflow: 'hidden',
             margin: '0 auto',
-            fontFamily: font?.name || 'Helvetica, Arial, sans-serif',
+            fontFamily: font?.name || FONT_CSS.sans,
           }}
         >
           {/* A4 page container with exact PDF dimensions */}

@@ -5,6 +5,7 @@ import type React from "react"
 import { useRef, useEffect, useState } from "react"
 import { sortSectionsByOrder } from "@/utils/sectionOrdering"
 import ProjectSection from "../resume-components/project-section"
+import { FONT_CSS } from "@/lib/render-spec"
 
 
 interface ResumeProps {
@@ -224,7 +225,7 @@ export const GoogleBlackLinesResume: React.FC<ResumeProps> = ({
             borderRadius: 8,
             overflow: 'hidden',
             margin: '0 auto',
-            fontFamily: font?.name || 'Helvetica, Arial, sans-serif',
+            fontFamily: font?.name || FONT_CSS.sans,
           }}
         >
           {/* A4 page container with exact PDF dimensions */}

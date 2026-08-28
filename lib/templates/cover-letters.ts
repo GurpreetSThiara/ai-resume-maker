@@ -1,5 +1,6 @@
 import { CoverLetter } from '@/types/cover-letter';
 import { getDefaultTemplate as getConfigDefaultTemplate } from '@/lib/config/cover-letter-templates';
+import { DEFAULT_COVER_LETTER_STATUS } from '@/constants/coverLetterConstants';
 
 // A default CoverLetter object aligned with the new schema
 export const DEFAULT_COVER_LETTER: CoverLetter = {
@@ -70,7 +71,7 @@ export const DEFAULT_COVER_LETTER: CoverLetter = {
     layout: getConfigDefaultTemplate().value,
   },
   attachments: { resume: false, /* portfolio: false, */ references: false, coverLetter: true, other: [] },
-  tracking: { status: 'draft' },
+  tracking: { status: DEFAULT_COVER_LETTER_STATUS },
 };
 
 // Simple preset templates that pre-fill the content section while keeping the schema intact

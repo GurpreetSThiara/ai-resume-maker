@@ -27,6 +27,12 @@ export const DEFAULT_PROJECT = {
   endDate: "",
 }
 
+// Default/sentinel title for an unnamed skill group — also used as the
+// comparison that decides whether to render a group heading at all (see
+// utils/skills.ts, components/skills-section.tsx, and
+// components/resumes/shared/ConfigurableResume.tsx).
+export const DEFAULT_SKILL_GROUP_TITLE = "General"
+
 export const RESUME_IMAGES = {
   CLASSIC: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/classic.png",
   ATS_GREEN: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/atsgreen.png",
@@ -48,89 +54,96 @@ export const RESUME_IMAGES = {
   MODERN_SPLIT: "https://cdn.jsdelivr.net/gh/GurpreetSThiara/ai-resume-maker-images@main/templates/modern-split.png",
 }
 
-export const RESUME_TEMPLATES = [
+// Canonical id/name/image for the hand-built ("legacy") templates — the single
+// source of truth shared with the marketplace catalog (see
+// app/free-ats-resume-templates/_marketplace/data.ts), so the two never drift
+// apart on id or display name.
+export const LEGACY_RESUME_TEMPLATES = [
+  { id: "ats-classic-compact", name: "ATS Classic Compact", image: RESUME_IMAGES.ATS_COMPACT },
+  { id: "ats-classic", name: "ATS Classic", image: RESUME_IMAGES.CLASSIC },
+  { id: "ats-compact-lines", name: "ATS Classic Lines", image: RESUME_IMAGES.COMPACT_LINES },
+  { id: "classic-blue", name: "Classic Blue", image: RESUME_IMAGES.CLASSIC_BLUE },
+  { id: "ats-green", name: "ATS Friendly (Green)", image: RESUME_IMAGES.ATS_GREEN },
+  { id: "ats-yellow", name: "Classic Yellow", image: RESUME_IMAGES.ATS_YELLOW },
+  { id: "modern-sidebar", name: "Modern Sidebar", image: RESUME_IMAGES.MODERN_SIDEBAR },
+  { id: "bold-professional", name: "Bold Professional", image: RESUME_IMAGES.BOLD_PROFESSIONAL },
+  { id: "modern-split", name: "Modern Split", image: RESUME_IMAGES.MODERN_SPLIT },
+] as const
+
+const LEGACY_TEMPLATE_META: Record<
+  string,
   {
-    id: "ats-classic-compact",
-    name: "ATS Classic Compact",
-    url: RESUME_IMAGES.ATS_COMPACT,
+    category: string
+    description: string
+    suggestedFor: string[]
+    isAtsFriendly: boolean
+    isBestForAts?: boolean
+  }
+> = {
+  "ats-classic-compact": {
     category: "ATS",
     description: "Compact version of ATS Classic with reduced spacing and no decorative lines for maximum content density.",
     suggestedFor: ["Experienced professionals", "Technical roles", "Dense resumes"],
     isAtsFriendly: true,
-    isBestForAts: true
+    isBestForAts: true,
   },
-  {
-    id: "ats-classic",
-    name: "ATS Classic",
-    url: RESUME_IMAGES.CLASSIC,
+  "ats-classic": {
     category: "Professional",
     description: "Clean, minimal and highly readable, with plain section headings (no rules).",
     suggestedFor: ["Engineering", "Finance", "Operations"],
-    isAtsFriendly: true
+    isAtsFriendly: true,
   },
-  {
-    id: "ats-compact-lines",
-    name: "ATS Classic Lines",
-    url: RESUME_IMAGES.COMPACT_LINES,
+  "ats-compact-lines": {
     category: "ATS",
     description: "ATS Classic with black rule lines under each section heading.",
     suggestedFor: ["Experienced professionals", "Technical roles", "Dense resumes"],
-    isAtsFriendly: true
+    isAtsFriendly: true,
   },
-  {
-    id: "classic_blue",
-    name: "Classic Blue",
-    url: RESUME_IMAGES.CLASSIC_BLUE,
+  "classic-blue": {
     category: "Contemporary",
     description: "A modern layout with subtle accents and clear sectioning for creative and product roles.",
     suggestedFor: ["Product", "Design", "Marketing"],
-    isAtsFriendly: true
+    isAtsFriendly: true,
   },
-  {
-    id: "ats-green",
-    name: "ATS Friendly (Green)",
-    url: RESUME_IMAGES.ATS_GREEN,
+  "ats-green": {
     category: "ATS",
     description: "Optimized for Applicant Tracking Systems — simple structure and semantic headings.",
     suggestedFor: ["All industries - ATS aware"],
-    isAtsFriendly: true
+    isAtsFriendly: true,
   },
-  {
-    id: "ats-yellow",
-    name: "Classic Yellow",
-    url: RESUME_IMAGES.ATS_YELLOW,
+  "ats-yellow": {
     category: "Contemporary",
     description: "A modern layout with subtle accents and clear sectioning for creative and product roles.",
     suggestedFor: ["Product", "Design", "Marketing"],
-    isAtsFriendly: true
+    isAtsFriendly: true,
   },
-  {
-    id: "modern-sidebar",
-    name: "Modern Sidebar",
-    url: RESUME_IMAGES.MODERN_SIDEBAR,
+  "modern-sidebar": {
     category: "Modern",
     description: "Two-column layout with sidebar for skills and contact info. Stylish and professional.",
     suggestedFor: ["Designers", "Developers", "Creative roles"],
-    isAtsFriendly: false
+    isAtsFriendly: false,
   },
-  {
-    id: "bold-professional",
-    name: "Bold Professional",
-    url: RESUME_IMAGES.BOLD_PROFESSIONAL,
+  "bold-professional": {
     category: "Professional",
     description: "Impactful design with a dark navy header and clean single-column layout. High preview fidelity.",
     suggestedFor: ["Executive", "Management", "Professional"],
-    isAtsFriendly: false
+    isAtsFriendly: false,
   },
-  {
-    id: "modern-split",
-    name: "Modern Split",
-    url: RESUME_IMAGES.MODERN_SPLIT,
+  "modern-split": {
     category: "Modern",
     description: "Premium two-column layout with a dark sidebar and clean typography. Perfect for a modern, professional look.",
     suggestedFor: ["Executives", "Product Managers", "Senior Professionals"],
-    isAtsFriendly: false
+    isAtsFriendly: false,
   },
+}
+
+export const RESUME_TEMPLATES = [
+  ...LEGACY_RESUME_TEMPLATES.map((t) => ({
+    id: t.id,
+    name: t.name,
+    url: t.image,
+    ...LEGACY_TEMPLATE_META[t.id],
+  })),
   // ── Premium config-driven designs ──────────────────────────────────────
   ...RESUME_DESIGNS.map((d) => ({
     id: d.id,

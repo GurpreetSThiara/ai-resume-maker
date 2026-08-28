@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { updatePortfolio, checkSlugAvailability } from "@/services/portfolioService"
 import { toast } from "sonner"
+import { MESSAGES } from "@/constants/messages"
 import { Loader2, Settings } from "lucide-react"
 
 interface EditPortfolioDialogProps {
@@ -70,7 +71,7 @@ export function EditPortfolioDialog({ children, portfolio, onUpdate }: EditPortf
             })
 
             if (result.success) {
-                toast.success("Portfolio updated successfully")
+                toast.success(result.message)
                 setOpen(false)
                 if (onUpdate) onUpdate()
                 router.refresh()
@@ -78,7 +79,7 @@ export function EditPortfolioDialog({ children, portfolio, onUpdate }: EditPortf
                 toast.error(result.error || "Failed to update portfolio")
             }
         } catch (err) {
-            toast.error("An error occurred")
+            toast.error(MESSAGES.PORTFOLIO_GENERIC_ERROR)
         } finally {
             setLoading(false)
         }

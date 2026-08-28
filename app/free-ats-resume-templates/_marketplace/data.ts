@@ -22,7 +22,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { RESUME_DESIGNS, type DesignCategory } from "@/lib/resume-designs"
-import { RESUME_IMAGES } from "@/constants/resumeConstants"
+import { LEGACY_RESUME_TEMPLATES } from "@/constants/resumeConstants"
 
 /* ────────────────────────────────────────────────────────────────────────
  * Types
@@ -162,50 +162,48 @@ const designTemplates: MarketplaceTemplate[] = RESUME_DESIGNS.map((d, i) => {
  * editable previews, so they remain fully usable; we list them here so they
  * keep appearing in the gallery. Each is its own single-variant family.
  * ──────────────────────────────────────────────────────────────────────── */
-interface LegacyDef {
-  id: string
-  name: string
-  category: CategoryId
-  thumb: string
-  ats: number
-  pop: number
-  premium: boolean
-  accent: string
-  tags: string[]
+// Per-id marketplace-specific metadata for the legacy templates. `id`/`name`/
+// `thumb` come from LEGACY_RESUME_TEMPLATES (constants/resumeConstants.ts) —
+// the single source shared with the non-marketplace template list, so the two
+// can't drift on id spelling or display name.
+const LEGACY_META: Record<
+  string,
+  { category: CategoryId; ats: number; pop: number; premium: boolean; accent: string; tags: string[] }
+> = {
+  "ats-classic": { category: "ats-friendly", ats: 99, pop: 97, premium: false, accent: "374151", tags: ["ATS", "Classic", "Single Column"] },
+  "ats-classic-compact": { category: "ats-friendly", ats: 99, pop: 92, premium: false, accent: "374151", tags: ["ATS", "Compact", "Dense"] },
+  "classic-blue": { category: "professional", ats: 96, pop: 94, premium: false, accent: "1d4ed8", tags: ["Professional", "Blue", "Classic"] },
+  "ats-green": { category: "ats-friendly", ats: 98, pop: 88, premium: false, accent: "15803d", tags: ["ATS", "Headers", "Green"] },
+  "ats-yellow": { category: "ats-friendly", ats: 98, pop: 84, premium: false, accent: "b45309", tags: ["ATS", "Accent", "Yellow"] },
+  "ats-compact-lines": { category: "ats-friendly", ats: 98, pop: 86, premium: false, accent: "111827", tags: ["ATS", "Classic", "Lines"] },
+  "modern-sidebar": { category: "designer", ats: 87, pop: 89, premium: false, accent: "1e293b", tags: ["Designer", "Sidebar", "Two Column"] },
+  "bold-professional": { category: "professional", ats: 89, pop: 90, premium: false, accent: "1e293b", tags: ["Professional", "Bold", "Header"] },
+  "modern-split": { category: "modern", ats: 88, pop: 93, premium: true, accent: "0f172a", tags: ["Modern", "Two Column", "Premium"] },
 }
 
-const LEGACY_DEFS: LegacyDef[] = [
-  { id: "ats-classic", name: "ATS Classic", category: "ats-friendly", thumb: RESUME_IMAGES.CLASSIC, ats: 99, pop: 97, premium: false, accent: "374151", tags: ["ATS", "Classic", "Single Column"] },
-  { id: "ats-classic-compact", name: "ATS Classic Compact", category: "ats-friendly", thumb: RESUME_IMAGES.ATS_COMPACT, ats: 99, pop: 92, premium: false, accent: "374151", tags: ["ATS", "Compact", "Dense"] },
-  { id: "classic-blue", name: "Classic Blue", category: "professional", thumb: RESUME_IMAGES.CLASSIC_BLUE, ats: 96, pop: 94, premium: false, accent: "1d4ed8", tags: ["Professional", "Blue", "Classic"] },
-  { id: "ats-green", name: "ATS Friendly Green", category: "ats-friendly", thumb: RESUME_IMAGES.ATS_GREEN, ats: 98, pop: 88, premium: false, accent: "15803d", tags: ["ATS", "Headers", "Green"] },
-  { id: "ats-yellow", name: "Classic Yellow", category: "ats-friendly", thumb: RESUME_IMAGES.ATS_YELLOW, ats: 98, pop: 84, premium: false, accent: "b45309", tags: ["ATS", "Accent", "Yellow"] },
-  { id: "ats-compact-lines", name: "ATS Classic Lines", category: "ats-friendly", thumb: RESUME_IMAGES.COMPACT_LINES, ats: 98, pop: 86, premium: false, accent: "111827", tags: ["ATS", "Classic", "Lines"] },
-  { id: "modern-sidebar", name: "Modern Sidebar", category: "designer", thumb: RESUME_IMAGES.MODERN_SIDEBAR, ats: 87, pop: 89, premium: false, accent: "1e293b", tags: ["Designer", "Sidebar", "Two Column"] },
-  { id: "bold-professional", name: "Bold Professional", category: "professional", thumb: RESUME_IMAGES.BOLD_PROFESSIONAL, ats: 89, pop: 90, premium: false, accent: "1e293b", tags: ["Professional", "Bold", "Header"] },
-  { id: "modern-split", name: "Modern Split", category: "modern", thumb: RESUME_IMAGES.MODERN_SPLIT, ats: 88, pop: 93, premium: true, accent: "0f172a", tags: ["Modern", "Two Column", "Premium"] },
-]
-
-const LEGACY_TEMPLATES: MarketplaceTemplate[] = LEGACY_DEFS.map((d) => ({
-  id: d.id,
-  slug: d.id,
-  name: d.name,
-  category: d.category,
-  templateId: d.id,
-  thumbnail: d.thumb || "",
-  description: `${d.name} — a proven, recruiter-tested resume template with reliable ATS parsing.`,
-  tags: d.tags,
-  atsScore: d.ats,
-  popularityScore: d.pop,
-  downloads: Math.round(d.pop * 150 + d.ats * 20 + 4200),
-  isPremium: d.premium,
-  isNew: false,
-  recency: -1,
-  familyId: `legacy-${d.id}`,
-  familyName: d.name,
-  colorName: "Default",
-  accentHex: `#${d.accent}`,
-}))
+const LEGACY_TEMPLATES: MarketplaceTemplate[] = LEGACY_RESUME_TEMPLATES.map((t) => {
+  const meta = LEGACY_META[t.id]
+  return {
+    id: t.id,
+    slug: t.id,
+    name: t.name,
+    category: meta.category,
+    templateId: t.id,
+    thumbnail: t.image || "",
+    description: `${t.name} — a proven, recruiter-tested resume template with reliable ATS parsing.`,
+    tags: meta.tags,
+    atsScore: meta.ats,
+    popularityScore: meta.pop,
+    downloads: Math.round(meta.pop * 150 + meta.ats * 20 + 4200),
+    isPremium: meta.premium,
+    isNew: false,
+    recency: -1,
+    familyId: `legacy-${t.id}`,
+    familyName: t.name,
+    colorName: "Default",
+    accentHex: `#${meta.accent}`,
+  }
+})
 
 // Original templates first, then the config-driven design catalog.
 export const TEMPLATES: MarketplaceTemplate[] = [...LEGACY_TEMPLATES, ...designTemplates]

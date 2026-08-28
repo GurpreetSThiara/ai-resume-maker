@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase/client"
 import { Database } from "@/lib/supabase/types"
+import { MESSAGES } from "@/constants/messages"
 
 type Portfolio = Database["public"]["Tables"]["portfolios"]["Row"]
 type PortfolioInsert = Database["public"]["Tables"]["portfolios"]["Insert"]
@@ -8,7 +9,7 @@ type PortfolioUpdate = Database["public"]["Tables"]["portfolios"]["Update"]
 export async function createPortfolio(data: Omit<PortfolioInsert, "user_id">): Promise<{ success: boolean; data?: Portfolio; error?: string; message?: string }> {
     try {
         const { data: { user } } = await supabase.auth.getUser()
-        if (!user) throw new Error("User not authenticated")
+        if (!user) throw new Error(MESSAGES.AUTH_NOT_AUTHENTICATED)
 
         const { data: portfolio, error } = await (supabase
             .from("portfolios") as any)
@@ -76,7 +77,7 @@ export async function updatePortfolio(id: string, updates: PortfolioUpdate): Pro
 export async function getUserPortfolios(): Promise<{ success: boolean; data?: Portfolio[]; error?: string }> {
     try {
         const { data: { user } } = await supabase.auth.getUser()
-        if (!user) throw new Error("User not authenticated")
+        if (!user) throw new Error(MESSAGES.AUTH_NOT_AUTHENTICATED)
 
         const { data: portfolios, error } = await (supabase
             .from("portfolios") as any)

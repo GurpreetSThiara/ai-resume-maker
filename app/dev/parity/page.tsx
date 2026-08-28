@@ -17,7 +17,7 @@ import ConfigurableResume from "@/components/resumes/shared/ConfigurableResume"
 import { getResumeDesign, mergeDesign } from "@/lib/resume-designs"
 import { availableTemplates } from "@/lib/templates"
 import { sampleResume } from "@/lib/examples/resume-example"
-import { PT_TO_PX, PAGE_PT } from "@/lib/render-spec"
+import { PT_TO_PX, PAGE_PT, FONT_CSS } from "@/lib/render-spec"
 import type { ResumeData } from "@/types/resume"
 
 const PdfPane = dynamic(() => import("./PdfPane"), {
@@ -42,7 +42,7 @@ export default function ParityPage() {
     <div style={{ width: CANVAS_W }} className="shrink-0">
       <ConfigurableResume
         pdfRef={pdfRef as React.RefObject<HTMLDivElement>}
-        font={{ className: "", name: "Helvetica, Arial, sans-serif" }}
+        font={{ className: "", name: FONT_CSS.sans }}
         resumeData={data}
         setResumeData={() => {}}
         activeSection=""

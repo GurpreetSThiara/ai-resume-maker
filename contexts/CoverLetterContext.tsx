@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 import { LS_KEYS, getLocalStorageItem, setLocalStorageItem } from '@/utils/localstorage';
 import { CoverLetter } from '@/types/cover-letter';
+import { DEFAULT_COVER_LETTER_STATUS } from '@/constants/coverLetterConstants';
 
 type CoverLetterState = {
   coverLetter: CoverLetter;
@@ -11,13 +12,24 @@ type CoverLetterState = {
   error: string | null;
 };
 
+// Single source for the reducer's action-type strings — every case/dispatch
+// below references these instead of retyping the literal.
+const ActionType = {
+  SET_COVER_LETTER: 'SET_COVER_LETTER',
+  UPDATE_CONTENT: 'UPDATE_CONTENT',
+  SET_SAVING: 'SET_SAVING',
+  SET_LOADING: 'SET_LOADING',
+  SET_ERROR: 'SET_ERROR',
+  RESET_COVER_LETTER: 'RESET_COVER_LETTER',
+} as const;
+
 type CoverLetterAction =
-  | { type: 'SET_COVER_LETTER'; payload: CoverLetter }
-  | { type: 'UPDATE_CONTENT'; payload: Partial<CoverLetter['content']> }
-  | { type: 'SET_SAVING'; payload: boolean }
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'RESET_COVER_LETTER' };
+  | { type: typeof ActionType.SET_COVER_LETTER; payload: CoverLetter }
+  | { type: typeof ActionType.UPDATE_CONTENT; payload: Partial<CoverLetter['content']> }
+  | { type: typeof ActionType.SET_SAVING; payload: boolean }
+  | { type: typeof ActionType.SET_LOADING; payload: boolean }
+  | { type: typeof ActionType.SET_ERROR; payload: string | null }
+  | { type: typeof ActionType.RESET_COVER_LETTER };
 
 const getDefaultCoverLetter = (): CoverLetter => ({
   id: 'new',
@@ -109,7 +121,7 @@ const getDefaultCoverLetter = (): CoverLetter => ({
 
   attachments: { resume: false, references: false, coverLetter: true, other: [] },
 
-  tracking: { status: 'draft', applicationDate: undefined, responseReceived: false },
+  tracking: { status: DEFAULT_COVER_LETTER_STATUS, applicationDate: undefined, responseReceived: false },
 });
 
 const migrateAddressFormat = (coverLetter: any): CoverLetter => {
@@ -183,9 +195,9 @@ const getInitialState = (initialCoverLetter?: CoverLetter): CoverLetterState => 
 
 const reducer = (state: CoverLetterState, action: CoverLetterAction): CoverLetterState => {
   switch (action.type) {
-    case 'SET_COVER_LETTER':
+    case ActionType.SET_COVER_LETTER:
       return { ...state, coverLetter: migrateAddressFormat(action.payload) };
-    case 'UPDATE_CONTENT':
+    case ActionType.UPDATE_CONTENT:
       if (!state.coverLetter) return state;
       return {
         ...state,
@@ -197,13 +209,13 @@ const reducer = (state: CoverLetterState, action: CoverLetterAction): CoverLette
           },
         },
       };
-    case 'SET_SAVING':
+    case ActionType.SET_SAVING:
       return { ...state, isSaving: action.payload };
-    case 'SET_LOADING':
+    case ActionType.SET_LOADING:
       return { ...state, isLoading: action.payload };
-    case 'SET_ERROR':
+    case ActionType.SET_ERROR:
       return { ...state, error: action.payload, isLoading: false };
-    case 'RESET_COVER_LETTER':
+    case ActionType.RESET_COVER_LETTER:
       return { ...state, coverLetter: getDefaultCoverLetter() };
     default:
       return state;
@@ -242,7 +254,7 @@ export const CoverLetterProvider: React.FC<CoverLetterProviderProps> = ({
   }, [state.coverLetter]);
 
   const updateContent = useCallback((content: Partial<CoverLetter['content']>) => {
-    dispatch({ type: 'UPDATE_CONTENT', payload: content });
+    dispatch({ type: ActionType.UPDATE_CONTENT, payload: content });
   }, []);
 
   const syncCoverLetter = useCallback(async () => {
@@ -254,14 +266,14 @@ export const CoverLetterProvider: React.FC<CoverLetterProviderProps> = ({
   const updateCoverLetter = useCallback((updates: Partial<CoverLetter>) => {
     if (state.coverLetter) {
       dispatch({
-        type: 'SET_COVER_LETTER',
+        type: ActionType.SET_COVER_LETTER,
         payload: { ...state.coverLetter, ...updates },
       });
     }
   }, [state.coverLetter]);
 
   const resetCoverLetter = useCallback(() => {
-    dispatch({ type: 'RESET_COVER_LETTER' });
+    dispatch({ type: ActionType.RESET_COVER_LETTER });
   }, []);
 
   const value = {

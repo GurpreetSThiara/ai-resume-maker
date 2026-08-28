@@ -207,10 +207,18 @@ export interface CoverLetter {
     responseReceived?: boolean;
     responseDate?: Date;
     interviewRequested?: boolean;
-    status: 'draft' | 'sent' | 'reviewed' | 'rejected' | 'interview_scheduled' | 'hired';
+    status: CoverLetterTrackingStatus;
     notes?: string[];
   };
 }
+
+export type CoverLetterTrackingStatus =
+  | 'draft'
+  | 'sent'
+  | 'reviewed'
+  | 'rejected'
+  | 'interview_scheduled'
+  | 'hired';
 
 // Utility types for validation and processing
 export type RequiredCoverLetterFields = Pick<CoverLetter, 

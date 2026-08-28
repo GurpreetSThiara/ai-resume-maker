@@ -14,6 +14,7 @@ import { generateResumePDF } from "@/lib/pdf-generators"
 import { generateResumeDOCX } from "@/lib/docx-generators";
 import { getResumeDesign } from "@/lib/resume-designs";
 import { SHOW_ERROR, SHOW_SUCCESS } from "@/utils/toast";
+import { MESSAGES } from "@/constants/messages";
 import { usePostDownloadReview } from "@/hooks/use-post-download-review";
 import { trackResumeDownloadToSheets } from "@/lib/google-sheets-tracker";
 
@@ -30,7 +31,7 @@ const DownloadDropDown = ({ data }: any) => {
   const handleDownload = async (downloadFunction: () => Promise<void>) => {
     try {
       await downloadFunction();
-      SHOW_SUCCESS({ title: "Resume downloaded successfully!" });
+      SHOW_SUCCESS({ title: MESSAGES.RESUME_DOWNLOAD_SUCCESS });
 
       // Track the download in Google Sheets
       trackResumeDownloadToSheets(data, !!user);
@@ -41,7 +42,7 @@ const DownloadDropDown = ({ data }: any) => {
       }, 1000);
     } catch (error) {
       console.error('Error downloading resume:', error);
-      SHOW_ERROR({ title: "Failed to download resume." });
+      SHOW_ERROR({ title: MESSAGES.RESUME_DOWNLOAD_FAILED });
     }
   };
 

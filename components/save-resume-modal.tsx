@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { usePostDownloadReview } from "@/hooks/use-post-download-review"
 import { trackResumeDownloadToSheets } from "@/lib/google-sheets-tracker"
 import { SHOW_ERROR, SHOW_SUCCESS } from "@/utils/toast"
+import { MESSAGES } from "@/constants/messages"
 
 type CloudResume = { id: string; title: string; updated_at: string }
 
@@ -69,7 +70,7 @@ export function SaveResumeModal({
       setTimeout(() => triggerReviewModal(), 1000)
     } catch (e) {
       console.error("Download failed:", e)
-      SHOW_ERROR({ title: "Failed to download resume." })
+      SHOW_ERROR({ title: MESSAGES.RESUME_DOWNLOAD_FAILED })
     } finally {
       setDownloading(null)
     }

@@ -1,4 +1,5 @@
 import { SECTION_TYPES, type SkillsSection, type SkillGroup } from "@/types/resume"
+import { DEFAULT_SKILL_GROUP_TITLE } from "@/constants/resumeConstants"
 
 export interface EffectiveSkillGroup {
   title: string
@@ -17,13 +18,13 @@ export function getEffectiveSkillGroupsFromSection(section: any): EffectiveSkill
 
   if (skillsSection.groups && skillsSection.groups.length > 0) {
     return skillsSection.groups.map((group: SkillGroup) => ({
-      title: group.title || "General",
+      title: group.title || DEFAULT_SKILL_GROUP_TITLE,
       skills: (group.skills || []).filter((s) => s && s.trim()),
     }))
   }
 
   return [{
-    title: "General",
+    title: DEFAULT_SKILL_GROUP_TITLE,
     skills: (skillsSection.items || []).filter((s) => s && s.trim()),
   }]
 }

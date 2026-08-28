@@ -2,6 +2,7 @@ import { supabase } from "./supabase/client"
 import type { ResumeData } from "@/types/resume"
 import type { Database } from "./supabase/types"
 import { compressData, decompressData } from "./compression"
+import { MESSAGES } from "@/constants/messages"
 
 type Resume = Database["public"]["Tables"]["resumes"]["Row"]
 type ResumeInsert = Database["public"]["Tables"]["resumes"]["Insert"]
@@ -15,7 +16,7 @@ export async function saveResumeData(data: ResumeData, resumeId?: string) {
 
     if (!user) {
       // Allow saving locally only for guests; surface limit message from caller
-      throw new Error("User not authenticated")
+      throw new Error(MESSAGES.AUTH_NOT_AUTHENTICATED)
     }
 
     // Compress the resume data
@@ -81,7 +82,7 @@ export async function saveSection(sectionName: string, sectionData: any, resumeI
     } = await supabase.auth.getUser()
 
     if (!user) {
-      throw new Error("User not authenticated")
+      throw new Error(MESSAGES.AUTH_NOT_AUTHENTICATED)
     }
 
     // Compress the section data
@@ -113,7 +114,7 @@ export async function loadResumeData(resumeId: string) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      throw new Error("User not authenticated")
+      throw new Error(MESSAGES.AUTH_NOT_AUTHENTICATED)
     }
 
     const { data: resume, error } = await supabase
@@ -142,7 +143,7 @@ export async function getUserResumes() {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      throw new Error("User not authenticated")
+      throw new Error(MESSAGES.AUTH_NOT_AUTHENTICATED)
     }
 
     const { data: resumes, error } = await supabase
@@ -166,7 +167,7 @@ export async function deleteResume(resumeId: string) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      throw new Error("User not authenticated")
+      throw new Error(MESSAGES.AUTH_NOT_AUTHENTICATED)
     }
 
     const { error } = await supabase.from("resumes").delete().eq("id", resumeId).eq("user_id", user.id)
@@ -186,7 +187,7 @@ export async function getUserResumeCount() {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      throw new Error("User not authenticated")
+      throw new Error(MESSAGES.AUTH_NOT_AUTHENTICATED)
     }
 
     const { count, error } = await supabase
@@ -209,7 +210,7 @@ export async function saveUserProgress(completedSteps: number[], achievements: a
     } = await supabase.auth.getUser()
 
     if (!user) {
-      throw new Error("User not authenticated")
+      throw new Error(MESSAGES.AUTH_NOT_AUTHENTICATED)
     }
 
     const { data: profile, error } = await supabase

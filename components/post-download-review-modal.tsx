@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { CheckCircle2, ArrowRight, Sparkles, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { BuyMeCoffee } from "@/components/ui/buy-me-coffee"
+import { MESSAGES } from "@/constants/messages"
 
 interface PostDownloadReviewModalProps {
   open: boolean
@@ -28,7 +29,7 @@ export function PostDownloadReviewModal({ open, onOpenChange, actionType = "down
   const getActionMessage = () => {
     switch (actionType) {
       case "download":
-        return "Resume downloaded successfully!"
+        return MESSAGES.RESUME_DOWNLOAD_SUCCESS
       case "save":
         return "Resume saved successfully!"
       case "cloud_save":

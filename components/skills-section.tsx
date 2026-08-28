@@ -12,6 +12,7 @@ import { SectionHiddenBanner } from "@/components/section-hidden-banner"
 import type { ResumeData, SkillsSection as ISkillsSection, SkillGroup } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { effectiveSkillLevel } from "@/lib/resume-designs"
+import { DEFAULT_SKILL_GROUP_TITLE } from "@/constants/resumeConstants"
 
 interface SkillGroupInputProps {
   skills: string[]
@@ -95,7 +96,7 @@ export function SkillsSection({ data, onUpdate, supportsLevels = false }: Skills
       ? skillsSection.groups
       : [{
         id: "general",
-        title: "General",
+        title: DEFAULT_SKILL_GROUP_TITLE,
         skills: skillsSection.items || [],
       }]
 
@@ -131,7 +132,7 @@ export function SkillsSection({ data, onUpdate, supportsLevels = false }: Skills
     const skillValue = newSkill.trim()
     if (!skillValue) return
 
-    const categoryTitle = (newSkillCategory.trim() || "General")
+    const categoryTitle = (newSkillCategory.trim() || DEFAULT_SKILL_GROUP_TITLE)
 
     // Try to find an existing group by title (case-insensitive)
     const existingGroup = effectiveGroups.find(

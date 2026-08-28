@@ -52,6 +52,7 @@ import { sanitizeResumeData } from "@/utils/createResume"
 import { createLocalResume, updateLocalResume, getLocalResumeById } from "@/lib/local-storage"
 import { trackResumeDownloadToSheets } from "@/lib/google-sheets-tracker"
 import { SHOW_ERROR, SHOW_SUCCESS } from "@/utils/toast"
+import { MESSAGES } from "@/constants/messages"
 import { sampleResume } from "@/lib/examples/resume-example"
 
 const initialData: ResumeData = sampleResume //sampleResumeData
@@ -290,7 +291,7 @@ const CreateResumeContent: FC = () => {
         template: selectedTemplate,
         filename
       })
-      SHOW_SUCCESS({ title: "Resume downloaded successfully!" })
+      SHOW_SUCCESS({ title: MESSAGES.RESUME_DOWNLOAD_SUCCESS })
 
       // Track the download in Google Sheets
       trackResumeDownloadToSheets({ ...resumeData, template: selectedTemplate }, !!user);
@@ -301,7 +302,7 @@ const CreateResumeContent: FC = () => {
       }, 1000) // Small delay to let the success toast show
     } catch (error) {
       console.error('Error downloading resume:', error)
-      SHOW_ERROR({ title: "Failed to download resume." })
+      SHOW_ERROR({ title: MESSAGES.RESUME_DOWNLOAD_FAILED })
     }
   }
 

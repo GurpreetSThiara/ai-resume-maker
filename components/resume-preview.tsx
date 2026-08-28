@@ -11,6 +11,7 @@ import { AlertTriangle, FileText, FileType2, Loader2, PencilLine, Printer, X } f
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Button } from "@/components/ui/button"
 import { getResumeDesign, mergeDesign } from "@/lib/resume-designs"
+import { FONT_CSS } from "@/lib/render-spec"
 import { printResumePDF } from "@/lib/pdf-generators/print-pdf"
 import { SHOW_ERROR } from "@/utils/toast"
 import ConfigurableResume from "@/components/resumes/shared/ConfigurableResume"
@@ -301,7 +302,7 @@ const ResumePreview = forwardRef<HTMLDivElement, ResumePreviewProps>(
           <div ref={ref} className="w-full flex justify-center pb-8">
             <ConfigurableResume
               pdfRef={ref as any}
-              font={{ className: "", name: "Helvetica, Arial, sans-serif" }}
+              font={{ className: "", name: FONT_CSS.sans }}
               design={editableDesign}
               resumeData={filteredResumeData}
               setResumeData={setResumeData}

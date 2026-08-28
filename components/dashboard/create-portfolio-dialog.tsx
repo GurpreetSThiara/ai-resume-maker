@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { createPortfolio, checkSlugAvailability } from "@/services/portfolioService"
 import { getUserResumes, loadResumeData } from "@/lib/supabase-functions" // Import server actions/functions
 import { toast } from "sonner"
+import { MESSAGES } from "@/constants/messages"
 import { Loader2, FileText, Check, Plus } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
@@ -96,7 +97,7 @@ export function CreatePortfolioDialog({ children, resumeId: initialResumeId, res
                 setFinalResumeTitle(selectedResume?.title)
                 setStep(2)
             } else {
-                toast.error("Failed to load resume data")
+                toast.error(MESSAGES.PORTFOLIO_LOAD_FAILED)
             }
         }
     }
@@ -146,7 +147,7 @@ export function CreatePortfolioDialog({ children, resumeId: initialResumeId, res
                 toast.error(result.error || "Failed to create portfolio")
             }
         } catch (err) {
-            toast.error("An error occurred")
+            toast.error(MESSAGES.PORTFOLIO_GENERIC_ERROR)
         } finally {
             setLoading(false)
         }

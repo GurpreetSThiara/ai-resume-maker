@@ -9,7 +9,7 @@ import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
 import ProjectSection from "../../resume-components/project-section"
 import type { ResumeDesign } from "@/lib/resume-designs"
 import { skillDotsFilled, effectiveSkillLevel, DEFAULT_MARGIN_SCALE, DEFAULT_CONDENSED_EDUCATION } from "@/lib/resume-designs"
-import { DEFAULT_EDUCATION, DEFAULT_EXPERIENCE, DEFAULT_PROJECT } from "@/constants/resumeConstants"
+import { DEFAULT_EDUCATION, DEFAULT_EXPERIENCE, DEFAULT_PROJECT, DEFAULT_SKILL_GROUP_TITLE } from "@/constants/resumeConstants"
 import { lineKey, cssFor } from "@/utils/lineStyle"
 import { px as ptToPx, FONT_CSS, SIDEBAR_TRACK_HEX, type FontKey } from "@/lib/render-spec"
 import { Plus, Trash2 } from "lucide-react"
@@ -361,7 +361,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
       const base = { id: genId(), title: defaultTitle(type), type, order: updated.sections.length, hidden: false }
       let sec: any
       if (type === SECTION_TYPES.CUSTOM) sec = { ...base, content: [""] }
-      else if (type === SECTION_TYPES.SKILLS) sec = { ...base, items: [], groups: [{ id: genId(), title: "General", skills: [""] }] }
+      else if (type === SECTION_TYPES.SKILLS) sec = { ...base, items: [], groups: [{ id: genId(), title: DEFAULT_SKILL_GROUP_TITLE, skills: [""] }] }
       else if (type === SECTION_TYPES.LANGUAGES || type === SECTION_TYPES.CERTIFICATIONS) sec = { ...base, items: [""] }
       else sec = { ...base, items: [] }
       updated.sections.push(sec as any)
@@ -388,7 +388,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
       case SECTION_TYPES.PROJECTS:
         return { fn: () => addEntry(section.id), title: "Add entry" }
       case SECTION_TYPES.SKILLS:
-        return { fn: () => { const g = getEffectiveSkillGroupsFromSection(section)[0]; addSkill(section.id, g?.title || "General") }, title: "Add skill" }
+        return { fn: () => { const g = getEffectiveSkillGroupsFromSection(section)[0]; addSkill(section.id, g?.title || DEFAULT_SKILL_GROUP_TITLE) }, title: "Add skill" }
       case SECTION_TYPES.LANGUAGES:
       case SECTION_TYPES.CERTIFICATIONS:
         return { fn: () => addListItem(section.id, "items"), title: "Add item" }
@@ -762,9 +762,9 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
             ? { contentEditable: true, suppressContentEditableWarning: true, "data-el": "heading", onBlur: (e: React.FormEvent<HTMLElement>) => editGroupTitle(title, e.currentTarget.textContent || "") }
             : {}
         const groupTitleEl = (title: string) =>
-          title !== "General" || crud ? (
+          title !== DEFAULT_SKILL_GROUP_TITLE || crud ? (
             <div {...groupTitleProps(title)} data-ph="Category" style={{ fontSize: smallFont, fontWeight: 700, color: sub, marginBottom: 4, fontFamily: fam }}>
-              {title === "General" ? "" : title}
+              {title === DEFAULT_SKILL_GROUP_TITLE ? "" : title}
             </div>
           ) : null
         const dotEmpty = sidebar ? SIDEBAR_TRACK_HEX : palette.divider
@@ -838,8 +838,8 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
               {groups.map((g) => (
                 <div key={g.title}>
-                  {(g.title !== "General" || crud) && (
-                    <div {...groupTitleProps(g.title)} data-ph="Category" style={{ fontSize: smallFont, fontWeight: 700, color: sub, marginBottom: 4, fontFamily: fam }}>{g.title === "General" ? "" : g.title}</div>
+                  {(g.title !== DEFAULT_SKILL_GROUP_TITLE || crud) && (
+                    <div {...groupTitleProps(g.title)} data-ph="Category" style={{ fontSize: smallFont, fontWeight: 700, color: sub, marginBottom: 4, fontFamily: fam }}>{g.title === DEFAULT_SKILL_GROUP_TITLE ? "" : g.title}</div>
                   )}
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                     {g.skills.map((sk, j) => (
@@ -868,8 +868,8 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {groups.map((g) => (
                 <div key={g.title}>
-                  {(g.title !== "General" || crud) && (
-                    <div {...groupTitleProps(g.title)} data-ph="Category" style={{ fontSize: smallFont, fontWeight: 700, color: sidebar ? palette.sidebarHeading || palette.heading : sub, marginBottom: 2, fontFamily: fam }}>{g.title === "General" ? "" : g.title}</div>
+                  {(g.title !== DEFAULT_SKILL_GROUP_TITLE || crud) && (
+                    <div {...groupTitleProps(g.title)} data-ph="Category" style={{ fontSize: smallFont, fontWeight: 700, color: sidebar ? palette.sidebarHeading || palette.heading : sub, marginBottom: 2, fontFamily: fam }}>{g.title === DEFAULT_SKILL_GROUP_TITLE ? "" : g.title}</div>
                   )}
                   {bulletList(
                     g.skills,
@@ -889,10 +889,10 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
             {groups.map((g) => (
               <div key={g.title} style={{ fontSize: contentFont, fontFamily: fam, lineHeight: 1.45 }}>
-                {(g.title !== "General" || crud) && (
-                  <span {...groupTitleProps(g.title)} data-ph="Category" style={{ fontWeight: 700, color: palette.heading }}>{g.title === "General" ? "" : g.title}</span>
+                {(g.title !== DEFAULT_SKILL_GROUP_TITLE || crud) && (
+                  <span {...groupTitleProps(g.title)} data-ph="Category" style={{ fontWeight: 700, color: palette.heading }}>{g.title === DEFAULT_SKILL_GROUP_TITLE ? "" : g.title}</span>
                 )}
-                {g.title !== "General" && <span style={{ fontWeight: 700, color: palette.heading }}>: </span>}
+                {g.title !== DEFAULT_SKILL_GROUP_TITLE && <span style={{ fontWeight: 700, color: palette.heading }}>: </span>}
                 <span
                   style={{ color: tColor }}
                   contentEditable

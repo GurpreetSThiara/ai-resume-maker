@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { updatePortfolio } from "@/services/portfolioService"
 import { getUserResumes, loadResumeData } from "@/lib/supabase-functions"
 import { toast } from "sonner"
+import { MESSAGES } from "@/constants/messages"
 import { Loader2, FileText, Check, RefreshCw } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
@@ -58,7 +59,7 @@ export function UpdatePortfolioDialog({ children, portfolioId, currentResumeId, 
             const resumeResult = await loadResumeData(selectedResumeId)
 
             if (!resumeResult.success || !resumeResult.data) {
-                toast.error("Failed to load resume data")
+                toast.error(MESSAGES.PORTFOLIO_LOAD_FAILED)
                 setLoading(false)
                 return
             }
@@ -71,7 +72,7 @@ export function UpdatePortfolioDialog({ children, portfolioId, currentResumeId, 
             })
 
             if (updateResult.success) {
-                toast.success("Portfolio updated successfully")
+                toast.success(updateResult.message)
                 setOpen(false)
                 if (onUpdate) onUpdate()
                 router.refresh()
@@ -80,7 +81,7 @@ export function UpdatePortfolioDialog({ children, portfolioId, currentResumeId, 
             }
         } catch (err) {
             console.error(err)
-            toast.error("An error occurred")
+            toast.error(MESSAGES.PORTFOLIO_GENERIC_ERROR)
         } finally {
             setLoading(false)
         }

@@ -8,6 +8,7 @@ import { moveSectionUp, moveSectionDown } from "@/utils/sectionOrdering"
 import ConfigurableResume from "@/components/resumes/shared/ConfigurableResume"
 import { FloatingToolbar } from "./FloatingToolbar"
 import type { Selection, SelKind } from "./studio-shared"
+import { FONT_CSS } from "@/lib/render-spec"
 import { Minus, Plus } from "lucide-react"
 
 const ResumePdfPreview = dynamic(
@@ -153,7 +154,7 @@ export function StudioCanvas({
         <div className="flex min-h-full justify-center py-8">
           <ConfigurableResume
             pdfRef={pdfRef as React.RefObject<HTMLDivElement>}
-            font={{ className: "", name: "Helvetica, Arial, sans-serif" }}
+            font={{ className: "", name: FONT_CSS.sans }}
             resumeData={resumeData}
             setResumeData={setResumeData}
             activeSection=""
