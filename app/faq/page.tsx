@@ -54,6 +54,62 @@ const FAQS = [
         question: 'What formats can I download my resume in?',
         answer: 'You can download your resume as a PDF or DOCX file. These are the most professional and universally accepted formats that preserve your resume formatting across all devices and platforms.',
     },
+    {
+        question: 'How many templates do you offer?',
+        answer: 'We offer multiple professionally designed, ATS-friendly templates. Each template is optimized for different industries and career levels. All templates are free to use and can be customized to match your personal style while maintaining ATS compatibility.',
+    },
+    {
+        question: "Can I change the template after I've started?",
+        answer: 'Yes! You can switch between templates at any time without losing your data. Your information is saved separately from the template design, so you can preview different looks and choose the one that best represents you.',
+    },
+    {
+        question: 'Can I customize colors and fonts?',
+        answer: 'Our templates are designed with ATS compatibility in mind, which means we use standard fonts and minimal styling to ensure your resume passes automated screening systems. While customization options may be limited, this ensures your resume gets seen by recruiters.',
+    },
+    {
+        question: 'What sections can I add to my resume?',
+        answer: 'You can add standard sections like Work Experience, Education, Skills, Certifications, Projects, Volunteer Work, Languages, and Awards. You can also create custom sections to highlight unique qualifications relevant to your field.',
+    },
+    {
+        question: 'How do I choose the right template for my industry?',
+        answer: 'For creative fields (design, marketing), you might prefer templates with subtle design elements. For corporate/technical roles (finance, engineering, IT), clean minimal templates work best. Our blog has detailed guides on choosing templates for specific industries.',
+    },
+    {
+        question: 'What file format should I download?',
+        answer: 'We offer PDF downloads, which is the most universally accepted format. PDFs preserve formatting across different devices and are accepted by most ATS systems. Always check the job posting for specific format requirements — some companies prefer .docx files.',
+    },
+    {
+        question: 'How do I make my resume ATS-friendly?',
+        answer: 'Use standard section headings (Work Experience, Education, Skills), include keywords from the job description naturally, use simple, clean formatting without fancy graphics or tables, spell out acronyms at least once, use standard fonts like Arial, Calibri, or Times New Roman, and avoid headers/footers for contact information.',
+    },
+    {
+        question: 'Should I include keywords in my resume?',
+        answer: 'Yes, but naturally. Read the job description and identify key skills, qualifications, and industry terms. Incorporate these keywords throughout your resume where they genuinely apply. Never "keyword stuff" — ATS systems can detect this and it looks unprofessional if a human reads it.',
+    },
+    {
+        question: 'What data do you collect?',
+        answer: 'We collect minimal data necessary for site functionality: basic analytics (page views, user flow), and if you create an account, your email and saved resume data. We use this information solely to improve our service and provide you with resume creation features.',
+    },
+    {
+        question: 'Can I delete my data?',
+        answer: "Yes. If you're using local storage, you can clear your browser's local storage to delete resume data. If you have an account, you can delete your account and all associated data from your account settings. Once deleted, your data is permanently removed from our servers.",
+    },
+    {
+        question: 'Do you use cookies?',
+        answer: 'We use minimal cookies for essential site functionality, and analytics cookies to improve user experience once you accept our cookie consent banner. We do not use tracking cookies for advertising purposes.',
+    },
+    {
+        question: 'Is there a download limit?',
+        answer: 'No! You can download your resume as many times as you need, completely free. Make edits and re-download whenever you want to update your resume for different job applications.',
+    },
+    {
+        question: 'Can I print my resume directly?',
+        answer: 'Yes! After downloading your PDF, you can print it from your PDF viewer. Our templates are designed to print clearly on standard letter-size (8.5" x 11") paper with proper margins.',
+    },
+    {
+        question: "Why can't I edit the PDF after downloading?",
+        answer: 'PDFs are designed to preserve formatting and prevent accidental changes. To edit your resume, return to our website where your data is saved, make your changes, and download a new PDF. This ensures your resume maintains its professional appearance and ATS compatibility.',
+    },
 ];
 
 export const metadata: Metadata = {

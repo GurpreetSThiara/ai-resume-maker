@@ -1,5 +1,7 @@
 import React from 'react'
 import Detail from './Detail'
+import { JsonLd } from '@/components/seo/JsonLd'
+import { blogPostSchema } from '@/lib/seo'
 
 import type { Metadata } from "next";
 
@@ -63,6 +65,17 @@ export const metadata: Metadata = {
 const page = () => {
   return (
     <div>
+        <JsonLd
+          data={blogPostSchema({
+            title: 'Resume for Freshers: Complete 2026 Guide | CreateFreeCV',
+            description: 'Learn how to create a professional fresher resume in 2026 with 25+ examples, ATS-friendly tips, and real samples for graduates.',
+            slug: 'resume-for-freshers',
+            path: '/resume-for-freshers',
+            image: '/blog/fresher-resume-guide.jpg',
+            author: 'CreateFreeCV Team',
+            publishedAt: '2026-02-09',
+          })}
+        />
         <Detail/>
     </div>
   )

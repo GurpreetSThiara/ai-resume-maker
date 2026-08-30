@@ -1,6 +1,8 @@
 'use client';
 
 import { CheckCircle, FileText, Download, Shield } from 'lucide-react';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { faqSchema } from '@/lib/seo';
 
 const faqs = [
   {
@@ -32,6 +34,7 @@ const faqs = [
 export function FaqSection() {
   return (
     <section className="py-20 bg-white">
+      <JsonLd data={faqSchema(faqs.map((f) => ({ question: f.question, answer: f.answer })))} />
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">

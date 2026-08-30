@@ -53,10 +53,10 @@ export function PrivacyContent() {
         <h2 className="text-2xl font-semibold text-slate-800 pt-4">Cookies and Tracking Technologies</h2>
         <p>We use cookies and similar tracking technologies to track activity on our Service and hold certain information. On your first visit, a cookie consent banner lets you accept or decline non-essential (analytics) cookies before any such cookie is set — see "How We Obtain Consent" below.</p>
 
-        <h4 className="font-semibold">What are cookies?</h4>
+        <h3 className="text-xl font-semibold text-slate-800 pt-2">What are cookies?</h3>
         <p>Cookies are files with small amount of data which may include an anonymous unique identifier. They are sent to your browser from a website and stored on your device. Tracking technologies also used are beacons, tags, and scripts to collect and track information and to improve and analyze our Service.</p>
 
-        <h4 className="font-semibold">Types of Cookies we use:</h4>
+        <h3 className="text-xl font-semibold text-slate-800 pt-2">Types of Cookies we use:</h3>
         <ul className="list-disc list-inside pl-4">
           <li><strong>Essential Cookies:</strong> Required for the Service to function properly. These are not gated behind the cookie consent banner.</li>
           <li><strong>Analytics Cookies:</strong> Help us understand how visitors interact with our Service. Only set after you accept the cookie consent banner.</li>
@@ -70,7 +70,7 @@ export function PrivacyContent() {
         <h2 className="text-2xl font-semibold text-slate-800 pt-4">Third-Party Services</h2>
         <p>We may employ third-party companies and individuals to facilitate our Service, provide the Service on our behalf, perform Service-related services, or assist us in analyzing how our Service is used.</p>
 
-        <h4 className="font-semibold">Current Third-Party Partners:</h4>
+        <h3 className="text-xl font-semibold text-slate-800 pt-2">Current Third-Party Partners:</h3>
         <ul className="list-disc list-inside pl-4">
           <li><strong>Google Analytics:</strong> For website analytics and user behavior tracking (loaded only after cookie consent)</li>
           <li><strong>Google Tag Manager:</strong> Used to manage and deploy the analytics tags listed here (loaded only after cookie consent)</li>
@@ -81,7 +81,7 @@ export function PrivacyContent() {
         <h2 className="text-2xl font-semibold text-slate-800 pt-4">Data Retention</h2>
         <p>We retain your personal information only for as long as necessary to fulfill the purposes outlined in this Privacy Policy, unless a longer retention period is required or permitted by law.</p>
 
-        <h4 className="font-semibold">Retention Periods:</h4>
+        <h3 className="text-xl font-semibold text-slate-800 pt-2">Retention Periods:</h3>
         <ul className="list-disc list-inside pl-4">
           <li><strong>Resume Data:</strong> Stored locally in your browser until you clear it</li>
           <li><strong>Account Data:</strong> Retained while your account is active</li>

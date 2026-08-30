@@ -1,5 +1,7 @@
 import React from 'react'
 import Detail from '../../../app/ats-resume-explained/Detail'
+import { JsonLd } from '@/components/seo/JsonLd'
+import { blogPostSchema } from '@/lib/seo'
 
 import type { Metadata } from 'next'
 
@@ -58,6 +60,16 @@ export const metadata: Metadata = {
 const page = () => {
   return (
     <div>
+      <JsonLd
+        data={blogPostSchema({
+          title: 'ATS Resume Explained: How It Works in 2026',
+          description: 'Understand how Applicant Tracking Systems work in 2026 and learn how to build an ATS-friendly resume that reaches recruiters.',
+          slug: 'ats-resume-explained',
+          image: '/blog/ats-resume-explained.jpg',
+          author: 'CreateFreeCV Team',
+          publishedAt: '2026-02-10',
+        })}
+      />
       <Detail />
     </div>
   )

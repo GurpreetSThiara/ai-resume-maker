@@ -58,7 +58,7 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({ post }) => {
 
                 {/* Newsletter / CTA Section could go here */}
                 <div className="mt-16 pt-8 border-t text-center">
-                    <h3 className="text-2xl font-bold mb-4">Want to build your ATS-friendly resume?</h3>
+                    <h2 className="text-2xl font-bold mb-4">Want to build your ATS-friendly resume?</h2>
                     <p className="text-muted-foreground mb-6">Create a professional resume in minutes with our free builder.</p>
                     <Link
                         href="/free-ats-resume-templates/create"

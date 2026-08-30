@@ -1,5 +1,7 @@
 import React from 'react'
 import Detail from '../../../app/software-engineer-resume/Detail'
+import { JsonLd } from '@/components/seo/JsonLd'
+import { blogPostSchema } from '@/lib/seo'
 
 import type { Metadata } from "next";
 
@@ -63,6 +65,16 @@ export const metadata: Metadata = {
 const page = () => {
   return (
     <div>
+        <JsonLd
+          data={blogPostSchema({
+            title: 'Software Engineer Resume Guide 2026 | CreateFreeCV',
+            description: 'Learn how software engineers can create ATS-optimized technical resumes that get interviews, with examples and formatting tips.',
+            slug: 'software-engineer-resume',
+            image: '/blog/software-engineer-resume.jpg',
+            author: 'CreateFreeCV Team',
+            publishedAt: '2026-02-09',
+          })}
+        />
         <Detail/>
     </div>
   )

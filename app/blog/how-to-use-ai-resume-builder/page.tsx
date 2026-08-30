@@ -1,5 +1,7 @@
 import React from 'react';
 import Detail from '@/app/how-to-use-ai-resume-builder/Detail';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { blogPostSchema } from '@/lib/seo';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -46,7 +48,21 @@ export const metadata: Metadata = {
 };
 
 const Page = () => {
-    return <Detail />;
+    return (
+        <>
+            <JsonLd
+                data={blogPostSchema({
+                    title: 'How to Use AI to Build Your Resume | CreateFreeCV',
+                    description: 'Stop using generic ChatGPT resumes. Learn the "Hybrid Method" to combine AI speed with human strategy for a CV that actually gets interviews in 2026.',
+                    slug: 'how-to-use-ai-resume-builder',
+                    image: '/blog/ai-resume-guide.jpg',
+                    author: 'CreateFreeCV Team',
+                    publishedAt: '2026-02-12',
+                })}
+            />
+            <Detail />
+        </>
+    );
 };
 
 export default Page;

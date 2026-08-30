@@ -3,6 +3,8 @@
 import React from "react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Section, SectionHeading } from "./shared"
+import { JsonLd } from "@/components/seo/JsonLd"
+import { faqSchema } from "@/lib/seo"
 
 const FAQS = [
   { q: "Is it really free?", a: "Yes — build, customize and download unlimited resumes and DOCX files for free. No credit card, no trial, no watermark." },
@@ -16,6 +18,7 @@ const FAQS = [
 export function FaqV2() {
   return (
     <Section tint="muted">
+      <JsonLd data={faqSchema(FAQS.map((f) => ({ question: f.q, answer: f.a })))} />
       <SectionHeading eyebrow="FAQ" title="Questions, answered" subtitle="Everything you might want to know before you start." />
       <div className="mx-auto mt-12 max-w-3xl">
         <Accordion type="single" collapsible className="space-y-3">

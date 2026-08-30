@@ -75,11 +75,14 @@ export interface ArticleSchemaInput {
   image?: string
   author?: string
   publishedAt?: string
+  /** Overrides the default `/blog/{slug}` URL — use for guides whose canonical lives outside /blog/. */
+  path?: string
 }
 
 /** Article + its breadcrumb trail for a blog post. Returns an array. */
 export function blogPostSchema(post: ArticleSchemaInput) {
-  const url = `${SITE_URL}/blog/${post.slug}`
+  const path = post.path ?? `/blog/${post.slug}`
+  const url = absoluteUrl(path)
   const article = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -98,11 +101,11 @@ export function blogPostSchema(post: ArticleSchemaInput) {
       "@id": url,
     },
   }
-  return [article, breadcrumbSchema([
-    { name: "Home", url: SITE_URL },
-    { name: "Blog", url: `${SITE_URL}/blog` },
-    { name: post.title, url },
-  ])]
+  const breadcrumbTrail = path.startsWith("/blog/")
+    ? [{ name: "Home", url: SITE_URL }, { name: "Blog", url: `${SITE_URL}/blog` }, { name: post.title, url }]
+    : [{ name: "Home", url: SITE_URL }, { name: post.title, url }]
+
+  return [article, breadcrumbSchema(breadcrumbTrail)]
 }
 
 export interface BreadcrumbItem {

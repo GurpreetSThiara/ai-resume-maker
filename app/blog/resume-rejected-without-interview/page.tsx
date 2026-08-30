@@ -1,5 +1,7 @@
 import React from 'react'
 import Detail from '../../../app/resume-rejected-without-interview/Detail'
+import { JsonLd } from '@/components/seo/JsonLd'
+import { blogPostSchema } from '@/lib/seo'
 
 import type { Metadata } from "next";
 
@@ -61,6 +63,16 @@ export const metadata: Metadata = {
 const page = () => {
     return (
         <div>
+            <JsonLd
+                data={blogPostSchema({
+                    title: "12 Reasons Your Resume Gets Rejected | CreateFreeCV",
+                    description: "Learn the 12 real reasons your resume gets rejected before interviews, and actionable fixes to get more callbacks from recruiters.",
+                    slug: "resume-rejected-without-interview",
+                    image: "/blog/resume-rejection-reasons.jpg",
+                    author: "CreateFreeCV Team",
+                    publishedAt: "2026-02-11",
+                })}
+            />
             <Detail />
         </div>
     )
