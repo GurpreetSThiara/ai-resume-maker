@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/profile/', '/settings/'],
+      disallow: ['/profile/', '/settings/', '/dashboard/', '/cover-letter/editor/', '/dev/'],
     },
     sitemap: 'https://createfreecv.com/sitemap.xml',
   };

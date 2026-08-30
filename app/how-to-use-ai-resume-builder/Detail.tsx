@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, AlertTriangle, Lightbulb, ArrowRight, Bot, User, FileText } from "lucide-react";
+import { CREATE_RESUME } from "@/config/urls";
 
 export default function Detail() {
   return (
@@ -189,7 +190,7 @@ export default function Detail() {
             <p className="text-slate-600 dark:text-slate-300 mb-6">
               Once you've used AI to refine your bullet points, don't struggle with Word formatting. Paste your content into our professional, ATS-optimized templates.
             </p>
-            <Link href="/editor">
+            <Link href={CREATE_RESUME}>
               <span className="inline-flex items-center justify-center px-6 py-3 text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-lg hover:shadow-xl cursor-pointer">
                 Create My Resume Now <ArrowRight className="ml-2 w-4 h-4" />
               </span>

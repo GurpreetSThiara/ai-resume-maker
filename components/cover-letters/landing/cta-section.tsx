@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle } from 'lucide-react';
+import { CREATE_RESUME } from '@/config/urls';
 
 export function CtaSection() {
   const router = useRouter();
@@ -31,7 +32,7 @@ export function CtaSection() {
             Create Free Cover Letter
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
-          <Link href="/resume">
+          <Link href={CREATE_RESUME}>
             <Button
               size="lg"
               variant="outline"
