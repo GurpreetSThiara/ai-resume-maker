@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Free Cover Letter Builder – ATS‑Friendly Templates, No Sign Up | CreateFreeCV.com',
-  description: 'Create a professional cover letter online in minutes with our free AI‑assisted, ATS‑optimized cover letter builder. Job‑specific templates, instant DOCX download, no login required.',
+  title: 'Free Cover Letter Builder – No Sign Up | CreateFreeCV',
+  description: 'Create a professional, ATS-optimized cover letter online in minutes. Job-specific templates, instant DOCX download, no login required.',
   keywords: [
     'free cover letter builder',
     'free cover letter maker online',
@@ -28,6 +28,9 @@ export const metadata: Metadata = {
   creator: 'CreateFreeCV Team',
   publisher: 'CreateFreeCV',
   metadataBase: new URL('https://createfreecv.com'),
+  alternates: {
+    canonical: 'https://createfreecv.com/cover-letter',
+  },
   openGraph: {
     title: 'Free Cover Letter Builder – ATS‑Friendly Templates, No Sign Up | CreateFreeCV.com',
     description: 'Create a professional cover letter online in minutes with our free AI‑assisted, ATS‑optimized cover letter builder. Job‑specific templates, instant DOCX download, no login required.',

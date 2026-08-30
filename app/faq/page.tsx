@@ -60,12 +60,29 @@ export const metadata: Metadata = {
     title: 'FAQ - Frequently Asked Questions | CreateFreeCV.com',
     description: 'Find answers to common questions about CreateFreeCV.com, our resume builder, ATS optimization, templates, and more.',
     keywords: ['FAQ', 'resume builder help', 'ATS questions', 'resume templates', 'free resume', 'help center'],
+    alternates: {
+        canonical: 'https://createfreecv.com/faq',
+    },
     openGraph: {
         title: 'FAQ - Frequently Asked Questions | CreateFreeCV',
         description: 'Get answers to all your questions about creating professional ATS-friendly resumes with CreateFreeCV.com',
         url: 'https://createfreecv.com/faq',
         siteName: 'CreateFreeCV',
-        type: 'website'
+        type: 'website',
+        images: [
+            {
+                url: '/og-faq.png',
+                width: 1200,
+                height: 630,
+                alt: 'CreateFreeCV frequently asked questions',
+            },
+        ],
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: 'FAQ - Frequently Asked Questions | CreateFreeCV',
+        description: 'Get answers to all your questions about creating professional ATS-friendly resumes with CreateFreeCV.com',
+        images: ['/og-faq.png'],
     },
 };
 

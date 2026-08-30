@@ -2,6 +2,9 @@ import { notFound } from "next/navigation"
 import { Metadata } from "next"
 import { getPortfolioBySlug } from "@/services/portfolioService"
 import { PortfolioView } from "@/components/public/portfolio-view"
+import { SITE_URL, truncateForMeta } from "@/lib/seo"
+
+export const revalidate = 300
 
 interface PageProps {
     params: Promise<{
@@ -19,13 +22,33 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         }
     }
 
+    const title = truncateForMeta(`${portfolio.title} | Portfolio`, 60)
+    const description = truncateForMeta(`Check out ${portfolio.title}'s professional portfolio created with Resume Builder.`, 160)
+
     return {
-        title: `${portfolio.title} | Portfolio`,
-        description: `Check out ${portfolio.title}'s professional portfolio created with Resume Builder.`,
+        title,
+        description,
+        alternates: {
+            canonical: `${SITE_URL}/p/${slug}`,
+        },
         openGraph: {
             title: portfolio.title,
             description: `Check out ${portfolio.title}'s professional portfolio.`,
             type: "website",
+            images: [
+                {
+                    url: "/og-image.png",
+                    width: 1200,
+                    height: 630,
+                    alt: `${portfolio.title}'s portfolio on CreateFreeCV`,
+                },
+            ],
+        },
+        twitter: {
+            card: "summary_large_image",
+            title: portfolio.title,
+            description: `Check out ${portfolio.title}'s professional portfolio.`,
+            images: ["/og-image.png"],
         },
     }
 }

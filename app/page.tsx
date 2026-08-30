@@ -10,9 +10,9 @@ import { FaqV2 } from "@/components/appUI/home/v2/FaqV2"
 import { FinalCtaV2 } from "@/components/appUI/home/v2/FinalCtaV2"
 
 export const metadata: Metadata = {
-  title: "Free Resume Builder — ATS-Optimized Templates, No Sign-Up | CreateFreeCV",
+  title: "Free ATS Resume Builder — No Sign-Up | CreateFreeCV",
   description:
-    "Build a professional, ATS-optimized resume in minutes — free, no sign-up, unlimited PDF/DOCX downloads. 80+ templates, live preview, theme customizer, and a shareable portfolio.",
+    "Build a professional, ATS-optimized resume in minutes — free, no sign-up, unlimited PDF/DOCX downloads, 80+ templates, and a shareable portfolio.",
   alternates: { canonical: "https://createfreecv.com/" },
 }
 

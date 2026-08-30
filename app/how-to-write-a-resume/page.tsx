@@ -15,9 +15,12 @@ const HOW_TO_STEPS = [
 ];
 
 export const metadata: Metadata = {
-  title: "ATS Resume Guide 2026 – How to Create a Resume That Gets Interviews",
+  title: "ATS Resume Guide 2026 | CreateFreeCV",
   description:
-    "Learn how to create an ATS-optimized resume in 2026 with real examples for developers, marketers, students, and freshers. Step-by-step guide to pass Applicant Tracking Systems and impress hiring managers.",
+    "Learn how to write an ATS-optimized resume in 2026 with real examples for developers, marketers, students, and freshers.",
+  alternates: {
+    canonical: "https://createfreecv.com/how-to-write-a-resume",
+  },
 
   keywords: [
     "ATS resume",
@@ -43,8 +46,23 @@ export const metadata: Metadata = {
       "Step-by-step guide to writing a resume that passes ATS screening and gets noticed by recruiters. Includes real resume examples and formatting tips.",
     url: "https://createfreecv.com/how-to-write-a-resume",
     siteName: "CreateFreeCV",
+    type: "article",
+    images: [
+      {
+        url: "/blog/ats-resume-guide.jpg",
+        width: 1200,
+        height: 630,
+        alt: "ATS Resume Guide 2026",
+      },
+    ],
+  },
 
-    type: "article"
+  twitter: {
+    card: "summary_large_image",
+    title: "ATS-Optimized Resume Guide 2026",
+    description:
+      "Step-by-step guide to writing a resume that passes ATS screening and gets noticed by recruiters. Includes real resume examples and formatting tips.",
+    images: ["/blog/ats-resume-guide.jpg"],
   },
 
 

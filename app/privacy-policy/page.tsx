@@ -4,6 +4,9 @@ import { PrivacyContent } from "@/components/legal/privacy-content";
 export const metadata: Metadata = {
   title: 'Privacy Policy | CreateFreeCV.com',
   description: 'Read the privacy policy for CreateFreeCV.com to understand how we handle your data.',
+  alternates: {
+    canonical: 'https://createfreecv.com/privacy-policy',
+  },
 };
 
 export default function PrivacyPolicyPage() {

@@ -4,7 +4,7 @@ import { blogPosts } from '../data/blogPosts';
 import BlogPostDetail from '../BlogPostDetail';
 import { Metadata } from 'next';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { blogPostSchema } from '@/lib/seo';
+import { blogPostSchema, truncateForMeta, SITE_URL } from '@/lib/seo';
 
 interface PageProps {
     params: Promise<{
@@ -28,9 +28,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         };
     }
 
+    const suffix = ' | CreateFreeCV Blog';
+    const metaTitle = post.title.length + suffix.length <= 60
+        ? `${post.title}${suffix}`
+        : truncateForMeta(post.title, 60);
+
     return {
-        title: `${post.title} | CreateFreeCV Blog`,
-        description: post.excerpt,
+        title: metaTitle,
+        description: truncateForMeta(post.excerpt, 160),
+        alternates: {
+            canonical: `${SITE_URL}/blog/${post.id}`,
+        },
         openGraph: {
             title: post.title,
             description: post.excerpt,

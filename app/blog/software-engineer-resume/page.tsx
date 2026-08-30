@@ -4,9 +4,12 @@ import Detail from '../../../app/software-engineer-resume/Detail'
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Resume for Software Engineers: How to Create a Technical Resume That Gets Interviews in 2026",
+  title: "Software Engineer Resume Guide 2026 | CreateFreeCV",
   description:
-    "Learn how software engineers can create ATS-optimized technical resumes that get interviews. Complete guide with examples, formatting tips, and what recruiters look for in 2026.",
+    "Learn how software engineers can create ATS-optimized technical resumes that get interviews, with examples and formatting tips.",
+  alternates: {
+    canonical: "https://createfreecv.com/blog/software-engineer-resume",
+  },
 
   keywords: [
     "software engineer resume",
@@ -32,7 +35,23 @@ export const metadata: Metadata = {
       "Complete guide for software engineers to create ATS-optimized resumes that get interviews. Includes examples, formatting tips, and recruiter insights.",
     url: "https://createfreecv.com/blog/software-engineer-resume",
     siteName: "CreateFreeCV",
-    type: "article"
+    type: "article",
+    images: [
+      {
+        url: "/blog/software-engineer-resume.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Software Engineer Resume Guide 2026",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Resume for Software Engineers: Technical Resume Guide 2026",
+    description:
+      "Complete guide for software engineers to create ATS-optimized resumes that get interviews. Includes examples, formatting tips, and recruiter insights.",
+    images: ["/blog/software-engineer-resume.jpg"],
   },
 
   robots: {

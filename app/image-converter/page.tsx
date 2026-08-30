@@ -3,8 +3,11 @@ import ImageConverter from './ImageConverter'
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Free Online Image Format Converter - PNG, JPG, WebP, BMP, GIF | No Upload Required',
-  description: 'Convert your images instantly — no software install, no server uploads, and no privacy worries. Transform between PNG, JPG, WebP, BMP, and GIF formats with our fast, secure browser-based converter.',
+  title: 'Free Online Image Format Converter | CreateFreeCV',
+  description: 'Convert images instantly between PNG, JPG, WebP, BMP, and GIF — no installs, no uploads, 100% private in your browser.',
+  alternates: {
+    canonical: 'https://createfreecv.com/image-converter',
+  },
   keywords: [
     'image converter',
     'png to jpg',

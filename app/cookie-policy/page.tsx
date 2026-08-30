@@ -3,6 +3,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Cookie Policy | CreateFreeCV.com',
   description: 'Read our Cookie Policy to understand how CreateFreeCV.com uses cookies and tracking technologies.',
+  alternates: {
+    canonical: 'https://createfreecv.com/cookie-policy',
+  },
 };
 
 export default function CookiePolicyPage() {

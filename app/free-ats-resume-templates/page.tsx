@@ -4,26 +4,33 @@ import {Templates} from './ResumeTemplates'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: '50+ Professional Resume Templates - ATS-Optimized Designs | CreateFreeCV',
-  description: 'Browse 50+ professional, ATS-optimized resume templates across 20 categories. Search, filter, preview, and customize modern, executive, creative, and developer designs in minutes.',
+  title: '50+ ATS-Optimized Resume Templates | CreateFreeCV',
+  description: 'Browse 50+ professional, ATS-optimized resume templates across 20 categories. Search, filter, and customize instantly.',
   keywords: 'resume templates, professional resume templates, ATS resume templates, modern resume templates, executive resume, developer resume, creative resume, resume template gallery, resume marketplace',
-  
+
   openGraph: {
     title: 'Resume Templates Gallery | CreateFreeCV',
     description: 'Browse professional resume templates optimized for ATS. Choose from classic, modern, and industry-specific designs.',
     type: 'website',
     url: 'https://createfreecv.com/free-ats-resume-templates',
     siteName: 'CreateFreeCV',
-
+    images: [
+      {
+        url: '/og-templates.png',
+        width: 1200,
+        height: 630,
+        alt: 'Browse ATS-optimized resume templates on CreateFreeCV.com',
+      },
+    ],
   },
-  
-  // twitter: {
-  //   card: 'summary_large_image',
-  //   title: 'Resume Templates Gallery | CreateFreeCV',
-  //   description: 'Browse professional resume templates. Pick your design and customize instantly.',
-  //   images: ['https://createfreecv.com/og-templates-preview.jpg']
-  // },
-  
+
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Resume Templates Gallery | CreateFreeCV',
+    description: 'Browse professional resume templates. Pick your design and customize instantly.',
+    images: ['/og-templates.png'],
+  },
+
   alternates: {
     canonical: 'https://createfreecv.com/free-ats-resume-templates'
   },

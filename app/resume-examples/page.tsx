@@ -3,8 +3,8 @@ import { ResumeExamples } from './ResumeExamples'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-    title: 'Resume Examples & Samples - Real Industry-Specific Templates | CreateFreeCV',
-    description: 'Browse real resume examples from different industries including Software Engineering, Product Management, Marketing, Data Science, Healthcare, and Finance. Use these samples as a starting point for your resume.',
+    title: 'Resume Examples & Samples by Industry | CreateFreeCV',
+    description: 'Browse real resume examples from Software Engineering, Product Management, Marketing, Data Science, Healthcare, and Finance.',
     keywords: 'resume examples, resume samples, professional resume examples, industry-specific resumes, software engineer resume example, product manager resume sample, marketing resume example, data scientist resume, healthcare resume, finance resume',
 
     openGraph: {
@@ -13,6 +13,21 @@ export const metadata: Metadata = {
         type: 'website',
         url: 'https://createfreecv.com/resume-examples',
         siteName: 'CreateFreeCV',
+        images: [
+            {
+                url: '/og-resume-examples.png',
+                width: 1200,
+                height: 630,
+                alt: 'Resume examples by industry on CreateFreeCV.com',
+            },
+        ],
+    },
+
+    twitter: {
+        card: 'summary_large_image',
+        title: 'Professional Resume Examples | CreateFreeCV',
+        description: 'Browse real resume examples from various industries. Use these professional samples to create your perfect resume.',
+        images: ['/og-resume-examples.png'],
     },
 
     alternates: {

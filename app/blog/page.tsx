@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: 'Blog | CreateFreeCV.com - Resume Tips & Career Advice',
   description: 'Expert tips, tricks, and insights on resume building, career advice, and job searching from the CreateFreeCV team.',
   keywords: ['resume blog', 'career advice', 'job search tips', 'resume writing tips', 'career guidance', 'interview tips'],
+  alternates: {
+    canonical: 'https://createfreecv.com/blog',
+  },
 };
 
 // Actual blog posts we have

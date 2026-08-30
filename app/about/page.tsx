@@ -6,6 +6,9 @@ import { Badge } from '@/components/ui/badge';
 export const metadata: Metadata = {
   title: 'About Us | CreateFreeCV.com',
   description: 'Learn about the mission and team behind CreateFreeCV.com, dedicated to helping job seekers succeed.',
+  alternates: {
+    canonical: 'https://createfreecv.com/about',
+  },
 };
 
 export default function AboutPage() {

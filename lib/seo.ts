@@ -13,6 +13,12 @@ export function absoluteUrl(pathOrUrl: string): string {
   return `${SITE_URL}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`
 }
 
+/** Truncates dynamic (content-driven) title/description strings to fit SERP display limits. */
+export function truncateForMeta(text: string, maxLen: number): string {
+  if (text.length <= maxLen) return text
+  return `${text.slice(0, maxLen - 1).trimEnd()}…`
+}
+
 /** Publisher block reused by Article/WebSite schemas. */
 const publisher = {
   "@type": "Organization",

@@ -4,9 +4,12 @@ import Detail from '../../../app/resume-for-freshers/Detail'
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Resume for Freshers: Complete Guide to Create Your First Job-Winning Resume (2026)",
+  title: "Resume for Freshers: Complete 2026 Guide | CreateFreeCV",
   description:
-    "Learn how to create a professional fresher resume in 2026. Step-by-step guide with 25+ examples, ATS-friendly tips, and real resume samples for students and recent graduates.",
+    "Learn how to create a professional fresher resume in 2026 with 25+ examples, ATS-friendly tips, and real samples for graduates.",
+  alternates: {
+    canonical: "https://createfreecv.com/resume-for-freshers",
+  },
 
   keywords: [
     "resume for freshers",
@@ -32,7 +35,23 @@ export const metadata: Metadata = {
       "Step-by-step guide to creating a job-winning fresher resume with 25+ examples, ATS tips, and professional templates.",
     url: "https://createfreecv.com/blog/resume-for-freshers",
     siteName: "CreateFreeCV",
-    type: "article"
+    type: "article",
+    images: [
+      {
+        url: "/blog/fresher-resume-guide.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Resume for Freshers: Complete 2026 Guide",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Resume for Freshers: Complete Guide (2026)",
+    description:
+      "Step-by-step guide to creating a job-winning fresher resume with 25+ examples, ATS tips, and professional templates.",
+    images: ["/blog/fresher-resume-guide.jpg"],
   },
 
   robots: {

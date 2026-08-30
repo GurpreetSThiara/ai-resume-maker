@@ -4,9 +4,12 @@ import Detail from '../../../app/resume-rejected-without-interview/Detail'
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Resume Rejected Without Interview? 12 Real Reasons Recruiters Don't Call Back (And How to Fix It)",
+    title: "12 Reasons Your Resume Gets Rejected | CreateFreeCV",
     description:
-        "Learn the 12 real reasons why your resume gets rejected before interviews and discover actionable strategies to fix each issue and get more callbacks from recruiters.",
+        "Learn the 12 real reasons your resume gets rejected before interviews, and actionable fixes to get more callbacks from recruiters.",
+    alternates: {
+        canonical: "https://createfreecv.com/blog/resume-rejected-without-interview",
+    },
 
     keywords: [
         "resume rejected",
@@ -30,7 +33,23 @@ export const metadata: Metadata = {
             "Discover why your resume gets rejected and learn actionable strategies to fix each issue and get more callbacks from recruiters.",
         url: "https://createfreecv.com/blog/resume-rejected-without-interview",
         siteName: "CreateFreeCV",
-        type: "article"
+        type: "article",
+        images: [
+            {
+                url: "/blog/resume-rejection-reasons.jpg",
+                width: 1200,
+                height: 630,
+                alt: "12 Reasons Your Resume Gets Rejected",
+            },
+        ],
+    },
+
+    twitter: {
+        card: "summary_large_image",
+        title: "Resume Rejected Without Interview? 12 Real Reasons Recruiters Don't Call Back",
+        description:
+            "Discover why your resume gets rejected and learn actionable strategies to fix each issue and get more callbacks from recruiters.",
+        images: ["/blog/resume-rejection-reasons.jpg"],
     },
 
     robots: {

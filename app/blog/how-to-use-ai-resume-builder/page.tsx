@@ -3,9 +3,12 @@ import Detail from '@/app/how-to-use-ai-resume-builder/Detail';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'How to Use AI to Build a Job-Winning Resume in 2026 | CreateFreeCV',
+    title: 'How to Use AI to Build Your Resume | CreateFreeCV',
     description:
         'Stop using generic ChatGPT resumes. Learn the "Hybrid Method" to combine AI speed with human strategy for a CV that actually gets interviews in 2026.',
+    alternates: {
+        canonical: 'https://createfreecv.com/blog/how-to-use-ai-resume-builder',
+    },
     keywords: [
         'AI resume builder',
         'how to use AI for resume',

@@ -7,12 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Mail, Linkedin, Twitter, Facebook, Loader2, CheckCircle, XCircle, Instagram } from 'lucide-react';
 import Link from 'next/link';
 
-// Metadata is defined statically, so it remains outside the client component.
-// export const metadata = {
-//   title: 'Contact Us | CreateFreeCV.com',
-//   description: 'Get in touch with the CreateFreeCV team. We love to hear your feedback and answer your questions.',
-// };
-
 type SubmissionStatus = 'idle' | 'loading' | 'success' | 'error';
 
 export default function ContactPage() {

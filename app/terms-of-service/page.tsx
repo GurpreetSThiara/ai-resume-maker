@@ -4,6 +4,9 @@ import { TermsContent } from "@/components/legal/terms-content";
 export const metadata: Metadata = {
   title: 'Terms of Service | CreateFreeCV.com',
   description: 'Read the Terms of Service for CreateFreeCV.com to understand the rules and guidelines for using our resume builder service.',
+  alternates: {
+    canonical: 'https://createfreecv.com/terms-of-service',
+  },
 };
 
 export default function TermsOfServicePage() {
