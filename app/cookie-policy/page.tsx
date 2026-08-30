@@ -12,7 +12,7 @@ export default function CookiePolicyPage() {
         <div className="max-w-4xl mx-auto bg-white p-8 shadow-lg rounded-lg border-gray-200">
           <h1 className="text-3xl font-bold text-slate-900 mb-6">Cookie Policy</h1>
           <div className="space-y-6 text-slate-700">
-            <p>Last updated: November 26, 2025</p>
+            <p>Last updated: August 30, 2026</p>
             
             <p>This Cookie Policy explains how CreateFreeCV.com ("we", "us", or "our") uses cookies and similar tracking technologies when you visit our website and how you can manage your cookie preferences.</p>
 
@@ -28,8 +28,8 @@ export default function CookiePolicyPage() {
             </ul>
 
             <h2 className="text-2xl font-semibold text-slate-800 pt-4">How We Use Cookies</h2>
-            <p>We use cookies for several purposes to enhance your experience and improve our services:</p>
-            
+            <p>We use cookies for several purposes to enhance your experience and improve our services. On your first visit, a cookie consent banner lets you Accept or Decline non-essential analytics cookies before they are set. You can change your choice at any time by clearing your browser's local storage for this site, which shows the banner again.</p>
+
             <h3 className="text-xl font-semibold text-slate-800 pt-2">Essential Cookies</h3>
             <p>These cookies are necessary for the website to function properly and cannot be disabled in our systems. They are usually only set in response to actions made by you which amount to a request for services.</p>
             <ul className="list-disc list-inside pl-4">
@@ -40,10 +40,11 @@ export default function CookiePolicyPage() {
             </ul>
 
             <h3 className="text-xl font-semibold text-slate-800 pt-2">Analytics Cookies</h3>
-            <p>These cookies help us understand how visitors interact with our website by collecting and reporting information anonymously.</p>
+            <p>These cookies help us understand how visitors interact with our website by collecting and reporting information anonymously. They are only set after you accept the cookie consent banner.</p>
             <ul className="list-disc list-inside pl-4">
               <li><strong>Google Analytics:</strong> Measures website traffic and user behavior</li>
-              <li><strong>Vercel Analytics:</strong> Monitors website performance and user engagement</li>
+              <li><strong>Google Tag Manager:</strong> Manages and deploys the analytics tags used on this site</li>
+              <li><strong>PostHog:</strong> Product analytics and usage insights</li>
               <li>Tracking which pages are most popular</li>
               <li>Measuring time spent on different sections</li>
             </ul>
@@ -57,27 +58,23 @@ export default function CookiePolicyPage() {
               <li>Language and region preferences</li>
             </ul>
 
-            <h3 className="text-xl font-semibold text-slate-800 pt-2">Advertising Cookies (Future Use)</h3>
-            <p>These cookies are used to deliver advertisements that are relevant to you and your interests. Currently, we are not using advertising cookies as we are in the process of applying for Google AdSense approval.</p>
-            <ul className="list-disc list-inside pl-4">
-              <li>Personalized ad delivery (when implemented)</li>
-              <li>Ad frequency capping</li>
-              <li>Measuring ad campaign effectiveness</li>
-            </ul>
+            <h3 className="text-xl font-semibold text-slate-800 pt-2">Advertising Cookies</h3>
+            <p>We do not currently display third-party advertisements on CreateFreeCV.com, so no advertising cookies are set. If we introduce an advertising partner in the future, we will update this policy beforehand and only load advertising cookies after you provide consent via our cookie consent banner.</p>
 
             <h2 className="text-2xl font-semibold text-slate-800 pt-4">Third-Party Cookies</h2>
             <p>We use various third-party services that may set their own cookies on your device. These include:</p>
-            
+
             <h4 className="font-semibold">Google Services</h4>
             <ul className="list-disc list-inside pl-4">
-              <li><strong>Google Analytics:</strong> Uses cookies to analyze website traffic (_ga, _gid, _gat)</li>
-              <li><strong>Google AdSense:</strong> Will use cookies for ad serving when approved (id, doubleclick)</li>
+              <li><strong>Google Analytics:</strong> Uses cookies to analyze website traffic (_ga, _gid, _gat) — loaded only after cookie consent</li>
+              <li><strong>Google Tag Manager:</strong> Manages and deploys the tags above — loaded only after cookie consent</li>
             </ul>
 
             <h4 className="font-semibold">Other Third Parties</h4>
             <ul className="list-disc list-inside pl-4">
+              <li><strong>PostHog:</strong> Product analytics — loaded only after cookie consent</li>
               <li><strong>Supabase:</strong> Authentication and database services</li>
-              <li><strong>Vercel:</strong> Hosting and analytics services</li>
+              <li><strong>Vercel:</strong> Hosting services</li>
             </ul>
 
             <h2 className="text-2xl font-semibold text-slate-800 pt-4">Cookie Duration</h2>
@@ -134,7 +131,7 @@ export default function CookiePolicyPage() {
 
             <div className="mt-8 p-4 bg-blue-50 rounded-lg">
               <h3 className="text-lg font-semibold text-blue-900 mb-2">Cookie Consent</h3>
-              <p className="text-blue-800">By continuing to use our website, you consent to the use of cookies in accordance with this Cookie Policy. You can change your cookie preferences at any time by adjusting your browser settings.</p>
+              <p className="text-blue-800">Essential cookies are used automatically since they're required for the site to function. Analytics cookies (Google Analytics, Google Tag Manager, PostHog) are only set after you click "Accept" on the cookie consent banner shown on your first visit. You can change your choice at any time by clearing your browser's local storage for this site, or by adjusting your browser's cookie settings directly.</p>
             </div>
           </div>
         </div>

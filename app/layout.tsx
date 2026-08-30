@@ -10,9 +10,10 @@ import { BottomNav } from "@/components/mobile/bottom-nav"
 import { Analytics } from "@vercel/analytics/next"
 import Providers from "@/contexts/provider"
 import { ToastContainer } from "@/components/toast/toast-contaner"
-import Script from "next/script"
 import { JsonLd } from "@/components/seo/JsonLd"
 import { organizationSchema, websiteSchema, webApplicationSchema } from "@/lib/seo"
+import { AnalyticsScripts } from "@/components/legal/analytics-scripts"
+import { CookieConsentBanner } from "@/components/legal/cookie-consent-banner"
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -107,45 +108,12 @@ export default function RootLayout({
         <meta name="theme-color" content="#15803d" />
         <meta name="msapplication-TileColor" content="#15803d" />
         <meta name="clckd" content="00dd4cecdd1f49eb435533f606ecfa5a" />
-        {/* Google Tag Manager and Google Analytics scripts (render unconditionally) */}
-        <>
-          <Script id="google-tag-manager" strategy="afterInteractive">
-            {`
-              (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-              new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-              'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-              })(window,document,'script','dataLayer','GTM-W6W84N5N');
-            `}
-          </Script>
-
-          <Script
-            async
-            src="https://www.googletagmanager.com/gtag/js?id=G-YYGPPFLBZW"
-            strategy="afterInteractive"
-          />
-          <Script id="google-analytics" strategy="afterInteractive">
-            {`
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);} 
-              gtag('js', new Date());
-              gtag('config', 'G-YYGPPFLBZW');
-            `}
-          </Script>
-        </>
         {/* Global structured data: brand identity + the free resume builder app. */}
         <JsonLd data={[organizationSchema(), websiteSchema(), webApplicationSchema()]} />
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
-        {/* GTM noscript iframe (render unconditionally) */}
-        <noscript>
-          <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-W6W84N5N"
-            height="0"
-            width="0"
-            style={{ display: "none", visibility: "hidden" }}
-          />
-        </noscript>
+        {/* GTM/GA only load after the user accepts the cookie consent banner below. */}
+        <AnalyticsScripts />
         <Providers>
           <AiProvider>
 
@@ -169,6 +137,7 @@ export default function RootLayout({
 
           </AiProvider>
         </Providers>
+        <CookieConsentBanner />
       </body>
     </html>
   )
