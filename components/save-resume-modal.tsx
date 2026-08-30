@@ -6,8 +6,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button"
 import { BuyMeCoffee } from "@/components/ui/buy-me-coffee"
 import { Download, FileText, Save, Cloud, Smartphone, Check } from "lucide-react"
-import { generateResumePDF } from "@/lib/pdf-generators"
-import { generateResumeDOCX } from "@/lib/docx-generators"
 import { getResumeDesign } from "@/lib/resume-designs"
 import { getUserResumes } from "@/lib/supabase-functions"
 import { useAuth } from "@/contexts/auth-context"
@@ -63,8 +61,13 @@ export function SaveResumeModal({
     await new Promise((r) => requestAnimationFrame(() => r(null)))
     try {
       const filename = `${data.filename}.${format}`
-      if (format === "pdf") await generateResumePDF({ ...data, filename })
-      else await generateResumeDOCX({ ...data, filename })
+      if (format === "pdf") {
+        const { generateResumePDF } = await import("@/lib/pdf-generators")
+        await generateResumePDF({ ...data, filename })
+      } else {
+        const { generateResumeDOCX } = await import("@/lib/docx-generators")
+        await generateResumeDOCX({ ...data, filename })
+      }
       SHOW_SUCCESS({ title: `Resume downloaded as ${format.toUpperCase()}!` })
       trackResumeDownloadToSheets({ ...data.resumeData, template: data.template }, !!user)
       setTimeout(() => triggerReviewModal(), 1000)

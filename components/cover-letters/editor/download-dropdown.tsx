@@ -10,9 +10,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { downloadCoverLetterPDF } from "@/lib/export/cover-letter";
-import { downloadCoverLetterDOCX } from "@/lib/export/cover-letter";
-
 const DownloadDropDown = ({ coverLetter, disabled }: { coverLetter: any; disabled: boolean }) => {
   return (
     <DropdownMenu>
@@ -23,7 +20,8 @@ const DownloadDropDown = ({ coverLetter, disabled }: { coverLetter: any; disable
       <DropdownMenuContent align="start" className="w-40">
         <DropdownMenuLabel>Format</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="capitalize cursor-pointer" onClick={() => {
+        <DropdownMenuItem className="capitalize cursor-pointer" onClick={async () => {
+          const { downloadCoverLetterPDF } = await import("@/lib/export/cover-letter");
           downloadCoverLetterPDF({
             coverLetter: coverLetter,
             templateName: coverLetter?.formatting?.layout || 'traditional'
@@ -31,7 +29,8 @@ const DownloadDropDown = ({ coverLetter, disabled }: { coverLetter: any; disable
         }}>
           PDF
         </DropdownMenuItem>
-        <DropdownMenuItem className="capitalize cursor-pointer" onClick={() => {
+        <DropdownMenuItem className="capitalize cursor-pointer" onClick={async () => {
+          const { downloadCoverLetterDOCX } = await import("@/lib/export/cover-letter");
           downloadCoverLetterDOCX({
             coverLetter: coverLetter,
             templateName: coverLetter?.formatting?.layout || 'traditional'
