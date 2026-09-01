@@ -53,8 +53,15 @@ export default function BlogClient({ blogPosts }: BlogClientProps) {
     // Get unique categories
     const categories = ['All', ...Array.from(new Set(blogPosts.map(post => post.category)))];
 
-    // Filter posts
-    let filteredPosts = sortedPosts.filter(post => !post.featured);
+    // The hero slot only renders on the unfiltered view (see below), so only the
+    // post actually shown there is held out of the grid. Excluding *every*
+    // featured post would drop the other featured ones from the site entirely
+    // and leave their categories rendering an empty state.
+    const isDefaultView = selectedCategory === 'All' && !searchQuery;
+
+    let filteredPosts = isDefaultView && featuredPost
+        ? sortedPosts.filter(post => post.id !== featuredPost.id)
+        : sortedPosts;
 
     if (selectedCategory !== 'All') {
         filteredPosts = filteredPosts.filter(post => post.category === selectedCategory);
