@@ -1,5 +1,10 @@
 import CreateResume from './Create'
 import type { Metadata } from 'next';
+import { pageSocialMetadata } from '@/lib/seo';
+
+const TITLE = 'Create Free ATS Resume - Choose Template | CreateFreeCV.com';
+const DESCRIPTION =
+  'Select from a variety of free ATS-friendly resume templates to start building your professional resume. No sign-up required. Download in pdf for free.';
 
 export async function generateMetadata({
   searchParams,
@@ -10,14 +15,19 @@ export async function generateMetadata({
   const isParamUrl = Boolean(params?.template);
 
   return {
-    title: 'Create Free ATS Resume - Choose Template | CreateFreeCV.com',
-    description:
-      'Select from a variety of free ATS-friendly resume templates to start building your professional resume. No sign-up required. Download in pdf for free.',
+    title: TITLE,
+    description: DESCRIPTION,
 
     alternates: {
       canonical:
         'https://createfreecv.com/free-ats-resume-templates/create',
     },
+
+    ...pageSocialMetadata({
+      title: TITLE,
+      description: DESCRIPTION,
+      path: '/free-ats-resume-templates/create',
+    }),
 
     robots: isParamUrl
       ? { index: false, follow: true } // ?template= URLs

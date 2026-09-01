@@ -27,6 +27,42 @@ export function truncateForMeta(text: string, maxLen: number): string {
   return `${body.replace(/[\s,;:.\-–—]+$/, "")}…`
 }
 
+export const DEFAULT_OG_IMAGE = "/og-image.png"
+
+/**
+ * Builds a page's openGraph + twitter blocks.
+ *
+ * Next.js *replaces* rather than merges these per segment, so a page that
+ * defines `openGraph` without `images`/`url` silently loses the image and
+ * advertises the homepage as its social identity. Spreading this helper keeps
+ * every page self-consistent.
+ */
+export function pageSocialMetadata(input: {
+  title: string
+  description: string
+  path: string
+  image?: string
+  type?: "website" | "article"
+}) {
+  const image = input.image ?? DEFAULT_OG_IMAGE
+  return {
+    openGraph: {
+      title: input.title,
+      description: input.description,
+      url: absoluteUrl(input.path),
+      siteName: SITE_NAME,
+      type: input.type ?? ("website" as const),
+      images: [{ url: image, width: 1200, height: 630, alt: input.title }],
+    },
+    twitter: {
+      card: "summary_large_image" as const,
+      title: input.title,
+      description: input.description,
+      images: [image],
+    },
+  }
+}
+
 /** Publisher block reused by Article/WebSite schemas. */
 const publisher = {
   "@type": "Organization",

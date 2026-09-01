@@ -71,12 +71,12 @@ export const metadata: Metadata = {
     description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free DOCX download.',
     images: ['/twitter-image.png'],
   },
+  // Deliberately no `index`/`follow` here: pages are indexable by default, and
+  // an explicit site-wide `index, follow` (especially the googlebot variant,
+  // which outranks the generic tag) overrode the `noindex` Next.js injects on
+  // not-found pages. Only the snippet/preview directives are set.
   robots: {
-    index: true,
-    follow: true,
     googleBot: {
-      index: true,
-      follow: true,
       'max-video-preview': -1,
       'max-image-preview': 'large',
       'max-snippet': -1,

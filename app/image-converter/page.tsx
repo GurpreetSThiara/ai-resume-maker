@@ -30,6 +30,8 @@ export const metadata: Metadata = {
     title: 'Free Image Format Converter - No Upload Required',
     description: 'Convert images between PNG, JPG, WebP, BMP, GIF formats instantly in your browser. 100% private, fast, and free.',
     type: 'website',
+    url: 'https://createfreecv.com/image-converter',
+    siteName: 'CreateFreeCV',
     images: [{
       url: '/og-image-converter.jpg',
       width: 1200,

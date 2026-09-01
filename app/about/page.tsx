@@ -2,13 +2,18 @@ import type { Metadata } from 'next';
 import { Users, Target, Sparkles, Heart, Shield, Zap, Award } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { pageSocialMetadata } from '@/lib/seo';
+
+const TITLE = 'About Us | CreateFreeCV.com';
+const DESCRIPTION = 'Learn about the mission behind CreateFreeCV.com, dedicated to helping job seekers succeed.';
 
 export const metadata: Metadata = {
-  title: 'About Us | CreateFreeCV.com',
-  description: 'Learn about the mission and team behind CreateFreeCV.com, dedicated to helping job seekers succeed.',
+  title: TITLE,
+  description: DESCRIPTION,
   alternates: {
     canonical: 'https://createfreecv.com/about',
   },
+  ...pageSocialMetadata({ title: TITLE, description: DESCRIPTION, path: '/about' }),
 };
 
 export default function AboutPage() {

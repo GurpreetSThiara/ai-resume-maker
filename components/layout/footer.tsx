@@ -74,39 +74,49 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Resources */}
-          {/* <div>
-          <h3 className="font-semibold mb-4 text-foreground relative inline-block">
-            Resources
-            <span className="absolute left-0 -bottom-1 w-10 h-0.5 bg-primary rounded-full" />
-          </h3>
-          <ul className="space-y-3">
-            {/* <li>
-              <Link
-                href="#"
-                className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
-              >
-                Resume Examples
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="#"
-                className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
-              >
-                Career Tips
-              </Link>
-            </li> */}
-          {/* <li>
-              <Link
-                href="/blog"
-                className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
-              >
-                Blog
-              </Link>
-            </li> */}
-          {/* </ul> */}
-          {/* </div> */}
+          {/* Resources — also the only server-rendered link to /blog and
+              /image-converter, which the navbar hides behind a width-gated
+              dropdown that renders nothing on the server. */}
+          <div>
+            <h3 className="font-semibold mb-4 text-foreground relative inline-block">
+              Resources
+              <span className="absolute left-0 -bottom-1 w-10 h-0.5 bg-primary rounded-full" />
+            </h3>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  href="/blog"
+                  className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
+                >
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/how-to-write-a-resume"
+                  className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
+                >
+                  How to Write a Resume
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/resume-for-freshers"
+                  className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
+                >
+                  Resume for Freshers
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/image-converter"
+                  className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
+                >
+                  Image Converter
+                </Link>
+              </li>
+            </ul>
+          </div>
 
           {/* Company */}
           <div>

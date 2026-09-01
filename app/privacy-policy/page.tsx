@@ -1,12 +1,17 @@
 import type { Metadata } from 'next';
 import { PrivacyContent } from "@/components/legal/privacy-content";
+import { pageSocialMetadata } from '@/lib/seo';
+
+const TITLE = 'Privacy Policy | CreateFreeCV.com';
+const DESCRIPTION = 'Read the privacy policy for CreateFreeCV.com to understand how we handle your data.';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | CreateFreeCV.com',
-  description: 'Read the privacy policy for CreateFreeCV.com to understand how we handle your data.',
+  title: TITLE,
+  description: DESCRIPTION,
   alternates: {
     canonical: 'https://createfreecv.com/privacy-policy',
   },
+  ...pageSocialMetadata({ title: TITLE, description: DESCRIPTION, path: '/privacy-policy' }),
 };
 
 export default function PrivacyPolicyPage() {

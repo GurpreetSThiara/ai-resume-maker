@@ -1,11 +1,16 @@
 import type { Metadata } from 'next';
+import { pageSocialMetadata } from '@/lib/seo';
+
+const TITLE = 'Cookie Policy | CreateFreeCV.com';
+const DESCRIPTION = 'Read our Cookie Policy to understand how CreateFreeCV.com uses cookies and tracking technologies.';
 
 export const metadata: Metadata = {
-  title: 'Cookie Policy | CreateFreeCV.com',
-  description: 'Read our Cookie Policy to understand how CreateFreeCV.com uses cookies and tracking technologies.',
+  title: TITLE,
+  description: DESCRIPTION,
   alternates: {
     canonical: 'https://createfreecv.com/cookie-policy',
   },
+  ...pageSocialMetadata({ title: TITLE, description: DESCRIPTION, path: '/cookie-policy' }),
 };
 
 export default function CookiePolicyPage() {

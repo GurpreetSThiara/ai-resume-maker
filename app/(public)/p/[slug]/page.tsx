@@ -2,7 +2,7 @@ import { notFound } from "next/navigation"
 import { Metadata } from "next"
 import { getPortfolioBySlug } from "@/services/portfolioService"
 import { PortfolioView } from "@/components/public/portfolio-view"
-import { SITE_URL, truncateForMeta } from "@/lib/seo"
+import { SITE_NAME, SITE_URL, truncateForMeta } from "@/lib/seo"
 
 export const revalidate = 300
 
@@ -23,13 +23,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
 
     const title = truncateForMeta(`${portfolio.title} | Portfolio`, 60)
-    const description = truncateForMeta(`Check out ${portfolio.title}'s professional portfolio created with Resume Builder.`, 160)
+    const description = truncateForMeta(`Check out ${portfolio.title}'s professional portfolio created with ${SITE_NAME}.`, 160)
 
     return {
         title,
         description,
         alternates: {
             canonical: `${SITE_URL}/p/${slug}`,
+        },
+        // User-generated pages: crawlable for the links they contain, but kept
+        // out of the index. Their descriptions are templated and near-identical
+        // across every portfolio, so indexing them at scale would pile up thin,
+        // duplicative pages on the domain.
+        robots: {
+            index: false,
+            follow: true,
         },
         openGraph: {
             title: portfolio.title,

@@ -48,6 +48,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
             title: post.title,
             description: post.excerpt,
             type: 'article',
+            url: `${SITE_URL}/blog/${post.id}`,
+            siteName: 'CreateFreeCV',
             publishedTime: post.publishedAt,
             authors: [post.author],
             images: [
