@@ -139,7 +139,7 @@ export default function CookiePolicyPage() {
 
             <div className="mt-8 p-4 bg-blue-50 rounded-lg">
               <h3 className="text-lg font-semibold text-blue-900 mb-2">Cookie Consent</h3>
-              <p className="text-blue-800">Essential cookies are used automatically since they're required for the site to function. Analytics cookies (Google Analytics, Google Tag Manager, PostHog) are only set after you click "Accept" on the cookie consent banner shown on your first visit. You can change your choice at any time by clearing your browser's local storage for this site, or by adjusting your browser's cookie settings directly.</p>
+              <p className="text-blue-800">Essential cookies are used automatically since they're required for the site to function. Analytics cookies (Google Analytics, Google Tag Manager, PostHog) are only set after you click "Accept" on the cookie consent banner shown on your first visit. You can change your choice at any time using the "Cookie Settings" link in the site footer, which brings the banner back. Whichever choice you make — accept or decline — we remember it for six months and then ask again.</p>
             </div>
           </div>
         </div>

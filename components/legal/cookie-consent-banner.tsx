@@ -3,13 +3,19 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { getStoredConsent, setStoredConsent, type ConsentValue } from "@/lib/analytics-consent"
+import { CONSENT_CHANGED_EVENT, getStoredConsent, setStoredConsent, type ConsentValue } from "@/lib/analytics-consent"
 
 export function CookieConsentBanner() {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
     setVisible(getStoredConsent() === null)
+
+    // Lets the footer's "Cookie settings" control bring the banner back without
+    // a page reload once it clears the stored choice.
+    const handleConsentChange = () => setVisible(getStoredConsent() === null)
+    window.addEventListener(CONSENT_CHANGED_EVENT, handleConsentChange)
+    return () => window.removeEventListener(CONSENT_CHANGED_EVENT, handleConsentChange)
   }, [])
 
   if (!visible) return null

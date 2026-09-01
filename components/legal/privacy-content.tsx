@@ -65,7 +65,7 @@ export function PrivacyContent() {
         </ul>
 
         <h2 className="text-2xl font-semibold text-slate-800 pt-4">How We Obtain Consent</h2>
-        <p>When you first visit CreateFreeCV.com, a cookie consent banner asks you to Accept or Decline non-essential analytics cookies. Google Analytics, Google Tag Manager, and PostHog are only loaded after you choose Accept. You can change your choice at any time by clearing your browser's local storage for this site, which will show the banner again on your next visit.</p>
+        <p>When you first visit CreateFreeCV.com, a cookie consent banner asks you to Accept or Decline non-essential analytics cookies. Google Analytics, Google Tag Manager, and PostHog are only loaded after you choose Accept. You can change your choice at any time using the "Cookie Settings" link in the site footer. We remember your choice — whether you accepted or declined — for six months, and then ask again.</p>
 
         <h2 className="text-2xl font-semibold text-slate-800 pt-4">Third-Party Services</h2>
         <p>We may employ third-party companies and individuals to facilitate our Service, provide the Service on our behalf, perform Service-related services, or assist us in analyzing how our Service is used.</p>

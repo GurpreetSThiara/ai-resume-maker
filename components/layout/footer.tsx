@@ -6,6 +6,7 @@ import { FileText, Facebook, Twitter, Linkedin, Instagram } from "lucide-react"
 import { CREATE_RESUME } from "@/config/urls"
 import { Brand } from "@/components/ui/brand"
 import { BuyMeCoffee } from "@/components/ui/buy-me-coffee"
+import { clearStoredConsent } from "@/lib/analytics-consent"
 export function Footer() {
   const currentYear = new Date().getFullYear()
   const pathname = usePathname() || "/"
@@ -172,6 +173,17 @@ export function Footer() {
                 >
                   Cookie Policy
                 </Link>
+              </li>
+              <li>
+                {/* Withdrawing consent has to be as easy as giving it — this
+                    clears the stored choice and brings the banner straight back. */}
+                <button
+                  type="button"
+                  onClick={clearStoredConsent}
+                  className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
+                >
+                  Cookie Settings
+                </button>
               </li>
             </ul>
           </div>
