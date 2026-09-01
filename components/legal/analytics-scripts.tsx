@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Script from "next/script"
-import { CONSENT_CHANGED_EVENT, getStoredConsent, type ConsentValue } from "@/lib/analytics-consent"
+import { CONSENT_CHANGED_EVENT, shouldLoadAnalytics } from "@/lib/analytics-consent"
 
 const GTM_ID = "GTM-W6W84N5N"
 const GA_ID = "G-YYGPPFLBZW"
@@ -11,15 +11,13 @@ export function AnalyticsScripts() {
   const [enabled, setEnabled] = useState(false)
 
   useEffect(() => {
-    setEnabled(getStoredConsent() === "accepted")
+    // Runs after mount so the region cookie and any browser privacy signal are
+    // both readable — never during SSR, where neither is available.
+    const evaluate = () => setEnabled(shouldLoadAnalytics())
+    evaluate()
 
-    const handleConsentChange = (event: Event) => {
-      const detail = (event as CustomEvent<ConsentValue>).detail
-      setEnabled(detail === "accepted")
-    }
-
-    window.addEventListener(CONSENT_CHANGED_EVENT, handleConsentChange)
-    return () => window.removeEventListener(CONSENT_CHANGED_EVENT, handleConsentChange)
+    window.addEventListener(CONSENT_CHANGED_EVENT, evaluate)
+    return () => window.removeEventListener(CONSENT_CHANGED_EVENT, evaluate)
   }, [])
 
   if (!enabled) return null

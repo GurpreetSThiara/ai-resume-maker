@@ -6,7 +6,7 @@ import { FileText, Facebook, Twitter, Linkedin, Instagram } from "lucide-react"
 import { CREATE_RESUME } from "@/config/urls"
 import { Brand } from "@/components/ui/brand"
 import { BuyMeCoffee } from "@/components/ui/buy-me-coffee"
-import { clearStoredConsent } from "@/lib/analytics-consent"
+import { openConsentSettings } from "@/lib/analytics-consent"
 export function Footer() {
   const currentYear = new Date().getFullYear()
   const pathname = usePathname() || "/"
@@ -175,11 +175,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                {/* Withdrawing consent has to be as easy as giving it — this
-                    clears the stored choice and brings the banner straight back. */}
+                {/* Opens the consent panel on demand. Outside the EU this is the
+                    opt-out route, since no banner is shown unprompted there. */}
                 <button
                   type="button"
-                  onClick={clearStoredConsent}
+                  onClick={openConsentSettings}
                   className="text-muted-foreground hover:text-primary transition-all duration-200 hover:pl-1"
                 >
                   Cookie Settings

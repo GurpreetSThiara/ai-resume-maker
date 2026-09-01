@@ -65,7 +65,12 @@ export function PrivacyContent() {
         </ul>
 
         <h2 className="text-2xl font-semibold text-slate-800 pt-4">How We Obtain Consent</h2>
-        <p>When you first visit CreateFreeCV.com, a cookie consent banner asks you to Accept or Decline non-essential analytics cookies. Google Analytics, Google Tag Manager, and PostHog are only loaded after you choose Accept. You can change your choice at any time using the "Cookie Settings" link in the site footer. We remember your choice — whether you accepted or declined — for six months, and then ask again.</p>
+        <p>How we obtain consent depends on where you are:</p>
+        <ul className="list-disc list-inside pl-4">
+          <li><strong>European Economic Area, United Kingdom and Switzerland:</strong> a consent banner appears on your first visit and Google Analytics, Google Tag Manager and PostHog are <strong>not loaded at all</strong> unless you choose Accept.</li>
+          <li><strong>Everywhere else:</strong> analytics run by default, and you can switch them off at any time using the "Cookie Settings" link in the site footer.</li>
+        </ul>
+        <p>Wherever you are, if your browser sends a Global Privacy Control (GPC) or Do Not Track signal we treat it as an opt-out and analytics stay off — you do not need to do anything else. You can change your choice at any time via "Cookie Settings" in the footer, and we remember your choice, whether you accepted or declined, for six months before asking again.</p>
 
         <h2 className="text-2xl font-semibold text-slate-800 pt-4">Third-Party Services</h2>
         <p>We may employ third-party companies and individuals to facilitate our Service, provide the Service on our behalf, perform Service-related services, or assist us in analyzing how our Service is used.</p>

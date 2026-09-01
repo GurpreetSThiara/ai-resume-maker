@@ -1,6 +1,6 @@
 // instrumentation-client.js
 import posthog from 'posthog-js'
-import { CONSENT_CHANGED_EVENT, getStoredConsent } from '@/lib/analytics-consent'
+import { CONSENT_CHANGED_EVENT, shouldLoadAnalytics } from '@/lib/analytics-consent'
 
 let initialized = false
 
@@ -13,14 +13,24 @@ function initPostHog() {
     })
 }
 
-// Only runs in production, and only after the user accepts the cookie consent banner.
+// Production only, and only when the shared consent rules allow it: an explicit
+// Accept in EU/EEA/UK/CH, the absence of a Decline elsewhere, and no Global
+// Privacy Control signal in either case.
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
-    if (getStoredConsent() === 'accepted') {
-        initPostHog()
+    const evaluate = () => {
+        if (shouldLoadAnalytics()) initPostHog()
     }
-    window.addEventListener(CONSENT_CHANGED_EVENT, (event) => {
-        if (event.detail === 'accepted') {
-            initPostHog()
+
+    evaluate()
+
+    // PostHog cannot be un-initialised, so a later opt-out is handled by opting
+    // the user out of capturing rather than by tearing the library down.
+    window.addEventListener(CONSENT_CHANGED_EVENT, () => {
+        if (shouldLoadAnalytics()) {
+            evaluate()
+            if (initialized) posthog.opt_in_capturing()
+        } else if (initialized) {
+            posthog.opt_out_capturing()
         }
     })
 }
