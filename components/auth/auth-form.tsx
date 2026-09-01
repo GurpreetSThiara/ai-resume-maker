@@ -6,7 +6,6 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -14,9 +13,10 @@ import { TermsModal } from "@/components/auth/terms-modal"
 import { PrivacyModal } from "@/components/auth/privacy-modal"
 import { supabase } from "@/lib/supabase/client"
 import { Eye, EyeOff, Mail, Lock, User, Loader2 } from "lucide-react"
+import { Logo } from "@/components/ui/logo"
 import { CREATE_RESUME } from "@/config/urls"
 import { SHOW_SUCCESS, SHOW_ERROR } from "@/utils/toast"
-import { GoogleOAuthProvider, GoogleLogin, useGoogleOneTapLogin } from "@react-oauth/google"
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google"
 
 interface AuthFormProps {
   onSuccess?: () => void
@@ -162,270 +162,284 @@ function AuthFormContent({ onSuccess }: AuthFormProps) {
     }
   }
 
+  const isSignUp = activeTab === "signup"
+
   return (
-    <div className="w-full max-w-md">
-      <Card className="w-full shadow-none border-0 ">
-        <CardHeader className="text-center ">
-          {/* <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-            Resume Builder
-          </CardTitle> */}
-          {/* <CardDescription>Create your professional resume with our easy-to-use builder</CardDescription> */}
-        </CardHeader>
-        <CardContent className="shadow-none">
-          {error && (
-            <Alert className="mb-4 border-red-200 bg-red-50">
-              <AlertDescription className="text-red-700">{error}</AlertDescription>
-            </Alert>
-          )}
+    <div className="w-full">
+      {/* Brand header — tinted with the site's own primary rather than the
+          off-brand purple/blue gradient this modal used to carry. */}
+      <div className="relative overflow-hidden border-b border-border bg-primary/5 px-6 pb-6 pt-8 text-center sm:rounded-t-2xl">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-16 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl"
+        />
+        <div className="relative">
+          <Logo width={44} height={44} className="mx-auto mb-4 h-11 w-11 rounded-xl shadow-lg shadow-primary/20" />
+          <h2 className="text-xl font-bold tracking-tight text-foreground">
+            {isSignUp ? "Create your free account" : "Welcome back"}
+          </h2>
+          <p className="mx-auto mt-1.5 max-w-xs text-sm text-muted-foreground">
+            {isSignUp
+              ? "Save your resumes to the cloud and pick up on any device."
+              : "Sign in to access your saved resumes and portfolios."}
+          </p>
+        </div>
+      </div>
 
-          {success && (
-            <Alert className="mb-4 border-green-200 bg-green-50">
-              <AlertDescription className="text-green-700">{success}</AlertDescription>
-            </Alert>
-          )}
+      <div className="px-6 pb-8 pt-6">
+        {error && (
+          <Alert className="mb-4 border-destructive/30 bg-destructive/10">
+            <AlertDescription className="text-destructive">{error}</AlertDescription>
+          </Alert>
+        )}
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
+        {success && (
+          <Alert className="mb-4 border-primary/30 bg-primary/10">
+            <AlertDescription className="text-primary">{success}</AlertDescription>
+          </Alert>
+        )}
 
-            <TabsContent value="signin" className="space-y-4">
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="signin-email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={signInData.email}
-                      onChange={(e) => setSignInData((prev) => ({ ...prev, email: e.target.value }))}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="mb-5 grid w-full grid-cols-2">
+            <TabsTrigger value="signin">Sign In</TabsTrigger>
+            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+          </TabsList>
 
-                <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="signin-password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
-                      value={signInData.password}
-                      onChange={(e) => setSignInData((prev) => ({ ...prev, password: e.target.value }))}
-                      className="pl-10 pr-10"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                <Button type="submit" className="w-full mb-6" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Signing In...
-                    </>
-                  ) : (
-                    "Sign In"
-                  )}
-                </Button>
-              </form>
-            </TabsContent>
-
-            <TabsContent value="signup" className="space-y-4">
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name">Full Name</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="signup-name"
-                      type="text"
-                      placeholder="Enter your full name"
-                      value={signUpData.fullName}
-                      onChange={(e) => setSignUpData((prev) => ({ ...prev, fullName: e.target.value }))}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={signUpData.email}
-                      onChange={(e) => setSignUpData((prev) => ({ ...prev, email: e.target.value }))}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="signup-password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Create a password"
-                      value={signUpData.password}
-                      onChange={(e) => setSignUpData((prev) => ({ ...prev, password: e.target.value }))}
-                      className="pl-10 pr-10"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="signup-confirm-password">Confirm Password</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="signup-confirm-password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Confirm your password"
-                      value={signUpData.confirmPassword}
-                      onChange={(e) => setSignUpData((prev) => ({ ...prev, confirmPassword: e.target.value }))}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2 text-sm">
-                  <Checkbox
-                    id="signup-accept-policy"
-                    checked={acceptedPolicy}
-                    onCheckedChange={(checked) => setAcceptedPolicy(!!checked)}
-                    className="border border-gray-500"
+          <TabsContent value="signin" className="space-y-4">
+            <form onSubmit={handleSignIn} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="signin-email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="signin-email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={signInData.email}
+                    onChange={(e) => setSignInData((prev) => ({ ...prev, email: e.target.value }))}
+                    className="pl-10"
+                    required
                   />
-                  <Label
-                    htmlFor="signup-accept-policy"
-                    className="font-normal text-xs text-gray-600 leading-relaxed cursor-pointer"
-                  >
-                    I agree to the
-                    {" "}
-                    <button
-                      type="button"
-                      onClick={() => setIsTermsOpen(true)}
-                      className="text-blue-600 hover:text-blue-700 underline-offset-2 hover:underline font-medium"
-                    >
-                      Terms of Use
-                    </button>
-                    {" "}
-                    and
-                    {" "}
-                    <button
-                      type="button"
-                      onClick={() => setIsPrivacyOpen(true)}
-                      className="text-blue-600 hover:text-blue-700 underline-offset-2 hover:underline font-medium"
-                    >
-                      Privacy Policy
-                    </button>
-                    .
-                  </Label>
                 </div>
-
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating Account...
-                    </>
-                  ) : (
-                    "Create Account"
-                  )}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-
-          <div className="mt-8">
-            <div className="relative mb-6">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+
+              <div className="space-y-2">
+                <Label htmlFor="signin-password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="signin-password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={signInData.password}
+                    onChange={(e) => setSignInData((prev) => ({ ...prev, password: e.target.value }))}
+                    className="pl-10 pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <div
-              className={googleBlockedByPolicy ? "pointer-events-none w-full opacity-50" : "w-full"}
-              aria-disabled={googleBlockedByPolicy}
-            >
-              <GoogleLogin
-                onSuccess={handleGoogleSignIn}
-                onError={() => {
-                  SHOW_ERROR({ title: "Google sign in failed", description: "Failed to sign in with Google" })
-                  setError("Failed to sign in with Google")
-                }}
-                // One Tap can create an account in a single tap, so it stays off
-                // until the policy checkbox is ticked on the Sign Up tab.
-                useOneTap={!googleBlockedByPolicy}
-                theme="filled_blue"
-                text="signin_with"
-                shape="rectangular"
-                width="100%"
-                locale="en"
-              />
-            </div>
+              <Button type="submit" size="lg" className="mt-1 w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing In...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
+            </form>
+          </TabsContent>
 
-            {googleBlockedByPolicy ? (
-              <p className="mt-3 text-center text-xs text-gray-600">
-                Accept the Terms of Use and Privacy Policy above to continue with Google.
-              </p>
-            ) : (
-              <p className="mt-3 text-center text-xs text-gray-500">
-                By continuing with Google you agree to our{" "}
-                <button
-                  type="button"
-                  onClick={() => setIsTermsOpen(true)}
-                  className="text-blue-600 underline-offset-2 hover:underline"
+          <TabsContent value="signup" className="space-y-4">
+            <form onSubmit={handleSignUp} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="signup-name">Full Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="signup-name"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={signUpData.fullName}
+                    onChange={(e) => setSignUpData((prev) => ({ ...prev, fullName: e.target.value }))}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="signup-email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="signup-email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={signUpData.email}
+                    onChange={(e) => setSignUpData((prev) => ({ ...prev, email: e.target.value }))}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="signup-password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="signup-password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a password"
+                    value={signUpData.password}
+                    onChange={(e) => setSignUpData((prev) => ({ ...prev, password: e.target.value }))}
+                    className="pl-10 pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="signup-confirm-password">Confirm Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="signup-confirm-password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    value={signUpData.confirmPassword}
+                    onChange={(e) => setSignUpData((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2 text-sm">
+                <Checkbox
+                  id="signup-accept-policy"
+                  checked={acceptedPolicy}
+                  onCheckedChange={(checked) => setAcceptedPolicy(!!checked)}
+                  className="mt-0.5 border-border"
+                />
+                <Label
+                  htmlFor="signup-accept-policy"
+                  className="font-normal text-xs leading-relaxed text-muted-foreground cursor-pointer"
                 >
-                  Terms of Use
-                </button>{" "}
-                and{" "}
-                <button
-                  type="button"
-                  onClick={() => setIsPrivacyOpen(true)}
-                  className="text-blue-600 underline-offset-2 hover:underline"
-                >
-                  Privacy Policy
-                </button>
-                .
-              </p>
-            )}
+                  I agree to the
+                  {" "}
+                  <button
+                    type="button"
+                    onClick={() => setIsTermsOpen(true)}
+                    className="font-medium text-primary underline-offset-2 hover:underline"
+                  >
+                    Terms of Use
+                  </button>
+                  {" "}
+                  and
+                  {" "}
+                  <button
+                    type="button"
+                    onClick={() => setIsPrivacyOpen(true)}
+                    className="font-medium text-primary underline-offset-2 hover:underline"
+                  >
+                    Privacy Policy
+                  </button>
+                  .
+                </Label>
+              </div>
+
+              <Button type="submit" size="lg" className="mt-1 w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating Account...
+                  </>
+                ) : (
+                  "Create Account"
+                )}
+              </Button>
+            </form>
+          </TabsContent>
+        </Tabs>
+
+        <div className="mt-7">
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+
+          <div
+            className={googleBlockedByPolicy ? "pointer-events-none w-full opacity-50" : "w-full"}
+            aria-disabled={googleBlockedByPolicy}
+          >
+            <GoogleLogin
+              onSuccess={handleGoogleSignIn}
+              onError={() => {
+                SHOW_ERROR({ title: "Google sign in failed", description: "Failed to sign in with Google" })
+                setError("Failed to sign in with Google")
+              }}
+              // One Tap can create an account in a single tap, so it stays off
+              // until the policy checkbox is ticked on the Sign Up tab.
+              useOneTap={!googleBlockedByPolicy}
+              theme="outline"
+              text="signin_with"
+              shape="rectangular"
+              width="100%"
+              locale="en"
+            />
+          </div>
+
+          {googleBlockedByPolicy ? (
+            <p className="mt-3 text-center text-xs text-muted-foreground">
+              Accept the Terms of Use and Privacy Policy above to continue with Google.
+            </p>
+          ) : (
+            <p className="mt-3 text-center text-xs text-muted-foreground">
+              By continuing with Google you agree to our{" "}
+              <button
+                type="button"
+                onClick={() => setIsTermsOpen(true)}
+                className="text-primary underline-offset-2 hover:underline"
+              >
+                Terms of Use
+              </button>{" "}
+              and{" "}
+              <button
+                type="button"
+                onClick={() => setIsPrivacyOpen(true)}
+                className="text-primary underline-offset-2 hover:underline"
+              >
+                Privacy Policy
+              </button>
+              .
+            </p>
+          )}
+        </div>
+      </div>
 
       <TermsModal open={isTermsOpen} onOpenChange={setIsTermsOpen} />
       <PrivacyModal open={isPrivacyOpen} onOpenChange={setIsPrivacyOpen} />

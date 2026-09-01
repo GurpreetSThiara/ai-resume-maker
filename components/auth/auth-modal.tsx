@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { AuthForm } from "@/components/auth/auth-form"
 import { CREATE_RESUME } from "@/config/urls"
 import { useRouter } from "next/navigation"
@@ -17,26 +17,21 @@ export function AuthModal({ open, onOpenChange, redirectTo }: AuthModalProps) {
 
   const handleAuthSuccess = () => {
     onOpenChange(false)
-    if (redirectTo) {
-      router.push(redirectTo)
-    } else {
-      router.push(CREATE_RESUME)
-    }
+    router.push(redirectTo ?? CREATE_RESUME)
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} >
-      <DialogContent className="h-[100dvh] max-h-[100dvh] w-screen m-0 rounded-none overflow-y-auto border-0 bg-white p-0 shadow-none sm:h-auto sm:max-h-[90vh] sm:w-full sm:max-w-lg sm:rounded-2xl">
-        <div className="relative mx-auto w-full rounded-2xl bg-white/90 backdrop-blur-lg shadow-2xl border border-slate-200/60">
-          <div className="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-br from-purple-100/70 via-blue-50/60 to-cyan-100/70" />
-          <div className="relative p-6 sm:p-8">
-            <div className="mb-6 text-center">
-              <h2 className="text-2xl font-semibold tracking-tight text-slate-900">Welcome back</h2>
-              <p className="mt-1 text-sm text-slate-600">Create your professional resume with our easy-to-use builder</p>
-            </div>
-            <AuthForm onSuccess={handleAuthSuccess} />
-          </div>
-        </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className="
+          flex h-[100dvh] max-h-[100dvh] w-screen flex-col overflow-y-auto border-0 bg-background p-0
+          sm:h-auto sm:max-h-[92vh] sm:w-full sm:max-w-md sm:rounded-2xl sm:border sm:shadow-2xl
+        "
+      >
+        {/* Radix needs a title for screen readers; the visible heading lives in
+            AuthForm because it changes with the active tab. */}
+        <DialogTitle className="sr-only">Sign in or create an account</DialogTitle>
+        <AuthForm onSuccess={handleAuthSuccess} />
       </DialogContent>
     </Dialog>
   )
