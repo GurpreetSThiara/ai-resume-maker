@@ -629,7 +629,7 @@ const Detail = () => {
                   Learn how to create a professional fresher resume with our step-by-step guide. Includes 25+ examples, ATS-friendly tips, and real resume samples.
                 </p>
                 <Link 
-                  href="/blog/resume-for-freshers"
+                  href="/resume-for-freshers"
                   className="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-medium"
                 >
                   Read Article
@@ -647,7 +647,7 @@ const Detail = () => {
                   Learn how to create an ATS-optimized resume in 2026 with real examples for developers, marketers, students, and freshers.
                 </p>
                 <Link 
-                  href="/blog/ats-resume-guide"
+                  href="/how-to-write-a-resume"
                   className="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-medium"
                 >
                   Read Article

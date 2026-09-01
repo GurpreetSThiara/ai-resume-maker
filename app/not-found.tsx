@@ -123,13 +123,13 @@ export default function NotFound() {
                       Career Blog
                     </div>
                   </Link>
-                  <Link href="/blog/resume-for-freshers" className="block text-primary hover:text-primary/80 transition-colors">
+                  <Link href="/resume-for-freshers" className="block text-primary hover:text-primary/80 transition-colors">
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4" />
                       Fresher Resume Guide
                     </div>
                   </Link>
-                  <Link href="/blog/ats-resume-guide" className="block text-primary hover:text-primary/80 transition-colors">
+                  <Link href="/how-to-write-a-resume" className="block text-primary hover:text-primary/80 transition-colors">
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4" />
                       ATS Resume Guide

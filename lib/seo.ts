@@ -13,10 +13,18 @@ export function absoluteUrl(pathOrUrl: string): string {
   return `${SITE_URL}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`
 }
 
-/** Truncates dynamic (content-driven) title/description strings to fit SERP display limits. */
+/**
+ * Truncates dynamic (content-driven) title/description strings to fit SERP
+ * display limits, backing off to the last word boundary so we never ship a
+ * word cut in half. Falls back to a hard slice only when the first "word"
+ * is itself longer than the limit.
+ */
 export function truncateForMeta(text: string, maxLen: number): string {
   if (text.length <= maxLen) return text
-  return `${text.slice(0, maxLen - 1).trimEnd()}…`
+  const slice = text.slice(0, maxLen - 1)
+  const lastSpace = slice.lastIndexOf(" ")
+  const body = lastSpace > 0 ? slice.slice(0, lastSpace) : slice
+  return `${body.replace(/[\s,;:.\-–—]+$/, "")}…`
 }
 
 /** Publisher block reused by Article/WebSite schemas. */

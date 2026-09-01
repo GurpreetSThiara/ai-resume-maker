@@ -28,10 +28,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         };
     }
 
+    // Prefer the branded title, then the bare title if it already fits, and only
+    // truncate as a last resort — a hard-truncated title loses the tail
+    // permanently, whereas a slightly long one is still indexed in full.
     const suffix = ' | CreateFreeCV Blog';
     const metaTitle = post.title.length + suffix.length <= 60
         ? `${post.title}${suffix}`
-        : truncateForMeta(post.title, 60);
+        : post.title.length <= 60
+            ? post.title
+            : truncateForMeta(post.title, 60);
 
     return {
         title: metaTitle,

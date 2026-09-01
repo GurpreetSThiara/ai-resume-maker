@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Section, SectionHeading, BLOG_URL, COVER_LETTER_URL } from "./shared"
 
 const POSTS = [
-  { href: "/blog/ats-resume-guide", icon: ShieldCheck, tag: "ATS", title: "The complete ATS resume guide", desc: "How applicant tracking systems read resumes — and how to pass every time." },
+  { href: "/how-to-write-a-resume", icon: ShieldCheck, tag: "ATS", title: "The complete ATS resume guide", desc: "How applicant tracking systems read resumes — and how to pass every time." },
   { href: "/blog/software-engineer-resume", icon: Code2, tag: "Engineering", title: "Software engineer resume guide", desc: "Structure, skills and bullet points that land dev interviews." },
-  { href: "/blog/resume-for-freshers", icon: GraduationCap, tag: "Students", title: "Resume for freshers", desc: "No experience? Here's how to build a strong first resume." },
+  { href: "/resume-for-freshers", icon: GraduationCap, tag: "Students", title: "Resume for freshers", desc: "No experience? Here's how to build a strong first resume." },
 ]
 
 export function ResourcesSection() {

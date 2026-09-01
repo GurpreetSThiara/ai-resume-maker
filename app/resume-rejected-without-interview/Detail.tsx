@@ -1091,7 +1091,7 @@ const Detail = () => {
                     <h2 className="text-2xl font-bold text-primary mb-6">Related Articles</h2>
 
                     <div className="grid gap-6 md:grid-cols-2">
-                        <Link href="/blog/ats-resume-guide" className="group">
+                        <Link href="/how-to-write-a-resume" className="group">
                             <Card className="h-full hover:border-primary/40 transition-colors">
                                 <CardContent className="pt-6">
                                     <Badge className="bg-green-100 text-green-700 mb-3">ATS Tips</Badge>
@@ -1105,7 +1105,7 @@ const Detail = () => {
                             </Card>
                         </Link>
 
-                        <Link href="/blog/resume-for-freshers" className="group">
+                        <Link href="/resume-for-freshers" className="group">
                             <Card className="h-full hover:border-primary/40 transition-colors">
                                 <CardContent className="pt-6">
                                     <Badge className="bg-blue-100 text-blue-700 mb-3">Resume Writing</Badge>
