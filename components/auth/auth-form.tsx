@@ -40,6 +40,12 @@ function AuthFormContent({ onSuccess }: AuthFormProps) {
     fullName: "",
   })
   const [acceptedPolicy, setAcceptedPolicy] = useState(false)
+  const [activeTab, setActiveTab] = useState("signin")
+
+  // Google sign-in creates an account on first use, so it must respect the same
+  // policy acceptance the email signup form enforces. Only gated on the Sign Up
+  // tab — returning users signing in have already accepted.
+  const googleBlockedByPolicy = activeTab === "signup" && !acceptedPolicy
   const [isTermsOpen, setIsTermsOpen] = useState(false)
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false)
 
@@ -125,6 +131,15 @@ function AuthFormContent({ onSuccess }: AuthFormProps) {
   }
 
   const handleGoogleSignIn = async (credentialResponse: any) => {
+    // Defence in depth: the button is also disabled in this state, but the guard
+    // lives here too so no account can be created without policy acceptance even
+    // if the credential arrives another way (e.g. the One Tap prompt).
+    if (googleBlockedByPolicy) {
+      SHOW_ERROR({ title: "Accept policies", description: "You must accept our terms and privacy policy to create an account" })
+      setError("You must accept our terms and privacy policy to create an account")
+      return
+    }
+
     setIsLoading(true)
     setError(null)
 
@@ -169,7 +184,7 @@ function AuthFormContent({ onSuccess }: AuthFormProps) {
             </Alert>
           )}
 
-          <Tabs defaultValue="signin" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -362,14 +377,19 @@ function AuthFormContent({ onSuccess }: AuthFormProps) {
               </div>
             </div>
 
-            <div className="w-full">
+            <div
+              className={googleBlockedByPolicy ? "pointer-events-none w-full opacity-50" : "w-full"}
+              aria-disabled={googleBlockedByPolicy}
+            >
               <GoogleLogin
                 onSuccess={handleGoogleSignIn}
                 onError={() => {
                   SHOW_ERROR({ title: "Google sign in failed", description: "Failed to sign in with Google" })
                   setError("Failed to sign in with Google")
                 }}
-                useOneTap
+                // One Tap can create an account in a single tap, so it stays off
+                // until the policy checkbox is ticked on the Sign Up tab.
+                useOneTap={!googleBlockedByPolicy}
                 theme="filled_blue"
                 text="signin_with"
                 shape="rectangular"
@@ -377,6 +397,32 @@ function AuthFormContent({ onSuccess }: AuthFormProps) {
                 locale="en"
               />
             </div>
+
+            {googleBlockedByPolicy ? (
+              <p className="mt-3 text-center text-xs text-gray-600">
+                Accept the Terms of Use and Privacy Policy above to continue with Google.
+              </p>
+            ) : (
+              <p className="mt-3 text-center text-xs text-gray-500">
+                By continuing with Google you agree to our{" "}
+                <button
+                  type="button"
+                  onClick={() => setIsTermsOpen(true)}
+                  className="text-blue-600 underline-offset-2 hover:underline"
+                >
+                  Terms of Use
+                </button>{" "}
+                and{" "}
+                <button
+                  type="button"
+                  onClick={() => setIsPrivacyOpen(true)}
+                  className="text-blue-600 underline-offset-2 hover:underline"
+                >
+                  Privacy Policy
+                </button>
+                .
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
