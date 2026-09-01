@@ -2,9 +2,10 @@
 
 import React from "react"
 import Link from "next/link"
-import { ArrowRight, Check, ShieldCheck, FileDown, Star, Sparkles } from "lucide-react"
+import { ChevronRight, Check, ShieldCheck, FileDown, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { SafeImg, CREATE_URL, TEMPLATES_URL, templateImage } from "./shared"
+import { SafeImg, CREATE_URL, TEMPLATES_URL } from "./shared"
+import { RESUME_IMAGES } from "@/constants/resumeConstants"
 
 const TRUST = ["No sign-up", "No credit card", "PDF & DOCX", "ATS-ready"]
 
@@ -25,11 +26,11 @@ export function HeroV2() {
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
         {/* Left */}
         <div className="text-center lg:text-left">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/70 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-primary shadow-sm backdrop-blur">
-            <span className="flex h-2 w-2 rounded-full bg-primary">
+          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
+            <span className="flex h-2 w-2 shrink-0 rounded-full bg-primary">
               <span className="h-2 w-2 animate-ping rounded-full bg-primary/60" />
             </span>
-            100% Free Forever
+            100% Free Forever &mdash; No Hidden Charges
           </div>
 
           <h1 className="mt-6 text-balance text-4xl font-extrabold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-6xl xl:text-7xl">
@@ -43,14 +44,14 @@ export function HeroV2() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground lg:mx-0 sm:text-xl">
-            Professional, ATS-optimized resumes in 2 minutes — 80+ templates, live preview, instant PDF &amp; DOCX.
+            Professional, ATS-optimized resumes in 2 minutes — 90 templates, live preview, instant PDF &amp; DOCX.
             No sign-up, no paywall, no watermark.
           </p>
 
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:items-start lg:justify-start">
             <Button asChild size="lg" className="h-13 w-full rounded-xl px-7 text-base font-semibold shadow-lg shadow-primary/20 sm:w-auto">
-              <Link href={CREATE_URL}>
-                Build my resume — free <ArrowRight className="ml-1.5 h-5 w-5" />
+              <Link href={`${CREATE_URL}/create?template=ats-classic`}>
+                Build ATS Classic Resume <ChevronRight className="ml-1.5 h-5 w-5" strokeWidth={2.5} />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="h-13 w-full rounded-xl px-7 text-base font-semibold sm:w-auto">
@@ -58,25 +59,17 @@ export function HeroV2() {
             </Button>
           </div>
 
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 lg:justify-start">
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5 lg:justify-start">
             {TRUST.map((t) => (
-              <span key={t} className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground/70">
-                <Check className="h-4 w-4 text-primary" /> {t}
+              <span
+                key={t}
+                className="inline-flex items-center gap-1.5 rounded-full border border-success/25 bg-success/10 px-3 py-1.5 text-sm font-semibold text-foreground"
+              >
+                <Check className="h-4 w-4 shrink-0 text-success" strokeWidth={3} /> {t}
               </span>
             ))}
           </div>
 
-          <div className="mt-7 flex items-center justify-center gap-3 lg:justify-start">
-            <div className="flex -space-x-2">
-              {["bg-emerald-500", "bg-teal-500", "bg-lime-500", "bg-amber-500"].map((c, i) => (
-                <span key={i} className={`h-8 w-8 rounded-full ${c} ring-2 ring-white`} />
-              ))}
-            </div>
-            <div className="text-left">
-              <div className="flex text-amber-400">{[...Array(5)].map((_, i) => <Star key={i} className="h-3.5 w-3.5 fill-current" />)}</div>
-              <p className="text-xs text-muted-foreground">Loved by 120,000+ job seekers</p>
-            </div>
-          </div>
         </div>
 
         {/* Right — product visual */}
@@ -85,7 +78,7 @@ export function HeroV2() {
 
           {/* Resume card */}
           <div className="relative mx-auto aspect-[3/4] w-[78%] overflow-hidden rounded-2xl border border-border bg-white shadow-2xl ring-1 ring-black/5 lg:w-[82%]">
-            <SafeImg src={templateImage("tech-teal")} alt="Resume template preview" sizes="(max-width:1024px) 80vw, 420px" priority className="object-cover object-top" />
+            <SafeImg src={RESUME_IMAGES.CLASSIC} alt="ATS Classic resume template preview" sizes="(max-width:1024px) 80vw, 420px" priority className="object-cover object-top" />
           </div>
 
           {/* Floating stat cards */}

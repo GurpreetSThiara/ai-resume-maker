@@ -4,14 +4,12 @@ import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { ZoomIn, ZoomOut, RotateCcw, ArrowRight } from "lucide-react"
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { cn } from "@/lib/utils"
 import {
   CATEGORY_MAP,
-  formatDownloads,
   useTemplateHref,
   type MarketplaceTemplate,
 } from "./data"
-import { PremiumBadge, TemplateThumb } from "./shared"
+import { TemplateThumb } from "./shared"
 
 interface Props {
   template: MarketplaceTemplate | null
@@ -105,12 +103,11 @@ export function TemplatePreviewModal({ template, open, onOpenChange }: Props) {
 
           {/* Details pane */}
           <div className="flex flex-col overflow-y-auto p-6">
-            <div className="flex items-center gap-2">
-              <PremiumBadge isPremium={template.isPremium} />
-              {template.isNew && (
+            {template.isNew && (
+              <div className="flex items-center gap-2">
                 <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-700">New</span>
-              )}
-            </div>
+              </div>
+            )}
 
             <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-900">{template.name}</h2>
             <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500">
@@ -119,13 +116,6 @@ export function TemplatePreviewModal({ template, open, onOpenChange }: Props) {
             </p>
 
             <p className="mt-4 text-sm leading-relaxed text-slate-600">{template.description}</p>
-
-            {/* Stats */}
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <Stat label="Popularity" value={`${template.popularityScore}%`} />
-              <Stat label="Downloads" value={formatDownloads(template.downloads)} />
-            </div>
-
 
             {/* Tags */}
             <div className="mt-5">
@@ -165,15 +155,6 @@ export function TemplatePreviewModal({ template, open, onOpenChange }: Props) {
         </div>
       </DialogContent>
     </Dialog>
-  )
-}
-
-function Stat({ label, value, accent }: { label: string; value: string; accent?: string }) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-3 text-center">
-      <div className={cn("text-xl font-bold tabular-nums text-slate-900", accent)}>{value}</div>
-      <div className="mt-0.5 text-[11px] font-medium text-slate-500">{label}</div>
-    </div>
   )
 }
 

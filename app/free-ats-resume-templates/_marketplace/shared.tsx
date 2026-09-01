@@ -101,18 +101,3 @@ export function AtsBadge({ score, className }: { score: number; className?: stri
     </span>
   )
 }
-
-export function PremiumBadge({ isPremium }: { isPremium: boolean }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold",
-        isPremium
-          ? "bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-sm"
-          : "bg-slate-900/85 text-white",
-      )}
-    >
-      {isPremium ? "Premium" : "Free"}
-    </span>
-  )
-}

@@ -1,12 +1,11 @@
 "use client"
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { Flame, ShieldCheck, Download } from "lucide-react"
+import { Flame, ShieldCheck } from "lucide-react"
 import {
   TEMPLATES,
   TRENDING,
   ATS_CHAMPIONS,
-  MOST_DOWNLOADED,
   CATEGORY_MAP,
   DEFAULT_FILTERS,
   categoryCounts,
@@ -53,12 +52,10 @@ export function Templates() {
   const isBrowsing =
     filters.query === "" &&
     filters.category === "all" &&
-    filters.access === "all" &&
     filters.minAts === 0 &&
     filters.tags.length === 0
 
-  const activeFilterCount =
-    (filters.access !== "all" ? 1 : 0) + (filters.minAts !== 0 ? 1 : 0) + filters.tags.length
+  const activeFilterCount = (filters.minAts !== 0 ? 1 : 0) + filters.tags.length
 
   const patchFilters = useCallback((patch: Partial<Filters>) => {
     setFilters((f) => ({ ...f, ...patch }))
@@ -126,14 +123,6 @@ export function Templates() {
                   icon={ShieldCheck}
                   accent="bg-emerald-100 text-emerald-600"
                   templates={ATS_CHAMPIONS}
-                  onPreview={openPreview}
-                />
-                <DiscoveryRow
-                  title="Most Downloaded"
-                  subtitle="Trusted by thousands of job seekers"
-                  icon={Download}
-                  accent="bg-indigo-100 text-indigo-600"
-                  templates={MOST_DOWNLOADED}
                   onPreview={openPreview}
                 />
               </div>

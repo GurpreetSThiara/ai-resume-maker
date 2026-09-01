@@ -261,7 +261,7 @@ export const blogPosts: BlogPost[] = [
                                     href="/free-ats-resume-templates"
                                     className="inline-flex items-center justify-center px-8 py-4 rounded-xl bg-background hover:bg-muted text-foreground font-medium transition-all border-2 border-border"
                                 >
-                                    View Premium Templates
+                                    View Free Templates
                                 </Link>
                             </div>
                         </div>

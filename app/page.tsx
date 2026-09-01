@@ -12,7 +12,7 @@ import { FinalCtaV2 } from "@/components/appUI/home/v2/FinalCtaV2"
 export const metadata: Metadata = {
   title: "Free ATS Resume Builder — No Sign-Up | CreateFreeCV",
   description:
-    "Build a professional, ATS-optimized resume in minutes — free, no sign-up, unlimited PDF/DOCX downloads, 80+ templates, and a shareable portfolio.",
+    "Build a professional, ATS-optimized resume in minutes — free, no sign-up, unlimited PDF/DOCX downloads, 90 templates, and a shareable portfolio.",
   alternates: { canonical: "https://createfreecv.com/" },
 }
 
@@ -20,9 +20,9 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <HeroV2 />
+      <TemplatesShowcase />
       <StatsBand />
       <StepsV2 />
-      <TemplatesShowcase />
       <FeatureBento />
       <PortfolioPromoV2 />
       <ResourcesSection />

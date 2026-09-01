@@ -2,15 +2,14 @@
 
 import React, { useState } from "react"
 import Link from "next/link"
-import { Eye, ArrowRight, Flame, Sparkle, Check } from "lucide-react"
+import { Eye, ArrowRight, Sparkle, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   CATEGORY_MAP,
-  formatDownloads,
   useTemplateHref,
   type MarketplaceTemplate,
 } from "./data"
-import { PremiumBadge, Highlight, TemplateThumb } from "./shared"
+import { Highlight, TemplateThumb } from "./shared"
 
 interface TemplateCardProps {
   /** Representative template (also used when there is a single variant). */
@@ -54,16 +53,13 @@ function TemplateCardBase({ template, variants, onPreview, query = "", priority,
         />
 
         {/* Top badges */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-3">
-          <div className="flex flex-col items-start gap-1.5">
-            <PremiumBadge isPremium={active.isPremium} />
-            {active.isNew && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-sky-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
-                <Sparkle className="h-2.5 w-2.5" aria-hidden /> New
-              </span>
-            )}
+        {active.isNew && (
+          <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-3">
+            <span className="inline-flex items-center gap-1 rounded-full bg-sky-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
+              <Sparkle className="h-2.5 w-2.5" aria-hidden /> New
+            </span>
           </div>
-        </div>
+        )}
 
         {/* Hover overlay actions */}
         <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-slate-900/70 via-slate-900/0 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
@@ -93,10 +89,6 @@ function TemplateCardBase({ template, variants, onPreview, query = "", priority,
           <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
             {Icon && <Icon className="h-3 w-3" aria-hidden />}
             {category?.name}
-          </span>
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500" title={`${active.popularityScore}% popularity`}>
-            <Flame className="h-3 w-3 text-orange-500" aria-hidden />
-            {formatDownloads(active.downloads)}
           </span>
         </div>
 
@@ -135,20 +127,14 @@ function TemplateCardBase({ template, variants, onPreview, query = "", priority,
           </div>
         )}
 
-        {/* Tags + popularity */}
+        {/* Tags */}
         <div className="mt-auto pt-2">
-          <div className="mb-2 flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1">
             {active.tags.slice(0, 3).map((tag) => (
               <span key={tag} className="rounded bg-slate-50 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 ring-1 ring-inset ring-slate-200">
                 {tag}
               </span>
             ))}
-          </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100" title={`${active.popularityScore}% popularity`}>
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-primary to-indigo-500"
-              style={{ width: `${active.popularityScore}%` }}
-            />
           </div>
         </div>
       </div>

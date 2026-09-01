@@ -9,7 +9,6 @@ import {
   type CategoryId,
   type Filters,
   type SortKey,
-  type AccessFilter,
 } from "./data"
 
 interface Props {
@@ -25,16 +24,9 @@ const SORT_LABELS: Record<SortKey, string> = {
   popular: "Most Popular",
   ats: "Highest ATS Score",
   recent: "Recently Added",
-  downloads: "Most Downloaded",
   az: "Alphabetical A–Z",
   za: "Alphabetical Z–A",
 }
-
-const ACCESS_OPTIONS: { value: AccessFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "free", label: "Free" },
-  { value: "premium", label: "Premium" },
-]
 
 const ATS_OPTIONS: { value: Filters["minAts"]; label: string }[] = [
   { value: 0, label: "Any" },
@@ -128,14 +120,6 @@ export function Toolbar({ filters, counts, resultCount, activeFilterCount, onCha
           <div className="border-t border-slate-200 bg-white">
             <div className="mx-auto max-w-7xl space-y-4 px-4 py-4">
               <div className="flex flex-wrap gap-x-10 gap-y-4">
-                <FilterGroup label="Access">
-                  <Segmented
-                    options={ACCESS_OPTIONS}
-                    value={filters.access}
-                    onChange={(v) => onChange({ access: v })}
-                  />
-                </FilterGroup>
-
                 <FilterGroup label="ATS Score">
                   <Segmented
                     options={ATS_OPTIONS}

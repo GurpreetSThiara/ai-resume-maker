@@ -6,7 +6,7 @@ import { ArrowRight, Globe, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Section, Eyebrow, SafeImg, CREATE_URL, templateImage } from "./shared"
 
-const POINTS = ["5 ready-made designs", "Your own shareable link", "Built from your resume data", "Free to publish"]
+const POINTS = ["Clean ready-made design", "Your own shareable link", "Built from your resume data", "Free to publish"]
 
 export function PortfolioPromoV2() {
   return (

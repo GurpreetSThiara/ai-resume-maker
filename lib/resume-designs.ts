@@ -516,7 +516,7 @@ function build(row: Row, index: number): ResumeDesign {
 }
 
 /* ────────────────────────────────────────────────────────────────────────
- * Catalog — 60+ unique, fully-downloadable designs across all 20 categories.
+ * Catalog — 81 unique, fully-downloadable designs across all 20 categories.
  *
  * The first 10 ids are preserved from the original release so any existing
  * links / references keep working.

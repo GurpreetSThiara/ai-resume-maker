@@ -12,7 +12,7 @@ const FAQS = [
   { q: "Are the templates ATS-friendly?", a: "Every template is structured for clean parsing by applicant tracking systems, and each one shows a real ATS score so you can pick a high-scorer." },
   { q: "Can I download as Word (DOCX)?", a: "Yes — export a pixel-perfect PDF or a fully editable DOCX. You also get a live PDF and DOCX preview while you edit." },
   { q: "Can I change colors and fonts?", a: "Yes. The live theme customizer lets you change the accent color, switch serif/sans, adjust density, and fit to one page — all with instant preview." },
-  { q: "What's the portfolio feature?", a: "From the same resume content you can publish a shareable personal website. Choose from 5 designs and share your own /p/your-name link." },
+  { q: "What's the portfolio feature?", a: "From the same resume content you can publish a shareable personal website, with your own /p/your-name link." },
 ]
 
 export function FaqV2() {

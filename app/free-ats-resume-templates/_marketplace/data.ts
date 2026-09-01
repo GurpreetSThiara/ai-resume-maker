@@ -49,7 +49,6 @@ export interface MarketplaceTemplate {
   tags: string[]
   atsScore: number
   popularityScore: number
-  downloads: number
   isPremium: boolean
   isNew: boolean
   /** Higher = more recently added (used for "Recently Added" sort). */
@@ -69,14 +68,11 @@ export interface FamilyGroup {
   variants: MarketplaceTemplate[]
 }
 
-export type SortKey = "popular" | "ats" | "recent" | "downloads" | "az" | "za"
-
-export type AccessFilter = "all" | "free" | "premium"
+export type SortKey = "popular" | "ats" | "recent" | "az" | "za"
 
 export interface Filters {
   query: string
   category: CategoryId | "all"
-  access: AccessFilter
   minAts: 0 | 90 | 95 | 98
   tags: string[]
   sort: SortKey
@@ -131,9 +127,6 @@ export const CATEGORY_MAP: Record<CategoryId, MarketplaceCategory> = CATEGORIES.
 const total = RESUME_DESIGNS.length
 
 const designTemplates: MarketplaceTemplate[] = RESUME_DESIGNS.map((d, i) => {
-  const downloads = Math.round(
-    d.popularityScore * 137 + d.atsScore * 19 + (total - i) * 53 + 1840,
-  )
   return {
     id: d.id,
     slug: d.id,
@@ -145,7 +138,6 @@ const designTemplates: MarketplaceTemplate[] = RESUME_DESIGNS.map((d, i) => {
     tags: d.tags,
     atsScore: d.atsScore,
     popularityScore: d.popularityScore,
-    downloads,
     isPremium: d.isPremium,
     isNew: i >= total - 8,
     recency: total - i,
@@ -178,7 +170,7 @@ const LEGACY_META: Record<
   "ats-compact-lines": { category: "ats-friendly", ats: 98, pop: 86, premium: false, accent: "111827", tags: ["ATS", "Classic", "Lines"] },
   "modern-sidebar": { category: "designer", ats: 87, pop: 89, premium: false, accent: "1e293b", tags: ["Designer", "Sidebar", "Two Column"] },
   "bold-professional": { category: "professional", ats: 89, pop: 90, premium: false, accent: "1e293b", tags: ["Professional", "Bold", "Header"] },
-  "modern-split": { category: "modern", ats: 88, pop: 93, premium: true, accent: "0f172a", tags: ["Modern", "Two Column", "Premium"] },
+  "modern-split": { category: "modern", ats: 88, pop: 93, premium: true, accent: "0f172a", tags: ["Modern", "Two Column", "Split"] },
 }
 
 const LEGACY_TEMPLATES: MarketplaceTemplate[] = LEGACY_RESUME_TEMPLATES.map((t) => {
@@ -194,7 +186,6 @@ const LEGACY_TEMPLATES: MarketplaceTemplate[] = LEGACY_RESUME_TEMPLATES.map((t) 
     tags: meta.tags,
     atsScore: meta.ats,
     popularityScore: meta.pop,
-    downloads: Math.round(meta.pop * 150 + meta.ats * 20 + 4200),
     isPremium: meta.premium,
     isNew: false,
     recency: -1,
@@ -233,7 +224,6 @@ export function groupFamilies(templates: MarketplaceTemplate[]): FamilyGroup[] {
 export const STATS = {
   templates: TEMPLATES.length,
   categories: CATEGORIES.length,
-  resumesCreated: 124000,
 }
 
 export const ALL_TAGS: string[] = Array.from(new Set(TEMPLATES.flatMap((t) => t.tags))).sort()
@@ -254,7 +244,6 @@ export function categoryCounts(): Record<string, number> {
 export const DEFAULT_FILTERS: Filters = {
   query: "",
   category: "all",
-  access: "all",
   minAts: 0,
   tags: [],
   sort: "popular",
@@ -264,7 +253,6 @@ const SORTERS: Record<SortKey, (a: MarketplaceTemplate, b: MarketplaceTemplate) 
   popular: (a, b) => b.popularityScore - a.popularityScore,
   ats: (a, b) => b.atsScore - a.atsScore,
   recent: (a, b) => b.recency - a.recency,
-  downloads: (a, b) => b.downloads - a.downloads,
   az: (a, b) => a.name.localeCompare(b.name),
   za: (a, b) => b.name.localeCompare(a.name),
 }
@@ -273,8 +261,6 @@ export function filterAndSort(templates: MarketplaceTemplate[], f: Filters): Mar
   const q = f.query.trim().toLowerCase()
   const result = templates.filter((t) => {
     if (f.category !== "all" && t.category !== f.category) return false
-    if (f.access === "free" && t.isPremium) return false
-    if (f.access === "premium" && !t.isPremium) return false
     if (f.minAts && t.atsScore < f.minAts) return false
     if (f.tags.length && !f.tags.every((tag) => t.tags.includes(tag))) return false
     if (q) {
@@ -290,12 +276,6 @@ export const TRENDING = [...TEMPLATES].sort((a, b) => b.popularityScore - a.popu
 export const ATS_CHAMPIONS = [...TEMPLATES]
   .sort((a, b) => b.atsScore - a.atsScore || b.popularityScore - a.popularityScore)
   .slice(0, 8)
-export const MOST_DOWNLOADED = [...TEMPLATES].sort((a, b) => b.downloads - a.downloads).slice(0, 8)
-
-export function formatDownloads(n: number): string {
-  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k`
-  return String(n)
-}
 
 export const CREATE_BASE = "/free-ats-resume-templates"
 export const useTemplateHref = (templateId: string) => `${CREATE_BASE}/create?template=${templateId}`

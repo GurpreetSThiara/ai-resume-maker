@@ -27,7 +27,7 @@ export function Hero({ query, onQueryChange, resultCount }: Props) {
         </div>
 
         <h1 className="mx-auto max-w-3xl text-balance text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-          {STATS.templates}+ Professional Resume Templates
+          {STATS.templates} Professional Resume Templates
           <span className="block bg-gradient-to-r from-indigo-600 via-blue-600 to-sky-500 bg-clip-text text-transparent">
             Designed to Help You Land More Interviews
           </span>
@@ -70,10 +70,10 @@ export function Hero({ query, onQueryChange, resultCount }: Props) {
 
         {/* Stats */}
         <dl className="mx-auto mt-12 grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4">
-          <StatCard icon={FileText} value={`${STATS.templates}+`} label="Templates" />
+          <StatCard icon={FileText} value={`${STATS.templates}`} label="Templates" />
           <StatCard icon={LayoutGrid} value={`${STATS.categories}`} label="Categories" />
           <StatCard icon={ShieldCheck} value="ATS" label="Optimized" />
-          <StatCard icon={Users} value={`${Math.round(STATS.resumesCreated / 1000)}k+`} label="Resumes Created" />
+          <StatCard icon={Users} value="Free" label="Always" />
         </dl>
       </div>
     </section>

@@ -26,7 +26,7 @@ export function FinalCtaV2() {
             Your next interview starts with a better resume
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-pretty text-lg text-white/85">
-            Join 120,000+ job seekers. Build a professional, ATS-ready resume in minutes — completely free.
+            Build a professional, ATS-ready resume in minutes — completely free.
           </p>
 
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

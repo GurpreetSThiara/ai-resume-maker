@@ -38,11 +38,11 @@ export function FeatureBento() {
           <span className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-white/15 text-white"><ShieldCheck className="h-6 w-6" /></span>
           <h3 className="text-2xl font-bold">Engineered to beat the bots</h3>
           <p className="mt-2 max-w-md text-white/85">
-            Every template is structured for clean ATS parsing — real, scored designs from 88 to 99. Pick a high-scorer and
+            Every template is structured for clean ATS parsing — real, scored designs from 85 to 99. Pick a high-scorer and
             stop getting filtered out before a human ever sees you.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
-            {["Semantic structure", "Parser-safe fonts", "Standard sections", "Scored 88–99"].map((t) => (
+            {["Semantic structure", "Parser-safe fonts", "Standard sections", "Scored 85–99"].map((t) => (
               <span key={t} className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium backdrop-blur">
                 <Check className="h-3.5 w-3.5" /> {t}
               </span>
@@ -88,7 +88,7 @@ export function FeatureBento() {
           <div>
             <IconBadge tone="teal"><Share2 className="h-6 w-6" /></IconBadge>
             <h3 className="text-lg font-bold text-foreground">Turn it into a portfolio</h3>
-            <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">Publish a shareable personal site from the same data — 5 designs, your own link.</p>
+            <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">Publish a shareable personal site from the same data — your own link.</p>
           </div>
           <span className="mt-4 inline-flex items-center gap-1.5 self-start rounded-full bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary sm:mt-0">
             <Sparkles className="h-3.5 w-3.5" /> New

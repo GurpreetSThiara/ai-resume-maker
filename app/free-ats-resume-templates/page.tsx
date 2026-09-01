@@ -4,8 +4,8 @@ import {Templates} from './ResumeTemplates'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: '50+ ATS-Optimized Resume Templates | CreateFreeCV',
-  description: 'Browse 50+ professional, ATS-optimized resume templates across 20 categories. Search, filter, and customize instantly.',
+  title: '90 ATS-Optimized Resume Templates | CreateFreeCV',
+  description: 'Browse 90 professional, ATS-optimized resume templates across 20 categories. Search, filter, and customize instantly.',
   keywords: 'resume templates, professional resume templates, ATS resume templates, modern resume templates, executive resume, developer resume, creative resume, resume template gallery, resume marketplace',
 
   openGraph: {

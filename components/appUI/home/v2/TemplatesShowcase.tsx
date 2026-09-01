@@ -26,7 +26,7 @@ export function TemplatesShowcase() {
       <div className="flex flex-col items-end justify-between gap-6 sm:flex-row">
         <SectionHeading
           align="left"
-          eyebrow="80+ Templates"
+          eyebrow="90 Templates"
           title="A template for every story"
           subtitle="Recruiter-tested, ATS-friendly designs across 20 categories — recolor and restyle any of them in one click."
         />

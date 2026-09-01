@@ -3,6 +3,17 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Gentle drift for decorative background shapes (see StepsV2). */
+@keyframes float {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(6px, -14px);
+  }
+}
+
 /* Respect users who prefer reduced motion (WCAG 2.3.3). */
 @media (prefers-reduced-motion: reduce) {
   *,

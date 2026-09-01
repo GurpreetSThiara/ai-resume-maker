@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { TEMPLATES, CATEGORY_MAP, groupFamilies, type MarketplaceTemplate } from "@/app/free-ats-resume-templates/_marketplace/data"
-import { TemplateThumb, PremiumBadge } from "@/app/free-ats-resume-templates/_marketplace/shared"
+import { TemplateThumb } from "@/app/free-ats-resume-templates/_marketplace/shared"
 
 interface TemplatePickerDrawerProps {
   selectedId: string
@@ -67,7 +67,7 @@ export function TemplatePickerDrawer({ selectedId, onSelect, triggerClassName }:
         <div className="shrink-0 border-b bg-background px-4 pt-4 pb-3">
           <SheetTitle className="text-base text-slate-900 pr-8">Choose a template</SheetTitle>
           <SheetDescription className="mt-0.5 text-xs text-slate-500">
-            {totalFamilies} templates · tap a preview, or a colour dot to switch shade
+            {totalFamilies} designs · tap a preview, or a colour dot to switch shade
           </SheetDescription>
           <div className="relative mt-3">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
@@ -117,9 +117,6 @@ export function TemplatePickerDrawer({ selectedId, onSelect, triggerClassName }:
                         sizes="(max-width: 640px) 45vw, 200px"
                         className="object-cover object-top transition-transform duration-300 group-hover:scale-[1.03]"
                       />
-                      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-1.5">
-                        <PremiumBadge isPremium={active.isPremium} />
-                      </div>
                       {isActive && (
                         <div className="absolute inset-0 flex items-center justify-center bg-primary/10">
                           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white shadow-lg">
