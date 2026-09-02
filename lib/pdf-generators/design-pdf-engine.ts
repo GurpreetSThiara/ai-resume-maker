@@ -2,7 +2,7 @@ import { PDFDocument, StandardFonts, rgb } from "@pdfme/pdf-lib"
 import type { PDFGenerationOptions, PerLineStyle } from "@/types/resume"
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
-import { lineKey, caseText } from "@/utils/lineStyle"
+import { lineKey, caseText, sectionTitleKey, groupTitleKey } from "@/utils/lineStyle"
 import { wrapText } from "../pdf-utils"
 import { sanitizeWithFont, hexToRgb, addLinkAnnotation } from "./pdf-helpers"
 import type { ResumeDesign } from "../resume-designs"
@@ -218,9 +218,13 @@ export async function generateDesignPDF(
   const accentColorFor = (cur: Cursor) =>
     cur.isSidebar ? colors.sidebarAccent || colors.accent : colors.accent
 
-  const sectionTitle = (cur: Cursor, rawTitle: string) => {
-    const title = design.uppercaseTitles ? rawTitle.toUpperCase() : rawTitle
-    const size = cur.isSidebar ? s.section - 1 : s.section
+  const sectionTitle = (cur: Cursor, rawTitle: string, sectionId: string) => {
+    const stTitle = LS[sectionTitleKey(sectionId)]
+    const title = caseText(design.uppercaseTitles ? rawTitle.toUpperCase() : rawTitle, stTitle)
+    const size = stTitle?.size ?? (cur.isSidebar ? s.section - 1 : s.section)
+    // Per-heading override wins over the palette. Chip/pill variants keep their
+    // own contrast colour, since the text sits on a filled accent background.
+    const titleCol = stTitle?.color ? col(stTitle.color) : titleColorFor(cur)
     const tracking = design.letterSpacingTitles ? 0.8 : 0
     // Reserve room for the heading PLUS the first ~2.5 lines of its content so a
     // section title never lands orphaned at the very bottom of a page.
@@ -236,7 +240,7 @@ export async function generateDesignPDF(
         height: barH,
         color: accentColorFor(cur),
       })
-      drawTracked(pageOf(cur), title, cur.x + 9, cur.y, size, bold, titleColorFor(cur), tracking)
+      drawTracked(pageOf(cur), title, cur.x + 9, cur.y, size, bold, titleCol, tracking)
       cur.y -= size + 8
       return
     }
@@ -274,7 +278,7 @@ export async function generateDesignPDF(
 
     if (style === "centered") {
       const w = trackedWidth(title, size, bold, tracking)
-      drawTracked(pageOf(cur), title, cur.x + (cur.width - w) / 2, cur.y, size, bold, titleColorFor(cur), tracking)
+      drawTracked(pageOf(cur), title, cur.x + (cur.width - w) / 2, cur.y, size, bold, titleCol, tracking)
       const lineY = cur.y - (size * 0.4 + 3)
       pageOf(cur).drawLine({
         start: { x: cur.x, y: lineY },
@@ -286,7 +290,7 @@ export async function generateDesignPDF(
       return
     }
 
-    drawTracked(pageOf(cur), title, cur.x, cur.y, size, bold, titleColorFor(cur), tracking)
+    drawTracked(pageOf(cur), title, cur.x, cur.y, size, bold, titleCol, tracking)
     const baseline = cur.y
 
     if (style === "rule-full" || style === "underline") {
@@ -329,7 +333,7 @@ export async function generateDesignPDF(
     page.drawCircle({ x: x + w - rr, y: y + h - rr, size: rr, color })
   }
 
-  const skillPills = (cur: Cursor, groups: { title: string; skills: string[] }[]) => {
+  const skillPills = (cur: Cursor, groups: { title: string; skills: string[] }[], sectionId: string) => {
     const pillBg = cur.isSidebar ? colors.sidebarAccent || colors.accent : col(c.divider)
     const pillText = cur.isSidebar ? colors.sidebarBg || rgb(1, 1, 1) : colors.text
     const S = s.content
@@ -340,7 +344,7 @@ export async function generateDesignPDF(
     cur.y -= 6 // extra breathing room between the section rule and the pills
     for (const g of groups) {
       if (g.title && g.title !== "General") {
-        para(cur, g.title, { size: s.small, font: bold, color: secondaryColorFor(cur), lineGap: s.small + 4 })
+        para(cur, g.title, { size: s.small, font: bold, color: secondaryColorFor(cur), lineGap: s.small + 4, style: LS[groupTitleKey(sectionId, g.title)] })
         cur.y -= 6 // clearance so pill tops don't crowd the group label
       }
       let px = cur.x
@@ -404,11 +408,11 @@ export async function generateDesignPDF(
   type SkillGroups = { title: string; skills: string[] }[]
   type Levels = Record<string, number>
 
-  const skillBars = (cur: Cursor, groups: SkillGroups, levels: Levels) => {
+  const skillBars = (cur: Cursor, groups: SkillGroups, levels: Levels, sectionId: string) => {
     const barH = 4
     for (const g of groups) {
       if (g.title && g.title !== "General") {
-        para(cur, g.title, { size: s.small, font: bold, color: secondaryColorFor(cur), lineGap: s.small + 4 })
+        para(cur, g.title, { size: s.small, font: bold, color: secondaryColorFor(cur), lineGap: s.small + 4, style: LS[groupTitleKey(sectionId, g.title)] })
       }
       g.skills.forEach((skill, i) => {
         ensure(cur, s.content + barH + 11)
@@ -424,30 +428,31 @@ export async function generateDesignPDF(
     }
   }
 
-  const skillDots = (cur: Cursor, groups: SkillGroups, levels: Levels) => {
+  const skillDots = (cur: Cursor, groups: SkillGroups, levels: Levels, sectionId: string) => {
     for (const g of groups) {
       if (g.title && g.title !== "General") {
-        para(cur, g.title, { size: s.small, font: bold, color: secondaryColorFor(cur), lineGap: s.small + 4 })
+        para(cur, g.title, { size: s.small, font: bold, color: secondaryColorFor(cur), lineGap: s.small + 4, style: LS[groupTitleKey(sectionId, g.title)] })
       }
       g.skills.forEach((skill, i) => drawDotRow(cur, skill, effectiveSkillLevel(levels, skill, i)))
       cur.y -= 4
     }
   }
 
-  const groupedLine = (cur: Cursor, groups: { title: string; skills: string[] }[]) => {
+  const groupedLine = (cur: Cursor, groups: { title: string; skills: string[] }[], sectionId: string) => {
     for (const g of groups) {
       const label = g.title && g.title !== "General" ? `${g.title}: ` : ""
       const full = `${label}${g.skills.join(", ")}`
       // draw label bold + rest normal on a wrapped paragraph (approximate: bold whole label inline)
       if (label) {
         ensure(cur, s.content + 3)
+        const gst = LS[groupTitleKey(sectionId, g.title)]
         const labelW = bold.widthOfTextAtSize(label, s.content)
         pageOf(cur).drawText(sanitizeWithFont(label, bold), {
           x: cur.x,
           y: cur.y,
           size: s.content,
           font: bold,
-          color: titleColorFor(cur),
+          color: gst?.color ? col(gst.color) : titleColorFor(cur),
         })
         const rest = g.skills.join(", ")
         const gap = 2
@@ -674,9 +679,9 @@ export async function generateDesignPDF(
         // When the user turns off level indicators, bars/dots fall back to pills.
         const eff = !skillLevelsOn && (design.skillStyle === "bars" || design.skillStyle === "dots") ? "pills" : design.skillStyle
         const lv = (section.skillLevels || {}) as Record<string, number>
-        if (eff === "bars") skillBars(cur, groups, lv)
-        else if (eff === "dots") skillDots(cur, groups, lv)
-        else if (eff === "pills") skillPills(cur, groups)
+        if (eff === "bars") skillBars(cur, groups, lv, section.id)
+        else if (eff === "dots") skillDots(cur, groups, lv, section.id)
+        else if (eff === "pills") skillPills(cur, groups, section.id)
         else if (eff === "bullets" || cur.isSidebar) {
           for (const g of groups) {
             if (g.title && g.title !== "General") {
@@ -690,7 +695,7 @@ export async function generateDesignPDF(
             bullets(cur, g.skills, textColorFor(cur))
             cur.y -= 4
           }
-        } else groupedLine(cur, groups)
+        } else groupedLine(cur, groups, section.id)
         break
       }
       case "languages":
@@ -937,7 +942,7 @@ export async function generateDesignPDF(
 
     for (const sec of sideSections) {
       if (!sectionHasContent(sec)) continue
-      sectionTitle(side, sec.title)
+      sectionTitle(side, sec.title, sec.id)
       renderSectionBody(side, sec)
       side.y -= 6
     }
@@ -976,13 +981,13 @@ export async function generateDesignPDF(
 
     for (const sec of mainSections) {
       if (sec.type === "custom-fields") {
-        sectionTitle(main, sec.title)
+        sectionTitle(main, sec.title, sec.id)
         renderCustomFields(main)
         main.y -= gp(6)
         continue
       }
       if (!sectionHasContent(sec)) continue
-      sectionTitle(main, sec.title)
+      sectionTitle(main, sec.title, sec.id)
       renderSectionBody(main, sec)
       main.y -= gp(6)
     }
@@ -1145,13 +1150,13 @@ export async function generateDesignPDF(
     if (sec.type === "custom-fields") {
       const entries = Object.values(resumeData.custom || {}).filter((f: any) => f && !f.hidden && f.content)
       if (!entries.length) continue
-      sectionTitle(cur, sec.title)
+      sectionTitle(cur, sec.title, sec.id)
       renderCustomFields(cur)
       cur.y -= gp(6)
       continue
     }
     if (!sectionHasContent(sec)) continue
-    sectionTitle(cur, sec.title)
+    sectionTitle(cur, sec.title, sec.id)
     renderSectionBody(cur, sec)
     cur.y -= gp(6)
   }

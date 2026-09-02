@@ -10,7 +10,7 @@ import ProjectSection from "../../resume-components/project-section"
 import type { ResumeDesign } from "@/lib/resume-designs"
 import { skillDotsFilled, effectiveSkillLevel, DEFAULT_MARGIN_SCALE, DEFAULT_CONDENSED_EDUCATION } from "@/lib/resume-designs"
 import { DEFAULT_EDUCATION, DEFAULT_EXPERIENCE, DEFAULT_PROJECT, DEFAULT_SKILL_GROUP_TITLE } from "@/constants/resumeConstants"
-import { lineKey, cssFor } from "@/utils/lineStyle"
+import { lineKey, cssFor, sectionTitleKey, groupTitleKey } from "@/utils/lineStyle"
 import { px as ptToPx, FONT_CSS, SIDEBAR_TRACK_HEX, type FontKey } from "@/lib/render-spec"
 import { Plus, Trash2 } from "lucide-react"
 
@@ -527,9 +527,10 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
       })
     return (
       <div
-        style={style}
+        style={{ ...style, ...lcss(sectionTitleKey(section.id)) }}
         data-ph="Section title"
         data-el="heading"
+        data-linekey={sectionTitleKey(section.id)}
         data-sid={section.id}
         contentEditable
         suppressContentEditableWarning
@@ -763,7 +764,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
             : {}
         const groupTitleEl = (title: string) =>
           title !== DEFAULT_SKILL_GROUP_TITLE || crud ? (
-            <div {...groupTitleProps(title)} data-ph="Category" style={{ fontSize: smallFont, fontWeight: 700, color: sub, marginBottom: 4, fontFamily: fam }}>
+            <div {...groupTitleProps(title)} data-ph="Category" data-linekey={groupTitleKey(section.id, title)} style={{ fontSize: smallFont, fontWeight: 700, color: sub, marginBottom: 4, fontFamily: fam, ...lcss(groupTitleKey(section.id, title)) }}>
               {title === DEFAULT_SKILL_GROUP_TITLE ? "" : title}
             </div>
           ) : null

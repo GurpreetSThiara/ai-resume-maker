@@ -14,7 +14,7 @@ import {
 import type { PDFGenerationOptions, PerLineStyle } from "@/types/resume"
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
-import { lineKey, docxRunProps, caseText, docxParaSpacing } from "@/utils/lineStyle"
+import { lineKey, docxRunProps, caseText, docxParaSpacing, sectionTitleKey, groupTitleKey } from "@/utils/lineStyle"
 import { createLink, hasSectionContent } from "./utils"
 import type { ResumeDesign } from "../resume-designs"
 import { skillDotsFilled, effectiveSkillLevel, DEFAULT_MARGIN_SCALE, DEFAULT_CONDENSED_EDUCATION } from "../resume-designs"
@@ -83,8 +83,10 @@ export async function generateDesignDOCX(
     titleBorder: string
   }
 
-  const sectionTitle = (target: any[], title: string, ctx: Ctx, sidebar: boolean) => {
-    const text = design.uppercaseTitles ? title.toUpperCase() : title
+  const sectionTitle = (target: any[], title: string, ctx: Ctx, sidebar: boolean, sectionId: string) => {
+    // Spread last on each run so a per-heading override wins over the palette.
+    const stProps = docxRunProps(LS[sectionTitleKey(sectionId)])
+    const text = caseText(design.uppercaseTitles ? title.toUpperCase() : title, LS[sectionTitleKey(sectionId)])
     const style = design.sectionTitle
     const size = sidebar ? sz.section - 2 : sz.section
     const spacing = design.letterSpacingTitles ? 14 : 0
@@ -98,7 +100,7 @@ export async function generateDesignDOCX(
           keepLines: true,
           shading: { type: ShadingType.CLEAR, color: "auto", fill: ctx.accent },
           indent: { left: 60, right: 60 },
-          children: [new TextRun({ text, bold: true, size, color: "FFFFFF", font: f, characterSpacing: spacing })],
+          children: [new TextRun({ text, bold: true, size, color: "FFFFFF", font: f, characterSpacing: spacing, ...stProps })],
         }),
       )
       return
@@ -115,7 +117,7 @@ export async function generateDesignDOCX(
           shading: { type: ShadingType.CLEAR, color: "auto", fill: sidebar ? "FFFFFF" : ctx.accent },
           indent: { left: 60, right: 60 },
           children: [
-            new TextRun({ text, bold: true, size, color: sidebar ? c.sidebarBg || ctx.heading : "FFFFFF", font: f, characterSpacing: spacing }),
+            new TextRun({ text, bold: true, size, color: sidebar ? c.sidebarBg || ctx.heading : "FFFFFF", font: f, characterSpacing: spacing, ...stProps }),
           ],
         }),
       )
@@ -130,7 +132,7 @@ export async function generateDesignDOCX(
         spacing: { before: gp(220), after: gp(110) },
         keepNext: true,
         keepLines: true,
-        children: [new TextRun({ text, bold: true, size, color: ctx.heading, font: f, characterSpacing: spacing })],
+        children: [new TextRun({ text, bold: true, size, color: ctx.heading, font: f, characterSpacing: spacing, ...stProps })],
         border: useBorder
           ? {
               bottom: {
@@ -280,7 +282,7 @@ export async function generateDesignDOCX(
               target.push(
                 new Paragraph({
                   spacing: { after: 50 },
-                  children: [new TextRun({ text: g.title, bold: true, size: sz.content, color: ctx.heading, font: f })],
+                  children: [new TextRun({ text: g.title, bold: true, size: sz.content, color: ctx.heading, font: f, ...docxRunProps(LS[groupTitleKey(section.id, g.title)]) })],
                 }),
               )
             }
@@ -303,7 +305,7 @@ export async function generateDesignDOCX(
               target.push(
                 new Paragraph({
                   spacing: { after: 50 },
-                  children: [new TextRun({ text: g.title, bold: true, size: sz.content, color: ctx.heading, font: f })],
+                  children: [new TextRun({ text: g.title, bold: true, size: sz.content, color: ctx.heading, font: f, ...docxRunProps(LS[groupTitleKey(section.id, g.title)]) })],
                 }),
               )
             }
@@ -314,7 +316,7 @@ export async function generateDesignDOCX(
           for (const g of groups) {
             const runs: any[] = []
             if (g.title && g.title !== "General")
-              runs.push(new TextRun({ text: `${g.title}: `, bold: true, size: sz.content, color: ctx.heading, font: f }))
+              runs.push(new TextRun({ text: `${g.title}: `, bold: true, size: sz.content, color: ctx.heading, font: f, ...docxRunProps(LS[groupTitleKey(section.id, g.title)]) }))
             runs.push(new TextRun({ text: g.skills.join(", "), size: sz.content, color: ctx.text, font: f }))
             target.push(new Paragraph({ spacing: { after: 90 }, children: runs }))
           }
@@ -455,14 +457,14 @@ export async function generateDesignDOCX(
       if (sec.type === "custom-fields") {
         const entries = Object.values(resumeData.custom || {}).filter((x: any) => x && !x.hidden && x.content)
         if (!entries.length) continue
-        sectionTitle(right, sec.title, mainCtx, false)
+        sectionTitle(right, sec.title, mainCtx, false, sec.id)
         renderCustomFields(right, mainCtx)
         continue
       }
       if (!hasSectionContent(sec)) continue
       const isSide = sec.column === 1 || (!sec.column && sidebarTypes.includes(sec.type))
       const target = isSide ? left : right
-      sectionTitle(target, sec.title, isSide ? sideCtx : mainCtx, isSide)
+      sectionTitle(target, sec.title, isSide ? sideCtx : mainCtx, isSide, sec.id)
       renderBody(target, sec, isSide ? sideCtx : mainCtx, isSide)
     }
 
@@ -666,12 +668,12 @@ export async function generateDesignDOCX(
     if (sec.type === "custom-fields") {
       const entries = Object.values(resumeData.custom || {}).filter((x: any) => x && !x.hidden && x.content)
       if (!entries.length) continue
-      sectionTitle(body, sec.title, mainCtx, false)
+      sectionTitle(body, sec.title, mainCtx, false, sec.id)
       renderCustomFields(body, mainCtx)
       continue
     }
     if (!hasSectionContent(sec)) continue
-    sectionTitle(body, sec.title, mainCtx, false)
+    sectionTitle(body, sec.title, mainCtx, false, sec.id)
     renderBody(body, sec, mainCtx, false)
   }
 

@@ -21,6 +21,30 @@ export function lineKey(
   return k
 }
 
+/**
+ * Key for a section's own title (e.g. "EXPERIENCE").
+ *
+ * Headings used to carry no key at all, which meant the editor had nothing
+ * per-element to write to and silently fell back to the document-wide
+ * `headingColor` — restyling one heading recoloured every heading.
+ */
+export function sectionTitleKey(sectionId: string): string {
+  return lineKey(sectionId, { field: "title" })
+}
+
+/**
+ * Key for a skill group's label (e.g. "Frontend:").
+ *
+ * Keyed by title rather than index because the title is already how groups are
+ * identified everywhere else (edits match on `g.title`), and because the
+ * rendered list is filtered to non-empty groups — emptying one would shift
+ * every later index and drag styles onto the wrong label.
+ */
+export function groupTitleKey(sectionId: string, groupTitle: string): string {
+  const slug = groupTitle.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+  return lineKey(sectionId, { field: `group-${slug}` })
+}
+
 const CSS_TRANSFORM: Record<NonNullable<PerLineStyle["transform"]>, string> = {
   upper: "uppercase",
   lower: "lowercase",
