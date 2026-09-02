@@ -2,7 +2,7 @@ import { PDFDocument, StandardFonts, rgb } from "@pdfme/pdf-lib"
 import type { PDFGenerationOptions, PerLineStyle } from "@/types/resume"
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
-import { lineKey, caseText, sectionTitleKey, groupTitleKey, groupSkillKey, groupValueKey } from "@/utils/lineStyle"
+import { lineKey, caseText, sectionTitleKey, groupTitleKey, groupSkillKey, groupValueKey, NAME_KEY, HEADLINE_KEY } from "@/utils/lineStyle"
 import { wrapText } from "../pdf-utils"
 import { sanitizeWithFont, hexToRgb, addLinkAnnotation } from "./pdf-helpers"
 import type { ResumeDesign } from "../resume-designs"
@@ -48,6 +48,11 @@ export async function generateDesignPDF(
   const regular = fontMatrix[baseFamily].r
   const bold = fontMatrix[baseFamily].b
   const LS: Record<string, PerLineStyle> = (resumeData as { lineStyles?: Record<string, PerLineStyle> }).lineStyles || {}
+  // Name and professional title are single keys, so resolve them once. Sizes
+  // must be shared with the wrapping calls below or text wraps at one size and
+  // draws at another.
+  const stName = LS[NAME_KEY]
+  const stHeadline = LS[HEADLINE_KEY]
 
   const c = design.colors
   const colors = {
@@ -624,13 +629,14 @@ export async function generateDesignPDF(
           // one-line entry only needs a small gap, so pull the first line up so
           // the heading→content gap isn't larger than the gap to the next section.
           cur.y += Math.min(s.section, gp(8))
-          ;(section.items || []).forEach((edu: any) => {
+          ;(section.items || []).forEach((edu: any, idx: number) => {
             const yr = [edu.startDate, edu.endDate].filter(Boolean).join(" – ")
             const rest = [edu.degree, yr, edu.gpa].filter(Boolean).join(", ")
-            const inst = sanitizeWithFont(edu.institution || "", bold)
+            const stInst = LS[lineKey(section.id, { item: idx, field: "institution" })]
+            const inst = sanitizeWithFont(caseText(edu.institution || "", stInst), bold)
             ensure(cur, s.content + 5)
             const baseY = cur.y - s.content * 0.8
-            pageOf(cur).drawText(inst, { x: cur.x, y: baseY, size: s.content, font: bold, color: colors.heading })
+            pageOf(cur).drawText(inst, { x: cur.x, y: baseY, size: s.content, font: bold, color: stInst?.color ? col(stInst.color) : colors.heading })
             if (rest) {
               const instW = bold.widthOfTextAtSize(inst, s.content)
               const spaceW = regular.widthOfTextAtSize(" ", s.content)
@@ -656,14 +662,15 @@ export async function generateDesignPDF(
         })
         break
       case "projects":
-        for (const proj of section.items || []) {
+        for (const [pIdx, proj] of (section.items || []).entries() as any) {
+          const stProjName = LS[lineKey(section.id, { item: pIdx, field: "name" })]
           ensure(cur, s.item + 6)
-          pageOf(cur).drawText(sanitizeWithFont(proj.name || "", bold), {
+          pageOf(cur).drawText(sanitizeWithFont(caseText(proj.name || "", stProjName), bold), {
             x: cur.x,
             y: cur.y,
-            size: s.item,
+            size: stProjName?.size ?? s.item,
             font: bold,
-            color: titleColorFor(cur),
+            color: stProjName?.color ? col(stProjName.color) : titleColorFor(cur),
           })
           cur.y -= s.item + 2
           for (const lk of [proj.link, proj.repo].filter(Boolean)) {
@@ -752,20 +759,24 @@ export async function generateDesignPDF(
   }
 
   const renderCustomFields = (cur: Cursor) => {
-    const entries = Object.values(resumeData.custom || {}).filter((f: any) => f && !f.hidden && f.content)
+    // Object.entries (not values) so the field key survives — it is the
+    // lineStyles key the canvas writes against.
+    const entries = Object.entries(resumeData.custom || {}).filter(([, f]: any) => f && !f.hidden && f.content)
     if (!entries.length) return
-    for (const f of entries as any[]) {
+    for (const [fieldKey, f] of entries as any[]) {
+      const stLabel = LS[lineKey("custom", { field: fieldKey })]
+      const stValue = LS[lineKey("custom", { field: `${fieldKey}-value` })]
       ensure(cur, s.content + 3)
-      const label = `${f.title}: `
+      const label = `${caseText(f.title, stLabel)}: `
       const lw = bold.widthOfTextAtSize(label, s.content)
       pageOf(cur).drawText(sanitizeWithFont(label, bold), {
         x: cur.x,
         y: cur.y,
         size: s.content,
         font: bold,
-        color: titleColorFor(cur),
+        color: stLabel?.color ? col(stLabel.color) : titleColorFor(cur),
       })
-      const contentColor = f.link ? accentColorFor(cur) : textColorFor(cur)
+      const contentColor = stValue?.color ? col(stValue.color) : f.link ? accentColorFor(cur) : textColorFor(cur)
       // Wrap long content (e.g. URLs) so it never clips at the column edge.
       const lines = wrapText(String(f.content), cur.width - lw - 2, regular, s.content)
       lines.forEach((line, i) => {
@@ -860,12 +871,14 @@ export async function generateDesignPDF(
   // line; returns the y just below the last line.
   const drawNameLines = (page: any, lines: string[], topY: number, centered: boolean, color: RGB, leftX: number) => {
     let top = topY
-    const lh = s.name + 5
+    const nSize = stName?.size ?? s.name
+    const nColor = stName?.color ? col(stName.color) : color
+    const lh = nSize + 5
     for (const line of lines) {
-      const baseline = top - s.name * 0.8
-      const w = bold.widthOfTextAtSize(sanitizeWithFont(line, bold), s.name)
+      const baseline = top - nSize * 0.8
+      const w = bold.widthOfTextAtSize(sanitizeWithFont(line, bold), nSize)
       const x = centered ? (PAGE_W - w) / 2 : leftX
-      page.drawText(sanitizeWithFont(line, bold), { x, y: baseline, size: s.name, font: bold, color })
+      page.drawText(sanitizeWithFont(line, bold), { x, y: baseline, size: nSize, font: bold, color: nColor })
       top -= lh
     }
     return top
@@ -897,8 +910,8 @@ export async function generateDesignPDF(
     if (design.sidebarNameBlock) {
       const blockPad = 14
       const innerW = sidebarW - 2 * blockPad
-      const nm = design.uppercaseName ? resumeData.basics.name.toUpperCase() : resumeData.basics.name
-      const nameSize = Math.min(s.name, 19)
+      const nm = caseText(design.uppercaseName ? resumeData.basics.name.toUpperCase() : resumeData.basics.name, stName)
+      const nameSize = stName?.size ?? Math.min(s.name, 19)
       const nameLines = wrapText(nm, innerW, bold, nameSize)
       const r = design.monogram ? 22 : 0
       const topPad = 22
@@ -914,13 +927,14 @@ export async function generateDesignPDF(
       for (const line of nameLines) {
         const safe = sanitizeWithFont(line, bold)
         const w = bold.widthOfTextAtSize(safe, nameSize)
-        pageOf(side).drawText(safe, { x: sidebarX0 + (sidebarW - w) / 2, y: by - nameSize, size: nameSize, font: bold, color: rgb(1, 1, 1) })
+        pageOf(side).drawText(safe, { x: sidebarX0 + (sidebarW - w) / 2, y: by - nameSize, size: nameSize, font: bold, color: stName?.color ? col(stName.color) : rgb(1, 1, 1) })
         by -= nameSize + 3
       }
       if (firstRole) {
         const safe = sanitizeWithFont(firstRole, regular)
-        const w = regular.widthOfTextAtSize(safe, s.small)
-        pageOf(side).drawText(safe, { x: sidebarX0 + (sidebarW - w) / 2, y: by - s.small - 1, size: s.small, font: regular, color: rgb(1, 1, 1) })
+        const roleSize = stHeadline?.size ?? s.small
+        const w = regular.widthOfTextAtSize(safe, roleSize)
+        pageOf(side).drawText(safe, { x: sidebarX0 + (sidebarW - w) / 2, y: by - roleSize - 1, size: roleSize, font: regular, color: stHeadline?.color ? col(stHeadline.color) : rgb(1, 1, 1) })
       }
       side.y = PAGE_H - blockH - 16
     } else if (design.monogram) {
@@ -965,13 +979,13 @@ export async function generateDesignPDF(
     // main: name + summary + sections
     main.y -= 8
     if (!design.sidebarNameBlock) {
-      const nameText = design.uppercaseName ? resumeData.basics.name.toUpperCase() : resumeData.basics.name
-      const nameLines = wrapText(nameText, main.width, bold, s.name)
+      const nameText = caseText(design.uppercaseName ? resumeData.basics.name.toUpperCase() : resumeData.basics.name, stName)
+      const nameLines = wrapText(nameText, main.width, bold, stName?.size ?? s.name)
       // drawNameLines positions the baseline so the cap height sits below the
       // top margin (proper top padding) and leaves a tight, controlled trailing gap.
       main.y = drawNameLines(pageOf(main), nameLines, main.y, false, colors.name, main.x)
       if (design.showRole && firstRole) {
-        pageOf(main).drawText(sanitizeWithFont(firstRole, regular), { x: main.x, y: main.y - s.content * 0.8, size: s.content, font: regular, color: colors.accent })
+        pageOf(main).drawText(sanitizeWithFont(caseText(firstRole, stHeadline), regular), { x: main.x, y: main.y - (stHeadline?.size ?? s.content) * 0.8, size: stHeadline?.size ?? s.content, font: regular, color: stHeadline?.color ? col(stHeadline.color) : colors.accent })
         main.y -= s.content + 4
       }
       pageOf(main).drawLine({
@@ -1018,15 +1032,15 @@ export async function generateDesignPDF(
   const cur: Cursor = { x: contentX, width: contentW, isSidebar: false, y: PAGE_H - margin, pageIndex: 0 }
   const firstPage = pages[0]
 
-  const nameText = design.uppercaseName ? resumeData.basics.name.toUpperCase() : resumeData.basics.name
-  const nameLH = s.name + 5
+  const nameText = caseText(design.uppercaseName ? resumeData.basics.name.toUpperCase() : resumeData.basics.name, stName)
+  const nameLH = (stName?.size ?? s.name) + 5
   const contLH = s.small + 5
 
   if (design.header === "band" && colors.headerBg) {
     const headerText = colors.headerText || rgb(1, 1, 1)
     const innerPad = 40
     const innerW = PAGE_W - 2 * innerPad
-    const nameLines = wrapText(nameText, innerW, bold, s.name)
+    const nameLines = wrapText(nameText, innerW, bold, stName?.size ?? s.name)
     const contactLines = groupContact(innerW)
     const topPad = 24
     const midGap = 10
@@ -1045,8 +1059,9 @@ export async function generateDesignPDF(
     let top = drawNameLines(firstPage, nameLines, PAGE_H - topPad, true, headerText, innerPad)
     if (design.showRole && firstRole) {
       const safe = sanitizeWithFont(firstRole, regular)
-      const w = regular.widthOfTextAtSize(safe, s.content)
-      firstPage.drawText(safe, { x: (PAGE_W - w) / 2, y: top - s.content * 0.8, size: s.content, font: regular, color: headerText })
+      const roleSize = stHeadline?.size ?? s.content
+      const w = regular.widthOfTextAtSize(safe, roleSize)
+      firstPage.drawText(safe, { x: (PAGE_W - w) / 2, y: top - roleSize * 0.8, size: roleSize, font: regular, color: stHeadline?.color ? col(stHeadline.color) : headerText })
       top -= roleLH
     }
     if (contactLines.length) {
@@ -1064,7 +1079,7 @@ export async function generateDesignPDF(
     const splitX = 150
     const rightX = splitX + 22
     const innerW = PAGE_W - rightX - 36
-    const nameLines = wrapText(nameText, innerW, bold, s.name)
+    const nameLines = wrapText(nameText, innerW, bold, stName?.size ?? s.name)
     const contactLines = groupContact(innerW)
     const topPad = 28
     const midGap = 10

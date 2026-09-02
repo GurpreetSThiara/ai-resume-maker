@@ -14,7 +14,7 @@ import {
 import type { PDFGenerationOptions, PerLineStyle } from "@/types/resume"
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
-import { lineKey, docxRunProps, caseText, docxParaSpacing, sectionTitleKey, groupTitleKey, groupSkillKey, groupValueKey } from "@/utils/lineStyle"
+import { lineKey, docxRunProps, caseText, docxParaSpacing, sectionTitleKey, groupTitleKey, groupSkillKey, groupValueKey, NAME_KEY, HEADLINE_KEY } from "@/utils/lineStyle"
 import { createLink, hasSectionContent } from "./utils"
 import type { ResumeDesign } from "../resume-designs"
 import { skillDotsFilled, effectiveSkillLevel, DEFAULT_MARGIN_SCALE, DEFAULT_CONDENSED_EDUCATION } from "../resume-designs"
@@ -36,6 +36,9 @@ export async function generateDesignDOCX(
 ): Promise<Buffer> {
   const f = FONT(design)
   const LS: Record<string, PerLineStyle> = (resumeData as { lineStyles?: Record<string, PerLineStyle> }).lineStyles || {}
+  // Name and professional title are single document-level keys.
+  const stName = LS[NAME_KEY]
+  const stHeadline = LS[HEADLINE_KEY]
   const c = design.colors
   const hp = (pt: number) => Math.round(pt * 2) // pt -> half-points
   // Vertical-gap multiplier driven by the density setting (tight by default).
@@ -235,10 +238,11 @@ export async function generateDesignDOCX(
       case "education":
         // Condensed = one line: Institution — Degree, Year, CGPA.
         if (design.condensedEducation ?? DEFAULT_CONDENSED_EDUCATION) {
-          ;(section.items || []).forEach((edu: any) => {
+          ;(section.items || []).forEach((edu: any, idx: number) => {
             const yr = [edu.startDate, edu.endDate].filter(Boolean).join(" – ")
             const rest = [edu.degree, yr, edu.gpa].filter(Boolean).join(", ")
-            const runs = [new TextRun({ text: edu.institution || "", bold: true, size: sz.content, color: ctx.heading, font: f })]
+            const stInst = LS[lineKey(section.id, { item: idx, field: "institution" })]
+            const runs = [new TextRun({ text: caseText(edu.institution || "", stInst), bold: true, size: sz.content, color: ctx.heading, font: f, ...docxRunProps(stInst) })]
             if (rest) runs.push(new TextRun({ text: ` — ${rest}`, size: sz.content, color: ctx.text, font: f }))
             target.push(new Paragraph({ spacing: { after: gp(60) }, children: runs }))
           })
@@ -261,11 +265,12 @@ export async function generateDesignDOCX(
         })
         break
       case "projects":
-        for (const proj of section.items || []) {
+        for (const [pIdx, proj] of (section.items || []).entries() as any) {
+          const stProjName = LS[lineKey(section.id, { item: pIdx, field: "name" })]
           target.push(
             new Paragraph({
               spacing: { after: 40 },
-              children: [new TextRun({ text: proj.name || "", bold: true, size: sz.item, color: ctx.heading, font: f })],
+              children: [new TextRun({ text: caseText(proj.name || "", stProjName), bold: true, size: sz.item, color: ctx.heading, font: f, ...docxRunProps(stProjName) })],
             }),
           )
           const linkRuns: any[] = []
@@ -369,13 +374,17 @@ export async function generateDesignDOCX(
   }
 
   const renderCustomFields = (target: any[], ctx: Ctx) => {
-    const entries = Object.values(resumeData.custom || {}).filter((x: any) => x && !x.hidden && x.content)
-    for (const item of entries as any[]) {
+    // Object.entries (not values) so the field key survives — it is the
+    // lineStyles key the canvas writes against.
+    const entries = Object.entries(resumeData.custom || {}).filter(([, x]: any) => x && !x.hidden && x.content)
+    for (const [fieldKey, item] of entries as any[]) {
+      const stLabel = LS[lineKey("custom", { field: fieldKey })]
+      const stValue = LS[lineKey("custom", { field: `${fieldKey}-value` })]
       const runs: any[] = [
-        new TextRun({ text: `${item.title}: `, bold: true, size: sz.content, color: ctx.heading, font: f }),
+        new TextRun({ text: `${caseText(item.title, stLabel)}: `, bold: true, size: sz.content, color: ctx.heading, font: f, ...docxRunProps(stLabel) }),
       ]
       if (item.link) runs.push(createLink(item.content, item.content, sz.content, ctx.accent) as any)
-      else runs.push(new TextRun({ text: item.content, size: sz.content, color: ctx.text, font: f }))
+      else runs.push(new TextRun({ text: caseText(item.content, stValue), size: sz.content, color: ctx.text, font: f, ...docxRunProps(stValue) }))
       target.push(new Paragraph({ spacing: { after: 80 }, children: runs }))
     }
   }
@@ -420,11 +429,12 @@ export async function generateDesignDOCX(
           spacing: { after: firstRole ? 40 : 160 },
           children: [
             new TextRun({
-              text: design.uppercaseName ? resumeData.basics.name.toUpperCase() : resumeData.basics.name,
+              text: caseText(design.uppercaseName ? resumeData.basics.name.toUpperCase() : resumeData.basics.name, stName),
               bold: true,
               size: Math.min(sz.name, 40),
               color: sideCtx.heading,
               font: f,
+              ...docxRunProps(stName),
             }),
           ],
         }),
@@ -434,7 +444,7 @@ export async function generateDesignDOCX(
           new Paragraph({
             alignment: AlignmentType.CENTER,
             spacing: { after: 160 },
-            children: [new TextRun({ text: firstRole, size: sz.small, color: sideCtx.text, font: f })],
+            children: [new TextRun({ text: caseText(firstRole, stHeadline), size: sz.small, color: sideCtx.text, font: f, ...docxRunProps(stHeadline) })],
           }),
         )
       }
@@ -497,7 +507,7 @@ export async function generateDesignDOCX(
         new Paragraph({
           spacing: { after: 160 },
           border: { bottom: { color: c.accent, space: 2, style: BorderStyle.SINGLE, size: 18 } },
-          children: [new TextRun({ text: nameText, bold: true, size: sz.name, color: c.name, font: f })],
+          children: [new TextRun({ text: caseText(nameText, stName), bold: true, size: sz.name, color: c.name, font: f, ...docxRunProps(stName) })],
         }),
       )
     }
@@ -568,7 +578,8 @@ export async function generateDesignDOCX(
         spacing: { after: 80 },
         children: [
           new TextRun({
-            text: nameText,
+            text: caseText(nameText, stName),
+            ...docxRunProps(stName),
             bold: true,
             size: sz.name,
             color: c.headerText || "FFFFFF",
@@ -593,7 +604,7 @@ export async function generateDesignDOCX(
         new Paragraph({
           alignment: AlignmentType.CENTER,
           spacing: { after: 60 },
-          children: [new TextRun({ text: firstRole, size: sz.content, color: c.headerText || "FFFFFF", font: f })],
+          children: [new TextRun({ text: caseText(firstRole, stHeadline), size: sz.content, color: c.headerText || "FFFFFF", font: f, ...docxRunProps(stHeadline) })],
         }),
       )
     }
@@ -640,7 +651,8 @@ export async function generateDesignDOCX(
         spacing: { after: 70 },
         children: [
           new TextRun({
-            text: nameText,
+            text: caseText(nameText, stName),
+            ...docxRunProps(stName),
             bold: true,
             size: sz.name,
             color: c.name,
@@ -655,7 +667,7 @@ export async function generateDesignDOCX(
         new Paragraph({
           alignment: centered ? AlignmentType.CENTER : AlignmentType.LEFT,
           spacing: { after: 60 },
-          children: [new TextRun({ text: firstRole, size: sz.content, color: c.accent, font: f })],
+          children: [new TextRun({ text: caseText(firstRole, stHeadline), size: sz.content, color: c.accent, font: f, ...docxRunProps(stHeadline) })],
         }),
       )
     }
