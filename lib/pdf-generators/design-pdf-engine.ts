@@ -2,7 +2,7 @@ import { PDFDocument, StandardFonts, rgb } from "@pdfme/pdf-lib"
 import type { PDFGenerationOptions, PerLineStyle } from "@/types/resume"
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
-import { lineKey, caseText, sectionTitleKey, groupTitleKey } from "@/utils/lineStyle"
+import { lineKey, caseText, sectionTitleKey, groupTitleKey, groupSkillKey, groupValueKey } from "@/utils/lineStyle"
 import { wrapText } from "../pdf-utils"
 import { sanitizeWithFont, hexToRgb, addLinkAnnotation } from "./pdf-helpers"
 import type { ResumeDesign } from "../resume-designs"
@@ -349,8 +349,9 @@ export async function generateDesignPDF(
       }
       let px = cur.x
       ensure(cur, rowStep)
-      for (const skill of g.skills) {
-        const safe = sanitizeWithFont(skill, regular)
+      for (const [skillIdx, skill] of g.skills.entries()) {
+        const sst = LS[groupSkillKey(sectionId, g.title, skillIdx)]
+        const safe = sanitizeWithFont(caseText(skill, sst), regular)
         const tw = regular.widthOfTextAtSize(safe, S)
         const pw = tw + 2 * padH
         if (px + pw > cur.x + cur.width) {
@@ -361,7 +362,7 @@ export async function generateDesignPDF(
         const by = cur.y // text baseline
         const pillBottom = by - 0.25 * S - padV // vertically centers the text in the pill
         roundedRect(pageOf(cur), px, pillBottom, pw, pillH, pillH / 2, pillBg)
-        pageOf(cur).drawText(safe, { x: px + padH, y: by, size: S, font: regular, color: pillText })
+        pageOf(cur).drawText(safe, { x: px + padH, y: by, size: S, font: regular, color: sst?.color ? col(sst.color) : pillText })
         px += pw + 6
       }
       cur.y -= pillH + 6
@@ -454,7 +455,8 @@ export async function generateDesignPDF(
           font: bold,
           color: gst?.color ? col(gst.color) : titleColorFor(cur),
         })
-        const rest = g.skills.join(", ")
+        const gvs = LS[groupValueKey(sectionId, g.title)]
+        const rest = caseText(g.skills.join(", "), gvs)
         const gap = 2
         const restLines = wrapText(rest, cur.width - labelW - gap, regular, s.content)
         restLines.forEach((line, i) => {
@@ -464,7 +466,7 @@ export async function generateDesignPDF(
               y: cur.y,
               size: s.content,
               font: regular,
-              color: textColorFor(cur),
+              color: gvs?.color ? col(gvs.color) : textColorFor(cur),
             })
             cur.y -= s.content + 3
           } else {
@@ -474,7 +476,7 @@ export async function generateDesignPDF(
               y: cur.y,
               size: s.content,
               font: regular,
-              color: textColorFor(cur),
+              color: gvs?.color ? col(gvs.color) : textColorFor(cur),
             })
             cur.y -= s.content + 3
           }
@@ -500,58 +502,71 @@ export async function generateDesignPDF(
     const tlIndent = withTimeline ? 16 : 0
     const startPage = cur.pageIndex
     const yTop = cur.y
-    ensure(cur, s.item + s.content + 12)
+    // Per-field overrides set in the editor. Sizes are resolved before any
+    // wrapping or advance maths so the layout stays consistent with them.
+    const stFor = (field: string) => (keyBase ? LS[lineKey(keyBase.sid, { item: keyBase.item, field })] : undefined)
+    const stTitle = stFor("title")
+    const stSub = stFor("subtitle")
+    const stLoc = stFor("location")
+    // The canvas keys start and end dates separately; the PDF draws them as one
+    // string, so the start style wins and the end style is the fallback.
+    const stDate = stFor("startDate") ?? stFor("endDate")
+    const titleSize = stTitle?.size ?? s.item
+    const subSize = stSub?.size ?? s.content
+    const dateSize = stDate?.size ?? s.small
+    const locSize = stLoc?.size ?? s.small
+    ensure(cur, titleSize + subSize + 12)
 
     // title + date on one row
-    const dateW = dateText ? regular.widthOfTextAtSize(dateText, s.small) : 0
-    const titleLines = wrapText(title, cur.width - tlIndent - dateW - 8, bold, s.item)
+    const dateW = dateText ? regular.widthOfTextAtSize(dateText, dateSize) : 0
+    const titleLines = wrapText(caseText(title, stTitle), cur.width - tlIndent - dateW - 8, bold, titleSize)
     titleLines.forEach((line, i) => {
-      ensure(cur, s.item + 2)
+      ensure(cur, titleSize + 2)
       pageOf(cur).drawText(sanitizeWithFont(line, bold), {
         x: cur.x + tlIndent,
         y: cur.y,
-        size: s.item,
+        size: titleSize,
         font: bold,
-        color: titleColorFor(cur),
+        color: stTitle?.color ? col(stTitle.color) : titleColorFor(cur),
       })
       if (i === 0 && dateText) {
-        pageOf(cur).drawText(sanitizeWithFont(dateText, regular), {
+        pageOf(cur).drawText(sanitizeWithFont(caseText(dateText, stDate), regular), {
           x: cur.x + cur.width - dateW,
           y: cur.y,
-          size: s.small,
+          size: dateSize,
           font: regular,
-          color: secondaryColorFor(cur),
+          color: stDate?.color ? col(stDate.color) : secondaryColorFor(cur),
         })
       }
-      cur.y -= s.item + 2
+      cur.y -= titleSize + 2
     })
 
     // subtitle (company/degree) + optional right (location)
     if (subtitle || rightOfSub) {
-      const rw = rightOfSub ? regular.widthOfTextAtSize(rightOfSub, s.small) : 0
+      const rw = rightOfSub ? regular.widthOfTextAtSize(rightOfSub, locSize) : 0
       // Constrain the subtitle so a long degree/company never collides with the
       // right-aligned location; overflow wraps onto its own lines.
       const subMax = cur.width - tlIndent - (rw ? rw + 10 : 0)
-      const subLines = subtitle ? wrapText(subtitle, subMax, bold, s.content) : [""]
+      const subLines = subtitle ? wrapText(caseText(subtitle, stSub), subMax, bold, subSize) : [""]
       subLines.forEach((line, i) => {
-        ensure(cur, s.content + 2)
+        ensure(cur, subSize + 2)
         pageOf(cur).drawText(sanitizeWithFont(line, bold), {
           x: cur.x + tlIndent,
           y: cur.y,
-          size: s.content,
+          size: subSize,
           font: bold,
-          color: accentColorFor(cur),
+          color: stSub?.color ? col(stSub.color) : accentColorFor(cur),
         })
         if (i === 0 && rightOfSub) {
-          pageOf(cur).drawText(sanitizeWithFont(rightOfSub, regular), {
+          pageOf(cur).drawText(sanitizeWithFont(caseText(rightOfSub, stLoc), regular), {
             x: cur.x + cur.width - rw,
             y: cur.y,
-            size: s.small,
+            size: locSize,
             font: regular,
-            color: secondaryColorFor(cur),
+            color: stLoc?.color ? col(stLoc.color) : secondaryColorFor(cur),
           })
         }
-        cur.y -= s.content + (i === subLines.length - 1 ? 4 : 2)
+        cur.y -= subSize + (i === subLines.length - 1 ? 4 : 2)
       })
     }
 

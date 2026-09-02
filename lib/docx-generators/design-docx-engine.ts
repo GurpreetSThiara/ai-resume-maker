@@ -14,7 +14,7 @@ import {
 import type { PDFGenerationOptions, PerLineStyle } from "@/types/resume"
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
 import { getEffectiveSkillGroupsFromSection } from "@/utils/skills"
-import { lineKey, docxRunProps, caseText, docxParaSpacing, sectionTitleKey, groupTitleKey } from "@/utils/lineStyle"
+import { lineKey, docxRunProps, caseText, docxParaSpacing, sectionTitleKey, groupTitleKey, groupSkillKey, groupValueKey } from "@/utils/lineStyle"
 import { createLink, hasSectionContent } from "./utils"
 import type { ResumeDesign } from "../resume-designs"
 import { skillDotsFilled, effectiveSkillLevel, DEFAULT_MARGIN_SCALE, DEFAULT_CONDENSED_EDUCATION } from "../resume-designs"
@@ -165,7 +165,16 @@ export async function generateDesignDOCX(
     subtitle: string,
     rightOfSub: string,
     ctx: Ctx,
+    keyBase?: { sid: string; item: number },
   ) => {
+    // Per-field overrides from the editor; spread last so they win.
+    const stFor = (field: string) => (keyBase ? LS[lineKey(keyBase.sid, { item: keyBase.item, field })] : undefined)
+    const stTitle = stFor("title")
+    const stSub = stFor("subtitle")
+    const stLoc = stFor("location")
+    // The canvas keys start and end separately; DOCX writes one string, so the
+    // start style wins with end as the fallback.
+    const stDate = stFor("startDate") ?? stFor("endDate")
     target.push(
       new Table({
         rows: [
@@ -176,7 +185,7 @@ export async function generateDesignDOCX(
                 borders: noBorders,
                 children: [
                   new Paragraph({
-                    children: [new TextRun({ text: title, bold: true, size: sz.item, color: ctx.heading, font: f })],
+                    children: [new TextRun({ text: caseText(title, stTitle), bold: true, size: sz.item, color: ctx.heading, font: f, ...docxRunProps(stTitle) })],
                   }),
                 ],
               }),
@@ -186,7 +195,7 @@ export async function generateDesignDOCX(
                 children: [
                   new Paragraph({
                     alignment: AlignmentType.RIGHT,
-                    children: [new TextRun({ text: dateText, size: sz.small, color: ctx.secondary, font: f })],
+                    children: [new TextRun({ text: caseText(dateText, stDate), size: sz.small, color: ctx.secondary, font: f, ...docxRunProps(stDate) })],
                   }),
                 ],
               }),
@@ -198,8 +207,8 @@ export async function generateDesignDOCX(
       }),
     )
     if (subtitle || rightOfSub) {
-      const runs = [new TextRun({ text: subtitle, size: sz.content, color: ctx.accent, bold: true, font: f })]
-      if (rightOfSub) runs.push(new TextRun({ text: `   ${rightOfSub}`, size: sz.small, color: ctx.secondary, font: f }))
+      const runs = [new TextRun({ text: caseText(subtitle, stSub), size: sz.content, color: ctx.accent, bold: true, font: f, ...docxRunProps(stSub) })]
+      if (rightOfSub) runs.push(new TextRun({ text: `   ${caseText(rightOfSub, stLoc)}`, size: sz.small, color: ctx.secondary, font: f, ...docxRunProps(stLoc) }))
       target.push(new Paragraph({ spacing: { before: gp(30), after: gp(60) }, children: runs }))
     }
   }
@@ -215,6 +224,7 @@ export async function generateDesignDOCX(
             exp.company || "",
             exp.location || "",
             ctx,
+            { sid: section.id, item: idx },
           )
           ;(exp.achievements || []).forEach((a: string, j: number) =>
             bulletLine(target, a, ctx, LS[lineKey(section.id, { item: idx, field: "bullet", bullet: j })]),
@@ -242,6 +252,7 @@ export async function generateDesignDOCX(
             edu.degree || "",
             edu.location || "",
             ctx,
+            { sid: section.id, item: idx },
           )
           ;(edu.highlights || []).forEach((h: string, j: number) =>
             bulletLine(target, h, ctx, LS[lineKey(section.id, { item: idx, field: "bullet", bullet: j })]),
@@ -291,7 +302,7 @@ export async function generateDesignDOCX(
                 new Paragraph({
                   spacing: { after: 50 },
                   children: [
-                    new TextRun({ text: `${skill}  `, size: sz.content, color: ctx.text, font: f }),
+                    new TextRun({ text: `${caseText(skill, LS[groupSkillKey(section.id, g.title, i)])}  `, size: sz.content, color: ctx.text, font: f, ...docxRunProps(LS[groupSkillKey(section.id, g.title, i)]) }),
                     new TextRun({ text: meter(effectiveSkillLevel(lv, skill, i)), size: sz.content, color: ctx.accent, font: f }),
                   ],
                 }),
@@ -317,7 +328,15 @@ export async function generateDesignDOCX(
             const runs: any[] = []
             if (g.title && g.title !== "General")
               runs.push(new TextRun({ text: `${g.title}: `, bold: true, size: sz.content, color: ctx.heading, font: f, ...docxRunProps(LS[groupTitleKey(section.id, g.title)]) }))
-            runs.push(new TextRun({ text: g.skills.join(", "), size: sz.content, color: ctx.text, font: f }))
+            runs.push(
+              new TextRun({
+                text: caseText(g.skills.join(", "), LS[groupValueKey(section.id, g.title)]),
+                size: sz.content,
+                color: ctx.text,
+                font: f,
+                ...docxRunProps(LS[groupValueKey(section.id, g.title)]),
+              }),
+            )
             target.push(new Paragraph({ spacing: { after: 90 }, children: runs }))
           }
         }
