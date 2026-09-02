@@ -51,6 +51,25 @@ export async function generateDesignPDF(
   // Name and professional title are single keys, so resolve them once. Sizes
   // must be shared with the wrapping calls below or text wraps at one size and
   // draws at another.
+  /**
+   * Resolves a PerLineStyle against a site's defaults. Sites that draw text
+   * directly (rather than through para()) previously honoured only colour and
+   * size, so a per-element font / bold / italic / tracking silently did nothing
+   * in the PDF while working on the canvas.
+   */
+  const styled = (
+    st: PerLineStyle | undefined,
+    base: { font: any; size: number; color: RGB; bold?: boolean; italic?: boolean },
+  ) => ({
+    font:
+      st && (st.font || st.bold !== undefined || st.italic !== undefined)
+        ? pickFont(st.font || baseFamily, st.bold ?? !!base.bold, st.italic ?? !!base.italic)
+        : base.font,
+    size: st?.size ?? base.size,
+    color: st?.color ? col(st.color) : base.color,
+    tracking: st?.letterSpacing ?? 0,
+  })
+
   const stName = LS[NAME_KEY]
   const stHeadline = LS[HEADLINE_KEY]
 
@@ -527,20 +546,26 @@ export async function generateDesignPDF(
     const titleLines = wrapText(caseText(title, stTitle), cur.width - tlIndent - dateW - 8, bold, titleSize)
     titleLines.forEach((line, i) => {
       ensure(cur, titleSize + 2)
-      pageOf(cur).drawText(sanitizeWithFont(line, bold), {
-        x: cur.x + tlIndent,
-        y: cur.y,
-        size: titleSize,
-        font: bold,
-        color: stTitle?.color ? col(stTitle.color) : titleColorFor(cur),
-      })
+      const tSty = styled(stTitle, { font: bold, size: titleSize, color: titleColorFor(cur), bold: true })
+      if (tSty.tracking) {
+        drawTracked(pageOf(cur), line, cur.x + tlIndent, cur.y, tSty.size, tSty.font, tSty.color, tSty.tracking)
+      } else {
+        pageOf(cur).drawText(sanitizeWithFont(line, tSty.font), {
+          x: cur.x + tlIndent,
+          y: cur.y,
+          size: tSty.size,
+          font: tSty.font,
+          color: tSty.color,
+        })
+      }
       if (i === 0 && dateText) {
-        pageOf(cur).drawText(sanitizeWithFont(caseText(dateText, stDate), regular), {
+        const dSty = styled(stDate, { font: regular, size: dateSize, color: secondaryColorFor(cur) })
+        pageOf(cur).drawText(sanitizeWithFont(caseText(dateText, stDate), dSty.font), {
           x: cur.x + cur.width - dateW,
           y: cur.y,
-          size: dateSize,
-          font: regular,
-          color: stDate?.color ? col(stDate.color) : secondaryColorFor(cur),
+          size: dSty.size,
+          font: dSty.font,
+          color: dSty.color,
         })
       }
       cur.y -= titleSize + 2
@@ -555,20 +580,22 @@ export async function generateDesignPDF(
       const subLines = subtitle ? wrapText(caseText(subtitle, stSub), subMax, bold, subSize) : [""]
       subLines.forEach((line, i) => {
         ensure(cur, subSize + 2)
-        pageOf(cur).drawText(sanitizeWithFont(line, bold), {
+        const sSty = styled(stSub, { font: bold, size: subSize, color: accentColorFor(cur), bold: true })
+        pageOf(cur).drawText(sanitizeWithFont(line, sSty.font), {
           x: cur.x + tlIndent,
           y: cur.y,
-          size: subSize,
-          font: bold,
-          color: stSub?.color ? col(stSub.color) : accentColorFor(cur),
+          size: sSty.size,
+          font: sSty.font,
+          color: sSty.color,
         })
         if (i === 0 && rightOfSub) {
-          pageOf(cur).drawText(sanitizeWithFont(caseText(rightOfSub, stLoc), regular), {
+          const lSty = styled(stLoc, { font: regular, size: locSize, color: secondaryColorFor(cur) })
+          pageOf(cur).drawText(sanitizeWithFont(caseText(rightOfSub, stLoc), lSty.font), {
             x: cur.x + cur.width - rw,
             y: cur.y,
-            size: locSize,
-            font: regular,
-            color: stLoc?.color ? col(stLoc.color) : secondaryColorFor(cur),
+            size: lSty.size,
+            font: lSty.font,
+            color: lSty.color,
           })
         }
         cur.y -= subSize + (i === subLines.length - 1 ? 4 : 2)
@@ -636,7 +663,8 @@ export async function generateDesignPDF(
             const inst = sanitizeWithFont(caseText(edu.institution || "", stInst), bold)
             ensure(cur, s.content + 5)
             const baseY = cur.y - s.content * 0.8
-            pageOf(cur).drawText(inst, { x: cur.x, y: baseY, size: s.content, font: bold, color: stInst?.color ? col(stInst.color) : colors.heading })
+            const iSty = styled(stInst, { font: bold, size: s.content, color: colors.heading, bold: true })
+            pageOf(cur).drawText(inst, { x: cur.x, y: baseY, size: iSty.size, font: iSty.font, color: iSty.color })
             if (rest) {
               const instW = bold.widthOfTextAtSize(inst, s.content)
               const spaceW = regular.widthOfTextAtSize(" ", s.content)
@@ -665,12 +693,13 @@ export async function generateDesignPDF(
         for (const [pIdx, proj] of (section.items || []).entries() as any) {
           const stProjName = LS[lineKey(section.id, { item: pIdx, field: "name" })]
           ensure(cur, s.item + 6)
-          pageOf(cur).drawText(sanitizeWithFont(caseText(proj.name || "", stProjName), bold), {
+          const pSty = styled(stProjName, { font: bold, size: s.item, color: titleColorFor(cur), bold: true })
+          pageOf(cur).drawText(sanitizeWithFont(caseText(proj.name || "", stProjName), pSty.font), {
             x: cur.x,
             y: cur.y,
-            size: stProjName?.size ?? s.item,
-            font: bold,
-            color: stProjName?.color ? col(stProjName.color) : titleColorFor(cur),
+            size: pSty.size,
+            font: pSty.font,
+            color: pSty.color,
           })
           cur.y -= s.item + 2
           for (const lk of [proj.link, proj.repo].filter(Boolean)) {
@@ -769,12 +798,13 @@ export async function generateDesignPDF(
       ensure(cur, s.content + 3)
       const label = `${caseText(f.title, stLabel)}: `
       const lw = bold.widthOfTextAtSize(label, s.content)
-      pageOf(cur).drawText(sanitizeWithFont(label, bold), {
+      const clSty = styled(stLabel, { font: bold, size: s.content, color: titleColorFor(cur), bold: true })
+      pageOf(cur).drawText(sanitizeWithFont(label, clSty.font), {
         x: cur.x,
         y: cur.y,
-        size: s.content,
-        font: bold,
-        color: stLabel?.color ? col(stLabel.color) : titleColorFor(cur),
+        size: clSty.size,
+        font: clSty.font,
+        color: clSty.color,
       })
       const contentColor = stValue?.color ? col(stValue.color) : f.link ? accentColorFor(cur) : textColorFor(cur)
       // Wrap long content (e.g. URLs) so it never clips at the column edge.
@@ -871,14 +901,15 @@ export async function generateDesignPDF(
   // line; returns the y just below the last line.
   const drawNameLines = (page: any, lines: string[], topY: number, centered: boolean, color: RGB, leftX: number) => {
     let top = topY
-    const nSize = stName?.size ?? s.name
-    const nColor = stName?.color ? col(stName.color) : color
-    const lh = nSize + 5
+    const nSty = styled(stName, { font: bold, size: s.name, color, bold: true })
+    const nSize = nSty.size
+    const lh = nSize * (stName?.lineHeight ?? 1) + 5
     for (const line of lines) {
       const baseline = top - nSize * 0.8
-      const w = bold.widthOfTextAtSize(sanitizeWithFont(line, bold), nSize)
+      const w = nSty.font.widthOfTextAtSize(sanitizeWithFont(line, nSty.font), nSize)
       const x = centered ? (PAGE_W - w) / 2 : leftX
-      page.drawText(sanitizeWithFont(line, bold), { x, y: baseline, size: nSize, font: bold, color: nColor })
+      if (nSty.tracking) drawTracked(page, line, x, baseline, nSize, nSty.font, nSty.color, nSty.tracking)
+      else page.drawText(sanitizeWithFont(line, nSty.font), { x, y: baseline, size: nSize, font: nSty.font, color: nSty.color })
       top -= lh
     }
     return top

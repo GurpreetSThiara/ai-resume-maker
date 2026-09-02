@@ -89,6 +89,9 @@ export async function generateDesignDOCX(
   const sectionTitle = (target: any[], title: string, ctx: Ctx, sidebar: boolean, sectionId: string) => {
     // Spread last on each run so a per-heading override wins over the palette.
     const stProps = docxRunProps(LS[sectionTitleKey(sectionId)])
+    // Line spacing is a paragraph property in Word, so it cannot ride along in
+    // the run props above.
+    const stPara = docxParaSpacing(LS[sectionTitleKey(sectionId)]) || {}
     const text = caseText(design.uppercaseTitles ? title.toUpperCase() : title, LS[sectionTitleKey(sectionId)])
     const style = design.sectionTitle
     const size = sidebar ? sz.section - 2 : sz.section
@@ -98,7 +101,7 @@ export async function generateDesignDOCX(
     if (style === "boxed") {
       target.push(
         new Paragraph({
-          spacing: { before: 200, after: 110 },
+          spacing: { before: 200, after: 110, ...stPara },
           keepNext: true,
           keepLines: true,
           shading: { type: ShadingType.CLEAR, color: "auto", fill: ctx.accent },
@@ -114,7 +117,7 @@ export async function generateDesignDOCX(
     if (style === "pill") {
       target.push(
         new Paragraph({
-          spacing: { before: 200, after: 110 },
+          spacing: { before: 200, after: 110, ...stPara },
           keepNext: true,
           keepLines: true,
           shading: { type: ShadingType.CLEAR, color: "auto", fill: sidebar ? "FFFFFF" : ctx.accent },
@@ -132,7 +135,7 @@ export async function generateDesignDOCX(
     target.push(
       new Paragraph({
         alignment: centered ? AlignmentType.CENTER : undefined,
-        spacing: { before: gp(220), after: gp(110) },
+        spacing: { before: gp(220), after: gp(110), ...stPara },
         keepNext: true,
         keepLines: true,
         children: [new TextRun({ text, bold: true, size, color: ctx.heading, font: f, characterSpacing: spacing, ...stProps })],
@@ -212,7 +215,7 @@ export async function generateDesignDOCX(
     if (subtitle || rightOfSub) {
       const runs = [new TextRun({ text: caseText(subtitle, stSub), size: sz.content, color: ctx.accent, bold: true, font: f, ...docxRunProps(stSub) })]
       if (rightOfSub) runs.push(new TextRun({ text: `   ${caseText(rightOfSub, stLoc)}`, size: sz.small, color: ctx.secondary, font: f, ...docxRunProps(stLoc) }))
-      target.push(new Paragraph({ spacing: { before: gp(30), after: gp(60) }, children: runs }))
+      target.push(new Paragraph({ spacing: { before: gp(30), after: gp(60), ...(docxParaSpacing(stSub) || {}) }, children: runs }))
     }
   }
 
@@ -244,7 +247,7 @@ export async function generateDesignDOCX(
             const stInst = LS[lineKey(section.id, { item: idx, field: "institution" })]
             const runs = [new TextRun({ text: caseText(edu.institution || "", stInst), bold: true, size: sz.content, color: ctx.heading, font: f, ...docxRunProps(stInst) })]
             if (rest) runs.push(new TextRun({ text: ` — ${rest}`, size: sz.content, color: ctx.text, font: f }))
-            target.push(new Paragraph({ spacing: { after: gp(60) }, children: runs }))
+            target.push(new Paragraph({ spacing: { after: gp(60), ...(docxParaSpacing(stInst) || {}) }, children: runs }))
           })
           break
         }
@@ -269,7 +272,7 @@ export async function generateDesignDOCX(
           const stProjName = LS[lineKey(section.id, { item: pIdx, field: "name" })]
           target.push(
             new Paragraph({
-              spacing: { after: 40 },
+              spacing: { after: 40, ...(docxParaSpacing(stProjName) || {}) },
               children: [new TextRun({ text: caseText(proj.name || "", stProjName), bold: true, size: sz.item, color: ctx.heading, font: f, ...docxRunProps(stProjName) })],
             }),
           )
@@ -342,7 +345,7 @@ export async function generateDesignDOCX(
                 ...docxRunProps(LS[groupValueKey(section.id, g.title)]),
               }),
             )
-            target.push(new Paragraph({ spacing: { after: 90 }, children: runs }))
+            target.push(new Paragraph({ spacing: { after: 90, ...(docxParaSpacing(LS[groupValueKey(section.id, g.title)]) || {}) }, children: runs }))
           }
         }
         break
@@ -385,7 +388,7 @@ export async function generateDesignDOCX(
       ]
       if (item.link) runs.push(createLink(item.content, item.content, sz.content, ctx.accent) as any)
       else runs.push(new TextRun({ text: caseText(item.content, stValue), size: sz.content, color: ctx.text, font: f, ...docxRunProps(stValue) }))
-      target.push(new Paragraph({ spacing: { after: 80 }, children: runs }))
+      target.push(new Paragraph({ spacing: { after: 80, ...(docxParaSpacing(stValue) || {}) }, children: runs }))
     }
   }
 
@@ -426,7 +429,7 @@ export async function generateDesignDOCX(
       left.push(
         new Paragraph({
           alignment: AlignmentType.CENTER,
-          spacing: { after: firstRole ? 40 : 160 },
+          spacing: { after: firstRole ? 40 : 160 , ...(docxParaSpacing(stName) || {}) },
           children: [
             new TextRun({
               text: caseText(design.uppercaseName ? resumeData.basics.name.toUpperCase() : resumeData.basics.name, stName),
@@ -443,7 +446,7 @@ export async function generateDesignDOCX(
         left.push(
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            spacing: { after: 160 },
+            spacing: { after: 160 , ...(docxParaSpacing(stHeadline) || {}) },
             children: [new TextRun({ text: caseText(firstRole, stHeadline), size: sz.small, color: sideCtx.text, font: f, ...docxRunProps(stHeadline) })],
           }),
         )
@@ -505,7 +508,7 @@ export async function generateDesignDOCX(
       right.unshift(
         new Paragraph({ spacing: { after: 200 } }),
         new Paragraph({
-          spacing: { after: 160 },
+          spacing: { after: 160 , ...(docxParaSpacing(stName) || {}) },
           border: { bottom: { color: c.accent, space: 2, style: BorderStyle.SINGLE, size: 18 } },
           children: [new TextRun({ text: caseText(nameText, stName), bold: true, size: sz.name, color: c.name, font: f, ...docxRunProps(stName) })],
         }),
@@ -575,7 +578,7 @@ export async function generateDesignDOCX(
     const headerCell: Paragraph[] = [
       new Paragraph({
         alignment: AlignmentType.CENTER,
-        spacing: { after: 80 },
+        spacing: { after: 80 , ...(docxParaSpacing(stName) || {}) },
         children: [
           new TextRun({
             text: caseText(nameText, stName),
@@ -603,7 +606,7 @@ export async function generateDesignDOCX(
       headerCell.push(
         new Paragraph({
           alignment: AlignmentType.CENTER,
-          spacing: { after: 60 },
+          spacing: { after: 60 , ...(docxParaSpacing(stHeadline) || {}) },
           children: [new TextRun({ text: caseText(firstRole, stHeadline), size: sz.content, color: c.headerText || "FFFFFF", font: f, ...docxRunProps(stHeadline) })],
         }),
       )
@@ -648,7 +651,7 @@ export async function generateDesignDOCX(
     body.push(
       new Paragraph({
         alignment: centered ? AlignmentType.CENTER : AlignmentType.LEFT,
-        spacing: { after: 70 },
+        spacing: { after: 70 , ...(docxParaSpacing(stName) || {}) },
         children: [
           new TextRun({
             text: caseText(nameText, stName),
@@ -666,7 +669,7 @@ export async function generateDesignDOCX(
       body.push(
         new Paragraph({
           alignment: centered ? AlignmentType.CENTER : AlignmentType.LEFT,
-          spacing: { after: 60 },
+          spacing: { after: 60 , ...(docxParaSpacing(stHeadline) || {}) },
           children: [new TextRun({ text: caseText(firstRole, stHeadline), size: sz.content, color: c.accent, font: f, ...docxRunProps(stHeadline) })],
         }),
       )
