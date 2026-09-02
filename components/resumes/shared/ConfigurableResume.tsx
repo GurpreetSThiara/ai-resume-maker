@@ -758,13 +758,19 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
           const updated = groups.map((g) => (g.title === oldTitle ? { ...g, title: newTitle } : g))
           handleSkillsChange(section.id, updated)
         }
-        const groupTitleProps = (title: string) =>
-          crud
+        // data-linekey lives here so every skill-style branch inherits it —
+        // without a key the editor has nothing per-element to write to and
+        // silently falls back to the document-wide heading colour.
+        const groupTitleProps = (title: string) => ({
+          "data-linekey": groupTitleKey(section.id, title),
+          ...(crud
             ? { contentEditable: true, suppressContentEditableWarning: true, "data-el": "heading", onBlur: (e: React.FormEvent<HTMLElement>) => editGroupTitle(title, e.currentTarget.textContent || "") }
-            : {}
+            : {}),
+        })
+        const groupTitleCss = (title: string) => lcss(groupTitleKey(section.id, title))
         const groupTitleEl = (title: string) =>
           title !== DEFAULT_SKILL_GROUP_TITLE || crud ? (
-            <div {...groupTitleProps(title)} data-ph="Category" data-linekey={groupTitleKey(section.id, title)} style={{ fontSize: smallFont, fontWeight: 700, color: sub, marginBottom: 4, fontFamily: fam, ...lcss(groupTitleKey(section.id, title)) }}>
+            <div {...groupTitleProps(title)} data-ph="Category" style={{ fontSize: smallFont, fontWeight: 700, color: sub, marginBottom: 4, fontFamily: fam, ...groupTitleCss(title) }}>
               {title === DEFAULT_SKILL_GROUP_TITLE ? "" : title}
             </div>
           ) : null
@@ -840,7 +846,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
               {groups.map((g) => (
                 <div key={g.title}>
                   {(g.title !== DEFAULT_SKILL_GROUP_TITLE || crud) && (
-                    <div {...groupTitleProps(g.title)} data-ph="Category" style={{ fontSize: smallFont, fontWeight: 700, color: sub, marginBottom: 4, fontFamily: fam }}>{g.title === DEFAULT_SKILL_GROUP_TITLE ? "" : g.title}</div>
+                    <div {...groupTitleProps(g.title)} data-ph="Category" style={{ fontSize: smallFont, fontWeight: 700, color: sub, marginBottom: 4, fontFamily: fam, ...groupTitleCss(g.title) }}>{g.title === DEFAULT_SKILL_GROUP_TITLE ? "" : g.title}</div>
                   )}
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                     {g.skills.map((sk, j) => (
@@ -870,7 +876,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
               {groups.map((g) => (
                 <div key={g.title}>
                   {(g.title !== DEFAULT_SKILL_GROUP_TITLE || crud) && (
-                    <div {...groupTitleProps(g.title)} data-ph="Category" style={{ fontSize: smallFont, fontWeight: 700, color: sidebar ? palette.sidebarHeading || palette.heading : sub, marginBottom: 2, fontFamily: fam }}>{g.title === DEFAULT_SKILL_GROUP_TITLE ? "" : g.title}</div>
+                    <div {...groupTitleProps(g.title)} data-ph="Category" style={{ fontSize: smallFont, fontWeight: 700, color: sidebar ? palette.sidebarHeading || palette.heading : sub, marginBottom: 2, fontFamily: fam, ...groupTitleCss(g.title) }}>{g.title === DEFAULT_SKILL_GROUP_TITLE ? "" : g.title}</div>
                   )}
                   {bulletList(
                     g.skills,
@@ -891,9 +897,9 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
             {groups.map((g) => (
               <div key={g.title} style={{ fontSize: contentFont, fontFamily: fam, lineHeight: 1.45 }}>
                 {(g.title !== DEFAULT_SKILL_GROUP_TITLE || crud) && (
-                  <span {...groupTitleProps(g.title)} data-ph="Category" style={{ fontWeight: 700, color: palette.heading }}>{g.title === DEFAULT_SKILL_GROUP_TITLE ? "" : g.title}</span>
+                  <span {...groupTitleProps(g.title)} data-ph="Category" style={{ fontWeight: 700, color: palette.heading, ...groupTitleCss(g.title) }}>{g.title === DEFAULT_SKILL_GROUP_TITLE ? "" : g.title}</span>
                 )}
-                {g.title !== DEFAULT_SKILL_GROUP_TITLE && <span style={{ fontWeight: 700, color: palette.heading }}>: </span>}
+                {g.title !== DEFAULT_SKILL_GROUP_TITLE && <span style={{ fontWeight: 700, color: palette.heading, ...groupTitleCss(g.title) }}>: </span>}
                 <span
                   style={{ color: tColor }}
                   contentEditable
