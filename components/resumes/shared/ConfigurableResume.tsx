@@ -10,7 +10,7 @@ import ProjectSection from "../../resume-components/project-section"
 import type { ResumeDesign } from "@/lib/resume-designs"
 import { skillDotsFilled, effectiveSkillLevel, DEFAULT_MARGIN_SCALE, DEFAULT_CONDENSED_EDUCATION } from "@/lib/resume-designs"
 import { DEFAULT_EDUCATION, DEFAULT_EXPERIENCE, DEFAULT_PROJECT, DEFAULT_SKILL_GROUP_TITLE } from "@/constants/resumeConstants"
-import { lineKey, cssFor, sectionTitleKey, groupTitleKey } from "@/utils/lineStyle"
+import { lineKey, cssFor, sectionTitleKey, groupTitleKey, groupSkillKey, groupValueKey, NAME_KEY, HEADLINE_KEY } from "@/utils/lineStyle"
 import { px as ptToPx, FONT_CSS, SIDEBAR_TRACK_HEX, type FontKey } from "@/lib/render-spec"
 import { Plus, Trash2 } from "lucide-react"
 
@@ -570,6 +570,9 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
       },
       children: React.ReactNode,
     ) => {
+      // Every editable field in an entry gets its own key, so styling one does
+      // not fall through to the document-wide colour for its element kind.
+      const ek = (field: string) => lineKey(opts.sectionId, { item: opts.index, field })
       const edit = (field: string, v: string) => handleSectionItemChange(opts.sectionId, opts.index, field, v)
       return (
         <div key={key} style={{ marginBottom: gp(10), position: useTimeline ? "relative" : undefined, paddingLeft: useTimeline ? 18 : 0 }}>
@@ -580,22 +583,22 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
             </>
           )}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-            <span style={{ fontWeight: 700, color: sidebar ? palette.sidebarHeading || palette.heading : palette.heading, fontSize: itemFont, fontFamily: fam }} data-ph="Title" data-el="body" contentEditable suppressContentEditableWarning onBlur={(e) => edit(opts.titleField, e.currentTarget.textContent || "")}>
+            <span style={{ fontWeight: 700, color: sidebar ? palette.sidebarHeading || palette.heading : palette.heading, fontSize: itemFont, fontFamily: fam, ...lcss(ek("title")) }} data-ph="Title" data-el="body" data-linekey={ek("title")} contentEditable suppressContentEditableWarning onBlur={(e) => edit(opts.titleField, e.currentTarget.textContent || "")}>
               {opts.title}
             </span>
             <span style={{ color: sub, fontSize: smallFont, fontFamily: fam, whiteSpace: "nowrap" }}>
-              <span data-ph="Start" contentEditable suppressContentEditableWarning onBlur={(e) => edit("startDate", e.currentTarget.textContent || "")}>{opts.startDate}</span>
+              <span data-ph="Start" data-el="body" data-linekey={ek("startDate")} style={lcss(ek("startDate"))} contentEditable suppressContentEditableWarning onBlur={(e) => edit("startDate", e.currentTarget.textContent || "")}>{opts.startDate}</span>
               {(opts.startDate || opts.endDate) && " - "}
-              <span data-ph="End" contentEditable suppressContentEditableWarning onBlur={(e) => edit("endDate", e.currentTarget.textContent || "")}>{opts.endDate}</span>
+              <span data-ph="End" data-el="body" data-linekey={ek("endDate")} style={lcss(ek("endDate"))} contentEditable suppressContentEditableWarning onBlur={(e) => edit("endDate", e.currentTarget.textContent || "")}>{opts.endDate}</span>
             </span>
             <Del onClick={() => removeEntry(opts.sectionId, opts.index)} title="Delete entry" />
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <span style={{ color: acc, fontWeight: 600, fontSize: contentFont, fontFamily: fam }} data-ph="Company / Institution" data-el="body" contentEditable suppressContentEditableWarning onBlur={(e) => edit(opts.subtitleField, e.currentTarget.textContent || "")}>
+            <span style={{ color: acc, fontWeight: 600, fontSize: contentFont, fontFamily: fam, ...lcss(ek("subtitle")) }} data-ph="Company / Institution" data-el="body" data-linekey={ek("subtitle")} contentEditable suppressContentEditableWarning onBlur={(e) => edit(opts.subtitleField, e.currentTarget.textContent || "")}>
               {opts.subtitle}
             </span>
             {opts.location !== undefined && (
-              <span style={{ color: sub, fontSize: smallFont, fontFamily: fam }} data-ph="Location" contentEditable suppressContentEditableWarning onBlur={(e) => edit("location", e.currentTarget.textContent || "")}>
+              <span style={{ color: sub, fontSize: smallFont, fontFamily: fam, ...lcss(ek("location")) }} data-ph="Location" data-el="body" data-linekey={ek("location")} contentEditable suppressContentEditableWarning onBlur={(e) => edit("location", e.currentTarget.textContent || "")}>
                 {opts.location}
               </span>
             )}
@@ -673,8 +676,9 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
                   <div key={i} style={{ marginBottom: gp(6), display: "flex", alignItems: "baseline", gap: 8 }}>
                     <span style={{ fontSize: contentFont, fontFamily: fam, color: palette.text, flex: 1 }}>
                       <span
-                        style={{ fontWeight: 700, color: sidebar ? palette.sidebarHeading || palette.heading : palette.heading }}
+                        style={{ fontWeight: 700, color: sidebar ? palette.sidebarHeading || palette.heading : palette.heading, ...lcss(lineKey(section.id, { item: i, field: "institution" })) }}
                         data-el="body"
+                        data-linekey={lineKey(section.id, { item: i, field: "institution" })}
                         contentEditable
                         suppressContentEditableWarning
                         onBlur={(e) => handleSectionItemChange(section.id, i, "institution", e.currentTarget.textContent || "")}
@@ -739,6 +743,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
               textColor={tColor}
               linkColor={acc}
               contentEditable
+              lineCss={lcss}
               onProjectFieldChange={handleProjectFieldChange}
               onProjectDescriptionChange={handleProjectDescriptionChange}
               titleClassName="font-bold"
@@ -790,7 +795,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
                   {groupTitleEl(g.title)}
                   {g.skills.map((sk, j) => (
                     <div key={j} style={{ marginBottom: 7 }}>
-                      <div style={{ fontSize: contentFont, color: tColor, fontFamily: fam, marginBottom: 3 }} contentEditable suppressContentEditableWarning onBlur={skillEdit(g, j)}>
+                      <div style={{ fontSize: contentFont, color: tColor, fontFamily: fam, marginBottom: 3, ...lcss(groupSkillKey(section.id, g.title, j)) }} data-el="body" data-linekey={groupSkillKey(section.id, g.title, j)} contentEditable suppressContentEditableWarning onBlur={skillEdit(g, j)}>
                         {sk}
                       </div>
                       <div
@@ -818,7 +823,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
                     const filled = effectiveSkillLevel((section as any).skillLevels, sk, j)
                     return (
                       <div key={j} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 3 }}>
-                        <span style={{ fontSize: contentFont, color: tColor, fontFamily: fam }} contentEditable suppressContentEditableWarning onBlur={skillEdit(g, j)}>
+                        <span style={{ fontSize: contentFont, color: tColor, fontFamily: fam, ...lcss(groupSkillKey(section.id, g.title, j)) }} data-el="body" data-linekey={groupSkillKey(section.id, g.title, j)} contentEditable suppressContentEditableWarning onBlur={skillEdit(g, j)}>
                           {sk}
                         </span>
                         <span style={{ display: "inline-flex", gap: 3, flexShrink: 0 }}>
@@ -852,7 +857,9 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
                     {g.skills.map((sk, j) => (
                       <span
                         key={j}
-                        style={{ background: palette.divider, color: palette.text, padding: "3px 11px", borderRadius: 9999, fontSize: contentFont, fontFamily: fam, display: "inline-block", lineHeight: 1.2 }}
+                        style={{ background: palette.divider, color: palette.text, padding: "3px 11px", borderRadius: 9999, fontSize: contentFont, fontFamily: fam, display: "inline-block", lineHeight: 1.2, ...lcss(groupSkillKey(section.id, g.title, j)) }}
+                        data-el="body"
+                        data-linekey={groupSkillKey(section.id, g.title, j)}
                         contentEditable
                         suppressContentEditableWarning
                         onBlur={(e) => {
@@ -886,6 +893,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
                       editGroup(g.title, nv)
                     },
                     crud ? { onAdd: () => addSkill(section.id, g.title), onRemove: (j) => removeSkill(section.id, g.title, j) } : undefined,
+                    (j) => groupSkillKey(section.id, g.title, j),
                   )}
                 </div>
               ))}
@@ -901,7 +909,9 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
                 )}
                 {g.title !== DEFAULT_SKILL_GROUP_TITLE && <span style={{ fontWeight: 700, color: palette.heading, ...groupTitleCss(g.title) }}>: </span>}
                 <span
-                  style={{ color: tColor }}
+                  style={{ color: tColor, ...lcss(groupValueKey(section.id, g.title)) }}
+                  data-el="body"
+                  data-linekey={groupValueKey(section.id, g.title)}
                   contentEditable
                   suppressContentEditableWarning
                   onBlur={(e) => editGroup(g.title, (e.currentTarget.textContent || "").split(",").map((x) => x.trim()).filter(Boolean))}
@@ -921,7 +931,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
                 const filled = skillDotsFilled(i)
                 return (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: contentFont, color: tColor, fontFamily: fam }} contentEditable suppressContentEditableWarning onBlur={(e) => handleListChange(section.id, i, e.currentTarget.textContent || "")}>
+                    <span style={{ fontSize: contentFont, color: tColor, fontFamily: fam, ...lcss(lineKey(section.id, { item: i })) }} data-el="body" data-linekey={lineKey(section.id, { item: i })} contentEditable suppressContentEditableWarning onBlur={(e) => handleListChange(section.id, i, e.currentTarget.textContent || "")}>
                       {lng}
                     </span>
                     <span style={{ display: "inline-flex", gap: 3, flexShrink: 0 }}>
@@ -962,10 +972,10 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
               .filter(([, fld]) => !fld.hidden && fld.content)
               .map(([key, fld]) => (
                 <div key={key}>
-                  <span style={{ fontWeight: 700, color: palette.heading }} contentEditable suppressContentEditableWarning onBlur={(e) => handleCustomFieldChange(key, "title", e.currentTarget.textContent || "")}>
+                  <span style={{ fontWeight: 700, color: palette.heading, ...lcss(lineKey("custom", { field: key })) }} data-el="body" data-linekey={lineKey("custom", { field: key })} contentEditable suppressContentEditableWarning onBlur={(e) => handleCustomFieldChange(key, "title", e.currentTarget.textContent || "")}>
                     {fld.title}:
                   </span>{" "}
-                  <span contentEditable suppressContentEditableWarning onBlur={(e) => handleCustomFieldChange(key, "content", e.currentTarget.textContent || "")}>
+                  <span style={lcss(lineKey("custom", { field: `${key}-value` }))} data-el="body" data-linekey={lineKey("custom", { field: `${key}-value` })} contentEditable suppressContentEditableWarning onBlur={(e) => handleCustomFieldChange(key, "content", e.currentTarget.textContent || "")}>
                     {fld.content}
                   </span>
                 </div>
@@ -1127,7 +1137,8 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>{monogramEl(58, "#fff", palette.accent)}</div>
             )}
             <div
-              style={{ fontSize: px(Math.min(design.sizes.name, 19)), fontWeight: 800, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.02em", lineHeight: 1.15, color: "#fff" }}
+              data-linekey={NAME_KEY}
+              style={{ fontSize: px(Math.min(design.sizes.name, 19)), fontWeight: 800, fontFamily: fam, ...lcss(NAME_KEY), textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.02em", lineHeight: 1.15, color: "#fff" }}
               contentEditable
               suppressContentEditableWarning
               onBlur={handleNameChange}
@@ -1135,7 +1146,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
               {resumeData.basics.name}
             </div>
             {(firstRole || crud) && (
-              <div data-el="body" data-ph="Your professional title" contentEditable suppressContentEditableWarning onBlur={handleFirstRoleChange} style={{ fontSize: px(design.sizes.small), fontFamily: fam, marginTop: 5, color: "#fff", opacity: 0.92 }}>{firstRole}</div>
+              <div data-el="body" data-linekey={HEADLINE_KEY} data-ph="Your professional title" contentEditable suppressContentEditableWarning onBlur={handleFirstRoleChange} style={{ fontSize: px(design.sizes.small), fontFamily: fam, marginTop: 5, color: "#fff", opacity: 0.92 }}>{firstRole}</div>
             )}
           </div>
         ) : design.monogram ? (
@@ -1164,7 +1175,8 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
       <div key="main" style={{ flex: 1, padding: "28px 30px" }}>
         {!design.sidebarNameBlock && (
           <h1
-            style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.name, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.01em", borderBottom: `2px solid ${palette.accent}`, paddingBottom: 8, marginBottom: 14, lineHeight: 1.1 }}
+            data-linekey={NAME_KEY}
+            style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.name, fontFamily: fam, ...lcss(NAME_KEY), textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.01em", borderBottom: `2px solid ${palette.accent}`, paddingBottom: 8, marginBottom: 14, lineHeight: 1.1 }}
             contentEditable
             suppressContentEditableWarning
             onBlur={handleNameChange}
@@ -1188,14 +1200,14 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
   const stripe = design.accentStripe
   const roleEl = (color: string, center: boolean) =>
     design.showRole && (firstRole || crud) ? (
-      <div data-el="body" data-ph="Your professional title" contentEditable suppressContentEditableWarning onBlur={handleFirstRoleChange} style={{ fontSize: px(design.sizes.content), color, fontFamily: fam, marginTop: -2, marginBottom: 8, textAlign: center ? "center" : "left", letterSpacing: "0.03em" }}>
+      <div data-el="body" data-linekey={HEADLINE_KEY} data-ph="Your professional title" contentEditable suppressContentEditableWarning onBlur={handleFirstRoleChange} style={{ fontSize: px(design.sizes.content), color, fontFamily: fam, marginTop: -2, marginBottom: 8, textAlign: center ? "center" : "left", letterSpacing: "0.03em" }}>
         {firstRole}
       </div>
     ) : null
   const header =
     design.header === "band" ? (
       <div style={{ background: palette.headerBg, color: palette.headerText, padding: "26px 40px", textAlign: "center" }}>
-        <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.headerText, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.06em", marginBottom: 8 }} data-ph="YOUR NAME" data-el="name" contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
+        <h1 data-linekey={NAME_KEY} style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.headerText, fontFamily: fam, ...lcss(NAME_KEY), textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.06em", marginBottom: 8 }} data-ph="YOUR NAME" data-el="name" contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
           {resumeData.basics.name}
         </h1>
         {roleEl(palette.headerText || "#fff", true)}
@@ -1209,7 +1221,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
           </span>
         </div>
         <div style={{ flex: 1, background: palette.headerBg, color: palette.headerText, padding: "22px 28px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.headerText, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.04em", marginBottom: 8 }} data-ph="YOUR NAME" data-el="name" contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
+          <h1 data-linekey={NAME_KEY} style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.headerText, fontFamily: fam, ...lcss(NAME_KEY), textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.04em", marginBottom: 8 }} data-ph="YOUR NAME" data-el="name" contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
             {resumeData.basics.name}
           </h1>
           {roleEl(palette.headerText || "#fff", false)}
@@ -1221,7 +1233,7 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
         {design.monogram && (
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>{monogramEl(54, palette.accent, palette.headerText || "#fff")}</div>
         )}
-        <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 700, color: palette.name, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.06em", marginBottom: 8 }} data-ph="YOUR NAME" data-el="name" contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
+        <h1 data-linekey={NAME_KEY} style={{ fontSize: px(design.sizes.name), fontWeight: 700, color: palette.name, fontFamily: fam, ...lcss(NAME_KEY), textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.06em", marginBottom: 8 }} data-ph="YOUR NAME" data-el="name" contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
           {resumeData.basics.name}
         </h1>
         {roleEl(palette.accent, true)}
@@ -1232,12 +1244,12 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
         {design.monogram ? (
           <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 8 }}>
             {monogramEl(50, palette.accent, palette.headerText || "#fff")}
-            <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.name, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.01em", margin: 0, lineHeight: 1.1 }} data-ph="YOUR NAME" data-el="name" contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
+            <h1 data-linekey={NAME_KEY} style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.name, fontFamily: fam, ...lcss(NAME_KEY), textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.01em", margin: 0, lineHeight: 1.1 }} data-ph="YOUR NAME" data-el="name" contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
               {resumeData.basics.name}
             </h1>
           </div>
         ) : (
-          <h1 style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.name, fontFamily: fam, textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.01em", marginBottom: 8 }} data-ph="YOUR NAME" data-el="name" contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
+          <h1 data-linekey={NAME_KEY} style={{ fontSize: px(design.sizes.name), fontWeight: 800, color: palette.name, fontFamily: fam, ...lcss(NAME_KEY), textTransform: design.uppercaseName ? "uppercase" : "none", letterSpacing: "0.01em", marginBottom: 8 }} data-ph="YOUR NAME" data-el="name" contentEditable suppressContentEditableWarning onBlur={handleNameChange}>
             {resumeData.basics.name}
           </h1>
         )}

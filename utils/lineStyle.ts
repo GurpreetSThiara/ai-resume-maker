@@ -41,9 +41,27 @@ export function sectionTitleKey(sectionId: string): string {
  * every later index and drag styles onto the wrong label.
  */
 export function groupTitleKey(sectionId: string, groupTitle: string): string {
-  const slug = groupTitle.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
-  return lineKey(sectionId, { field: `group-${slug}` })
+  return lineKey(sectionId, { field: `group-${groupSlug(groupTitle)}` })
 }
+
+/** Slug used by the group-scoped keys below. */
+function groupSlug(groupTitle: string): string {
+  return groupTitle.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+}
+
+/** Key for one skill inside a group (pills / bars / dots / bullet styles). */
+export function groupSkillKey(sectionId: string, groupTitle: string, index: number): string {
+  return lineKey(sectionId, { field: `group-${groupSlug(groupTitle)}`, bullet: index })
+}
+
+/** Key for a group's joined value line (the inline "Grouped" style). */
+export function groupValueKey(sectionId: string, groupTitle: string): string {
+  return lineKey(sectionId, { field: `groupvalue-${groupSlug(groupTitle)}` })
+}
+
+/** Keys for the header block: the name and the professional title beneath it. */
+export const NAME_KEY = lineKey("basics", { field: "name" })
+export const HEADLINE_KEY = lineKey("basics", { field: "headline" })
 
 const CSS_TRANSFORM: Record<NonNullable<PerLineStyle["transform"]>, string> = {
   upper: "uppercase",

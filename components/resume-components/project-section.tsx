@@ -1,4 +1,5 @@
 "use client"
+import { lineKey } from "@/utils/lineStyle"
 import React from 'react'
 
 type Project = {
@@ -26,6 +27,11 @@ type Props = {
   contentEditable?: boolean
   onProjectFieldChange?: (sectionId: string | undefined, projectIndex: number, field: string, value: string) => void
   onProjectDescriptionChange?: (sectionId: string | undefined, projectIndex: number, descIndex: number, value: string) => void
+  /**
+   * Resolves a lineKey to its per-element CSS. Supplied by the editor canvas so
+   * project fields honour per-element styling; omitted by the static renderers.
+   */
+  lineCss?: (key: string) => React.CSSProperties
 }
 
 export default function ProjectSection({
@@ -41,7 +47,12 @@ export default function ProjectSection({
   contentEditable = false,
   onProjectFieldChange,
   onProjectDescriptionChange,
+  lineCss,
 }: Props) {
+  const lc = (key: string): React.CSSProperties => lineCss?.(key) ?? {}
+  // Derived via lineKey so the canvas, PDF and DOCX cannot drift apart.
+  const pk = (pIdx: number, field: string) => lineKey(sectionId ?? "", { item: pIdx, field })
+  const pbk = (pIdx: number, dIdx: number) => lineKey(sectionId ?? "", { item: pIdx, field: "bullet", bullet: dIdx })
   if (!Array.isArray(projects) || projects.length === 0) return null
 
   return (
@@ -78,7 +89,9 @@ export default function ProjectSection({
           <header className={`mb-1 ${showTimelineDates ? '' : ''}`}>
             <span
               className={titleClassName}
-              style={{ color: textColor, ...(titleStyle || {}) }}
+              style={{ color: textColor, ...(titleStyle || {}), ...lc(pk(pIdx, 'name')) }}
+              data-el="body"
+              data-linekey={pk(pIdx, 'name')}
               contentEditable={contentEditable || !!onProjectFieldChange}
               suppressContentEditableWarning
               onBlur={(e) => onProjectFieldChange?.(sectionId, pIdx, 'name', e.currentTarget.textContent || '')}
@@ -89,9 +102,9 @@ export default function ProjectSection({
             {/* Date range shown only when timeline enabled and dates exist */}
             {showTimelineDates && (proj.startDate || proj.endDate) && (
               <span className="text-xs text-gray-600 ml-4 shrink-0" style={{ color: '#718096', fontSize: '11px' }}>
-                <span contentEditable={contentEditable || !!onProjectFieldChange} suppressContentEditableWarning onBlur={(e) => onProjectFieldChange?.(sectionId, pIdx, 'startDate', e.currentTarget.textContent || '')}>{proj.startDate || ''}</span>
+                <span data-el="body" data-linekey={pk(pIdx, 'startDate')} style={lc(pk(pIdx, 'startDate'))} contentEditable={contentEditable || !!onProjectFieldChange} suppressContentEditableWarning onBlur={(e) => onProjectFieldChange?.(sectionId, pIdx, 'startDate', e.currentTarget.textContent || '')}>{proj.startDate || ''}</span>
                 {' - '}
-                <span contentEditable={contentEditable || !!onProjectFieldChange} suppressContentEditableWarning onBlur={(e) => onProjectFieldChange?.(sectionId, pIdx, 'endDate', e.currentTarget.textContent || '')}>{proj.endDate || ''}</span>
+                <span data-el="body" data-linekey={pk(pIdx, 'endDate')} style={lc(pk(pIdx, 'endDate'))} contentEditable={contentEditable || !!onProjectFieldChange} suppressContentEditableWarning onBlur={(e) => onProjectFieldChange?.(sectionId, pIdx, 'endDate', e.currentTarget.textContent || '')}>{proj.endDate || ''}</span>
               </span>
             )}
 
@@ -127,7 +140,9 @@ export default function ProjectSection({
                   {/* Text */}
                   <span
                     className={descriptionClassName}
-                    style={{ color: textColor, ...(descriptionStyle || {}) }}
+                    style={{ color: textColor, ...(descriptionStyle || {}), ...lc(pbk(pIdx, dIdx)) }}
+                    data-el="body"
+                    data-linekey={pbk(pIdx, dIdx)}
                     contentEditable={contentEditable || !!onProjectDescriptionChange}
                     suppressContentEditableWarning
                     onBlur={(e) =>
