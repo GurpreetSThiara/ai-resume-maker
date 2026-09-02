@@ -5,19 +5,23 @@ import { CONSENT_REGION_COOKIE, consentRegionForCountry } from '@/lib/consent-re
  * Stamps a cookie describing whether the visitor's region requires opt-in
  * consent before analytics may load.
  *
- * Done in middleware rather than by reading headers() in the root layout on
- * purpose: reading request headers during render would opt every page out of
- * static generation. Middleware runs ahead of the cache, so pages stay static
- * and the client still gets a per-visitor answer.
+ * Done here rather than by reading headers() in the root layout on purpose:
+ * reading request headers during render would opt every page out of static
+ * generation. This runs ahead of the cache, so pages stay static and the
+ * client still gets a per-visitor answer.
+ *
+ * Named `proxy` because Next 16 renamed the `middleware` file convention —
+ * the entry template resolves `mod.proxy || mod.default` for a proxy file.
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const response = NextResponse.next()
 
   // Vercel sets x-vercel-ip-country; cf-ipcountry covers a Cloudflare front.
+  // Neither exists on localhost, which is why local dev falls back below.
   const country =
     request.headers.get('x-vercel-ip-country') ??
     request.headers.get('cf-ipcountry') ??
-    ''
+    (process.env.NODE_ENV !== 'production' ? process.env.DEV_CONSENT_COUNTRY ?? '' : '')
 
   response.cookies.set(CONSENT_REGION_COOKIE, consentRegionForCountry(country), {
     // Readable by the client so the banner can decide without a round trip.
