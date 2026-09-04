@@ -6,7 +6,7 @@ export const LS_KEYS = {
   resumeData: "resumeData",
   currentStep: "currentStep",
   completedSteps: "completedSteps",
-  localResumes: "local_resumes_v1",
+  localResumes: "local_resumes_v2",
   currentResumeId: "currentResumeId",
   coverLetter: (id: string) => `coverLetter_${id}`,
 } as const

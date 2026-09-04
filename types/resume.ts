@@ -288,3 +288,14 @@ export interface PDFGenerationOptions {
   filename?: string
   linkDisplay?: 'short' | 'full'
 }
+
+
+/** A resume saved in the browser rather than to an account. */
+export interface LocalResumeItem {
+  id: string
+  title: string
+  data: ResumeData
+  createdAt: string
+  updatedAt: string
+  version: number
+}
