@@ -15,10 +15,11 @@ export async function POST(request: NextRequest) {
 
     // Get user agent and IP address
     const userAgent = request.headers.get('user-agent') || undefined
-    const ipAddress = request.ip || 
-      request.headers.get('x-forwarded-for') || 
-      request.headers.get('x-real-ip') || 
-      undefined
+    // request.ip was removed from NextRequest, so it was always undefined and
+    // the expression fell through to these headers anyway.
+    const forwardedFor = request.headers.get('x-forwarded-for')
+    const ipAddress =
+      forwardedFor?.split(',')[0].trim() || request.headers.get('x-real-ip') || undefined
 
     // Track the download
     // Only persist download counts to MongoDB when running on createfreecv.com

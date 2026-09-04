@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
-import { openRouter } from "@/lib/openrouter"
+import { createOpenRouterClient } from "@/lib/openrouter"
 import { requireUser } from "@/lib/api/auth"
 import { hasBudgetRemaining, recordUsage } from "@/lib/ai-usage"
 import { RESUME_PARSE_SYSTEM_PROMPT, AI_ERROR_CODES } from "@/constants/aiConstants"
-import { AI_PARSE_MAX_BYTES } from "@/config/aiConfig"
+import { AI_MODEL, AI_PARSE_MAX_BYTES } from "@/config/aiConfig"
 import { MESSAGES } from "@/constants/messages"
 
 export const dynamic = "force-dynamic"
@@ -17,9 +17,9 @@ async function sleep(ms: number) {
 
 async function callAIWithRetry(text: string, systemPrompt: string, retries = 0): Promise<any> {
   try {
-    const client = openRouter()
+    const client = createOpenRouterClient()
     const response = await client.chat.completions.create({
-      model: "openai/gpt-oss-20b:free",
+      model: AI_MODEL,
       temperature: 0.3,
       messages: [
         { role: "system", content: systemPrompt },
@@ -99,6 +99,16 @@ export async function POST(request: Request) {
         return NextResponse.json(
           { error: MESSAGES.AI_RATE_LIMITED, code: AI_ERROR_CODES.RATE_LIMITED },
           { status: 429 },
+        )
+      }
+
+      // OpenRouter answers 404 when a model slug is retired or renamed. The
+      // retry wrapper only retries 429, so without this the failure surfaced
+      // as a bare 500 with nothing the UI could show.
+      if (error.status === 404) {
+        return NextResponse.json(
+          { error: MESSAGES.AI_MODEL_UNAVAILABLE, code: AI_ERROR_CODES.MODEL_UNAVAILABLE },
+          { status: 503 },
         )
       }
 

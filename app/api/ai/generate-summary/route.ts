@@ -1,4 +1,5 @@
-import { openRouter } from "@/lib/openrouter"
+import { createOpenRouterClient } from "@/lib/openrouter"
+import { AI_MODEL } from "@/config/aiConfig"
 import { requireUser } from "@/lib/api/auth"
 
 export async function POST(request: Request) {
@@ -42,7 +43,8 @@ Please write a concise, professional summary (2-3 sentences) that:
 4. Uses active voice and powerful action verbs
 5. Keeps it under 100 words`
 
-    const response = await openRouter.chat.completions.create({
+    const client = createOpenRouterClient()
+    const response = await client.chat.completions.create({
       messages: [
         {
           role: "system",
@@ -53,7 +55,7 @@ Please write a concise, professional summary (2-3 sentences) that:
           content: prompt,
         },
       ],
-      model: "openai/gpt-oss-20b:free",
+      model: AI_MODEL,
       temperature: 0.7,
     })
 
