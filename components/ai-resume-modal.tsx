@@ -5,7 +5,6 @@ import { Textarea } from './ui/textarea';
 import type { ResumeData } from '@/types/resume';
 import { useAi } from '@/hooks/use-ai';
 import { supabase } from '@/lib/supabase/client';
-import { sanitizeTextForPdf } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth-context';
 
 interface AIResumeModalProps {
@@ -231,38 +230,6 @@ Parse the user's information and return ONLY the JSON object, no additional text
     }
   };
 
-  // Sanitize resume data to ensure PDF compatibility
-  const sanitizeResumeData = (data: ResumeData): ResumeData => {
-    return {
-      ...data,
-      name: sanitizeTextForPdf(data.name || ''),
-      email: sanitizeTextForPdf(data.email || ''),
-      phone: sanitizeTextForPdf(data.phone || ''),
-      location: sanitizeTextForPdf(data.location || ''),
-      linkedin: sanitizeTextForPdf(data.linkedin || ''),
-      custom: Object.fromEntries(
-        Object.entries(data.custom || {}).map(([key, field]) => [
-          key,
-          {
-            ...field,
-            title: sanitizeTextForPdf(field.title || ''),
-            content: sanitizeTextForPdf(field.content || ''),
-          }
-        ])
-      ),
-      sections: data.sections?.map(section => ({
-        ...section,
-        title: sanitizeTextForPdf(section.title || ''),
-        content: Object.fromEntries(
-          Object.entries(section?.content || {}).map(([key, values]) => [
-            key,
-            values?.map(value => sanitizeTextForPdf(value || '')) || []
-          ]
-        ))
-      })) || [],
-    }
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
@@ -304,9 +271,9 @@ Parse the user's information and return ONLY the JSON object, no additional text
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <h3 className="font-semibold text-green-800 mb-2">✅ Resume Data Extracted!</h3>
                 <div className="text-sm text-green-700 space-y-1">
-                  <p><strong>Name:</strong> {parsedData.name}</p>
-                  <p><strong>Email:</strong> {parsedData.email}</p>
-                  <p><strong>Location:</strong> {parsedData.location}</p>
+                  <p><strong>Name:</strong> {parsedData.basics?.name}</p>
+                  <p><strong>Email:</strong> {parsedData.basics?.email}</p>
+                  <p><strong>Location:</strong> {parsedData.basics?.location}</p>
                   <p><strong>Sections:</strong> {parsedData.sections.length} sections extracted</p>
                 </div>
               </div>
