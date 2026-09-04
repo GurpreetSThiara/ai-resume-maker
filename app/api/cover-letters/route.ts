@@ -1,89 +1,65 @@
-import { NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { CoverLetter, CreateCoverLetterInput } from '@/types/cover-letter';
+import { NextResponse } from 'next/server'
+import { requireUser } from '@/lib/api/auth'
+import { COVER_LETTER_SAVE_LIMIT } from '@/config/coverLetterConfig'
+import { MESSAGES } from '@/constants/messages'
+import type { CreateCoverLetterInput } from '@/types/cover-letter'
+
+const TABLE = 'cover_letters'
 
 export async function GET() {
+  const { supabase, user, response } = await requireUser()
+  if (response) return response
+
   try {
-    const supabase = createRouteHandlerClient({ cookies: cookies() });
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
     const { data, error } = await supabase
-      .from('cover_letters')
+      .from(TABLE)
       .select('*')
-      .eq('user_id', session.user.id)
-      .order('updated_at', { ascending: false });
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
 
-    if (error) throw error;
+    if (error) throw error
 
-    return NextResponse.json(data);
+    return NextResponse.json(data)
   } catch (error) {
-    console.error('Error fetching cover letters:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch cover letters' },
-      { status: 500 }
-    );
+    console.error('Error fetching cover letters:', error)
+    return NextResponse.json({ error: MESSAGES.COVER_LETTER_FETCH_FAILED }, { status: 500 })
   }
 }
 
 export async function POST(request: Request) {
+  const { supabase, user, response } = await requireUser()
+  if (response) return response
+
   try {
-    const supabase = createRouteHandlerClient({ cookies: cookies() });
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Check user's current cover letter count
     const { count, error: countError } = await supabase
-      .from('cover_letters')
+      .from(TABLE)
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', session.user.id);
+      .eq('user_id', user.id)
 
-    if (countError) throw countError;
+    if (countError) throw countError
 
-    // For now, we'll assume a hard limit of 3 for all users.
-    // In a real app, you'd check the user's subscription plan here.
-    const SAVE_LIMIT = 3;
-    if (count !== null && count >= SAVE_LIMIT) {
-      return NextResponse.json(
-        { error: 'You have reached the maximum number of saved cover letters.' },
-        { status: 403 } // 403 Forbidden is appropriate for this kind of limit
-      );
+    if (count !== null && count >= COVER_LETTER_SAVE_LIMIT) {
+      return NextResponse.json({ error: MESSAGES.COVER_LETTER_LIMIT_REACHED }, { status: 403 })
     }
 
-    const body: CreateCoverLetterInput = await request.json();
-    
+    const body: CreateCoverLetterInput = await request.json()
+
     const { data, error } = await supabase
-      .from('cover_letters')
+      .from(TABLE)
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         title: body.title,
         content: body.content,
         template_id: body.templateId,
       })
       .select()
-      .single();
+      .single()
 
-    if (error) throw error;
+    if (error) throw error
 
-    return NextResponse.json(data, { status: 201 });
+    return NextResponse.json(data, { status: 201 })
   } catch (error) {
-    console.error('Error creating cover letter:', error);
-    return NextResponse.json(
-      { error: 'Failed to create cover letter' },
-      { status: 500 }
-    );
+    console.error('Error creating cover letter:', error)
+    return NextResponse.json({ error: MESSAGES.COVER_LETTER_CREATE_FAILED }, { status: 500 })
   }
 }

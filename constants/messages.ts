@@ -7,4 +7,13 @@ export const MESSAGES = {
   PORTFOLIO_GENERIC_ERROR: "An error occurred",
   RESUME_DOWNLOAD_SUCCESS: "Resume downloaded successfully!",
   RESUME_DOWNLOAD_FAILED: "Failed to download resume.",
+  AUTH_UNAUTHORIZED: "Unauthorized",
+  FORBIDDEN: "Forbidden",
+  COVER_LETTER_NOT_FOUND: "Cover letter not found",
+  COVER_LETTER_LIMIT_REACHED: "You have reached the maximum number of saved cover letters.",
+  COVER_LETTER_FETCH_FAILED: "Failed to fetch cover letters",
+  COVER_LETTER_FETCH_ONE_FAILED: "Failed to fetch cover letter",
+  COVER_LETTER_CREATE_FAILED: "Failed to create cover letter",
+  COVER_LETTER_UPDATE_FAILED: "Failed to update cover letter",
+  COVER_LETTER_DELETE_FAILED: "Failed to delete cover letter",
 } as const

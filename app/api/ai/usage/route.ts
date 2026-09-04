@@ -12,7 +12,7 @@ type UsageDoc = {
 
 export async function GET(_req: NextRequest) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     const {
       data: { user },
     } = await supabase.auth.getUser()

@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const { messages, model, siteUrl, siteTitle } = await req.json();
 
     // Enforce auth and usage check using bearer token from client
-    const supabase = createServerComponentClient();
+    const supabase = await createServerComponentClient();
     const authHeader = req.headers.get('authorization') || '';
     const token = authHeader.toLowerCase().startsWith('bearer ') ? authHeader.slice(7) : undefined;
     // console.log('[OpenRouter] Incoming request', {

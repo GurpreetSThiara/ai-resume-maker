@@ -1,20 +1,15 @@
 import { openRouter } from "@/lib/openrouter"
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { requireUser } from "@/lib/api/auth"
 
 export async function POST(request: Request) {
-  const supabase = createRouteHandlerClient({ cookies: cookies() })
-  const { data: { session } } = await supabase.auth.getSession()
-  
-  if (!session?.user?.id) {
-    return new Response("Unauthorized", { status: 401 })
-  }
+  const { supabase, user, response } = await requireUser()
+  if (response) return response
   
   // Check remaining credits
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('credits_remaining')
-    .eq('id', session.user.id)
+    .eq('id', user.id)
     .single()
 
   if (profileError || !profile) {
@@ -75,7 +70,7 @@ Please write a concise, professional summary (2-3 sentences) that:
         credits_remaining: profile.credits_remaining - 1,
         last_activity: new Date().toISOString()
       })
-      .eq('id', session.user.id)
+      .eq('id', user.id)
 
     if (updateError) {
       throw new Error("Failed to update credits")
