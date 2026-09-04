@@ -3,11 +3,9 @@ import type { Metadata } from "next"
 import { Roboto } from "next/font/google"
 import "./globals.css"
 import { AiProvider } from "@/hooks/use-ai"
-import { DevelopmentBanner } from "@/components/global/DevelopmentBanner";
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { BottomNav } from "@/components/mobile/bottom-nav"
-import { Analytics } from "@vercel/analytics/next"
 import Providers from "@/contexts/provider"
 import { ToastContainer } from "@/components/toast/toast-contaner"
 import { JsonLd } from "@/components/seo/JsonLd"
@@ -121,7 +119,6 @@ export default function RootLayout({
               Skip to content
             </a>
 
-            {/* <DevelopmentBanner /> */}
             <Navbar />
 
             {/* Bottom padding on mobile so content clears the fixed bottom tab bar. */}
@@ -129,7 +126,6 @@ export default function RootLayout({
             <Footer />
             <BottomNav />
             <ToastContainer />
-            {/* <Analytics/> */}
 
           </AiProvider>
         </Providers>
