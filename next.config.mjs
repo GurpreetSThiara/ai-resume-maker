@@ -1,9 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
+    // Still on: 184 pre-existing errors are being worked down in phases.
+    // Flipped to false in REMEDIATION_PLAN phase 6d once the count is zero.
     ignoreBuildErrors: true,
   },
   images: {
