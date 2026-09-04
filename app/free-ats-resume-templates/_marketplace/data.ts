@@ -278,4 +278,7 @@ export const ATS_CHAMPIONS = [...TEMPLATES]
   .slice(0, 8)
 
 export const CREATE_BASE = "/free-ats-resume-templates"
-export const useTemplateHref = (templateId: string) => `${CREATE_BASE}/create?template=${templateId}`
+// Not a hook — a pure path builder. It was named useTemplateHref, which made
+// ESLint treat it as one and flag TemplatePreviewModal for calling a hook
+// after an early return.
+export const templateHref = (templateId: string) => `${CREATE_BASE}/create?template=${templateId}`

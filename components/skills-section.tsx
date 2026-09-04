@@ -40,7 +40,7 @@ function SkillGroupInput({
     if (JSON.stringify(currentParsed) !== JSON.stringify(skills)) {
       setValue(skills.join(', '))
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [skills])
 
   return (
