@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { CoverLetter } from '@/types/cover-letter';
+import { CoverLetterRow } from '@/types/cover-letter';
 import {
   Select,
   SelectContent,
@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select';
 
 export function CoverLetterSwitcher() {
-  const [coverLetters, setCoverLetters] = useState<CoverLetter[]>([]);
+  const [coverLetters, setCoverLetters] = useState<CoverLetterRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const params = useParams();

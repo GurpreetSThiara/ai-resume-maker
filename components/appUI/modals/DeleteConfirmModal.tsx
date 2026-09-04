@@ -9,8 +9,23 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
+import { MESSAGES } from '@/constants/messages';
 
-const DeleteConfirmModal = ({ open, onOpenChange, onConfirm, title = "Confirm Deletion", description = "Are you sure you want to delete this item? This action cannot be undone and will permanently remove the data from our servers." }) => {
+interface DeleteConfirmModalProps {
+  open: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onConfirm?: () => void;
+  title?: string;
+  description?: string;
+}
+
+const DeleteConfirmModal = ({
+  open,
+  onOpenChange,
+  onConfirm,
+  title = MESSAGES.DELETE_CONFIRM_TITLE,
+  description = MESSAGES.DELETE_CONFIRM_DESCRIPTION,
+}: DeleteConfirmModalProps) => {
   const handleDelete = () => {
     onConfirm?.();
     onOpenChange?.(false);

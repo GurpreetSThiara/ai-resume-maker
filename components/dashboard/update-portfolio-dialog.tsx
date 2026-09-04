@@ -72,7 +72,7 @@ export function UpdatePortfolioDialog({ children, portfolioId, currentResumeId, 
             })
 
             if (updateResult.success) {
-                toast.success(updateResult.message)
+                toast.success(updateResult.message ?? MESSAGES.PORTFOLIO_SAVED)
                 setOpen(false)
                 if (onUpdate) onUpdate()
                 router.refresh()

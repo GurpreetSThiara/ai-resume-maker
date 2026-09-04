@@ -4,7 +4,7 @@ import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { sampleResumeData } from "@/lib/examples/resume-example"
+import { sampleResume } from "@/lib/examples/resume-example"
 import { GoogleResume } from "@/components/resumes/google-resume"
 import { ClassicATSResume } from "@/components/resumes/ats-classic"
 

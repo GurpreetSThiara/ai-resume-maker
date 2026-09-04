@@ -25,8 +25,16 @@ export interface ToastOptions {
   className?: string
 }
 
-export interface Toast extends Required<ToastOptions> {
+/**
+ * A queued toast. Required<> would make `action`, `onClose` and `icon`
+ * mandatory, but addToast passes them straight through and they are genuinely
+ * optional — so only the fields that always get a default are required here.
+ */
+export interface Toast extends Required<Omit<ToastOptions, "action" | "onClose" | "icon">> {
   id: string
+  action?: ToastOptions["action"]
+  onClose?: ToastOptions["onClose"]
+  icon?: ToastOptions["icon"]
 }
 
 interface ToastContextType {

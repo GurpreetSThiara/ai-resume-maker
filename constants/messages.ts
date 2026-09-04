@@ -20,6 +20,9 @@ export const MESSAGES = {
   PORTFOLIO_GENERIC_ERROR: "An error occurred",
   RESUME_DOWNLOAD_SUCCESS: "Resume downloaded successfully!",
   RESUME_DOWNLOAD_FAILED: "Failed to download resume.",
+  DELETE_CONFIRM_TITLE: "Confirm deletion",
+  DELETE_CONFIRM_DESCRIPTION:
+    "This cannot be undone — the data will be permanently removed from our servers.",
   AUTH_UNAUTHORIZED: "Unauthorized",
   FORBIDDEN: "Forbidden",
   VALIDATION_FAILED: "Some of the values sent were not accepted.",

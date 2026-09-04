@@ -229,6 +229,24 @@ export type RequiredCoverLetterFields = Pick<CoverLetter,
 export type CoverLetterDraft = Partial<CoverLetter> & RequiredCoverLetterFields;
 
 /**
+ * A `cover_letters` table row, as returned by /api/cover-letters.
+ *
+ * Distinct from `CoverLetter`, which models the rich *document* stored in the
+ * row's `content` column. Listing endpoints hand back rows, so typing them as
+ * CoverLetter meant reading fields the row has (title) off a type that lacks
+ * them, and vice versa.
+ */
+export interface CoverLetterRow {
+  id: string;
+  user_id: string;
+  title: string;
+  content: unknown;
+  template_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
  * Write payloads accepted by /api/cover-letters.
  *
  * `.strict()` is the point of these: the PUT handler used to spread the raw

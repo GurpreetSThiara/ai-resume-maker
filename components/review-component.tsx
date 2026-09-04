@@ -316,7 +316,7 @@ export function ReviewComponent({
           ) : (
             <div className="space-y-3">
               <Button 
-                onClick={open}
+                onClick={() => open()}
                 className="w-full bg-blue-600 hover:bg-blue-700"
               >
                 <LogIn className="w-4 h-4 mr-2" />
