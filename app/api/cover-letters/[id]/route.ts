@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/api/auth'
 import { MESSAGES } from '@/constants/messages'
+import { updateCoverLetterSchema } from '@/types/cover-letter'
 
 const TABLE = 'cover_letters'
 
@@ -42,7 +43,13 @@ export async function PUT(request: Request, { params }: RouteContext) {
   const { id } = await params
 
   try {
-    const body = await request.json()
+    const parsed = updateCoverLetterSchema.safeParse(await request.json())
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: MESSAGES.VALIDATION_FAILED, issues: parsed.error.issues },
+        { status: 400 },
+      )
+    }
 
     const { data: existing, error: fetchError } = await supabase
       .from(TABLE)
@@ -58,10 +65,15 @@ export async function PUT(request: Request, { params }: RouteContext) {
       return NextResponse.json({ error: MESSAGES.FORBIDDEN }, { status: 403 })
     }
 
+    // Columns are named explicitly rather than spread from the body, so an
+    // unexpected key cannot reach the table even if the schema ever loosens.
+    const { title, content, templateId } = parsed.data
     const { data, error } = await supabase
       .from(TABLE)
       .update({
-        ...body,
+        ...(title !== undefined && { title }),
+        ...(content !== undefined && { content }),
+        ...(templateId !== undefined && { template_id: templateId }),
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)

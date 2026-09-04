@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { TemplateLayout } from '@/lib/config/cover-letter-templates';
 
 // Core interfaces for cover letter structure
@@ -226,6 +227,39 @@ export type RequiredCoverLetterFields = Pick<CoverLetter,
 >;
 
 export type CoverLetterDraft = Partial<CoverLetter> & RequiredCoverLetterFields;
+
+/**
+ * Write payloads accepted by /api/cover-letters.
+ *
+ * `.strict()` is the point of these: the PUT handler used to spread the raw
+ * body into the update, which made `user_id` writable — an authenticated user
+ * could reassign a cover letter they owned to any other account (QA_AUDIT H1).
+ * Anything not named here is now rejected rather than forwarded.
+ *
+ * `content` stays unvalidated on purpose: it is the serialised document body,
+ * whose shape is owned by the editor, not by this boundary.
+ */
+export const createCoverLetterSchema = z
+  .object({
+    title: z.string().trim().min(1).max(200),
+    content: z.unknown(),
+    templateId: z.string().trim().min(1).max(100).optional(),
+  })
+  .strict();
+
+export const updateCoverLetterSchema = z
+  .object({
+    title: z.string().trim().min(1).max(200).optional(),
+    content: z.unknown().optional(),
+    templateId: z.string().trim().min(1).max(100).optional(),
+  })
+  .strict()
+  .refine((value) => Object.keys(value).length > 0, {
+    message: 'At least one field must be provided',
+  });
+
+export type CreateCoverLetterInput = z.infer<typeof createCoverLetterSchema>;
+export type UpdateCoverLetterInput = z.infer<typeof updateCoverLetterSchema>;
 
 // Example validation function interface
 export interface CoverLetterValidator {

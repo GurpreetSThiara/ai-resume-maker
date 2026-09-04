@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/api/auth'
 import { COVER_LETTER_SAVE_LIMIT } from '@/config/coverLetterConfig'
 import { MESSAGES } from '@/constants/messages'
-import type { CreateCoverLetterInput } from '@/types/cover-letter'
+import { createCoverLetterSchema } from '@/types/cover-letter'
 
 const TABLE = 'cover_letters'
 
@@ -42,15 +42,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: MESSAGES.COVER_LETTER_LIMIT_REACHED }, { status: 403 })
     }
 
-    const body: CreateCoverLetterInput = await request.json()
+    const parsed = createCoverLetterSchema.safeParse(await request.json())
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: MESSAGES.VALIDATION_FAILED, issues: parsed.error.issues },
+        { status: 400 },
+      )
+    }
 
     const { data, error } = await supabase
       .from(TABLE)
       .insert({
         user_id: user.id,
-        title: body.title,
-        content: body.content,
-        template_id: body.templateId,
+        title: parsed.data.title,
+        content: parsed.data.content,
+        template_id: parsed.data.templateId,
       })
       .select()
       .single()

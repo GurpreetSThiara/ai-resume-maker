@@ -9,6 +9,7 @@ export const MESSAGES = {
   RESUME_DOWNLOAD_FAILED: "Failed to download resume.",
   AUTH_UNAUTHORIZED: "Unauthorized",
   FORBIDDEN: "Forbidden",
+  VALIDATION_FAILED: "Some of the values sent were not accepted.",
   COVER_LETTER_NOT_FOUND: "Cover letter not found",
   COVER_LETTER_LIMIT_REACHED: "You have reached the maximum number of saved cover letters.",
   COVER_LETTER_FETCH_FAILED: "Failed to fetch cover letters",
