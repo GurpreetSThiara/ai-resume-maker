@@ -1,53 +1,17 @@
-import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase/server"
-import { getMongoDb, getCollection } from "@/lib/mongo"
+import { NextResponse } from "next/server"
+import { requireUser } from "@/lib/api/auth"
+import { getUsage } from "@/lib/ai-usage"
 
-type UsageDoc = {
-  userId: string
-  month: string // YYYY-MM
-  monthUsdLimit: number
-  totalUsdUsedThisMonth: number
-  requestsThisMonth: number
-}
+export async function GET() {
+  const { user, response } = await requireUser()
+  // Anonymous callers get a null budget rather than a 401 — the client uses
+  // this to decide whether to show the AI affordances at all.
+  if (response) return NextResponse.json({ usage: null })
 
-export async function GET(_req: NextRequest) {
   try {
-    const supabase = await createServerComponentClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json({ usage: null })
-    }
-
-    const db = await getMongoDb()
-    const col = getCollection<UsageDoc>(db, "ai_usage")
-    const monthKey = new Date().toISOString().slice(0, 7)
-
-    const doc =
-      (await col.findOne({ userId: user.id, month: monthKey })) || {
-        userId: user.id,
-        month: monthKey,
-        monthUsdLimit: 2,
-        totalUsdUsedThisMonth: 0,
-        requestsThisMonth: 0,
-      }
-
-    const remaining = Math.max(0, doc.monthUsdLimit - doc.totalUsdUsedThisMonth)
-
-    return NextResponse.json({
-      usage: {
-        monthUsdRemaining: remaining,
-        monthUsdLimit: doc.monthUsdLimit,
-        totalUsdUsedThisMonth: doc.totalUsdUsedThisMonth,
-        requestsThisMonth: doc.requestsThisMonth,
-      },
-    })
-  } catch (err: any) {
+    return NextResponse.json({ usage: await getUsage(user.id) })
+  } catch (err) {
     console.error("GET /api/ai/usage error", err)
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: "Failed to read AI usage" }, { status: 500 })
   }
 }
-
-
