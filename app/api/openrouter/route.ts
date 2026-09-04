@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendOpenRouterMessage } from '@/lib/openrouter'
-import { createServerComponentClient } from '@/lib/supabase/server'
+import { createServerAnonClient } from '@/lib/supabase/server'
 import { hasBudgetRemaining, recordUsage } from '@/lib/ai-usage'
 import { MESSAGES } from '@/constants/messages'
 
@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
 
     // This route authenticates by bearer token rather than cookie, because the
     // client calls it directly with the session token it already holds.
-    const supabase = await createServerComponentClient()
+    const supabase = createServerAnonClient()
     const authHeader = req.headers.get('authorization') || ''
     const token = authHeader.toLowerCase().startsWith('bearer ') ? authHeader.slice(7) : undefined
 

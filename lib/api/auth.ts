@@ -29,7 +29,16 @@ export type RequireUserResult = AuthorizedCaller | RejectedCaller
  */
 export async function requireUser(): Promise<RequireUserResult> {
   const cookieStore = await cookies()
-  const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+
+  // The cast is deliberate. auth-helpers-nextjs types `cookies` as
+  // `() => Promise<ReadonlyRequestCookies>`, but its runtime calls the result
+  // synchronously — passing the promise-returning form that satisfies the type
+  // throws `nextCookies.get is not a function`. Verified both ways against a
+  // running server: only the resolved-store form works. The package is
+  // deprecated in favour of @supabase/ssr, which is the real fix.
+  const supabase = createRouteHandlerClient({
+    cookies: () => cookieStore as unknown as Awaited<ReturnType<typeof cookies>>,
+  } as never)
 
   const {
     data: { user },

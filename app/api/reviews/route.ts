@@ -1,33 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { submitReview, getReviews } from '@/lib/review-service'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { requireUser } from '@/lib/api/auth'
+import { MESSAGES } from '@/constants/messages'
 
 export async function POST(request: NextRequest) {
+  const { user, response } = await requireUser()
+  if (response) return response
+
   try {
-    const supabase = createServerComponentClient({ cookies })
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Authentication required to submit reviews' },
-        { status: 401 }
-      )
-    }
-
     const body = await request.json()
     const { name, rating, comment, jobTitle, company, location } = body
 
     if (!name || !rating || !comment) {
       return NextResponse.json(
-        { error: 'Name, rating, and comment are required' },
+        { error: MESSAGES.REVIEW_FIELDS_REQUIRED },
         { status: 400 }
       )
     }
 
     if (rating < 1 || rating > 5) {
       return NextResponse.json(
-        { error: 'Rating must be between 1 and 5' },
+        { error: MESSAGES.REVIEW_RATING_RANGE },
         { status: 400 }
       )
     }
@@ -46,14 +39,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, reviewId: result.reviewId })
     } else {
       return NextResponse.json(
-        { error: result.error || 'Failed to submit review' },
+        { error: result.error || MESSAGES.REVIEW_SUBMIT_FAILED },
         { status: 500 }
       )
     }
   } catch (error) {
     console.error('Error submitting review:', error)
     return NextResponse.json(
-      { error: 'Failed to submit review' },
+      { error: MESSAGES.REVIEW_SUBMIT_FAILED },
       { status: 500 }
     )
   }
@@ -71,7 +64,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error getting reviews:', error)
     return NextResponse.json(
-      { error: 'Failed to get reviews' },
+      { error: MESSAGES.REVIEW_LIST_FAILED },
       { status: 500 }
     )
   }
