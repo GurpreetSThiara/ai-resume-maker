@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { submitReview, getReviews, getReviewStats, markReviewHelpful, reportReview } from '@/lib/review-service'
+import { submitReview, getReviews } from '@/lib/review-service'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 

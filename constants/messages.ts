@@ -23,6 +23,7 @@ export const MESSAGES = {
   AI_MODEL_UNAVAILABLE: "The AI model is unavailable. Please try again later or contact support.",
   AI_PARSE_MISSING_TEXT: "Missing resume text",
   AI_SERVICE_FAILED: "Failed to communicate with AI service",
+  REVIEW_NOT_FOUND: "That review no longer exists.",
   REVIEW_ID_REQUIRED: "Review ID is required",
   REVIEW_ALREADY_VOTED: "You have already registered this on that review.",
   REVIEW_HELPFUL_FAILED: "Failed to mark review as helpful",
