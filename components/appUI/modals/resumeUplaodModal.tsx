@@ -12,6 +12,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { SHOW_ERROR } from "@/utils/toast"
+import { MESSAGES } from "@/constants/messages"
+import { AI_PARSE_MAX_BYTES } from "@/config/aiConfig"
 
 interface PdfUploadModalProps {
   onFileUpload: (file: File) => void
@@ -34,11 +37,16 @@ export function PdfUploadModal({ onFileUpload, isLoading, status }: PdfUploadMod
     }
   }
 
+  // Mirrors the server-side cap in app/api/ai/parse so the user is told
+  // before the upload rather than by a 413.
   const validateFileSize = (file: File): boolean => {
-    const maxSizeMB = 1
-    const maxSizeBytes = maxSizeMB * 1024 * 1024
-    if (file.size > maxSizeBytes) {
-      alert(`File size exceeds ${maxSizeMB}MB limit. Current size: ${(file.size / 1024 / 1024).toFixed(2)}MB`)
+    if (file.size > AI_PARSE_MAX_BYTES) {
+      const limitMb = (AI_PARSE_MAX_BYTES / 1024 / 1024).toFixed(0)
+      const actualMb = (file.size / 1024 / 1024).toFixed(2)
+      SHOW_ERROR({
+        title: MESSAGES.UPLOAD_TOO_LARGE,
+        description: `That file is ${actualMb}MB — the limit is ${limitMb}MB.`,
+      })
       return false
     }
     return true
@@ -57,7 +65,7 @@ export function PdfUploadModal({ onFileUpload, isLoading, status }: PdfUploadMod
           onFileUpload(file)
         }
       } else {
-        alert("Please drop a PDF file")
+        SHOW_ERROR({ title: MESSAGES.UPLOAD_PDF_ONLY })
       }
     }
   }

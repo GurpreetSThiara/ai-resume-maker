@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createPortfolio, checkSlugAvailability } from "@/services/portfolioService"
 import { getUserResumes, loadResumeData } from "@/lib/supabase-functions" // Import server actions/functions
-import { toast } from "sonner"
+import { toast } from "@/utils/toast"
 import { MESSAGES } from "@/constants/messages"
 import { Loader2, FileText, Check, Plus } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -122,7 +122,7 @@ export function CreatePortfolioDialog({ children, resumeId: initialResumeId, res
         if (!slug || slugError) return
 
         if (!finalResumeData) {
-            toast.error("Resume data is missing")
+            toast.error(MESSAGES.PORTFOLIO_RESUME_MISSING)
             return
         }
 
@@ -140,11 +140,11 @@ export function CreatePortfolioDialog({ children, resumeId: initialResumeId, res
             })
 
             if (result.success && result.data) {
-                toast.success("Portfolio created!")
+                toast.success(MESSAGES.PORTFOLIO_CREATED)
                 setOpen(false)
                 router.push(`/dashboard/portfolios/${result.data.id}/edit`)
             } else {
-                toast.error(result.error || "Failed to create portfolio")
+                toast.error(result.error || MESSAGES.PORTFOLIO_CREATE_FAILED)
             }
         } catch (err) {
             toast.error(MESSAGES.PORTFOLIO_GENERIC_ERROR)

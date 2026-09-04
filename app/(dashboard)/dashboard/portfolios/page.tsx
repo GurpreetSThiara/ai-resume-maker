@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getUserPortfolios, deletePortfolio } from "@/services/portfolioService"
-import { toast } from "sonner"
+import { toast } from "@/utils/toast"
 import { formatDistanceToNow } from "date-fns"
 import {
     AlertDialog,
@@ -29,6 +29,7 @@ import { Label } from "@/components/ui/label"
 import { updatePortfolio } from "@/services/portfolioService"
 import { useAuth } from "@/contexts/auth-context"
 import { useAuthModal } from "@/contexts/auth-modal-context"
+import { MESSAGES } from "@/constants/messages"
 
 export default function PortfoliosPage() {
     const { user, loading: authLoading } = useAuth()
@@ -79,7 +80,7 @@ export default function PortfoliosPage() {
         if (result.success) {
             setPortfolios(result.data || [])
         } else {
-            toast.error("Failed to load portfolios")
+            toast.error(MESSAGES.PORTFOLIO_LIST_FAILED)
         }
         setLoading(false)
     }
@@ -87,10 +88,10 @@ export default function PortfoliosPage() {
     const handleDelete = async (id: string) => {
         const result = await deletePortfolio(id)
         if (result.success) {
-            toast.success("Portfolio deleted")
+            toast.success(MESSAGES.PORTFOLIO_DELETED)
             loadPortfolios()
         } else {
-            toast.error(result.error || "Failed to delete")
+            toast.error(result.error || MESSAGES.PORTFOLIO_DELETE_FAILED)
         }
     }
 
@@ -103,13 +104,13 @@ export default function PortfoliosPage() {
         const result = await updatePortfolio(id, { is_public: isPublic })
 
         if (result.success) {
-            toast.success(isPublic ? "Portfolio is now live" : "Portfolio is now a draft")
+            toast.success(isPublic ? MESSAGES.PORTFOLIO_NOW_LIVE : MESSAGES.PORTFOLIO_NOW_DRAFT)
         } else {
             // Revert changes on error
             setPortfolios(prev => prev.map(p =>
                 p.id === id ? { ...p, is_public: !isPublic } : p
             ))
-            toast.error(result.error || "Failed to update status")
+            toast.error(result.error || MESSAGES.PORTFOLIO_STATUS_FAILED)
         }
     }
 

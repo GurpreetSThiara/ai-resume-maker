@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react"
 import Link from "next/link"
-import { toast } from "sonner"
+import { toast } from "@/utils/toast"
 import { ArrowLeft, Save, Eye, LayoutTemplate, Briefcase, GraduationCap, Code, Globe, Award, Languages, User, FileText } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -25,6 +25,7 @@ import { CustomSection } from "@/components/custom-section"
 
 import { SECTION_TYPES, ResumeData } from "@/types/resume"
 import { cn } from "@/lib/utils"
+import { MESSAGES } from "@/constants/messages"
 
 interface PortfolioEditorProps {
     portfolio: any // Typed as Database['public']['Tables']['portfolios']['Row']
@@ -72,10 +73,10 @@ export function PortfolioEditor({ portfolio: initialPortfolio }: PortfolioEditor
         })
 
         if (result.success) {
-            toast.success("Portfolio saved successfully")
+            toast.success(MESSAGES.PORTFOLIO_SAVED)
             setPortfolio(result.data)
         } else {
-            toast.error("Failed to save portfolio")
+            toast.error(MESSAGES.PORTFOLIO_SAVE_FAILED)
         }
         setSaving(false)
     }
