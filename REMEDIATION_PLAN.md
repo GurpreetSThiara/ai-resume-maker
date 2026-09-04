@@ -5,6 +5,12 @@ Finding ids (C1, H5, M2 …) refer to that audit.
 
 **Branch:** `main` @ `06b9f95` · **Written:** 2026-09-04
 
+> **STATUS: phases 0-7 complete** on branch `qa-remediation`, one commit per phase.
+> Final state: **0 type errors** (from 184), 0 lint errors, 0 npm advisories, and
+> `check:env`/`typecheck`/`lint`/`build` all passing in CI. Deviations from this
+> plan as written, and the work deliberately left undone, are recorded in the
+> commit messages and summarised at the end of this file.
+
 ## Why this order
 
 Three facts drive the sequence:
@@ -600,3 +606,70 @@ Also deliberately excluded: adding a test suite. There is currently no test infr
 and standing one up mid-remediation would compete with the ship-blockers. The CI in Phase 6d gives
 you a real regression gate; pick a framework and start testing the export engines and
 `migrateResumeData` once the phases above are closed.
+
+
+---
+
+## Outcome
+
+Executed as phases 0-7, one commit each, on branch `qa-remediation`.
+
+| Gate | Before | After |
+| --- | --- | --- |
+| Type errors | 184 (suppressed) | **0**, with the gate on |
+| ESLint | could not start | **0 errors**, 33 tracked warnings, ratcheted |
+| npm advisories | 9 (8 high) | **0** |
+| Failing API routes | 8 of 14 | **0** |
+| CI | none | typecheck + lint + build + secret scan |
+
+### Where execution diverged from this plan
+
+- **Phase 1 deleted more than planned.** 12 orphaned templates rather than the
+  6 with errors, and phase 7d found `ResumeCarausol` was itself dead — it was the
+  only importer of `ats-classic.tsx` and `google-resume.tsx`, so those went too.
+  `components/resumes/` is now just the registry, the design factory and the
+  shared canvas.
+- **Phase 2 missed a route, caught in 6a.** The sweep grepped for un-awaited
+  `cookies()` *calls* and missed `createServerComponentClient({ cookies })`,
+  which passes the function by reference and fails identically. `POST
+  /api/reviews` was still returning 500; review submission was dead too.
+- **`@supabase/ssr` was not adopted.** Probing the adapter against a running
+  server showed auth-helpers' types and runtime disagree — the form that
+  typechecks throws, and the form that works does not typecheck. `requireUser()`
+  keeps the working form behind a documented cast. The migration remains the
+  real fix.
+- **Most type debt deleted rather than got fixed.** Of 184 errors, ~130 were in
+  code written against the pre-refactor resume shape that nothing rendered. The
+  single largest genuine fix was one missing `Relationships` key in the
+  hand-written Supabase `Database` type, which was collapsing every query result
+  to `never` — 14 errors from one line.
+- **Phase 6c and 7b found live bugs while typing**, none of which were in the
+  original audit: the AI import preview read `parsedData.name` where the API
+  returns `basics.name` (blank for every import), `review-component` passed
+  `open` straight to `onClick` so React handed a MouseEvent to a redirect-path
+  parameter, and `ai/track` read `.value` off `findOneAndUpdate`, which
+  mongodb v6 does not return.
+- **The component-placement move (M5) was not done wholesale.** The Core UI half
+  was — 27 raw elements replaced, two new primitives, both hand-rolled confirm
+  dialogs retired. Relocating 60 files was not: `app/**/_marketplace/` uses
+  Next's `_`-prefix private-folder convention, and moving colocated route content
+  would fight the framework for no functional gain. Best done per feature as that
+  code is touched.
+
+### Still outstanding
+
+1. **Rotate the OpenRouter keys** (H4) and delete the removed variables from the
+   Vercel Production, Preview and Development environments. `.env` is gitignored,
+   so no commit can do this.
+2. **31 react-hooks warnings** across 15 files — cascading setState in effects,
+   components constructed during render, impure calls during render. Real, and
+   they need restructuring rather than a sweep. CI blocks new errors; the ceiling
+   stops the backlog growing.
+3. **PDF/DOCX export fidelity** — still unverified, still the largest subsystem,
+   still deserving its own pass through `/dev/parity` (now dev-gated).
+4. **No test suite.** CI gives a regression gate; the export engines are the
+   first thing worth actually testing.
+5. **Authenticated paths verified only as an anonymous caller.** Every fix was
+   confirmed to reject anonymous requests correctly, but signed-in flows —
+   quota accounting, the credits ledger, ownership edge cases — were read, not
+   exercised. Worth a manual pass before deploying.

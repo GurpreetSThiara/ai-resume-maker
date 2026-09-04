@@ -7,6 +7,13 @@
 > Complements `AUDIT_REPORT.md` (SEO & policy compliance), which is not re-litigated here.
 > Its "confirmed correct" items are taken as settled.
 
+> **STATUS: all findings below have been remediated** on branch `qa-remediation`
+> (phases 0-7, see `REMEDIATION_PLAN.md`). This document is kept as the record of
+> what was found and how it was verified — the counts and reproductions describe the
+> state at `06b9f95`, not today. Two items need human action:
+> **rotate the OpenRouter keys** (H4) and remove the deleted variables from the
+> deployment environments.
+
 ---
 
 ## Verdict
