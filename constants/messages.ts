@@ -37,6 +37,7 @@ export const MESSAGES = {
   AI_RATE_LIMITED: "AI service is temporarily rate limited. Please try again in a few moments.",
   AI_INVALID_RESPONSE: "AI service returned invalid response. Please try again.",
   AI_MODEL_UNAVAILABLE: "The AI model is unavailable. Please try again later or contact support.",
+  UPLOAD_CHOOSE_FILE: "Choose a PDF to upload",
   UPLOAD_TOO_LARGE: "That file is too large",
   UPLOAD_PDF_ONLY: "Please choose a PDF file",
   AI_PARSE_MISSING_TEXT: "Missing resume text",

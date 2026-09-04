@@ -6,6 +6,9 @@ import type { PerLineStyle, ResumeData, ResumeTemplate } from "@/types/resume"
 import { getResumeDesign, mergeDesign } from "@/lib/resume-designs"
 import { moveSectionUp, moveSectionDown } from "@/utils/sectionOrdering"
 import ConfigurableResume from "@/components/resumes/shared/ConfigurableResume"
+import { IconButton } from "@/components/ui/icon-button"
+import { Button } from "@/components/ui/button"
+import DeleteConfirmModal from "@/components/appUI/modals/DeleteConfirmModal"
 import { FloatingToolbar } from "./FloatingToolbar"
 import type { Selection, SelKind } from "./studio-shared"
 import { FONT_CSS } from "@/lib/render-spec"
@@ -129,7 +132,6 @@ export function StudioCanvas({
     )
   }
 
-  const zoomBtn = "flex h-7 w-7 items-center justify-center rounded-full text-gray-600 hover:bg-gray-100"
 
   return (
     <div className="relative flex-1 overflow-hidden bg-gray-100">
@@ -168,9 +170,17 @@ export function StudioCanvas({
 
       {/* zoom controls */}
       <div className="absolute bottom-4 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-1 shadow-lg">
-        <button className={zoomBtn} onClick={() => setZoom(Math.max(0.5, +(zoom - 0.1).toFixed(2)))} aria-label="Zoom out"><Minus className="h-4 w-4" /></button>
-        <button className="w-12 text-center text-xs font-medium text-gray-700" onClick={() => setZoom(1)} title="Reset to 100%">{Math.round(zoom * 100)}%</button>
-        <button className={zoomBtn} onClick={() => setZoom(Math.min(2, +(zoom + 0.1).toFixed(2)))} aria-label="Zoom in"><Plus className="h-4 w-4" /></button>
+        <IconButton label="Zoom out" onClick={() => setZoom(Math.max(0.5, +(zoom - 0.1).toFixed(2)))}><Minus /></IconButton>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-12 px-0 text-xs font-medium text-gray-700"
+          title="Reset to 100%"
+          onClick={() => setZoom(1)}
+        >
+          {Math.round(zoom * 100)}%
+        </Button>
+        <IconButton label="Zoom in" onClick={() => setZoom(Math.min(2, +(zoom + 0.1).toFixed(2)))}><Plus /></IconButton>
       </div>
 
       <FloatingToolbar
@@ -183,20 +193,13 @@ export function StudioCanvas({
         onDelete={floatSel.sid ? delSec : undefined}
       />
 
-      {confirmDelSid && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/50" onClick={() => setConfirmDelSid(null)}>
-          <div className="w-[340px] max-w-[90%] rounded-xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <p className="text-base font-bold text-gray-900">Delete this section?</p>
-            <p className="mt-1.5 mb-4 text-sm leading-relaxed text-gray-500">
-              The section and its content will be removed. You can bring it back with Undo (Ctrl+Z).
-            </p>
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setConfirmDelSid(null)} className="rounded-lg border border-gray-200 px-3.5 py-2 text-sm font-medium hover:bg-gray-50">Cancel</button>
-              <button onClick={doDelSec} className="rounded-lg bg-red-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-red-700">Delete</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmModal
+        open={!!confirmDelSid}
+        onOpenChange={(open) => { if (!open) setConfirmDelSid(null) }}
+        onConfirm={doDelSec}
+        title="Delete this section?"
+        description="The section and its content will be removed. You can bring it back with Undo (Ctrl+Z)."
+      />
     </div>
   )
 }

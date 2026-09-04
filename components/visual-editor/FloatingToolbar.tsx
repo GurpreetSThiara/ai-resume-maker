@@ -2,6 +2,8 @@
 
 import type { PerLineStyle } from "@/types/resume"
 import { ArrowUp, ArrowDown, Bold, Italic, Trash2, Underline } from "lucide-react"
+import { IconButton } from "@/components/ui/icon-button"
+import { ColorInput } from "@/components/ui/color-input"
 
 /**
  * Contextual toolbar floating above the selected element. Per-line formatting
@@ -28,9 +30,6 @@ export function FloatingToolbar({
   if (!rect) return null
   const top = Math.max(8, rect.top - 44)
   const left = rect.left
-  const btn = "flex h-7 w-7 items-center justify-center rounded-md text-white/90 hover:bg-white/15"
-  const on = "bg-white/20 text-white"
-
   return (
     <div
       className="fixed z-40 flex items-center gap-0.5 rounded-lg bg-gray-900 px-1.5 py-1 shadow-xl"
@@ -42,20 +41,22 @@ export function FloatingToolbar({
 
       {onLine && (
         <>
-          <button className={`${btn} ${lineStyle?.bold ? on : ""}`} title="Bold" onClick={() => onLine({ bold: !lineStyle?.bold })}><Bold className="h-3.5 w-3.5" /></button>
-          <button className={`${btn} ${lineStyle?.italic ? on : ""}`} title="Italic" onClick={() => onLine({ italic: !lineStyle?.italic })}><Italic className="h-3.5 w-3.5" /></button>
-          <button className={`${btn} ${lineStyle?.underline ? on : ""}`} title="Underline" onClick={() => onLine({ underline: !lineStyle?.underline })}><Underline className="h-3.5 w-3.5" /></button>
-          <label className={`${btn} relative cursor-pointer`} title="Text colour">
-            <span className="h-3.5 w-3.5 rounded-sm border border-white/40" style={{ background: lineStyle?.color ? (lineStyle.color.startsWith("#") ? lineStyle.color : `#${lineStyle.color}`) : "#ffffff" }} />
-            <input type="color" className="absolute inset-0 cursor-pointer opacity-0" value={lineStyle?.color ? (lineStyle.color.startsWith("#") ? lineStyle.color : `#${lineStyle.color}`) : "#000000"} onChange={(e) => onLine({ color: e.target.value })} />
-          </label>
+          <IconButton variant="toolbar" size="sm" label="Bold" active={!!lineStyle?.bold} onClick={() => onLine({ bold: !lineStyle?.bold })}><Bold /></IconButton>
+          <IconButton variant="toolbar" size="sm" label="Italic" active={!!lineStyle?.italic} onClick={() => onLine({ italic: !lineStyle?.italic })}><Italic /></IconButton>
+          <IconButton variant="toolbar" size="sm" label="Underline" active={!!lineStyle?.underline} onClick={() => onLine({ underline: !lineStyle?.underline })}><Underline /></IconButton>
+          <ColorInput
+            label="Text colour"
+            value={lineStyle?.color ?? "#000000"}
+            onValueChange={(color) => onLine({ color })}
+            className="h-7 w-7 border-white/40"
+          />
         </>
       )}
 
       {(onUp || onDown || onDelete) && onLine && <span className="mx-0.5 h-4 w-px bg-white/20" />}
-      {onUp && <button className={btn} title="Move section up" onClick={onUp}><ArrowUp className="h-3.5 w-3.5" /></button>}
-      {onDown && <button className={btn} title="Move section down" onClick={onDown}><ArrowDown className="h-3.5 w-3.5" /></button>}
-      {onDelete && <button className={`${btn} hover:bg-red-500`} title="Delete section" onClick={onDelete}><Trash2 className="h-3.5 w-3.5" /></button>}
+      {onUp && <IconButton variant="toolbar" size="sm" label="Move section up" onClick={onUp}><ArrowUp /></IconButton>}
+      {onDown && <IconButton variant="toolbar" size="sm" label="Move section down" onClick={onDown}><ArrowDown /></IconButton>}
+      {onDelete && <IconButton variant="toolbar" size="sm" label="Delete section" onClick={onDelete} className="hover:bg-red-500"><Trash2 /></IconButton>}
     </div>
   )
 }

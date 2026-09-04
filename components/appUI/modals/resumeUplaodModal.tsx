@@ -146,7 +146,13 @@ export function PdfUploadModal({ onFileUpload, isLoading, status }: PdfUploadMod
             </div>
 
             {/* Click overlay */}
-            <button onClick={handleClick} disabled={isLoading} className="absolute inset-0 rounded-xl" />
+            <button
+              type="button"
+              onClick={handleClick}
+              disabled={isLoading}
+              aria-label={MESSAGES.UPLOAD_CHOOSE_FILE}
+              className="absolute inset-0 rounded-xl"
+            />
           </div>
 
           {/* Info Text */}

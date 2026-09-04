@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { RotateCcw, AlignLeft, AlignCenter, Bold, Italic, Underline, Target, Globe } from "lucide-react"
 import { DENSITY_OPTS, FONT_OPTS, LAYOUT_OPTS, MARGIN_OPTS, SKILL_OPTS, type Selection } from "./studio-shared"
+import { IconButton } from "@/components/ui/icon-button"
+import { ColorInput } from "@/components/ui/color-input"
 
 const clean = (h: string) => (h || "").replace("#", "")
 
@@ -121,9 +123,9 @@ export function StudioRightPanel({
               const Icon = k === "bold" ? Bold : k === "italic" ? Italic : Underline
               const active = !!(line as any)[k]
               return (
-                <button key={k} onClick={() => setLine({ [k]: !active } as any)} title={k} className={`flex h-8 w-8 items-center justify-center rounded border ${active ? "border-primary bg-primary/10 text-primary" : "border-gray-200 text-gray-500 hover:bg-gray-50"}`}>
-                  <Icon className="h-4 w-4" />
-                </button>
+                <IconButton key={k} variant="outline" label={k} active={active} onClick={() => setLine({ [k]: !active } as any)}>
+                  <Icon />
+                </IconButton>
               )
             })}
           </div>
@@ -175,9 +177,9 @@ export function StudioRightPanel({
           <span className="mb-1 block text-[11px] text-gray-400">{!lk && kind === "page" ? "Accent" : "Colour"}</span>
           <div className="flex items-center gap-2">
             {lk ? (
-              <input type="color" value={lineColor} onChange={(e) => setLine({ color: e.target.value })} className="h-8 w-10 cursor-pointer rounded border bg-transparent p-0.5" />
+              <ColorInput label="Line colour" value={lineColor} onValueChange={(color) => setLine({ color })} />
             ) : (
-              <input type="color" value={`#${clean(colorVal)}`} onChange={(e) => setStyle({ [colorKey]: e.target.value } as any)} className="h-8 w-10 cursor-pointer rounded border bg-transparent p-0.5" />
+              <ColorInput label="Element colour" value={clean(colorVal)} onValueChange={(color) => setStyle({ [colorKey]: color } as any)} />
             )}
             <span className="font-mono text-xs uppercase text-gray-500">{lk ? lineColor : `#${clean(colorVal)}`}</span>
           </div>
@@ -186,8 +188,8 @@ export function StudioRightPanel({
         {!lk && kind === "heading" && (
           <Row label="Align">
             <div className="flex gap-1">
-              <button className={`flex h-8 w-8 items-center justify-center rounded border ${eff.sectionTitle !== "centered" ? "border-primary text-primary" : "border-gray-200 text-gray-400"}`} onClick={() => setStyle({ sectionTitle: "underline" })} title="Left"><AlignLeft className="h-4 w-4" /></button>
-              <button className={`flex h-8 w-8 items-center justify-center rounded border ${eff.sectionTitle === "centered" ? "border-primary text-primary" : "border-gray-200 text-gray-400"}`} onClick={() => setStyle({ sectionTitle: "centered" })} title="Center"><AlignCenter className="h-4 w-4" /></button>
+              <IconButton variant="outline" label="Align section titles left" active={eff.sectionTitle !== "centered"} onClick={() => setStyle({ sectionTitle: "underline" })}><AlignLeft /></IconButton>
+              <IconButton variant="outline" label="Centre section titles" active={eff.sectionTitle === "centered"} onClick={() => setStyle({ sectionTitle: "centered" })}><AlignCenter /></IconButton>
             </div>
           </Row>
         )}
@@ -217,8 +219,8 @@ export function StudioRightPanel({
               <div>
                 <span className="mb-1 block text-[11px] text-gray-400">Highlight</span>
                 <div className="flex items-center gap-1.5">
-                  <input type="color" value={line.background ? (line.background.startsWith("#") ? line.background : `#${line.background}`) : "#fff2a8"} onChange={(e) => setLine({ background: e.target.value })} className="h-8 w-9 cursor-pointer rounded border bg-transparent p-0.5" />
-                  {line.background && <button onClick={() => setLine({ background: undefined })} title="Remove highlight" className="text-gray-400 hover:text-gray-700"><RotateCcw className="h-3.5 w-3.5" /></button>}
+                  <ColorInput label="Highlight colour" value={line.background ?? "#fff2a8"} onValueChange={(background) => setLine({ background })} className="w-9" />
+                  {line.background && <IconButton variant="ghost" size="sm" label="Remove highlight" onClick={() => setLine({ background: undefined })}><RotateCcw /></IconButton>}
                 </div>
               </div>
               <div>
@@ -268,7 +270,7 @@ export function StudioRightPanel({
       {/* PAGE */}
       <Group title="Page & theme" scope="global">
         <Row label="Accent">
-          <input type="color" value={`#${clean(style.accent ?? base.colors.accent)}`} onChange={(e) => setStyle({ accent: e.target.value })} className="h-8 w-10 cursor-pointer rounded border bg-transparent p-0.5" />
+          <ColorInput label="Accent colour" value={clean(style.accent ?? base.colors.accent)} onValueChange={(accent) => setStyle({ accent })} />
         </Row>
         <Row label="Page size"><span className="text-xs text-gray-400">A4 (210×297mm)</span></Row>
         <Row label="Margins">{sel(style.pageMargin ?? "normal", MARGIN_OPTS, (v) => setStyle({ pageMargin: v as any }), 120)}</Row>

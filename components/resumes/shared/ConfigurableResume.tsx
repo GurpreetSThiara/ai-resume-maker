@@ -404,11 +404,11 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     return (
       <div className="cfc-tools" contentEditable={false}>
         {add && (
-          <button type="button" className="cfc-tbtn" title={add.title} onMouseDown={(e) => e.preventDefault()} onClick={add.fn}>
+          <button type="button" className="cfc-tbtn" title={add.title} aria-label={add.title} onMouseDown={(e) => e.preventDefault()} onClick={add.fn}>
             <Plus size={13} strokeWidth={2.5} />
           </button>
         )}
-        <button type="button" className="cfc-tbtn cfc-tbtn-danger" title="Delete section" onMouseDown={(e) => e.preventDefault()} onClick={() => requestDelete(`Delete the "${section.title || "section"}" section`, () => removeSectionById(section.id))}>
+        <button type="button" className="cfc-tbtn cfc-tbtn-danger" title="Delete section" aria-label="Delete section" onMouseDown={(e) => e.preventDefault()} onClick={() => requestDelete(`Delete the "${section.title || "section"}" section`, () => removeSectionById(section.id))}>
           <Trash2 size={12} strokeWidth={2} />
         </button>
       </div>
