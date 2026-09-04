@@ -18,8 +18,8 @@ export function Logo({ className, width = 91, height = 91 }: LogoProps) {
     >
       <path 
         d="M77.25 1.25H13.25C6.62258 1.25 1.25 6.62258 1.25 13.25V77.25C1.25 83.8774 6.62258 89.25 13.25 89.25H77.25C83.8774 89.25 89.25 83.8774 89.25 77.25V13.25C89.25 6.62258 83.8774 1.25 77.25 1.25Z" 
-        fill="#15803D" 
-        stroke="#065F46" 
+        fill="var(--primary)" 
+        stroke="var(--brand-stroke)" 
         strokeWidth="2.5"
       />
       <path 

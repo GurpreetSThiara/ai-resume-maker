@@ -136,8 +136,8 @@ export function StudioCanvas({
   return (
     <div className="relative flex-1 overflow-hidden bg-gray-100">
       {/* decorative rulers */}
-      <div className="pointer-events-none absolute left-6 right-0 top-0 z-10 h-6 border-b border-gray-200 bg-white" style={{ backgroundImage: "repeating-linear-gradient(to right,#d1d5db 0 1px,transparent 1px 28.3px)" }} />
-      <div className="pointer-events-none absolute bottom-0 left-0 top-6 z-10 w-6 border-r border-gray-200 bg-white" style={{ backgroundImage: "repeating-linear-gradient(to bottom,#d1d5db 0 1px,transparent 1px 28.3px)" }} />
+      <div className="pointer-events-none absolute left-6 right-0 top-0 z-10 h-6 border-b border-gray-200 bg-white" style={{ backgroundImage: "repeating-linear-gradient(to right,var(--ruler-line) 0 1px,transparent 1px 28.3px)" }} />
+      <div className="pointer-events-none absolute bottom-0 left-0 top-6 z-10 w-6 border-r border-gray-200 bg-white" style={{ backgroundImage: "repeating-linear-gradient(to bottom,var(--ruler-line) 0 1px,transparent 1px 28.3px)" }} />
       <div className="pointer-events-none absolute left-0 top-0 z-10 h-6 w-6 border-b border-r border-gray-200 bg-white" />
 
       {/* page count */}

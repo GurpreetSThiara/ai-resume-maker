@@ -4,6 +4,7 @@ import type { PerLineStyle } from "@/types/resume"
 import { ArrowUp, ArrowDown, Bold, Italic, Trash2, Underline } from "lucide-react"
 import { IconButton } from "@/components/ui/icon-button"
 import { ColorInput } from "@/components/ui/color-input"
+import { DEFAULT_TEXT_COLOR } from "@/config/resumeConfig"
 
 /**
  * Contextual toolbar floating above the selected element. Per-line formatting
@@ -46,7 +47,7 @@ export function FloatingToolbar({
           <IconButton variant="toolbar" size="sm" label="Underline" active={!!lineStyle?.underline} onClick={() => onLine({ underline: !lineStyle?.underline })}><Underline /></IconButton>
           <ColorInput
             label="Text colour"
-            value={lineStyle?.color ?? "#000000"}
+            value={lineStyle?.color ?? DEFAULT_TEXT_COLOR}
             onValueChange={(color) => onLine({ color })}
             className="h-7 w-7 border-white/40"
           />

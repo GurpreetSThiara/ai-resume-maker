@@ -7,8 +7,9 @@ import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { BottomNav } from "@/components/mobile/bottom-nav"
 import Providers from "@/contexts/provider"
-import { ToastContainer } from "@/components/toast/toast-contaner"
+import { ToastContainer } from "@/components/toast/toast-container"
 import { JsonLd } from "@/components/seo/JsonLd"
+import { BRAND_THEME_COLOR } from "@/constants/brand"
 import { organizationSchema, websiteSchema, webApplicationSchema } from "@/lib/seo"
 import { AnalyticsScripts } from "@/components/legal/analytics-scripts"
 import { CookieConsentBanner } from "@/components/legal/cookie-consent-banner"
@@ -99,8 +100,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="CreateFreeCV" />
         <meta name="application-name" content="CreateFreeCV" />
-        <meta name="theme-color" content="#15803d" />
-        <meta name="msapplication-TileColor" content="#15803d" />
+        <meta name="theme-color" content={BRAND_THEME_COLOR} />
+        <meta name="msapplication-TileColor" content={BRAND_THEME_COLOR} />
         <meta name="clckd" content="00dd4cecdd1f49eb435533f606ecfa5a" />
         {/* Global structured data: brand identity + the free resume builder app. */}
         <JsonLd data={[organizationSchema(), websiteSchema(), webApplicationSchema()]} />

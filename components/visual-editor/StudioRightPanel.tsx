@@ -10,6 +10,7 @@ import { RotateCcw, AlignLeft, AlignCenter, Bold, Italic, Underline, Target, Glo
 import { DENSITY_OPTS, FONT_OPTS, LAYOUT_OPTS, MARGIN_OPTS, SKILL_OPTS, type Selection } from "./studio-shared"
 import { IconButton } from "@/components/ui/icon-button"
 import { ColorInput } from "@/components/ui/color-input"
+import { DEFAULT_TEXT_COLOR, DEFAULT_HIGHLIGHT_COLOR } from "@/config/resumeConfig"
 
 const clean = (h: string) => (h || "").replace("#", "")
 
@@ -74,7 +75,7 @@ export function StudioRightPanel({
       return { ...prev, lineStyles: ls }
     })
   }
-  const lineColor = line.color ? (line.color.startsWith("#") ? line.color : `#${line.color}`) : "#000000"
+  const lineColor = line.color ? (line.color.startsWith("#") ? line.color : `#${line.color}`) : DEFAULT_TEXT_COLOR
 
   const kind = selection.kind || "page"
   const textTitle =
@@ -219,7 +220,7 @@ export function StudioRightPanel({
               <div>
                 <span className="mb-1 block text-[11px] text-gray-400">Highlight</span>
                 <div className="flex items-center gap-1.5">
-                  <ColorInput label="Highlight colour" value={line.background ?? "#fff2a8"} onValueChange={(background) => setLine({ background })} className="w-9" />
+                  <ColorInput label="Highlight colour" value={line.background ?? DEFAULT_HIGHLIGHT_COLOR} onValueChange={(background) => setLine({ background })} className="w-9" />
                   {line.background && <IconButton variant="ghost" size="sm" label="Remove highlight" onClick={() => setLine({ background: undefined })}><RotateCcw /></IconButton>}
                 </div>
               </div>
