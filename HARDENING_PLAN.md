@@ -24,16 +24,30 @@ what should shape the rest of the work:
    are currently ignoring point at exactly this family of defect. Phase 2 hunts
    the rest deliberately rather than waiting for the next one to surface.
 
-| Phase | Goal | Effort | Blocking a merge? |
-| --- | --- | --- | --- |
-| 0 | Hydration fix + dev diagnostics | done | — |
-| 1 | Make the gate that would have caught it | ~3h | No, but do it first |
-| 2 | Hunt the same bug class | ~4h | No |
-| 3 | `set-state-in-effect` backlog (15) | ~1–2d | No |
-| 4 | A committed test suite | ~2d | No |
-| 5 | Signed-in coverage | ~1d | Needs credentials |
-| 6 | `@supabase/ssr` migration | ~4h | No |
-| 7 | Deferred product calls | — | No |
+| Phase | Goal | Status |
+| --- | --- | --- |
+| 0 | Hydration fix + dev diagnostics | **done** — `bed273d` |
+| 1 | Make the gate that would have caught it | **done** — `bf74ccb` |
+| 2 | Hunt the same bug class | **done** — `bc342e0` |
+| 3 | `set-state-in-effect` backlog | **done** — `d8d015c`, `65955d5` |
+| 4 | A committed test suite | **done** — `ec8785b` |
+| 5 | Signed-in coverage | blocked — needs a test account |
+| 6 | `@supabase/ssr` migration | pending (~4h) |
+| 7 | Deferred product calls | pending |
+
+**Where the warning backlog landed.** 35 → 18. `purity`, `immutability` and
+`refs` are enforced as errors. The eight remaining `set-state-in-effect` hits
+are effects doing what effects are for — awaiting a fetch, or reading
+localStorage after mount, which is what keeps that read out of the server
+render. Driving those to zero would mean reintroducing the class of bug Phase 0
+fixed, so they stay. The rest are `static-components` (5) and four one-offs,
+all cosmetic.
+
+**What the gates catch now.** `npm test` runs 38 unit tests, 27 routes checked
+in a real browser for console errors and mobile overflow, and 10 flow
+assertions including a PDF and a DOCX downloaded and checked for valid file
+magic. All of it runs in CI on every PR. Both gates were verified to fail on a
+deliberately reintroduced regression.
 
 ---
 
