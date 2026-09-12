@@ -6,14 +6,19 @@ import {
   TEMPLATES,
   TRENDING,
   ATS_CHAMPIONS,
+  ALL_TAGS,
   CATEGORY_MAP,
   DEFAULT_FILTERS,
-  categoryCounts,
+  countActiveFilters,
+  facetCounts,
   filterAndSort,
   groupFamilies,
   type Filters,
   type MarketplaceTemplate,
 } from "./_marketplace/data"
+import { FilterSidebar } from "./_marketplace/FilterSidebar"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { Button } from "@/components/ui/button"
 import { Hero } from "./_marketplace/Hero"
 import { Toolbar } from "./_marketplace/Toolbar"
 import { DiscoveryRow } from "./_marketplace/DiscoveryRow"
@@ -30,6 +35,7 @@ export function Templates() {
 
   const [previewTemplate, setPreviewTemplate] = useState<MarketplaceTemplate | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   // Debounce the search query into filters.
   useEffect(() => {
@@ -39,7 +45,9 @@ export function Templates() {
     return () => window.clearTimeout(id)
   }, [rawQuery])
 
-  const counts = useMemo(() => categoryCounts(), [])
+  // Recomputed per filter change so each option can show what selecting it
+  // would yield, rather than a static catalog total.
+  const counts = useMemo(() => facetCounts(filters), [filters])
   const results = useMemo(() => filterAndSort(TEMPLATES, filters), [filters])
   // Club color-only variants of the same layout into a single design family.
   const families = useMemo(() => groupFamilies(results), [results])
@@ -49,13 +57,8 @@ export function Templates() {
     setVisible(PAGE_SIZE)
   }, [filters])
 
-  const isBrowsing =
-    filters.query === "" &&
-    filters.category === "all" &&
-    filters.minAts === 0 &&
-    filters.tags.length === 0
-
-  const activeFilterCount = (filters.minAts !== 0 ? 1 : 0) + filters.tags.length
+  const activeFilterCount = countActiveFilters(filters)
+  const isBrowsing = filters.query === "" && filters.category === "all" && activeFilterCount === 0
 
   const patchFilters = useCallback((patch: Partial<Filters>) => {
     setFilters((f) => ({ ...f, ...patch }))
@@ -95,17 +98,35 @@ export function Templates() {
     <main className="min-h-screen bg-white">
       <Hero query={rawQuery} onQueryChange={setRawQuery} resultCount={results.length} />
 
-      <Toolbar
-        filters={{ ...filters, query: rawQuery }}
-        counts={counts}
-        resultCount={results.length}
-        activeFilterCount={activeFilterCount}
-        onChange={patchFilters}
-        onReset={resetAll}
-      />
-
       <div className="mx-auto max-w-7xl px-4 pb-24">
-        <>
+        {/* Desktop: persistent filter rail on the left, as on a storefront.
+            Below lg the rail is hidden and the same component is rendered
+            inside the sheet, so there is one filter UI, not two. */}
+        <div className="lg:grid lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-8">
+          <aside className="hidden lg:block" aria-label="Filter templates">
+            <div className="sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto pb-8 pr-1">
+              <FilterSidebar
+                filters={filters}
+                counts={counts}
+                tags={ALL_TAGS}
+                activeFilterCount={activeFilterCount}
+                onChange={patchFilters}
+                onReset={resetAll}
+              />
+            </div>
+          </aside>
+
+          <div className="min-w-0">
+            <Toolbar
+              filters={{ ...filters, query: rawQuery }}
+              resultCount={results.length}
+              familyCount={families.length}
+              activeFilterCount={activeFilterCount}
+              onChange={patchFilters}
+              onReset={resetAll}
+              onOpenFilters={() => setFiltersOpen(true)}
+            />
+
             {/* Discovery rows — only on the default browse view */}
             {isBrowsing && (
               <div className="pt-2">
@@ -128,7 +149,6 @@ export function Templates() {
               </div>
             )}
 
-            {/* Section heading */}
             <section className="pt-8" aria-labelledby="all-templates-heading">
               <div className="mb-5 flex flex-wrap items-end justify-between gap-2">
                 <div>
@@ -138,7 +158,7 @@ export function Templates() {
                   <p className="mt-1 text-sm text-slate-500">
                     {activeCategory
                       ? activeCategory.description
-                      : `${families.length} designs · ${results.length} color styles`}
+                      : `${families.length} designs · ${results.length} colour styles`}
                   </p>
                 </div>
               </div>
@@ -147,7 +167,7 @@ export function Templates() {
                 <EmptyState query={filters.query} onReset={resetAll} />
               ) : (
                 <>
-                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
                     {shownFamilies.map((fam, i) => (
                       <TemplateCard
                         key={fam.familyId}
@@ -168,8 +188,35 @@ export function Templates() {
                 </>
               )}
             </section>
-        </>
+          </div>
+        </div>
       </div>
+
+      {/* Mobile / tablet: the same rail inside a sheet. */}
+      <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+        <SheetContent side="left" className="flex w-[88vw] max-w-sm flex-col gap-0 p-0">
+          <SheetHeader className="border-b border-slate-200 px-4 py-3">
+            <SheetTitle className="text-base">Filters</SheetTitle>
+          </SheetHeader>
+
+          <div className="flex-1 overflow-y-auto px-4 py-3">
+            <FilterSidebar
+              filters={filters}
+              counts={counts}
+              tags={ALL_TAGS}
+              activeFilterCount={activeFilterCount}
+              onChange={patchFilters}
+              onReset={resetAll}
+            />
+          </div>
+
+          <div className="border-t border-slate-200 p-3">
+            <Button className="w-full" onClick={() => setFiltersOpen(false)}>
+              Show {families.length} {families.length === 1 ? "design" : "designs"}
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <TemplatePreviewModal template={previewTemplate} open={previewOpen} onOpenChange={setPreviewOpen} />
     </main>
