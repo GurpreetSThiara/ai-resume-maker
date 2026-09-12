@@ -9,7 +9,10 @@
     "lint": "eslint . --max-warnings=18",
     "postinstall": "node scripts/copy-pdf-worker.cjs",
     "start": "next start",
+    "test": "npm run test:unit && npm run test:smoke && npm run test:flows",
+    "test:flows": "node tests/flows.mjs",
     "test:smoke": "node tests/smoke.mjs",
+    "test:unit": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -85,6 +88,7 @@
     "postcss": "^8.5",
     "tailwindcss": "^4.1.9",
     "tw-animate-css": "1.3.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.0.0"
   }
 }
