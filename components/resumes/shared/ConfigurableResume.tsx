@@ -41,6 +41,9 @@ interface ConfigurableResumeProps {
 
 const hx = (h?: string) => (h ? `#${h}` : undefined)
 
+/** Monotonic across the session; only ever appended to a per-instance useId prefix. */
+let nextSectionSeq = 0
+
 export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
   pdfRef,
   font,
@@ -233,11 +236,12 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     })
 
   // ---------- CRUD handlers (visual editor) ----------
-  // Counter + useId rather than Math.random(): unique across every instance on
-  // the page, stable between server and client, and it cannot collide.
-  const idPrefix = useId()
-  const nextSectionId = useRef(0)
-  const genId = () => `sec-${idPrefix.replace(/:/g, "")}-${nextSectionId.current++}`
+  // useId plus a module-level counter, rather than Math.random(): the prefix is
+  // stable between server and client, so it cannot cause a hydration mismatch,
+  // and the counter keeps ids unique without a ref — a ref would be read during
+  // render everywhere a section is drawn.
+  const idPrefix = useId().replace(/:/g, "")
+  const genId = () => `sec-${idPrefix}-${nextSectionSeq++}`
   const defaultTitle = (type: string) =>
     (({
       [SECTION_TYPES.EXPERIENCE]: "Experience",
