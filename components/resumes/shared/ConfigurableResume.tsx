@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useRef, useEffect, useState } from "react"
+import { useRef, useEffect, useState, useId } from "react"
 import type { ResumeData } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
@@ -233,7 +233,11 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     })
 
   // ---------- CRUD handlers (visual editor) ----------
-  const genId = () => `sec-${Math.random().toString(36).slice(2, 9)}`
+  // Counter + useId rather than Math.random(): unique across every instance on
+  // the page, stable between server and client, and it cannot collide.
+  const idPrefix = useId()
+  const nextSectionId = useRef(0)
+  const genId = () => `sec-${idPrefix.replace(/:/g, "")}-${nextSectionId.current++}`
   const defaultTitle = (type: string) =>
     (({
       [SECTION_TYPES.EXPERIENCE]: "Experience",

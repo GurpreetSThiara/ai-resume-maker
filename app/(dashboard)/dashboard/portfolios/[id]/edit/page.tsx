@@ -12,12 +12,6 @@ export default function PortfolioEditorPage() {
     const [portfolio, setPortfolio] = useState<any>(null)
     const [loading, setLoading] = useState(true)
 
-    useEffect(() => {
-        if (params.id) {
-            loadPortfolio(params.id as string)
-        }
-    }, [params.id])
-
     async function loadPortfolio(id: string) {
         const result = await getPortfolioById(id)
         if (result.success) {
@@ -28,6 +22,13 @@ export default function PortfolioEditorPage() {
         }
         setLoading(false)
     }
+
+    useEffect(() => {
+        if (params.id) {
+            loadPortfolio(params.id as string)
+        }
+    }, [params.id])
+
 
     if (loading) {
         return (

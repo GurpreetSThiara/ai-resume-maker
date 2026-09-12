@@ -2,7 +2,7 @@
 
 import { registerToastDispatcher } from "@/utils/toast"
 import type { ReactNode } from "react"
-import { createContext, useContext, useCallback, useState, useEffect } from "react"
+import { createContext, useContext, useCallback, useState, useEffect, useRef } from "react"
 
 export type ToastVariant = "success" | "error" | "warning" | "info" | "default"
 export type ToastPosition = "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right"
@@ -49,6 +49,22 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined)
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
 
+  // Mirrors `toasts` so removeToast can look one up without depending on the
+  // state (which would make it a new function on every toast, breaking the
+  // setTimeout captured in addToast).
+  const toastsRef = useRef<Toast[]>([])
+  useEffect(() => {
+    toastsRef.current = toasts
+  }, [toasts])
+
+  const removeToast = useCallback((id: string) => {
+    // onClose fires here rather than inside the setToasts updater. Updaters
+    // must be pure — React is free to run one twice, which fired a consumer's
+    // onClose twice with it.
+    toastsRef.current.find((t) => t.id === id)?.onClose?.()
+    setToasts((prev) => prev.filter((t) => t.id !== id))
+  }, [])
+
   const addToast = useCallback((options: ToastOptions): string => {
     const id = options.id || `toast-${Date.now()}-${Math.random()}`
 
@@ -76,16 +92,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     }
 
     return id
-  }, [])
-
-  const removeToast = useCallback((id: string) => {
-    setToasts((prev) => {
-      const toast = prev.find((t) => t.id === id)
-      if (toast?.onClose) {
-        toast.onClose()
-      }
-      return prev.filter((t) => t.id !== id)
-    })
   }, [])
 
   const clearAll = useCallback(() => {

@@ -11,7 +11,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
  * arrays directly), so no FlatCompat shim is needed.
  */
 /**
- * `npm run lint` runs with --max-warnings=33, the current count. Errors always
+ * `npm run lint` runs with --max-warnings=30, the current count. Errors always
  * fail; the ceiling stops the warning backlog growing while it is worked down.
  * Lower the number as warnings are fixed — never raise it.
  */
@@ -65,10 +65,16 @@ export default [
       // to 'error' as its backlog clears.
       'react-hooks/set-state-in-effect': 'warn',
       'react-hooks/static-components': 'warn',
-      'react-hooks/immutability': 'warn',
-      'react-hooks/purity': 'warn',
-      'react-hooks/refs': 'warn',
       'react-hooks/error-boundaries': 'warn',
+      // Enforced: these two are clear, and they are the family that produced
+      // the hydration bug in bed273d — a value measured during render that the
+      // server could not know. The one remaining purity hit is a documented
+      // false positive on an event handler (ImageConverter).
+      'react-hooks/immutability': 'error',
+      'react-hooks/purity': 'error',
+      // Still warn: three hits left in ConfigurableResume, which renders every
+      // template and feeds both export engines. Promoted once those clear.
+      'react-hooks/refs': 'warn',
     },
   },
 ]
