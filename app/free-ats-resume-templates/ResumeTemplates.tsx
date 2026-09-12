@@ -52,10 +52,14 @@ export function Templates() {
   // Club color-only variants of the same layout into a single design family.
   const families = useMemo(() => groupFamilies(results), [results])
 
-  // Reset pagination whenever the result set changes.
-  useEffect(() => {
+  // Reset pagination whenever the filters change, adjusted during render rather
+  // than in an effect — an effect renders the previous page size against the
+  // new result set first, which briefly shows the wrong number of cards.
+  const [lastFilters, setLastFilters] = useState(filters)
+  if (filters !== lastFilters) {
+    setLastFilters(filters)
     setVisible(PAGE_SIZE)
-  }, [filters])
+  }
 
   const activeFilterCount = countActiveFilters(filters)
   const isBrowsing = filters.query === "" && filters.category === "all" && activeFilterCount === 0

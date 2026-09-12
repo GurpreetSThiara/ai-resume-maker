@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Trash2, Briefcase, Edit2, Save } from "lucide-react"
+import { Plus, Trash2, Briefcase, Edit2 } from "lucide-react"
 import { SectionVisibilityToggle } from "@/components/section-visibility-toggle"
 import { SectionHiddenBanner } from "@/components/section-hidden-banner"
 import { RecordFormSheet } from "@/components/record-form-sheet"
@@ -37,7 +37,6 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
     location: "",
     achievements: []
   })
-  const [isSectionDirty, setIsSectionDirty] = useState(false)
   const [isAddingNew, setIsAddingNew] = useState(false)
 
   const experienceSection = data.sections.find((s): s is ExperienceSectionType => s.type === SECTION_TYPES.EXPERIENCE) || {
@@ -61,14 +60,6 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
     })
     onUpdate({ sections: updatedSections })
   }
-
-  useEffect(() => {
-    // Compare the current state with the original data to determine if there are unsaved changes
-    const originalItems = data.sections.find((s) => s.type === SECTION_TYPES.EXPERIENCE)?.items || []
-    const currentItems = experienceSection.items
-    const isDifferent = JSON.stringify(originalItems) !== JSON.stringify(currentItems)
-    setIsSectionDirty(isDifferent)
-  }, [experienceSection.items, data.sections])
 
   const addExperience = () => {
     if (newExperience.company && newExperience.role) {
@@ -184,13 +175,6 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
     }))
   }
 
-  const handleSectionSave = () => {
-    // This function will be called when the section-level save button is clicked.
-    // In this example, it doesn't do anything, as the onUpdate function already saves the data.
-    // You can add any additional logic here if needed.
-    setIsSectionDirty(false) // Clear the dirty state after saving
-  }
-
   const addFields = (
     <>
       <div>
@@ -288,12 +272,6 @@ export function ExperienceSection({ data, onUpdate }: ExperienceSectionProps) {
           <p className="text-muted-foreground">Showcase your career achievements and impact</p>
         </div>
         <div className="flex items-center gap-2">
-          {isSectionDirty && (
-            <Button variant="outline" size="sm" onClick={handleSectionSave}>
-              <Save className="w-4 h-4 mr-2" />
-              Save Section
-            </Button>
-          )}
           <SectionVisibilityToggle isHidden={isHidden} onToggle={toggleVisibility} />
         </div>
 

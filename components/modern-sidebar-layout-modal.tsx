@@ -8,8 +8,18 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { GripVertical, Columns, ChevronUp, ChevronDown } from 'lucide-react'
 
-const getLeftSections = (sections: Section[]) => sections.filter(s => s.column === 1 || (!s.column && ['skills', 'languages', 'certifications'].includes(s.type)))
-const getRightSections = (sections: Section[]) => sections.filter(s => s.column === 2 || (!s.column && !['skills', 'languages', 'certifications'].includes(s.type)))
+/** Section types that default to the narrow sidebar column. */
+const SIDEBAR_SECTION_TYPES = ["skills", "languages", "certifications"]
+
+/** Applies the default column to any section that has not been placed yet. */
+const withDefaultColumns = (sections: Section[]): Section[] =>
+  sections.map((s) => ({
+    ...s,
+    column: s.column || (SIDEBAR_SECTION_TYPES.includes(s.type) ? 1 : 2),
+  }))
+
+const getLeftSections = (sections: Section[]) => sections.filter(s => s.column === 1 || (!s.column && SIDEBAR_SECTION_TYPES.includes(s.type)))
+const getRightSections = (sections: Section[]) => sections.filter(s => s.column === 2 || (!s.column && !SIDEBAR_SECTION_TYPES.includes(s.type)))
 
 interface ModernSidebarLayoutModalProps {
   sections: Section[]
@@ -38,12 +48,14 @@ export const ModernSidebarLayoutModal: React.FC<ModernSidebarLayoutModalProps> =
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  useEffect(() => {
-    setLocalSections(sections.map(s => ({
-        ...s,
-        column: s.column || (['skills', 'languages', 'certifications'].includes(s.type) ? 1 : 2)
-    })))
-  }, [sections])
+  // Re-seed the local, drag-reorderable copy whenever the incoming sections
+  // change. Adjusted during render rather than in an effect, which rendered the
+  // previous layout for a frame before replacing it.
+  const [lastSections, setLastSections] = useState(sections)
+  if (sections !== lastSections) {
+    setLastSections(sections)
+    setLocalSections(withDefaultColumns(sections))
+  }
 
   const leftSections = getLeftSections(localSections)
   const rightSections = getRightSections(localSections)

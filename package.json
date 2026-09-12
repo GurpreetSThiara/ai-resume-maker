@@ -6,7 +6,7 @@
     "build": "next build",
     "check:env": "node scripts/check-public-env.mjs",
     "dev": "next dev -p 3005",
-    "lint": "eslint . --max-warnings=30",
+    "lint": "eslint . --max-warnings=23",
     "postinstall": "node scripts/copy-pdf-worker.cjs",
     "start": "next start",
     "test:smoke": "node tests/smoke.mjs",

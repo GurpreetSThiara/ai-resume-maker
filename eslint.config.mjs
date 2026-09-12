@@ -11,7 +11,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
  * arrays directly), so no FlatCompat shim is needed.
  */
 /**
- * `npm run lint` runs with --max-warnings=30, the current count. Errors always
+ * `npm run lint` runs with --max-warnings=23, the current count. Errors always
  * fail; the ceiling stops the warning backlog growing while it is worked down.
  * Lower the number as warnings are fixed — never raise it.
  */

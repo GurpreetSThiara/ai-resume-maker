@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -33,15 +33,24 @@ function SkillGroupInput({
 }: SkillGroupInputProps) {
   const [value, setValue] = useState(skills.join(", "))
 
-  // Update local value when props change, but only if the data actually changed
-  // (ignores formatting differences like trailing info)
-  useEffect(() => {
-    const currentParsed = value.split(',').map(s => s.trim()).filter(s => s.length > 0)
+  // The input keeps its own text so half-typed entries ("react, ty") survive a
+  // parent re-render. When the skills themselves change, re-seed it — but only
+  // if the text no longer parses to the same list, so formatting the user is
+  // mid-way through typing is left alone.
+  //
+  // Keyed on the joined value rather than the array: the parent builds a new
+  // array every render, so an identity check would re-seed on every keystroke.
+  // Adjusted during render rather than in an effect, which rendered the stale
+  // text for a frame first.
+  const skillsKey = skills.join("\u0000")
+  const [lastSkillsKey, setLastSkillsKey] = useState(skillsKey)
+  if (skillsKey !== lastSkillsKey) {
+    setLastSkillsKey(skillsKey)
+    const currentParsed = value.split(",").map((s) => s.trim()).filter((s) => s.length > 0)
     if (JSON.stringify(currentParsed) !== JSON.stringify(skills)) {
-      setValue(skills.join(', '))
+      setValue(skills.join(", "))
     }
-     
-  }, [skills])
+  }
 
   return (
     <Input

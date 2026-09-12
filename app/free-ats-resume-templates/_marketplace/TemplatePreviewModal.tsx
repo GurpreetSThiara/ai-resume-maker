@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 import Link from "next/link"
 import { ZoomIn, ZoomOut, RotateCcw, ArrowRight } from "lucide-react"
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
@@ -24,9 +24,15 @@ const ZOOM_STEP = 0.2
 export function TemplatePreviewModal({ template, open, onOpenChange }: Props) {
   const [zoom, setZoom] = useState(1)
 
-  useEffect(() => {
-    if (open) setZoom(1)
-  }, [open, template?.id])
+  // Reset the zoom when a different template is opened, adjusted during render
+  // rather than in an effect: an effect would paint the previous template's
+  // zoom for a frame before correcting it.
+  const previewKey = `${open}:${template?.id ?? ""}`
+  const [lastPreviewKey, setLastPreviewKey] = useState(previewKey)
+  if (previewKey !== lastPreviewKey) {
+    setLastPreviewKey(previewKey)
+    setZoom(1)
+  }
 
   if (!template) return null
   const category = CATEGORY_MAP[template.category]
