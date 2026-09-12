@@ -1,5 +1,5 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Roboto } from "next/font/google"
 import "./globals.css"
 import { AiProvider } from "@/hooks/use-ai"
@@ -20,7 +20,33 @@ const roboto = Roboto({
   display: 'swap',
 })
 
+/**
+ * Viewport + theme colour.
+ *
+ * Declared here rather than as a hand-written <meta> in <head>: Next emits its
+ * own viewport tag, so doing both shipped two conflicting tags and broke
+ * hydration on every page.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  // Required for env(safe-area-inset-*), which the mobile bottom nav relies on.
+  viewportFit: "cover",
+  themeColor: BRAND_THEME_COLOR,
+}
+
 export const metadata: Metadata = {
+  applicationName: "CreateFreeCV",
+  appleWebApp: {
+    capable: true,
+    title: "CreateFreeCV",
+    statusBarStyle: "default",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "msapplication-TileColor": BRAND_THEME_COLOR,
+    clckd: "00dd4cecdd1f49eb435533f606ecfa5a",
+  },
   title: 'Free ATS Resume Builder - No Sign Up | CreateFreeCV.com',
   description: 'Build professional ATS-friendly resumes instantly without login. Live preview, free PDF download, no credit card, no hidden fees.',
   keywords: ['free resume builder no sign up', 'ats resume builder', 'free resume download', 'ai resume writer', 'live preview resume builder', 'completely free resume builder', 'free resume builder no hidden fees'],
@@ -93,17 +119,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={roboto.className}>
       <head>
-        {/* Favicons, apple-touch-icon, and manifest are already emitted via metadata.icons/manifest above. */}
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="CreateFreeCV" />
-        <meta name="application-name" content="CreateFreeCV" />
-        <meta name="theme-color" content={BRAND_THEME_COLOR} />
-        <meta name="msapplication-TileColor" content={BRAND_THEME_COLOR} />
-        <meta name="clckd" content="00dd4cecdd1f49eb435533f606ecfa5a" />
-        {/* Global structured data: brand identity + the free resume builder app. */}
+        {/* Structured data only. Every meta tag that used to live here is now
+            declared through the metadata/viewport exports — hand-writing a
+            <meta name="viewport"> here duplicated the one Next emits, which is
+            what produced the hydration mismatch (React #418) on every page. */}
         <JsonLd data={[organizationSchema(), websiteSchema(), webApplicationSchema()]} />
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">

@@ -25,7 +25,10 @@ async headers() {
       // (components/legal/analytics-scripts.tsx) and Next's own inline hydration data.
       value: [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://accounts.google.com",
+        // React and Next's dev tooling need eval() to reconstruct stacks and
+        // report hydration diffs. Without it dev mode silently loses its own
+        // error reporting, so this is dev-only and never shipped to production.
+        `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV !== 'production' ? " 'unsafe-eval'" : ''} https://www.googletagmanager.com https://accounts.google.com`,
         "style-src 'self' 'unsafe-inline'",
         "img-src 'self' data: blob: https://cdn.jsdelivr.net",
         "font-src 'self' data:",

@@ -1,10 +1,16 @@
 import { useState, useEffect } from "react"
 
 export function useWindowSize() {
-    const [windowSize, setWindowSize] = useState({
-        width: typeof window !== "undefined" ? window.innerWidth : 0,
-        height: typeof window !== "undefined" ? window.innerHeight : 0,
-    })
+    // Seeded with zeros on purpose, NOT with window.innerWidth.
+    //
+    // Reading the real size here makes the first client render disagree with
+    // the server render (which has no window), and React treats that as a
+    // hydration mismatch — it was reported as error #418 on every page, since
+    // the navbar derives how many links to show from this width.
+    //
+    // The effect below fills in the true size immediately after mount, so the
+    // only cost is one extra render rather than a broken hydration.
+    const [windowSize, setWindowSize] = useState({ width: 0, height: 0 })
 
     useEffect(() => {
         function handleResize() {
