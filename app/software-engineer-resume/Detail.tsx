@@ -519,7 +519,12 @@ const Detail = () => {
               <ul className="space-y-3 text-muted-foreground">
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600 mt-1 flex-shrink-0" />
-                  <span>Name it clearly: FirstName_LastName_Software_Engineer_Resume.pdf</span>
+                  {/* A flex item will not shrink below its content width, and
+                      this filename has no break opportunity — without these it
+                      pushes the page wider than a phone viewport. */}
+                  <span className="min-w-0 break-words">
+                    Name it clearly: FirstName_LastName_Software_Engineer_Resume.pdf
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600 mt-1 flex-shrink-0" />

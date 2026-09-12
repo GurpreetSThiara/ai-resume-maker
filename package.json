@@ -4,12 +4,13 @@
   "private": true,
   "scripts": {
     "build": "next build",
+    "check:env": "node scripts/check-public-env.mjs",
     "dev": "next dev -p 3005",
     "lint": "eslint . --max-warnings=33",
-    "typecheck": "tsc --noEmit",
-    "check:env": "node scripts/check-public-env.mjs",
     "postinstall": "node scripts/copy-pdf-worker.cjs",
-    "start": "next start"
+    "start": "next start",
+    "test:smoke": "node tests/smoke.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -80,6 +81,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9.35.0",
     "eslint-config-next": "^16.0.0",
+    "playwright": "^1.63.0",
     "postcss": "^8.5",
     "tailwindcss": "^4.1.9",
     "tw-animate-css": "1.3.3",

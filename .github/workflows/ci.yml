@@ -33,3 +33,16 @@ jobs:
           # environment; these only need to exist so the client bundle compiles.
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+
+      # Only chromium — the smoke test asserts what the browser reports, not
+      # cross-browser rendering, so the other two are download time for nothing.
+      - run: npx playwright install --with-deps chromium
+
+      # Visits every route against the production build just produced and fails
+      # on any console error. The gates above all passed while the app threw a
+      # hydration error on every page (fixed in bed273d); this is the one that
+      # would have caught it.
+      - run: npm run test:smoke
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
