@@ -3,7 +3,8 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { FileText, Home, Plus, User, LogOut, User2, Menu, Star, BookOpen, Coffee, Image as ImageIcon, ChevronDown, HelpCircle } from "lucide-react"
+import { FileText, Home, Plus, User, LogOut, User2, Menu, Star, BookOpen, Coffee, Image as ImageIcon, ChevronDown, HelpCircle, X } from "lucide-react"
+import { IconButton } from "@/components/ui/icon-button"
 import { usePathname } from "next/navigation"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Drawer } from "@/components/ui/drawer"
@@ -262,9 +263,9 @@ export function Navbar() {
         <div className="flex flex-col h-full w-full bg-white p-6 gap-4">
           <div className="flex items-center justify-between mb-4">
             <span className="text-lg font-bold">Menu</span>
-            <button onClick={() => setDrawerOpen(false)} aria-label="Close menu" className="p-2 rounded-lg hover:bg-gray-100">
-              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
+            <IconButton label="Close menu" onClick={() => setDrawerOpen(false)} className="rounded-lg">
+              <X />
+            </IconButton>
           </div>
           <nav aria-label="Mobile menu" className="flex flex-col gap-2 mb-4">
             {mobileNavLinks}

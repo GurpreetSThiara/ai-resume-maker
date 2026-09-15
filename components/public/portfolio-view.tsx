@@ -6,8 +6,9 @@ import { ModernPortfolio } from "@/components/public/modern-portfolio"
 import { generateResumePDF } from "@/lib/pdf-generators"
 import { getTemplateById } from "@/lib/templates" // Adjust import path if needed
 import { ResumeData } from "@/types/resume"
-import { toast } from "sonner"
+import { toast } from "@/utils/toast"
 import { trackResumeDownloadToSheets } from "@/lib/google-sheets-tracker"
+import { MESSAGES } from "@/constants/messages"
 
 interface PortfolioViewProps {
     portfolio: any // Typed properly in real app
@@ -32,7 +33,7 @@ export function PortfolioView({ portfolio }: PortfolioViewProps) {
             const selectedTemplate = getTemplateById(templateId) || getTemplateById("ats-classic-compact") || template
 
             if (!selectedTemplate) {
-                toast.error("Invalid template selected")
+                toast.error(MESSAGES.PORTFOLIO_TEMPLATE_INVALID)
                 return
             }
 
@@ -42,7 +43,7 @@ export function PortfolioView({ portfolio }: PortfolioViewProps) {
                 filename: `${portfolio.slug}-resume.pdf`,
             })
 
-            toast.success("Resume downloaded successfully")
+            toast.success(MESSAGES.RESUME_DOWNLOAD_SUCCESS)
 
             // Track the download in Google Sheets
             // Assuming we don't know the exact user state in public portfolio without useAuth,
@@ -50,7 +51,7 @@ export function PortfolioView({ portfolio }: PortfolioViewProps) {
             trackResumeDownloadToSheets({ ...resumeData, template: selectedTemplate }, false);
         } catch (error) {
             console.error("Download error:", error)
-            toast.error("Failed to download resume")
+            toast.error(MESSAGES.RESUME_DOWNLOAD_FAILED)
         } finally {
             setIsDownloading(false)
         }

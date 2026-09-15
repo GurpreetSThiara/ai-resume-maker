@@ -58,4 +58,10 @@ export async function sendOpenRouterMessage({ messages, model, siteUrl, siteTitl
   }
 }
 
-export { createOpenRouterClient as openRouter }
+/**
+ * Exported under its real name. It was previously also aliased as
+ * `openRouter`, which reads like an instance — app/api/ai/generate-summary
+ * duly called `openRouter.chat.completions.create(...)` on the factory
+ * function and threw on property access before any network call.
+ */
+export { createOpenRouterClient }

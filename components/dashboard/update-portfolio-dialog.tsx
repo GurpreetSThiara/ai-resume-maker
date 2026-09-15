@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button"
 import { updatePortfolio } from "@/services/portfolioService"
 import { getUserResumes, loadResumeData } from "@/lib/supabase-functions"
-import { toast } from "sonner"
+import { toast } from "@/utils/toast"
 import { MESSAGES } from "@/constants/messages"
 import { Loader2, FileText, Check, RefreshCw } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -72,12 +72,12 @@ export function UpdatePortfolioDialog({ children, portfolioId, currentResumeId, 
             })
 
             if (updateResult.success) {
-                toast.success(updateResult.message)
+                toast.success(updateResult.message ?? MESSAGES.PORTFOLIO_SAVED)
                 setOpen(false)
                 if (onUpdate) onUpdate()
                 router.refresh()
             } else {
-                toast.error(updateResult.error || "Failed to update portfolio")
+                toast.error(updateResult.error || MESSAGES.PORTFOLIO_UPDATE_FAILED)
             }
         } catch (err) {
             console.error(err)

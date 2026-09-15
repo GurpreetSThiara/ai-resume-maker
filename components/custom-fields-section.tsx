@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, Link } from "lucide-react"
-import type { ResumeData } from "@/app/page"
+import type { ResumeData } from "@/types/resume"
 
 interface CustomFieldsSectionProps {
   data: ResumeData

@@ -54,3 +54,27 @@ export function SHOW_TOAST(options: ToastOptions) {
   }
   return toastDispatcher(options)
 }
+
+/**
+ * Drop-in replacement for sonner's `toast` API.
+ *
+ * Six files in the dashboard/portfolio flow called `toast.success("...")` from
+ * sonner, whose <Toaster /> was never mounted — every one of those
+ * notifications was a silent no-op. This adapter lets those call sites keep
+ * their shape while dispatching through the toast provider that *is* mounted
+ * in app/layout.tsx.
+ */
+type ToastMessageOptions = Omit<ToastOptions, "variant" | "title">
+
+const withTitle =
+  (show: (options: Omit<ToastOptions, "variant">) => string) =>
+  (message: string, options?: ToastMessageOptions) =>
+    show({ ...options, title: message })
+
+export const toast = {
+  success: withTitle(SHOW_SUCCESS),
+  error: withTitle(SHOW_ERROR),
+  warning: withTitle(SHOW_WARNING),
+  info: withTitle(SHOW_INFO),
+  message: withTitle(SHOW_DEFAULT),
+}

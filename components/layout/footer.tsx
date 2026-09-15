@@ -8,6 +8,11 @@ import { Brand } from "@/components/ui/brand"
 import { BuyMeCoffee } from "@/components/ui/buy-me-coffee"
 import { openConsentSettings } from "@/lib/analytics-consent"
 export function Footer() {
+  // Rendered with suppressHydrationWarning below. On a statically prerendered
+  // page the server bakes in the build year, so after New Year the client
+  // legitimately computes a different one — the documented case for opting a
+  // single node out of hydration matching, rather than shipping a stale year
+  // until the next deploy.
   const currentYear = new Date().getFullYear()
   const pathname = usePathname() || "/"
   // The focused editor is app-like — no marketing footer there.
@@ -191,7 +196,7 @@ export function Footer() {
 
         {/* Bottom */}
         <div className="border-t border-border/50 mt-12 pt-6 text-center text-muted-foreground text-sm">
-          <p>&copy; {currentYear} CreateFreeCV. All rights reserved.</p>
+          <p suppressHydrationWarning>&copy; {currentYear} CreateFreeCV. All rights reserved.</p>
         </div>
       </div>
     </footer>

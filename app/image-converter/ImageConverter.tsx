@@ -83,6 +83,9 @@ export default function ImageConverter() {
     
     const selectedFormat = outputFormats.find(f => f.value === outputFormat);
     const extension = selectedFormat?.label.toLowerCase() || 'png';
+    // downloadImage is only ever invoked from onClick. Impurity in an event
+    // handler is correct; the compiler cannot prove this never runs in render.
+    // eslint-disable-next-line react-hooks/purity
     const finalFileName = fileName || `converted-image-${Date.now()}`;
     
     const link = document.createElement('a');

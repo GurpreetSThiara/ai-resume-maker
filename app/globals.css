@@ -55,6 +55,10 @@
   --chart-4: oklch(0.65 0.15 142); /* #22c55e */
   --chart-5: oklch(0.7 0.15 85); /* #f59e0b */
   --radius: 0.5rem;
+  /* Darker companion to --primary, for the logo mark's stroke. */
+  --brand-stroke: oklch(0.37 0.09 163); /* #065f46 */
+  /* Tick lines on the visual editor's rulers. */
+  --ruler-line: oklch(0.87 0 0); /* #d1d5db */
   --sidebar: oklch(0.98 0.02 142); /* #f0fdf4 */
   --sidebar-foreground: oklch(0.3 0 0); /* #374151 */
   --sidebar-primary: oklch(0.45 0.15 142); /* #15803d */

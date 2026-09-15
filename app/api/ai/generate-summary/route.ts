@@ -1,20 +1,16 @@
-import { openRouter } from "@/lib/openrouter"
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { createOpenRouterClient } from "@/lib/openrouter"
+import { AI_MODEL } from "@/config/aiConfig"
+import { requireUser } from "@/lib/api/auth"
 
 export async function POST(request: Request) {
-  const supabase = createRouteHandlerClient({ cookies: cookies() })
-  const { data: { session } } = await supabase.auth.getSession()
-  
-  if (!session?.user?.id) {
-    return new Response("Unauthorized", { status: 401 })
-  }
+  const { supabase, user, response } = await requireUser()
+  if (response) return response
   
   // Check remaining credits
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('credits_remaining')
-    .eq('id', session.user.id)
+    .eq('id', user.id)
     .single()
 
   if (profileError || !profile) {
@@ -47,7 +43,8 @@ Please write a concise, professional summary (2-3 sentences) that:
 4. Uses active voice and powerful action verbs
 5. Keeps it under 100 words`
 
-    const response = await openRouter.chat.completions.create({
+    const client = createOpenRouterClient()
+    const response = await client.chat.completions.create({
       messages: [
         {
           role: "system",
@@ -58,7 +55,7 @@ Please write a concise, professional summary (2-3 sentences) that:
           content: prompt,
         },
       ],
-      model: "openai/gpt-oss-20b:free",
+      model: AI_MODEL,
       temperature: 0.7,
     })
 
@@ -75,7 +72,7 @@ Please write a concise, professional summary (2-3 sentences) that:
         credits_remaining: profile.credits_remaining - 1,
         last_activity: new Date().toISOString()
       })
-      .eq('id', session.user.id)
+      .eq('id', user.id)
 
     if (updateError) {
       throw new Error("Failed to update credits")

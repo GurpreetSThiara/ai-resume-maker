@@ -11,6 +11,7 @@ import { Star, ThumbsUp, Flag, Loader2, LogIn } from "lucide-react"
 import { SHOW_SUCCESS, SHOW_ERROR } from "@/utils/toast"
 import { useAuth } from "@/contexts/auth-context"
 import { useAuthModal } from "@/contexts/auth-modal-context"
+import { MESSAGES } from "@/constants/messages"
 
 interface Review {
   _id?: string
@@ -110,9 +111,16 @@ export function ReviewComponent({
       if (response.ok) {
         SHOW_SUCCESS({ title: "Thank you!", description: "Your feedback helps others" })
         onMarkHelpful?.(reviewId)
+        return
       }
+
+      const { error } = await response.json().catch(() => ({ error: undefined }))
+      SHOW_ERROR({
+        title: response.status === 401 ? "Sign in to vote" : "Couldn't record that",
+        description: error ?? MESSAGES.REVIEW_HELPFUL_FAILED,
+      })
     } catch (error) {
-      SHOW_ERROR({ title: "Error", description: "Failed to mark review as helpful" })
+      SHOW_ERROR({ title: "Error", description: MESSAGES.REVIEW_HELPFUL_FAILED })
     }
   }
 
@@ -125,9 +133,16 @@ export function ReviewComponent({
       if (response.ok) {
         SHOW_SUCCESS({ title: "Review reported", description: "Thank you for helping maintain quality" })
         onReportReview?.(reviewId)
+        return
       }
+
+      const { error } = await response.json().catch(() => ({ error: undefined }))
+      SHOW_ERROR({
+        title: response.status === 401 ? "Sign in to report" : "Couldn't report that",
+        description: error ?? MESSAGES.REVIEW_REPORT_FAILED,
+      })
     } catch (error) {
-      SHOW_ERROR({ title: "Error", description: "Failed to report review" })
+      SHOW_ERROR({ title: "Error", description: MESSAGES.REVIEW_REPORT_FAILED })
     }
   }
 
@@ -301,7 +316,7 @@ export function ReviewComponent({
           ) : (
             <div className="space-y-3">
               <Button 
-                onClick={open}
+                onClick={() => open()}
                 className="w-full bg-blue-600 hover:bg-blue-700"
               >
                 <LogIn className="w-4 h-4 mr-2" />

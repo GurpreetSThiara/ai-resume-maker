@@ -8,6 +8,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import {
   Award, Briefcase, Eye, EyeOff, FileText, FolderGit2, Globe, GraduationCap, GripVertical, Plus, Trash2, Wrench,
 } from "lucide-react"
+import { IconButton } from "@/components/ui/icon-button"
+import { Button } from "@/components/ui/button"
+import DeleteConfirmModal from "@/components/appUI/modals/DeleteConfirmModal"
 
 const ICON: Record<string, any> = {
   [SECTION_TYPES.EXPERIENCE]: Briefcase,
@@ -104,12 +107,23 @@ export function StudioLeftRail({
                 <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-gray-300" />
                 <Icon className="h-4 w-4 shrink-0 text-primary" />
                 <span className={`flex-1 truncate ${s.hidden ? "text-gray-400 line-through" : "text-gray-700"}`}>{s.title}</span>
-                <button onClick={(e) => { e.stopPropagation(); toggleHidden(s.id) }} className="text-gray-400 opacity-0 hover:text-gray-700 group-hover:opacity-100" title={s.hidden ? "Show" : "Hide"}>
-                  {s.hidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                </button>
-                <button onClick={(e) => { e.stopPropagation(); setConfirmId(s.id) }} className="text-gray-400 opacity-0 hover:text-red-500 group-hover:opacity-100" title="Delete">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                <IconButton
+                  size="sm"
+                  label={s.hidden ? `Show ${s.title}` : `Hide ${s.title}`}
+                  className="opacity-0 group-hover:opacity-100"
+                  onClick={(e) => { e.stopPropagation(); toggleHidden(s.id) }}
+                >
+                  {s.hidden ? <EyeOff /> : <Eye />}
+                </IconButton>
+                <IconButton
+                  variant="danger"
+                  size="sm"
+                  label={`Delete ${s.title}`}
+                  className="opacity-0 group-hover:opacity-100"
+                  onClick={(e) => { e.stopPropagation(); setConfirmId(s.id) }}
+                >
+                  <Trash2 />
+                </IconButton>
               </div>
             )
           })}
@@ -117,9 +131,12 @@ export function StudioLeftRail({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-gray-300 py-2 text-sm font-medium text-gray-600 hover:border-primary hover:text-primary">
-              <Plus className="h-4 w-4" /> Add Section
-            </button>
+            <Button
+              variant="outline"
+              className="mt-3 w-full border-dashed border-gray-300 text-gray-600 hover:border-primary hover:text-primary"
+            >
+              <Plus /> Add Section
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-48">
             {ADD_TYPES.map((x) => (
@@ -129,20 +146,17 @@ export function StudioLeftRail({
         </DropdownMenu>
       </div>
 
-      {confirmSection && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/50" onClick={() => setConfirmId(null)}>
-          <div className="w-[340px] max-w-[90%] rounded-xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <p className="text-base font-bold text-gray-900">Delete this section?</p>
-            <p className="mt-1.5 mb-4 text-sm leading-relaxed text-gray-500">
-              The “{confirmSection.title}” section and its content will be removed. You can bring it back with Undo (Ctrl+Z).
-            </p>
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setConfirmId(null)} className="rounded-lg border border-gray-200 px-3.5 py-2 text-sm font-medium hover:bg-gray-50">Cancel</button>
-              <button onClick={() => { remove(confirmSection.id); setConfirmId(null) }} className="rounded-lg bg-red-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-red-700">Delete</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmModal
+        open={!!confirmSection}
+        onOpenChange={(open) => { if (!open) setConfirmId(null) }}
+        onConfirm={() => { if (confirmSection) remove(confirmSection.id) }}
+        title="Delete this section?"
+        description={
+          confirmSection
+            ? `The \u201C${confirmSection.title}\u201D section and its content will be removed. You can bring it back with Undo (Ctrl+Z).`
+            : ""
+        }
+      />
     </aside>
   )
 }

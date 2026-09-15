@@ -1,4 +1,4 @@
-import { PDFPage, PDFFont, rgb, PDFString, PDFName } from '@pdfme/pdf-lib'
+import { PDFPage, PDFFont, rgb, PDFString, PDFName, PDFArray } from '@pdfme/pdf-lib'
 import { ProjectsSection } from '@/types/resume'
 import { addLinkAnnotation, defaultWrapText, LinkDisplay, measureText, normalizeUrl } from '../utils'
 
@@ -164,7 +164,8 @@ export const drawProjectsSection = (
           const linkAnnotationRef = context.register(linkAnnotation)
           
           // Add to page's annotations
-          const annots = ctx.page.node.lookup(PDFName.of('Annots'))
+          // lookup() returns PDFObject; only a PDFArray can take a push.
+          const annots = ctx.page.node.lookup(PDFName.of('Annots'), PDFArray)
           if (annots) {
             annots.push(linkAnnotationRef)
           } else {

@@ -68,7 +68,7 @@ export function useHotkeys(hotkeys: Hotkey[] = []) {
 					} catch (err) {
 						// swallow errors from user callbacks to avoid breaking global handler
 						// but log for debugging
-						// eslint-disable-next-line no-console
+						 
 						console.error("useHotkeys callback error:", err)
 					}
 				}

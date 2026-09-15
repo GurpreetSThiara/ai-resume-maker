@@ -6,7 +6,7 @@ import { Eye, ArrowRight, Sparkle, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   CATEGORY_MAP,
-  useTemplateHref,
+  templateHref,
   type MarketplaceTemplate,
 } from "./data"
 import { Highlight, TemplateThumb } from "./shared"
@@ -73,7 +73,7 @@ function TemplateCardBase({ template, variants, onPreview, query = "", priority,
               <Eye className="h-4 w-4" aria-hidden /> Preview
             </button>
             <Link
-              href={useTemplateHref(active.templateId)}
+              href={templateHref(active.templateId)}
               className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white shadow transition hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               aria-label={`Use ${active.name} template`}
             >

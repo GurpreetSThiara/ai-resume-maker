@@ -23,9 +23,6 @@ export function usePostDownloadReview({ actionType = 'download' }: UsePostDownlo
       open={showReviewModal}
       onOpenChange={setShowReviewModal}
       actionType={actionType}
-      onReviewSubmitted={() => {
-        setShowReviewModal(false)
-      }}
     />
   )
 

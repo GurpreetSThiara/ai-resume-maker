@@ -1,31 +1,7 @@
 import { getMongoDb } from "./mongo"
+import { REVIEW_VOTE_RESULTS, type Review, type ReviewStats, type ReviewVoteResult } from "@/types/review"
 
-export interface Review {
-  _id?: string
-  userId?: string
-  name: string
-  rating: number
-  comment: string
-  jobTitle?: string
-  company?: string
-  location?: string
-  verified: boolean
-  createdAt: Date
-  helpful: number
-  reported: boolean
-}
-
-export interface ReviewStats {
-  averageRating: number
-  totalReviews: number
-  ratingDistribution: {
-    5: number
-    4: number
-    3: number
-    2: number
-    1: number
-  }
-}
+export type { Review, ReviewStats, ReviewVoteResult }
 
 // Submit a new review
 export async function submitReview(reviewData: Omit<Review, '_id' | 'createdAt' | 'helpful' | 'reported'>, userId: string): Promise<{ success: boolean; reviewId?: string; error?: string }> {
@@ -130,37 +106,52 @@ export async function getReviewStats(): Promise<ReviewStats> {
 }
 
 // Mark review as helpful
-export async function markReviewHelpful(reviewId: string): Promise<boolean> {
-  try {
-    const db = await getMongoDb()
-    const reviewsCollection = db.collection<Review>('reviews')
-
-    await reviewsCollection.updateOne(
-      { _id: reviewId },
-      { $inc: { helpful: 1 } }
-    )
-
-    return true
-  } catch (error) {
-    console.error('Error marking review helpful:', error)
-    return false
-  }
+export async function markReviewHelpful(
+  reviewId: string,
+  userId: string,
+): Promise<ReviewVoteResult> {
+  return recordVote(reviewId, userId, 'helpful')
 }
 
 // Report review
-export async function reportReview(reviewId: string): Promise<boolean> {
-  try {
-    const db = await getMongoDb()
-    const reviewsCollection = db.collection<Review>('reviews')
+export async function reportReview(
+  reviewId: string,
+  userId: string,
+): Promise<ReviewVoteResult> {
+  return recordVote(reviewId, userId, 'reported')
+}
 
-    await reviewsCollection.updateOne(
-      { _id: reviewId },
-      { $set: { reported: true } }
-    )
+/**
+ * Register one user's vote against one review, at most once.
+ *
+ * The guard lives in the query rather than a read-then-write, so two
+ * concurrent requests cannot both pass it. A zero matchedCount means either
+ * the review is gone or this user already voted, which is why existence is
+ * checked separately — the previous version returned true unconditionally, so
+ * a bogus review id reported success.
+ */
+async function recordVote(
+  reviewId: string,
+  userId: string,
+  kind: 'helpful' | 'reported',
+): Promise<ReviewVoteResult> {
+  const db = await getMongoDb()
+  const reviews = db.collection<Review>('reviews')
 
-    return true
-  } catch (error) {
-    console.error('Error reporting review:', error)
-    return false
-  }
+  const votersField = kind === 'helpful' ? 'helpfulBy' : 'reportedBy'
+
+  const update =
+    kind === 'helpful'
+      ? { $inc: { helpful: 1 }, $addToSet: { helpfulBy: userId } }
+      : { $set: { reported: true }, $addToSet: { reportedBy: userId } }
+
+  const result = await reviews.updateOne(
+    { _id: reviewId, [votersField]: { $ne: userId } } as never,
+    update as never,
+  )
+
+  if (result.matchedCount > 0) return REVIEW_VOTE_RESULTS.OK
+
+  const exists = await reviews.countDocuments({ _id: reviewId } as never, { limit: 1 })
+  return exists ? REVIEW_VOTE_RESULTS.ALREADY_VOTED : REVIEW_VOTE_RESULTS.NOT_FOUND
 }

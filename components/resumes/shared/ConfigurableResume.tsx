@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useRef, useEffect, useState } from "react"
+import { useRef, useEffect, useState, useId } from "react"
 import type { ResumeData } from "@/types/resume"
 import { SECTION_TYPES } from "@/types/resume"
 import { getSectionsForRendering } from "@/utils/sectionOrdering"
@@ -40,6 +40,9 @@ interface ConfigurableResumeProps {
 }
 
 const hx = (h?: string) => (h ? `#${h}` : undefined)
+
+/** Monotonic across the session; only ever appended to a per-instance useId prefix. */
+let nextSectionSeq = 0
 
 export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
   pdfRef,
@@ -233,7 +236,12 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     })
 
   // ---------- CRUD handlers (visual editor) ----------
-  const genId = () => `sec-${Math.random().toString(36).slice(2, 9)}`
+  // useId plus a module-level counter, rather than Math.random(): the prefix is
+  // stable between server and client, so it cannot cause a hydration mismatch,
+  // and the counter keeps ids unique without a ref — a ref would be read during
+  // render everywhere a section is drawn.
+  const idPrefix = useId().replace(/:/g, "")
+  const genId = () => `sec-${idPrefix}-${nextSectionSeq++}`
   const defaultTitle = (type: string) =>
     (({
       [SECTION_TYPES.EXPERIENCE]: "Experience",
@@ -404,11 +412,11 @@ export const ConfigurableResume: React.FC<ConfigurableResumeProps> = ({
     return (
       <div className="cfc-tools" contentEditable={false}>
         {add && (
-          <button type="button" className="cfc-tbtn" title={add.title} onMouseDown={(e) => e.preventDefault()} onClick={add.fn}>
+          <button type="button" className="cfc-tbtn" title={add.title} aria-label={add.title} onMouseDown={(e) => e.preventDefault()} onClick={add.fn}>
             <Plus size={13} strokeWidth={2.5} />
           </button>
         )}
-        <button type="button" className="cfc-tbtn cfc-tbtn-danger" title="Delete section" onMouseDown={(e) => e.preventDefault()} onClick={() => requestDelete(`Delete the "${section.title || "section"}" section`, () => removeSectionById(section.id))}>
+        <button type="button" className="cfc-tbtn cfc-tbtn-danger" title="Delete section" aria-label="Delete section" onMouseDown={(e) => e.preventDefault()} onClick={() => requestDelete(`Delete the "${section.title || "section"}" section`, () => removeSectionById(section.id))}>
           <Trash2 size={12} strokeWidth={2} />
         </button>
       </div>

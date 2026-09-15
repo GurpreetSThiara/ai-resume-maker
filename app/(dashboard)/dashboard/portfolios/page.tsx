@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { SITE_URL } from "@/lib/seo"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Plus, Eye, Edit, Trash2, Globe, ExternalLink, RefreshCw, Settings, Share2, Briefcase, ChevronRight, CheckCircle2, Lock } from "lucide-react"
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getUserPortfolios, deletePortfolio } from "@/services/portfolioService"
-import { toast } from "sonner"
+import { toast } from "@/utils/toast"
 import { formatDistanceToNow } from "date-fns"
 import {
     AlertDialog,
@@ -29,6 +30,7 @@ import { Label } from "@/components/ui/label"
 import { updatePortfolio } from "@/services/portfolioService"
 import { useAuth } from "@/contexts/auth-context"
 import { useAuthModal } from "@/contexts/auth-modal-context"
+import { MESSAGES } from "@/constants/messages"
 
 export default function PortfoliosPage() {
     const { user, loading: authLoading } = useAuth()
@@ -36,6 +38,17 @@ export default function PortfoliosPage() {
     const [portfolios, setPortfolios] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const router = useRouter()
+
+    async function loadPortfolios() {
+        setLoading(true)
+        const result = await getUserPortfolios()
+        if (result.success) {
+            setPortfolios(result.data || [])
+        } else {
+            toast.error(MESSAGES.PORTFOLIO_LIST_FAILED)
+        }
+        setLoading(false)
+    }
 
     useEffect(() => {
         if (user) {
@@ -45,52 +58,14 @@ export default function PortfoliosPage() {
         }
     }, [user, authLoading])
 
-    async function loadPortfolios() {
-        setLoading(true)
-        const result = await getUserPortfolios()
-        // let's assume for now we need to fix service or pass it. 
-        // Actually, I'll update the component to fetch user first or fix service.
-        // Let's fix service to retrieve user if not passed, BUT for now let's reuse the pattern from resumeService
-        // resumeService gets user inside.
-        // My portfolioService expects userId. I should probably refactor it to use auth.getUser() inside like resumeService.
-        // For now, let's assume I'll fix the service in next step or just pass it here. 
-        // Actually, I will update the service to be more robust.
-        // BUT since I can't edit service in this turn easily without context switching, let's assume I fix it.
-        // Wait, I see I wrote `getUserPortfolios(userId)` in service.
-        // I should probably pass the user ID.
-        // Let's use a hook or something to get user. 
-        // Standard Supabase client usage in Next.js usually involves getting user.
-
-        // Correction: I will implemented a fix in service in next step.
-        // For now let's write this component assuming `getUserPortfolios` will handle it or I pass it.
-
-        // Let's try to get user id here
-        // import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-        // const supabase = createClientComponentClient()
-        // const { data: { user } } = await supabase.auth.getUser()
-        // if (user) ...
-
-        // To be safe, I'll implement a wrapper function here.
-        fetchPortfolios()
-    }
-
-    async function fetchPortfolios() {
-        const result = await getUserPortfolios()
-        if (result.success) {
-            setPortfolios(result.data || [])
-        } else {
-            toast.error("Failed to load portfolios")
-        }
-        setLoading(false)
-    }
 
     const handleDelete = async (id: string) => {
         const result = await deletePortfolio(id)
         if (result.success) {
-            toast.success("Portfolio deleted")
+            toast.success(MESSAGES.PORTFOLIO_DELETED)
             loadPortfolios()
         } else {
-            toast.error(result.error || "Failed to delete")
+            toast.error(result.error || MESSAGES.PORTFOLIO_DELETE_FAILED)
         }
     }
 
@@ -103,13 +78,13 @@ export default function PortfoliosPage() {
         const result = await updatePortfolio(id, { is_public: isPublic })
 
         if (result.success) {
-            toast.success(isPublic ? "Portfolio is now live" : "Portfolio is now a draft")
+            toast.success(isPublic ? MESSAGES.PORTFOLIO_NOW_LIVE : MESSAGES.PORTFOLIO_NOW_DRAFT)
         } else {
             // Revert changes on error
             setPortfolios(prev => prev.map(p =>
                 p.id === id ? { ...p, is_public: !isPublic } : p
             ))
-            toast.error(result.error || "Failed to update status")
+            toast.error(result.error || MESSAGES.PORTFOLIO_STATUS_FAILED)
         }
     }
 
@@ -188,8 +163,11 @@ export default function PortfoliosPage() {
                                         <div className="space-y-2">
                                             <Label className="text-sm font-medium text-muted-foreground">Public URL</Label>
                                             <div className="flex items-center gap-3">
-                                                <div className="bg-slate-50 border px-4 py-2.5 rounded-md font-mono text-sm text-slate-700 min-w-0 select-all flex-1 truncate" title={`${typeof window !== 'undefined' ? window.location.origin : ''}/p/${portfolio.slug}`}>
-                                                    {typeof window !== 'undefined' ? window.location.origin : ''}/p/{portfolio.slug}
+                                                <div className="bg-slate-50 border px-4 py-2.5 rounded-md font-mono text-sm text-slate-700 min-w-0 select-all flex-1 truncate" title={`${SITE_URL}/p/${portfolio.slug}`}>
+                                                    {/* The canonical origin, not window.location: this is the link
+                                                        people share, and reading the live origin during render made the
+                                                        server and client trees disagree. */}
+                                                    {SITE_URL}/p/{portfolio.slug}
                                                 </div>
                                                 <Button variant="outline" size="icon" className="h-10 w-10 shrink-0" asChild>
                                                     <Link href={`/p/${portfolio.slug}`} target="_blank" rel="noopener noreferrer" aria-label="Open public portfolio in a new tab">

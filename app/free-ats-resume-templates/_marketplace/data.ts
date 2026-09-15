@@ -23,6 +23,23 @@ import {
 } from "lucide-react"
 import { RESUME_DESIGNS, type DesignCategory } from "@/lib/resume-designs"
 import { LEGACY_RESUME_TEMPLATES } from "@/constants/resumeConstants"
+import { getResumeDesign, type DesignFont, type DesignHeader, type DesignLayout, type SkillStyle } from "@/lib/resume-designs"
+import {
+  colorFamilyOf,
+  ATS_THRESHOLDS,
+  COLOR_VALUES,
+  FEATURE_VALUES,
+  FONT_VALUES,
+  FORMAT_VALUES,
+  HEADER_VALUES,
+  LAYOUT_VALUES,
+  PRICE_VALUES,
+  SKILL_STYLE_VALUES,
+  type ColorFamily,
+  type FeatureFacet,
+  type FormatFacet,
+  type PriceFacet,
+} from "./facets"
 
 /* ────────────────────────────────────────────────────────────────────────
  * Types
@@ -59,6 +76,22 @@ export interface MarketplaceTemplate {
   colorName: string
   /** Accent colour (hex with #) used for the colour swatch. */
   accentHex: string
+
+  // ── derived design facets, read off the ResumeDesign this card renders ──
+  // Kept on the card so filtering never has to re-resolve the design per
+  // keystroke, and so a facet can never describe something the design does not
+  // actually do.
+  layout: DesignLayout
+  font: DesignFont
+  headerStyle: DesignHeader
+  skillStyle: SkillStyle
+  colorFamily: ColorFamily
+  /** False when the design's DOCX approximation is too poor to offer. */
+  hasDocx: boolean
+  monogram: boolean
+  timeline: boolean
+  accentStripe: boolean
+  showRole: boolean
 }
 
 /** A design family: one layout recipe with one or more colour variants. */
@@ -76,7 +109,33 @@ export interface Filters {
   minAts: 0 | 90 | 95 | 98
   tags: string[]
   sort: SortKey
+  layouts: DesignLayout[]
+  fonts: DesignFont[]
+  headers: DesignHeader[]
+  skillStyles: SkillStyle[]
+  colors: ColorFamily[]
+  prices: PriceFacet[]
+  formats: FormatFacet[]
+  features: FeatureFacet[]
 }
+
+/** Every filter key whose value is a multi-select array. */
+export const MULTI_FILTER_KEYS = [
+  "tags",
+  "layouts",
+  "fonts",
+  "headers",
+  "skillStyles",
+  "colors",
+  "prices",
+  "formats",
+  "features",
+] as const
+
+export type MultiFilterKey = (typeof MULTI_FILTER_KEYS)[number]
+
+/** Per-option result counts, so a facet can show what selecting it would give. */
+export type FacetCounts = Record<string, number>
 
 /* ────────────────────────────────────────────────────────────────────────
  * Categories
@@ -105,6 +164,9 @@ export const CATEGORIES: MarketplaceCategory[] = [
   { id: "government", name: "Government", description: "Standards-compliant resumes for public sector roles.", icon: Flag },
 ]
 
+/** Category ids, derived from CATEGORIES so a new category is counted automatically. */
+export const CATEGORY_VALUES: CategoryId[] = CATEGORIES.map((c) => c.id)
+
 export const CATEGORY_MAP: Record<CategoryId, MarketplaceCategory> = CATEGORIES.reduce(
   (acc, c) => {
     acc[c.id] = c
@@ -126,6 +188,28 @@ export const CATEGORY_MAP: Record<CategoryId, MarketplaceCategory> = CATEGORIES.
 // placeholder in the UI (see TemplateThumb).
 const total = RESUME_DESIGNS.length
 
+/**
+ * Reads the design facets off whichever ResumeDesign a card renders.
+ *
+ * Both catalogs resolve through getResumeDesign, so legacy and config-driven
+ * templates are described identically — no second metadata table to drift.
+ */
+function designFacets(templateId: string, accentHex: string) {
+  const d = getResumeDesign(templateId)
+  return {
+    layout: d?.layout ?? "single",
+    font: d?.font ?? "sans",
+    headerStyle: d?.header ?? "left",
+    skillStyle: d?.skillStyle ?? "bullets",
+    colorFamily: colorFamilyOf(accentHex),
+    hasDocx: !d?.pdfOnly,
+    monogram: !!d?.monogram,
+    timeline: !!d?.timeline,
+    accentStripe: !!d?.accentStripe,
+    showRole: !!d?.showRole,
+  } as const
+}
+
 const designTemplates: MarketplaceTemplate[] = RESUME_DESIGNS.map((d, i) => {
   return {
     id: d.id,
@@ -145,6 +229,7 @@ const designTemplates: MarketplaceTemplate[] = RESUME_DESIGNS.map((d, i) => {
     familyName: d.familyName,
     colorName: d.colorName,
     accentHex: `#${d.colors.accent}`,
+    ...designFacets(d.id, `#${d.colors.accent}`),
   }
 })
 
@@ -193,6 +278,7 @@ const LEGACY_TEMPLATES: MarketplaceTemplate[] = LEGACY_RESUME_TEMPLATES.map((t) 
     familyName: t.name,
     colorName: "Default",
     accentHex: `#${meta.accent}`,
+    ...designFacets(t.id, `#${meta.accent}`),
   }
 })
 
@@ -247,6 +333,54 @@ export const DEFAULT_FILTERS: Filters = {
   minAts: 0,
   tags: [],
   sort: "popular",
+  layouts: [],
+  fonts: [],
+  headers: [],
+  skillStyles: [],
+  colors: [],
+  prices: [],
+  formats: [],
+  features: [],
+}
+
+/**
+ * Does a template satisfy one facet group?
+ *
+ * An empty selection means "no opinion", so it matches everything. Within a
+ * group the options are OR'd (blue OR green), which is what shoppers expect;
+ * across groups they are AND'd. Tags are the deliberate exception — they stay
+ * AND'd, because tags narrow rather than widen.
+ */
+function matchesFacets(t: MarketplaceTemplate, f: Filters): boolean {
+  if (f.layouts.length && !f.layouts.includes(t.layout)) return false
+  if (f.fonts.length && !f.fonts.includes(t.font)) return false
+  if (f.headers.length && !f.headers.includes(t.headerStyle)) return false
+  if (f.skillStyles.length && !f.skillStyles.includes(t.skillStyle)) return false
+  if (f.colors.length && !f.colors.includes(t.colorFamily)) return false
+
+  if (f.prices.length) {
+    const price: PriceFacet = t.isPremium ? "premium" : "free"
+    if (!f.prices.includes(price)) return false
+  }
+
+  if (f.formats.length) {
+    const format: FormatFacet = t.hasDocx ? "pdf-docx" : "pdf-only"
+    if (!f.formats.includes(format)) return false
+  }
+
+  if (f.features.length) {
+    const has: Record<FeatureFacet, boolean> = {
+      monogram: t.monogram,
+      timeline: t.timeline,
+      accentStripe: t.accentStripe,
+      showRole: t.showRole,
+      isNew: t.isNew,
+    }
+    // Features are AND'd: asking for a monogram AND a timeline means both.
+    if (!f.features.every((key) => has[key])) return false
+  }
+
+  return true
 }
 
 const SORTERS: Record<SortKey, (a: MarketplaceTemplate, b: MarketplaceTemplate) => number> = {
@@ -257,19 +391,110 @@ const SORTERS: Record<SortKey, (a: MarketplaceTemplate, b: MarketplaceTemplate) 
   za: (a, b) => b.name.localeCompare(a.name),
 }
 
-export function filterAndSort(templates: MarketplaceTemplate[], f: Filters): MarketplaceTemplate[] {
+export function matchesFilters(t: MarketplaceTemplate, f: Filters): boolean {
+  if (f.category !== "all" && t.category !== f.category) return false
+  if (f.minAts && t.atsScore < f.minAts) return false
+  if (f.tags.length && !f.tags.every((tag) => t.tags.includes(tag))) return false
+
   const q = f.query.trim().toLowerCase()
-  const result = templates.filter((t) => {
-    if (f.category !== "all" && t.category !== f.category) return false
-    if (f.minAts && t.atsScore < f.minAts) return false
-    if (f.tags.length && !f.tags.every((tag) => t.tags.includes(tag))) return false
-    if (q) {
-      const haystack = `${t.name} ${t.description} ${CATEGORY_MAP[t.category]?.name ?? ""} ${t.tags.join(" ")}`.toLowerCase()
-      if (!haystack.includes(q)) return false
+  if (q) {
+    const haystack =
+      `${t.name} ${t.description} ${CATEGORY_MAP[t.category]?.name ?? ""} ${t.tags.join(" ")}`.toLowerCase()
+    if (!haystack.includes(q)) return false
+  }
+
+  return matchesFacets(t, f)
+}
+
+export function filterAndSort(templates: MarketplaceTemplate[], f: Filters): MarketplaceTemplate[] {
+  return templates.filter((t) => matchesFilters(t, f)).sort(SORTERS[f.sort])
+}
+
+/**
+ * How many design families each facet option would yield.
+ *
+ * Counted with that option's OWN group relaxed, so the numbers answer "what do
+ * I get if I add this?" rather than collapsing to zero the moment one option in
+ * the group is picked. Counts families, not variants, because a family is what
+ * the grid renders as a card.
+ */
+export function facetCounts(f: Filters): Record<string, FacetCounts> {
+  const familiesMatching = (predicate: (t: MarketplaceTemplate) => boolean) => {
+    const seen = new Set<string>()
+    for (const t of TEMPLATES) if (predicate(t)) seen.add(t.familyId)
+    return seen.size
+  }
+
+  const countGroup = <T extends string>(
+    key: MultiFilterKey,
+    options: readonly T[],
+    valueOf: (t: MarketplaceTemplate) => T | T[],
+  ): FacetCounts => {
+    const relaxed = { ...f, [key]: [] } as Filters
+    const counts: FacetCounts = {}
+    for (const option of options) {
+      counts[option] = familiesMatching((t) => {
+        if (!matchesFilters(t, relaxed)) return false
+        const value = valueOf(t)
+        return Array.isArray(value) ? value.includes(option) : value === option
+      })
     }
-    return true
-  })
-  return result.sort(SORTERS[f.sort])
+    return counts
+  }
+
+  return {
+    layouts: countGroup("layouts", LAYOUT_VALUES, (t) => t.layout),
+    fonts: countGroup("fonts", FONT_VALUES, (t) => t.font),
+    headers: countGroup("headers", HEADER_VALUES, (t) => t.headerStyle),
+    skillStyles: countGroup("skillStyles", SKILL_STYLE_VALUES, (t) => t.skillStyle),
+    colors: countGroup("colors", COLOR_VALUES, (t) => t.colorFamily),
+    prices: countGroup("prices", PRICE_VALUES, (t) => (t.isPremium ? "premium" : "free")),
+    formats: countGroup("formats", FORMAT_VALUES, (t) => (t.hasDocx ? "pdf-docx" : "pdf-only")),
+    features: countGroup("features", FEATURE_VALUES, (t) =>
+      FEATURE_VALUES.filter((key) =>
+        key === "isNew" ? t.isNew : key === "monogram" ? t.monogram : key === "timeline" ? t.timeline : key === "accentStripe" ? t.accentStripe : t.showRole,
+      ),
+    ),
+    tags: countGroup("tags", ALL_TAGS, (t) => t.tags),
+    minAts: ATS_THRESHOLDS.reduce<FacetCounts>((acc, threshold) => {
+      const relaxed = { ...f, minAts: 0 } as Filters
+      acc[threshold] = familiesMatching((t) => matchesFilters(t, relaxed) && t.atsScore >= threshold)
+      return acc
+    }, {}),
+    category: CATEGORY_VALUES.reduce<FacetCounts>((acc, id) => {
+      const relaxed = { ...f, category: "all" } as Filters
+      acc[id] = familiesMatching((t) => matchesFilters(t, relaxed) && t.category === id)
+      return acc
+    }, {
+      all: familiesMatching((t) => matchesFilters(t, { ...f, category: "all" } as Filters)),
+    }),
+  }
+}
+
+/**
+ * Counts over the unfiltered catalog.
+ *
+ * An option that is zero here can never match anything, so the sidebar drops it
+ * rather than showing a permanently disabled row — "Yellow" and "Pink" have no
+ * templates at all, and a filter that can never do anything is just clutter.
+ * Computed once: the catalog is static.
+ */
+export const BASE_FACET_COUNTS: Record<string, FacetCounts> = facetCounts(DEFAULT_FILTERS)
+
+/** Options within a group that at least one template can match. */
+export function availableOptions<T extends { value: string }>(
+  group: string,
+  options: T[],
+): T[] {
+  const base = BASE_FACET_COUNTS[group]
+  if (!base) return options
+  return options.filter((o) => (base[o.value] ?? 0) > 0)
+}
+
+/** How many facet groups are narrowing the results right now. */
+export function countActiveFilters(f: Filters): number {
+  const multi = MULTI_FILTER_KEYS.reduce((n, key) => n + (f[key] as string[]).length, 0)
+  return multi + (f.minAts !== 0 ? 1 : 0)
 }
 
 export const TRENDING = [...TEMPLATES].sort((a, b) => b.popularityScore - a.popularityScore).slice(0, 6)
@@ -278,4 +503,7 @@ export const ATS_CHAMPIONS = [...TEMPLATES]
   .slice(0, 8)
 
 export const CREATE_BASE = "/free-ats-resume-templates"
-export const useTemplateHref = (templateId: string) => `${CREATE_BASE}/create?template=${templateId}`
+// Not a hook — a pure path builder. It was named useTemplateHref, which made
+// ESLint treat it as one and flag TemplatePreviewModal for calling a hook
+// after an early return.
+export const templateHref = (templateId: string) => `${CREATE_BASE}/create?template=${templateId}`

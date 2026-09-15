@@ -19,11 +19,18 @@ export function TemplatePickerDrawer({ selectedId, onSelect, triggerClassName }:
   const [query, setQuery] = useState("")
   const selectedRef = useRef<HTMLDivElement | null>(null)
 
-  // When the drawer opens, clear any stale search and scroll the currently
-  // selected template into view so it opens positioned at the active design.
+  // Clear any stale search as the drawer opens. Adjusted during render rather
+  // than in an effect, which would show the previous query for a frame.
+  const [lastOpen, setLastOpen] = useState(open)
+  if (open !== lastOpen) {
+    setLastOpen(open)
+    if (open) setQuery("")
+  }
+
+  // Scrolling is a DOM side effect, so it stays in an effect: open the drawer
+  // positioned at the active design rather than at the top of the list.
   useEffect(() => {
     if (!open) return
-    setQuery("")
     const id = window.setTimeout(() => {
       selectedRef.current?.scrollIntoView({ block: "center" })
     }, 150)

@@ -45,13 +45,25 @@ export function StudioTopBar({
         <Brand />
         {/* Mode switcher — your step-form (Guided) UI is preserved; toggle any time */}
         <div className="ml-1 flex items-center gap-0.5 rounded-lg bg-gray-100 p-1" title="Switch editing mode">
-          <button onClick={onExit} className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-white hover:text-gray-900" title="Switch to the step-by-step form editor">
-            <ListChecks className="h-4 w-4" /> Guided
-          </button>
-          <button className="flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-primary shadow-sm" aria-current="true" title="You're in the visual editor (Beta)">
-            <LayoutTemplate className="h-4 w-4" /> Visual
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onExit}
+            title="Switch to the step-by-step form editor"
+            className="h-auto gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-white hover:text-gray-900"
+          >
+            <ListChecks /> Guided
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-current="true"
+            title="You're in the visual editor (Beta)"
+            className="h-auto gap-1.5 bg-white px-3 py-1.5 text-xs font-semibold text-primary shadow-sm hover:bg-white"
+          >
+            <LayoutTemplate /> Visual
             <span className="rounded bg-amber-100 px-1 py-0.5 text-[9px] font-bold uppercase leading-none text-amber-700">Beta</span>
-          </button>
+          </Button>
         </div>
         <div className="mx-1 h-5 w-px bg-gray-200" />
         <TemplatePickerDrawer selectedId={templateId} onSelect={onSelectTemplate} triggerClassName="!h-8 !px-3 !rounded-md !border !border-gray-300 !bg-white !font-medium text-gray-700 hover:!bg-gray-50" />

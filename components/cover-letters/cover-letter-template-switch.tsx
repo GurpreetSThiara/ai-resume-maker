@@ -55,7 +55,7 @@ export function CoverLetterTemplateSwitch() {
     } else if (urlTemplate && !isValidTemplate(urlTemplate)) {
       updateUrlWithTemplate(getDefaultTemplate().value);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [searchParams]);
 
   // Migrate letters saved with a layout that no longer exists
@@ -66,7 +66,7 @@ export function CoverLetterTemplateSwitch() {
       });
       updateUrlWithTemplate(getDefaultTemplate().value);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [currentLayout]);
 
   return (

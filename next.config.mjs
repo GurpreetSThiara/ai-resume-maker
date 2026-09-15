@@ -1,11 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   images: {
     // Serve images as-is (no /_next/image optimization). This avoids Vercel's
     // image-optimization quota entirely — next/image now behaves like a plain
@@ -21,6 +15,8 @@ const nextConfig = {
   },
   reactStrictMode: false,
 async headers() {
+  const isDev = process.env.NODE_ENV !== 'production'
+
   const securityHeaders = [
     { key: 'X-Content-Type-Options', value: 'nosniff' },
     { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
@@ -31,11 +27,17 @@ async headers() {
       // (components/legal/analytics-scripts.tsx) and Next's own inline hydration data.
       value: [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://accounts.google.com",
+        // React and Next's dev tooling need eval() to reconstruct stacks and
+        // report hydration diffs. Without it dev mode silently loses its own
+        // error reporting, so this is dev-only and never shipped to production.
+        `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://www.googletagmanager.com https://accounts.google.com`,
         "style-src 'self' 'unsafe-inline'",
         "img-src 'self' data: blob: https://cdn.jsdelivr.net",
         "font-src 'self' data:",
-        "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://us.i.posthog.com https://ozqvvnfvjxrxtntcetvb.supabase.co wss://ozqvvnfvjxrxtntcetvb.supabase.co https://script.google.com https://accounts.google.com",
+        // The trailing ws:// origins are dev-only: Next's HMR client opens a
+        // websocket back to the dev server, and without them the handshake is
+        // blocked and hot reload silently stops working.
+        `connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://us.i.posthog.com https://ozqvvnfvjxrxtntcetvb.supabase.co wss://ozqvvnfvjxrxtntcetvb.supabase.co https://script.google.com https://accounts.google.com${isDev ? ' ws://localhost:* ws://127.0.0.1:*' : ''}`,
         "frame-src 'self' https://accounts.google.com",
         "object-src 'none'",
         "base-uri 'self'",

@@ -133,12 +133,14 @@ async function compressWithFormat(data: Uint8Array, format: 'br' | 'gzip'): Prom
 // Brotli decompression using Web API (if available) or fallback
 async function decompressBrotli(data: Uint8Array): Promise<Uint8Array> {
   if ('DecompressionStream' in globalThis) {
-    // Use native DecompressionStream if available
-    const stream = new DecompressionStream('br')
+    // 'br' is not in the CompressionFormat union and no engine currently
+    // implements it here — the cast keeps the opportunistic attempt without
+    // claiming the format is standard. The caller falls back on throw.
+    const stream = new DecompressionStream('br' as CompressionFormat)
     const writer = stream.writable.getWriter()
     const reader = stream.readable.getReader()
     
-    writer.write(data)
+    writer.write(data as unknown as BufferSource)
     writer.close()
     
     const chunks: Uint8Array[] = []
@@ -175,7 +177,7 @@ async function decompressGzip(data: Uint8Array): Promise<Uint8Array> {
     }
     const writer = stream.writable.getWriter()
     const reader = stream.readable.getReader()
-    writer.write(data)
+    writer.write(data as unknown as BufferSource)
     writer.close()
     const chunks: Uint8Array[] = []
     while (true) {

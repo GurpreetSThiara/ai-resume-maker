@@ -1,29 +1,34 @@
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { getTemplateById, googleTemplate } from '@/lib/templates'
 import { RESUME_TEMPLATES } from '@/constants/resumeConstants'
 
 
+/**
+ * Resolves the ?template= parameter to a template.
+ *
+ * A pure derivation of the URL and the catalog, so it is computed during render
+ * rather than copied into state by an effect — which rendered once with the
+ * default before correcting itself, and made the URL and the rendered template
+ * briefly disagree.
+ */
 export function useTemplateSelector(availableTemplates: any[]) {
   const searchParams = useSearchParams()
-  const [selectedTemplate, setSelectedTemplate] = useState<any>(googleTemplate)
+  const tplId = searchParams.get('template')
 
-  useEffect(() => {
-    const tplId = searchParams.get('template')
-    if (!tplId) return
+  return useMemo(() => {
+    if (!tplId) return googleTemplate
 
     const normalize = tplId.replace(/_/g, '-').toLowerCase()
 
     let found = getTemplateById(normalize)
     if (found) {
-      setSelectedTemplate(found)
-      return
+      return found
     }
 
     found = availableTemplates.find((t) => t.id === normalize || t.id === tplId)
     if (found) {
-      setSelectedTemplate(found)
-      return
+      return found
     }
 
     const meta = RESUME_TEMPLATES.find((r) => r.id === tplId || r.id === normalize)
@@ -33,8 +38,7 @@ export function useTemplateSelector(availableTemplates: any[]) {
         (t) => t.name.toLowerCase().includes(keyword) || t.id.includes(keyword)
       )
       if (byName) {
-        setSelectedTemplate(byName)
-        return
+        return byName
       }
     }
 
@@ -42,12 +46,9 @@ export function useTemplateSelector(availableTemplates: any[]) {
       (t) => t.id.includes(normalize) || normalize.includes(t.id)
     )
     if (partial) {
-      setSelectedTemplate(partial)
-      return
+      return partial
     }
 
-    setSelectedTemplate(googleTemplate)
-  }, [searchParams, availableTemplates])
-
-  return selectedTemplate
+    return googleTemplate
+  }, [tplId, availableTemplates])
 }

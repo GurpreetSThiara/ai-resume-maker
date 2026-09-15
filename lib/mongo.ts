@@ -1,10 +1,22 @@
-import { MongoClient, ServerApiVersion, Db, Collection } from "mongodb"
+import { MongoClient, ServerApiVersion, Db, Collection, Document } from "mongodb"
 
-let cachedClient: MongoClient | null = null
-let cachedDb: Db | null = null
+/**
+ * The connect *promise* is cached, not the resolved Db.
+ *
+ * Caching the resolved value meant every request arriving before the first
+ * connect() settled missed the cache and constructed its own MongoClient — a
+ * connection storm on any cold start. Caching the promise makes concurrent
+ * callers await the same connection.
+ *
+ * It hangs off globalThis so Next's dev HMR reuses one client across reloads
+ * instead of leaking one per reload.
+ */
+const globalForMongo = globalThis as typeof globalThis & {
+  __mongoDbPromise?: Promise<Db>
+}
 
-export async function getMongoDb(): Promise<Db> {
-  if (cachedDb && cachedClient) return cachedDb
+export function getMongoDb(): Promise<Db> {
+  if (globalForMongo.__mongoDbPromise) return globalForMongo.__mongoDbPromise
 
   const uri = process.env.MONGODB_URI
   if (!uri) {
@@ -19,16 +31,21 @@ export async function getMongoDb(): Promise<Db> {
     },
   })
 
-  await client.connect()
   const dbName = process.env.MONGODB_DB || "resume_builder"
-  const db = client.db(dbName)
 
-  cachedClient = client
-  cachedDb = db
-  return db
+  globalForMongo.__mongoDbPromise = client
+    .connect()
+    .then((connected) => connected.db(dbName))
+    .catch((error) => {
+      // Do not cache a failed connection, or the process can never recover.
+      globalForMongo.__mongoDbPromise = undefined
+      throw error
+    })
+
+  return globalForMongo.__mongoDbPromise
 }
 
-export function getCollection<TSchema = any>(db: Db, name: string): Collection<TSchema> {
+export function getCollection<TSchema extends Document = Document>(db: Db, name: string): Collection<TSchema> {
   return db.collection<TSchema>(name)
 }
 

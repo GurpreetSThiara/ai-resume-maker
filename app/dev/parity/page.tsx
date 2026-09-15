@@ -11,6 +11,7 @@
  * so its 595px page is also ~793px — matched widths for overlay.
  */
 import { useMemo, useRef, useState } from "react"
+import { notFound } from "next/navigation"
 import dynamic from "next/dynamic"
 import { Loader2 } from "lucide-react"
 import ConfigurableResume from "@/components/resumes/shared/ConfigurableResume"
@@ -28,6 +29,11 @@ const PdfPane = dynamic(() => import("./PdfPane"), {
 const CANVAS_W = PAGE_PT.w * PT_TO_PX // ~793px target width for both panes
 
 export default function ParityPage() {
+  // robots.ts disallows /dev/, but that is a crawler hint, not access control.
+  // This harness renders sample data through every template and has no reason
+  // to be reachable in production.
+  if (process.env.NODE_ENV === "production") notFound()
+
   const [templateId, setTemplateId] = useState(availableTemplates[0]?.id || "classic-blue")
   const [mode, setMode] = useState<"side" | "overlay">("side")
   const [opacity, setOpacity] = useState(0.5)

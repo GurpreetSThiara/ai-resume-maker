@@ -1,12 +1,12 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 import Link from "next/link"
 import { ZoomIn, ZoomOut, RotateCcw, ArrowRight } from "lucide-react"
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import {
   CATEGORY_MAP,
-  useTemplateHref,
+  templateHref,
   type MarketplaceTemplate,
 } from "./data"
 import { TemplateThumb } from "./shared"
@@ -24,14 +24,20 @@ const ZOOM_STEP = 0.2
 export function TemplatePreviewModal({ template, open, onOpenChange }: Props) {
   const [zoom, setZoom] = useState(1)
 
-  useEffect(() => {
-    if (open) setZoom(1)
-  }, [open, template?.id])
+  // Reset the zoom when a different template is opened, adjusted during render
+  // rather than in an effect: an effect would paint the previous template's
+  // zoom for a frame before correcting it.
+  const previewKey = `${open}:${template?.id ?? ""}`
+  const [lastPreviewKey, setLastPreviewKey] = useState(previewKey)
+  if (previewKey !== lastPreviewKey) {
+    setLastPreviewKey(previewKey)
+    setZoom(1)
+  }
 
   if (!template) return null
   const category = CATEGORY_MAP[template.category]
   const Icon = category?.icon
-  const templateHref = useTemplateHref(template.templateId)
+  const href = templateHref(template.templateId)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -132,7 +138,7 @@ export function TemplatePreviewModal({ template, open, onOpenChange }: Props) {
             {/* CTAs (desktop — mobile uses the sticky footer below) */}
             <div className="mt-auto hidden space-y-2 pt-6 md:block">
               <Link
-                href={templateHref}
+                href={href}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 Use this template <ArrowRight className="h-4 w-4" aria-hidden />
@@ -147,7 +153,7 @@ export function TemplatePreviewModal({ template, open, onOpenChange }: Props) {
           style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
         >
           <Link
-            href={templateHref}
+            href={href}
             className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white shadow-sm"
           >
             Use this template <ArrowRight className="h-4 w-4" aria-hidden />

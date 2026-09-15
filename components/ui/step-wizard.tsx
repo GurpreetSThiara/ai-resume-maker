@@ -4,6 +4,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useIsMobile } from '@/components/ui/use-mobile';
 
 export interface Step {
   id: number | string;
@@ -37,6 +38,8 @@ export function StepWizard({
   onPreviousStep,
   className = '',
 }: StepWizardProps) {
+  const isMobile = useIsMobile();
+
   const handleNextStep = () => {
     if (currentStep < steps.length - 1) {
       onStepChange(currentStep + 1);
@@ -82,7 +85,7 @@ export function StepWizard({
           onClick={handlePreviousStep}
           disabled={isFirstStep}
           className="flex items-center gap-2 mobile-button btn-mobile"
-          size={typeof window !== 'undefined' && window.innerWidth < 768 ? 'sm' : 'default'}
+          size={isMobile ? 'sm' : 'default'}
         >
           <ChevronLeft className="w-4 h-4" />
           <span className="hidden sm:inline">Previous Step</span>
@@ -95,7 +98,7 @@ export function StepWizard({
           className={`flex items-center gap-2 mobile-button btn-mobile ${
             isLastStep ? 'invisible' : ''
           }`}
-          size={typeof window !== 'undefined' && window.innerWidth < 768 ? 'sm' : 'default'}
+          size={isMobile ? 'sm' : 'default'}
         >
           <span className="hidden sm:inline">Next Step</span>
           <span className="sm:hidden">Next</span>

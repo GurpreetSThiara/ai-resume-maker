@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useRef, useCallback, Suspense, ReactNode } from "react"
+import { useIsBelow, LG_BREAKPOINT } from "@/components/ui/use-mobile"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -72,6 +73,10 @@ const CreateResumeContent: FC = () => {
   const template = useTemplateSelector(availableTemplates)
 
   const [showPreview, setShowPreview] = useState(false)
+  // Below lg the preview is a dialog; at lg and above it is a side panel.
+  // Measured via matchMedia after mount rather than window.innerWidth during
+  // render, which would render a different tree than the server.
+  const isBelowLg = useIsBelow(LG_BREAKPOINT)
   const [isSaving, setIsSaving] = useState(false)
   const [currentResumeId, setCurrentResumeId] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
@@ -743,7 +748,7 @@ const CreateResumeContent: FC = () => {
             {showPreview && (
               <div className="lg:col-span-1">
                 {/* On mobile: Dialog, On desktop: Regular panel */}
-                {typeof window !== 'undefined' && window.innerWidth < 1024 ? (
+                {isBelowLg ? (
                   <Dialog open={showPreview} onOpenChange={setShowPreview}>
                     <DialogContent className="w-full sm:max-w-[95vw] h-[90vh] flex flex-col p-3 sm:p-6">
                       <DialogHeader>

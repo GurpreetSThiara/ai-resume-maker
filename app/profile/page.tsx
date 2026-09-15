@@ -483,7 +483,7 @@ export default function ProfilePage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base sm:text-lg">Preview</CardTitle>
-                    <Button variant="ghost" size="sm" onClick={closePreview}><EyeOff className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="sm" onClick={closePreview} aria-label="Close preview"><EyeOff className="w-4 h-4" /></Button>
                   </div>
                 </CardHeader>
                 <CardContent>

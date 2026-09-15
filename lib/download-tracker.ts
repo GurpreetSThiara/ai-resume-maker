@@ -1,39 +1,36 @@
 import { ObjectId } from "mongodb"
 import { getMongoDb } from "./mongo"
+import type { DownloadCounter, DownloadStats } from "@/types/download"
+import { DOWNLOAD_COUNT_FALLBACK } from "@/config/resumeConfig"
 
-export interface DownloadRecord {
-  _id?: string
-  timestamp: Date
-  userAgent?: string
-  ipAddress?: string
-  resumeId?: string
-  template?: string
-  format: 'pdf' | 'docx'
-}
+export type { DownloadStats }
 
-export interface DownloadStats {
-  totalDownloads: number
+const COUNTER_COLLECTION = 'resume_count'
 
-}
+/** The one counter document every download increments. */
+const COUNTER_ID = new ObjectId("68fcca568ea67f8dc0ba7a27")
 
-// Track a resume download
+/**
+ * Increment the global download counter.
+ *
+ * NOTE: the detail arguments below are accepted but not persisted — this
+ * collection holds a single counter, not per-download rows. Callers pass them
+ * because the signature promises it. Recording them needs a separate
+ * collection; until then they are deliberately unused rather than silently
+ * half-written.
+ */
 export async function trackResumeDownload(
-  format: 'pdf' | 'docx',
-  resumeId?: string,
-  template?: string,
-  userAgent?: string,
-  ipAddress?: string
+  _format: 'pdf' | 'docx',
+  _resumeId?: string,
+  _template?: string,
+  _userAgent?: string,
+  _ipAddress?: string
 ): Promise<void> {
   try {
     const db = await getMongoDb()
-    const downloadsCollection = db.collection<DownloadRecord>('resume_count')
+    const counters = db.collection<DownloadCounter>(COUNTER_COLLECTION)
 
- 
-
-    await downloadsCollection.updateOne(
-        { _id: new ObjectId("68fcca568ea67f8dc0ba7a27") },
-        { $inc: { count: 1 } }
-      );
+    await counters.updateOne({ _id: COUNTER_ID }, { $inc: { count: 1 } }, { upsert: true })
 
   } catch (error) {
     console.error('Error tracking download:', error)
@@ -45,26 +42,16 @@ export async function trackResumeDownload(
 export async function getDownloadStats(): Promise<DownloadStats> {
   try {
     const db = await getMongoDb()
-    const downloadsCollection = db.collection<DownloadRecord>('resume_count')
-    const doc = await downloadsCollection.findOne({ _id: new ObjectId("68fcca568ea67f8dc0ba7a27") });
-    let totalDownloads = 0
-    if (doc) {
-        totalDownloads= doc.count ?? 0
-    } 
+    const counters = db.collection<DownloadCounter>(COUNTER_COLLECTION)
+    const doc = await counters.findOne({ _id: COUNTER_ID })
 
-    return {
-      totalDownloads,
-  
-    }
+    return { totalDownloads: doc?.count ?? 0 }
   } catch (error) {
     console.error('Error getting download stats:', error)
     // Return fallback stats
-    return {
-      totalDownloads: 50000, // Fallback to current hardcoded value
-      downloadsToday: 0,
-      downloadsThisMonth: 0,
-      downloadsThisYear: 0,
-    }
+    // Deliberate fallback so the marketing counter still renders if Mongo is
+    // unreachable. Reflects the figure the page showed before it was live.
+    return { totalDownloads: DOWNLOAD_COUNT_FALLBACK }
   }
 }
 

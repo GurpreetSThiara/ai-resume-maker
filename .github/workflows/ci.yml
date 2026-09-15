@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # `npm ci` runs the postinstall that copies the pdf worker into public/.
+      - run: npm ci
+
+      # No secret may be exposed under a NEXT_PUBLIC_ name. Cheapest check, so
+      # it runs first.
+      - run: npm run check:env
+
+      - run: npm run typecheck
+
+      - run: npm run lint
+
+      # Pure logic — no browser, no build needed, so failures surface fast.
+      - run: npm run test:unit
+
+      - run: npm run build
+        env:
+          # Build-time placeholders. The real values live in the deployment
+          # environment; these only need to exist so the client bundle compiles.
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+
+      # Only chromium — the smoke test asserts what the browser reports, not
+      # cross-browser rendering, so the other two are download time for nothing.
+      - run: npx playwright install --with-deps chromium
+
+      # Visits every route against the production build just produced and fails
+      # on any console error. The gates above all passed while the app threw a
+      # hydration error on every page (fixed in bed273d); this is the one that
+      # would have caught it.
+      - run: npm run test:smoke
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+
+      # Filters, and a real PDF and DOCX downloaded from the editor and checked
+      # for valid file magic — the export engines had no coverage before this.
+      - run: npm run test:flows
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
