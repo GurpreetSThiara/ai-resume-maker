@@ -11,6 +11,7 @@
     "start": "next start",
     "test": "npm run test:unit && npm run test:smoke && npm run test:flows",
     "test:flows": "node tests/flows.mjs",
+    "test:rls": "node tests/rls.mjs",
     "test:smoke": "node tests/smoke.mjs",
     "test:unit": "vitest run",
     "typecheck": "tsc --noEmit"
